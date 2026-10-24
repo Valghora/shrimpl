@@ -10,6 +10,7 @@ values, and generates everything site-specific the Android build needs:
     site_config.py show --site ID                resolved config as JSON
     site_config.py properties --site ID          key=value lines read by app/build.gradle.kts
     site_config.py generate --site ID --kotlin-out DIR --res-out DIR --manifest-out FILE
+    site_config.py prune-apks --site ID          keep the APKs of the last 3 versions built
 
 Standard library only (Python 3.11+ for tomllib).
 """
@@ -507,6 +508,36 @@ def generate(c, kotlin_out, res_out, manifest_out):
     generate_icons.generate(c, Path(c["SITE_DIR"]), res_out)
 
 
+# ---------- Built APKs ----------
+
+APK_VERSIONS_KEPT = 3
+
+
+def prune_apks(site_id, keep=APK_VERSIONS_KEPT):
+    """Deletes sites/<id>/apks/<version>/ folders beyond the `keep` most recently built ones.
+
+    Recency is the newest file in each folder. The current VERSION_NAME is always kept. Returns the
+    removed version names.
+    """
+    import shutil
+
+    root = site_dir(site_id) / "apks"
+    if not root.is_dir():
+        return []
+    current = load(site_id)["VERSION_NAME"]
+
+    def built_at(folder):
+        return max((f.stat().st_mtime for f in folder.iterdir()), default=folder.stat().st_mtime)
+
+    folders = sorted((d for d in root.iterdir() if d.is_dir()),
+                     key=lambda d: (d.name == current, built_at(d), d.name), reverse=True)
+    removed = []
+    for folder in folders[keep:]:
+        shutil.rmtree(folder)
+        removed.append(folder.name)
+    return removed
+
+
 # ---------- CLI ----------
 
 def main():
@@ -518,7 +549,7 @@ def main():
     group = p_validate.add_mutually_exclusive_group(required=True)
     group.add_argument("--site")
     group.add_argument("--all", action="store_true")
-    for name in ("show", "properties"):
+    for name in ("show", "properties", "prune-apks"):
         sub.add_parser(name).add_argument("--site", required=True)
     p_gen = sub.add_parser("generate")
     p_gen.add_argument("--site", required=True)
@@ -564,6 +595,9 @@ def main():
             print("\n".join(f"{k}={v}" for k, v in props.items()))
         elif args.command == "generate":
             generate(load(args.site), args.kotlin_out, args.res_out, args.manifest_out)
+        elif args.command == "prune-apks":
+            for version in prune_apks(args.site):
+                print(f"removed old APKs: sites/{args.site}/apks/{version}/")
         return 0
     except (ConfigError, generate_icons.IconError) as exc:
         print(f"error: {exc}", file=sys.stderr)

@@ -69,6 +69,7 @@ if [[ $quick == 1 ]]; then
   rm -f "$(prop apkDir)"/*.apk
   cp app/build/outputs/apk/debug/app-debug.apk "$(prop apkDir)/$(prop debugApkName)"
   cp "$(prop releaseApkPath)" "$(prop apkDir)/$(prop releaseApkName)"
+  python3 scripts/site_config.py prune-apks --site "$site"
 else
   step "Building and verifying $site"
   SITE="$site" scripts/ci_verify.sh

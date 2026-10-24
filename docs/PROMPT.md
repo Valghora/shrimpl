@@ -61,7 +61,7 @@ Computed by `scripts/site_config.py` (shown by `site_config.py show --site <id>`
 - ALLOWED_ORIGIN_RULES: for each domain d in INTERNAL_DOMAINS: `"https://d"` and `"https://*.d"`
 - UA_FEATURES_ACTIVE: true only if USER_AGENT_OVERRIDE is empty (otherwise R6.10 and R6.11 stay inactive).
 - DEBUG_APK_NAME: `"<<APP_ID>>-debug.apk"`. RELEASE_APK_NAME / RELEASE_APK_PATH: `"<<APP_ID>>-release.apk"` / `app/build/outputs/apk/release/app-release.apk`, or the `-release-unsigned` variants when RELEASE_SIGNING is `"unsigned"`.
-- APK_DIR: `sites/<<APP_ID>>/apks/<<VERSION_NAME>>` (gitignored). VERSION_NAME may contain only letters, digits and `. _ + -`.
+- APK_DIR: `sites/<<APP_ID>>/apks/<<VERSION_NAME>>` (gitignored). After each build, `site_config.py prune-apks` keeps only the 3 most recently built version folders (always including the current VERSION_NAME). VERSION_NAME may contain only letters, digits and `. _ + -`.
 - GRADLE_FLAGS: `--project-cache-dir="$HOME/.cache/projects/$(basename "$PWD")-$(pwd -P | sha1sum | cut -c1-8)/gradle" -Psite=<<APP_ID>>`   (if sha1sum is missing, use `"shasum -a 1"`)
 
 </derived_values>
@@ -293,7 +293,7 @@ Phase 6: Full verification
   4. `aapt2 dump badging` on the DEBUG APK: package = PACKAGE_NAME; the min SDK line (`sdkVersion:` or `minSdkVersion:`) = 37; targetSdkVersion = 37; the icon on the application: and launchable-activity: lines matches `res/mipmap-anydpi(-v\d+)?/ic_launcher.xml`.
   5. `python3 scripts/generate_icons.py --verify <generated res dir>` exits 0.
   6. Static checks (no matches unless stated): core imports of `android.`/`androidx.`/`com.google.android.`; `addJavascriptInterface|@JavascriptInterface` in app/src; `screenOrientation|minAspectRatio|maxAspectRatio` in the template and generated manifests; `"<<|>>"` in app/src, the generated sources, scripts/generate_icons.py and the Gradle files (Kotlin: string literals only); `userAgentString\s*=` in app/src/main exactly once, inside applyWebSettings.
-  7. Copy the APKs to `<<APK_DIR>>/<<DEBUG_APK_NAME>>` and `<<APK_DIR>>/<<RELEASE_APK_NAME>>`, replacing any APKs already in APK_DIR (other versions are kept); verify the release signature with apksigner and report the signer.
+  7. Copy the APKs to `<<APK_DIR>>/<<DEBUG_APK_NAME>>` and `<<APK_DIR>>/<<RELEASE_APK_NAME>>`, replacing any APKs already in APK_DIR, then run `site_config.py prune-apks` (the last 3 versions built are kept); verify the release signature with apksigner and report the signer.
 
 </execution_plan>
 

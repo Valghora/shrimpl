@@ -174,7 +174,7 @@ ua_count="$(grep -c . <<<"$ua_hits" || true)"
 echo "$ua_hits"
 if [[ "$ua_count" == 1 ]]; then record PASS "6.6 exactly one userAgentString ="; else record FAIL "6.6 userAgentString = count is $ua_count (expected 1, inside applyWebSettings)"; fi
 
-# 6.7 sites/<id>/apks/<version>/ (a rebuild of the same version replaces its APKs)
+# 6.7 sites/<id>/apks/<version>/ (a rebuild of the same version replaces its APKs; the last 3 versions are kept)
 section "6.7 APKs"
 mkdir -p "$APK_DIR"
 rm -f "$APK_DIR"/*.apk
@@ -182,6 +182,7 @@ if [[ -f "$DEBUG_APK" && -f "$RELEASE_APK" ]]; then
   cp "$DEBUG_APK" "$APK_DIR/$DEBUG_NAME"
   cp "$RELEASE_APK" "$APK_DIR/$RELEASE_NAME"
   ls -l "$APK_DIR"
+  python3 scripts/site_config.py prune-apks --site "$SITE"
   record PASS "6.7 $APK_DIR/$DEBUG_NAME $APK_DIR/$RELEASE_NAME"
 else
   record FAIL "6.7 APKs missing"

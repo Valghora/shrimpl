@@ -1,5 +1,6 @@
 """Tests for scripts/site_config.py. Run: python3 -m unittest discover -s scripts/tests"""
 
+import os
 import shutil
 import sys
 import tempfile
@@ -183,6 +184,24 @@ class SiteConfigTest(unittest.TestCase):
         self.assertTrue((out / "res/values/site.xml").is_file())
         self.assertTrue((out / "res/mipmap-anydpi/ic_launcher.xml").is_file())
         self.assertTrue((out / "manifest/AndroidManifest.xml").is_file())
+
+
+    def test_prune_apks_keeps_last_three_versions_built(self):
+        self.make_site("discord", {**DISCORD, "VERSION_NAME": "1.0.0"})
+        apks = self.tmp / "discord" / "apks"
+        # Built in this order; 1.0.0 (the current version) was rebuilt first, long ago.
+        for age, version in ((50, "1.0.0"), (40, "0.9.0"), (30, "2.0.0"), (20, "1.5.0"), (10, "1.6.0")):
+            (apks / version).mkdir(parents=True)
+            apk = apks / version / "discord-debug.apk"
+            apk.write_bytes(b"apk")
+            os.utime(apk, (1_000_000 - age, 1_000_000 - age))
+        self.assertEqual(["2.0.0", "0.9.0"], site_config.prune_apks("discord"))
+        self.assertEqual(["1.0.0", "1.5.0", "1.6.0"], sorted(p.name for p in apks.iterdir()))
+        self.assertEqual([], site_config.prune_apks("discord"))
+
+    def test_prune_apks_without_builds(self):
+        self.make_site("discord", DISCORD)
+        self.assertEqual([], site_config.prune_apks("discord"))
 
 
 class RepositorySitesTest(unittest.TestCase):
