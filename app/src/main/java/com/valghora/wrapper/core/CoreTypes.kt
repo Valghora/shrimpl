@@ -1,4 +1,4 @@
-package com.valghora.pwa.discord.core
+package com.valghora.wrapper.core
 
 enum class UaMode { AUTO, DESKTOP, MOBILE }
 

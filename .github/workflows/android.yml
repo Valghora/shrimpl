@@ -12,12 +12,39 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
+env:
+  ANDROID_HOME: /home/runner/android-sdk
+
 jobs:
+  sites:
+    name: Validate sites and scripts
+    runs-on: ubuntu-latest
+    outputs:
+      sites: ${{ steps.list.outputs.sites }}
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Validate every site config
+        run: python3 scripts/site_config.py validate --all
+
+      - name: Script tests
+        run: python3 -m unittest discover -s scripts/tests -v
+
+      - name: List sites
+        id: list
+        run: echo "sites=$(python3 scripts/site_config.py list --json)" >> "$GITHUB_OUTPUT"
+
   build:
+    name: Build ${{ matrix.site }}
+    needs: sites
     runs-on: ubuntu-latest
     timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        site: ${{ fromJSON(needs.sites.outputs.sites) }}
     env:
-      ANDROID_HOME: /home/runner/android-sdk
+      HAS_SIDELOAD_KEY: ${{ secrets.SIDELOAD_KEYSTORE_B64 != '' }}
     steps:
       - uses: actions/checkout@v7
 
@@ -33,7 +60,7 @@ jobs:
 
       - name: Resolve compileSdk
         id: sdk
-        run: echo "api=$(grep -oE 'compileSdk[^0-9]*[0-9]+' app/build.gradle.kts 2>/dev/null | grep -oE '[0-9]+$' || echo 37)" >> "$GITHUB_OUTPUT"
+        run: echo "api=$(grep -oE '^COMPILE_SDK\s*=\s*[0-9]+' sites/defaults.toml | grep -oE '[0-9]+$' || echo 37)" >> "$GITHUB_OUTPUT"
 
       - name: Cache Android SDK
         uses: actions/cache@v6
@@ -44,22 +71,34 @@ jobs:
       - name: Set up Android SDK and check tools
         run: scripts/setup_android_sdk.sh
 
+      - name: Sideload signing key
+        if: env.HAS_SIDELOAD_KEY == 'true'
+        env:
+          KEYSTORE_B64: ${{ secrets.SIDELOAD_KEYSTORE_B64 }}
+        run: |
+          echo "$KEYSTORE_B64" | base64 -d > "$RUNNER_TEMP/sideload.jks"
+          echo "SIDELOAD_KEYSTORE=$RUNNER_TEMP/sideload.jks" >> "$GITHUB_ENV"
+
       - name: Verify (Phase 6)
+        env:
+          SITE: ${{ matrix.site }}
+          SIDELOAD_KEYSTORE_PASSWORD: ${{ secrets.SIDELOAD_KEYSTORE_PASSWORD }}
+          SIDELOAD_KEY_ALIAS: ${{ secrets.SIDELOAD_KEY_ALIAS }}
+          SIDELOAD_KEY_PASSWORD: ${{ secrets.SIDELOAD_KEY_PASSWORD }}
         run: scripts/ci_verify.sh
 
       - name: Upload APKs
-        if: success() && hashFiles('dist/*.apk') != ''
+        if: success()
         uses: actions/upload-artifact@v7
         with:
-          name: apks
-          path: dist/*.apk
-          if-no-files-found: ignore
+          name: apks-${{ matrix.site }}
+          path: sites/${{ matrix.site }}/apks/
 
       - name: Upload reports
         if: always() && hashFiles('app/build/reports/**') != ''
         uses: actions/upload-artifact@v7
         with:
-          name: reports
+          name: reports-${{ matrix.site }}
           path: |
             app/build/reports/
             app/build/test-results/

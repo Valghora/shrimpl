@@ -2,6 +2,7 @@
 .kotlin/
 build/
 dist/
+sites/*/apks/**/*-debug.apk
 local.properties
 .idea/
 *.iml
@@ -10,3 +11,7 @@ captures/
 .externalNativeBuild/
 .cxx/
 __pycache__/
+sites/defaults.local.toml
+*.jks
+*.keystore
+sites/*/discovery.json

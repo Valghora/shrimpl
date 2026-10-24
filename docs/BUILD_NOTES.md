@@ -94,7 +94,6 @@ tasks.register<JacocoCoverageVerification>("jacocoTestCoverageVerification") {
   for the caption-bar constants (API 35) and `PROPERTY_SUPPORTS_MULTI_INSTANCE_SYSTEM_UI` (API 35).
 - Lint warns `DataExtractionRules` on `allowBackup="false"` (it is a warning, not an error, so
   Phase 6.2 still passes). List it among the remaining warnings.
-- No emulator or KVM is available in the cloud container, so Phase 6.8 (adb) cannot run here.
 
 ## Phase 0 research for the Discord build (2026-10-24)
 
@@ -144,3 +143,33 @@ Pages read; findings that affect this build. None overrides an R-requirement.
 - `scripts/ci_verify.sh` now fails if the JaCoCo report has no core classes, checks the release
   signature with `apksigner`, and scans only `app/src`, `scripts/generate_icons.py` and the Gradle
   files for `<<`/`>>`.
+
+## Site templates (2026-10-24)
+
+The app became a template: one code base, one config file per site (`sites/<id>/site.toml`).
+
+- **Generation through the AGP variant API.** `GenerateSiteSources` (one per variant) runs
+  `scripts/site_config.py generate` and is wired in with `sources.kotlin`/`sources.res
+  .addGeneratedSourceDirectory` and `sources.manifests.addGeneratedManifestFile`. Build properties
+  (applicationId, versions, SDK, signing) are read at configuration time with `providers.exec`,
+  which keeps the configuration cache valid; it is invalidated when the site files change.
+- **Fixed namespace.** Code lives in `com.valghora.wrapper`; only the applicationId varies, so the
+  Kotlin sources, tests and JaCoCo filters are identical for every site.
+- **POST_NOTIFICATIONS is always declared.** With it conditional, lint fails sites with
+  notifications off (MissingPermission / NotificationPermission on the always-compiled notification
+  code). The permission is only requested when ALLOW_NOTIFICATIONS.
+- **Discord equivalence.** The Discord APK built from the template matches the pre-template build
+  (manifest, resources, icons, permissions), apart from the activity class package, the auto
+  versionCode, the theme name and one new string.
+- **Icons.** `generate_icons.py` gained raster (`<inset>` around a PNG/WebP, 9dp maskable / 21dp
+  plain) and letter modes. Letter glyphs come from DejaVu Sans Bold, extracted once into
+  `scripts/letter_glyphs.json` by `scripts/dev/extract_letter_glyphs.py` (a tiny TrueType parser).
+  WebP sizes are parsed from the VP8/VP8L/VP8X headers.
+- **Discovery.** Playwright 1.63.0 with Chromium. Chrome reports computed colors as `oklab()` in some
+  cases, so the collector normalizes every color through a 1x1 canvas to sRGB hex. Registrable
+  domains use the Public Suffix List (cached in `~/.cache/universal-android-wrapper`). simple-icons
+  metadata (`data/simple-icons.json` from the simple-icons repo) is downloaded and cached for 7 days; slugs follow simple-icons' `titleToSlug`.
+  An auth redirect (for example to `/login`) is not taken as START_URL.
+- **Enrich.** `anthropic` SDK 2.3.0, model `claude-opus-5-5`, structured JSON output, and the
+  `server-side-fallback-2026-07-01` beta with `fallbacks="default"`. Verified offline and with an
+  invalid key (clean 401 message); not run with a live key here.
