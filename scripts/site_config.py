@@ -429,15 +429,16 @@ def render_values(c, night=False):
 
 def render_manifest(c):
     features = ["android.hardware.type.pc", "android.hardware.touchscreen"]
-    permissions = ["android.permission.INTERNET"]
+    # POST_NOTIFICATIONS is always declared: the template's notification code is compiled in
+    # (lint requires the declaration); it is a runtime permission requested only when
+    # ALLOW_NOTIFICATIONS is true, so disabled sites never prompt for it.
+    permissions = ["android.permission.INTERNET", "android.permission.POST_NOTIFICATIONS"]
     if c["ALLOW_MICROPHONE"]:
         features.append("android.hardware.microphone")
         permissions += ["android.permission.RECORD_AUDIO", "android.permission.MODIFY_AUDIO_SETTINGS"]
     if c["ALLOW_CAMERA"]:
         features += ["android.hardware.camera", "android.hardware.camera.autofocus"]
         permissions.append("android.permission.CAMERA")
-    if c["ALLOW_NOTIFICATIONS"]:
-        permissions.append("android.permission.POST_NOTIFICATIONS")
     launch_mode = "singleInstancePerTask" if c["ENABLE_MULTI_WINDOW"] else "singleTask"
     multi_instance = (
         "\n            <property\n"

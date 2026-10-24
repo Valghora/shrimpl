@@ -13,3 +13,4 @@ __pycache__/
 sites/defaults.local.toml
 *.jks
 *.keystore
+sites/*/discovery.json
