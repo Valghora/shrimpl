@@ -1,17 +1,23 @@
 # Universal APK Wrapper
 
 <role>
+
 You are a senior Android engineer working on your own in a terminal with file-system and network access. You will produce a complete, buildable Android Studio project that wraps one website in a WebView so it behaves like an installed PWA. It must work well on Android desktops (Googlebook OS and Android desktop windowing), tablets, and phones.
+
 </role>
 
 <how_to_read_this_prompt>
-- Only the <config> block is specific to one app. Everything else is generic and refers to config values as <<KEY>>.
-- NEVER write the characters "<<" or ">>" into any generated file. Always substitute the resolved value.
+
+- Only the `<config>` block is specific to one app. Everything else is generic and refers to config values as `<<KEY>>`.
+- NEVER write the characters `"<<"` or `">>"` into any generated file. Always substitute the resolved value.
 - Requirements have IDs (R1.1, R6.3, ...). MUST = mandatory. SHOULD = do it unless there is a technical conflict, and if you skip it, record why in the Deviations table.
 - Follow the Execution Plan in order. Do not start a phase until the gate for the previous phase passes.
+
 </how_to_read_this_prompt>
 
 <config>
+
+```yaml
 # ---------- Identity ----------
 APP_NAME: "Discord"
 PACKAGE_PREFIX: "com.valghora.pwa"
@@ -67,52 +73,60 @@ APP_SHORTCUTS: [
   {"label": "Toggle Deafen",  "key": "KEYCODE_D", "modifiers": ["CTRL", "SHIFT"]}
 ]
 NEW_WINDOW_SHORTCUT: null                  # e.g. {"key": "KEYCODE_N", "modifiers": ["CTRL"]}; null = none
+```
+
 </config>
 
 <derived_values>
+
 Compute these in Phase 0 and print them as a table before creating any file. Use them verbatim afterward.
-- APP_ID: lowercase(APP_NAME) with every character outside [a-z0-9] removed. If the result is empty or starts with a digit, prefix "app". (e.g. "Discord" -> "discord", "Proton Mail" -> "protonmail")
-- PACKAGE_NAME: <<PACKAGE_PREFIX>>.<<APP_ID>>
-- CORE_PACKAGE: <<PACKAGE_NAME>>.core
-- NOTIFICATION_CHANNEL_ID: "<<APP_ID>>_notifications"
+- APP_ID: lowercase(APP_NAME) with every character outside `[a-z0-9]` removed. If the result is empty or starts with a digit, prefix "app". (e.g. "Discord" -> "discord", "Proton Mail" -> "protonmail")
+- PACKAGE_NAME: `<<PACKAGE_PREFIX>>.<<APP_ID>>`
+- CORE_PACKAGE: `<<PACKAGE_NAME>>.core`
+- NOTIFICATION_CHANNEL_ID: `"<<APP_ID>>_notifications"`
 - HEADER_NIGHT: HEADER_SURFACE_HEX_NIGHT, or HEADER_SURFACE_HEX if empty
 - USES_NIGHT_RESOURCES: true only if HEADER_NIGHT != HEADER_SURFACE_HEX
 - HEADER_IS_DARK / HEADER_NIGHT_IS_DARK: true if the color's WCAG contrast ratio against white is >= its contrast ratio against black
-- ALLOWED_ORIGIN_RULES: for each domain d in INTERNAL_DOMAINS: "https://d" and "https://*.d"
+- ALLOWED_ORIGIN_RULES: for each domain d in INTERNAL_DOMAINS: `"https://d"` and `"https://*.d"`
 - UA_FEATURES_ACTIVE: true only if USER_AGENT_OVERRIDE is empty (otherwise R6.10 and R6.11 are not generated)
 - JDK_TOOLCHAIN: the major version of the installed JDK (must be >= 17)
-- DEBUG_APK_NAME: "<<APP_ID>>-debug.apk"
-- RELEASE_APK_NAME: "<<APP_ID>>-release.apk" if SIGN_RELEASE_WITH_DEBUG_KEY, otherwise "<<APP_ID>>-release-unsigned.apk"
-- RELEASE_APK_PATH: app/build/outputs/apk/release/app-release.apk if SIGN_RELEASE_WITH_DEBUG_KEY, otherwise app/build/outputs/apk/release/app-release-unsigned.apk
-- GRADLE_FLAGS: --project-cache-dir="$HOME/.cache/projects/$(basename "$PWD")-$(pwd -P | sha1sum | cut -c1-8)/gradle"   (if sha1sum is missing, use "shasum -a 1")
+- DEBUG_APK_NAME: `"<<APP_ID>>-debug.apk"`
+- RELEASE_APK_NAME: `"<<APP_ID>>-release.apk"` if SIGN_RELEASE_WITH_DEBUG_KEY, otherwise `"<<APP_ID>>-release-unsigned.apk"`
+- RELEASE_APK_PATH: `app/build/outputs/apk/release/app-release.apk` if SIGN_RELEASE_WITH_DEBUG_KEY, otherwise `app/build/outputs/apk/release/app-release-unsigned.apk`
+- GRADLE_FLAGS: `--project-cache-dir="$HOME/.cache/projects/$(basename "$PWD")-$(pwd -P | sha1sum | cut -c1-8)/gradle"`   (if sha1sum is missing, use `"shasum -a 1"`)
+
 </derived_values>
 
 <precedence>
+
 If two instructions conflict, the higher item wins:
 1. Platform and build correctness: it compiles, installs, and runs on MIN_SDK..TARGET_SDK.
 2. Requirements in this prompt (R-numbered).
-3. Values in <config>.
+3. Values in `<config>`.
 4. Researched Google guidance for Googlebook OS / Android desktop / large screens / phones.
 Every deviation from items 2–4 MUST appear in the final Deviations table with the reason.
+
 </precedence>
 
 <non_goals>
+
 Do not implement: Jetpack Compose, NDK/JNI, analytics, crash reporting, custom offline pages, verified App Links / intent filters for web URLs, blob:/data: downloads, geolocation, foreground services, WakeLocks, custom keystores or any signing other than R1.6, or changing the user agent when the window is resized.
+
 </non_goals>
 
 <requirements>
 
 ## R1 Build and architecture
 - R1.1 MUST use Kotlin with AndroidX Views. The only allowed runtime dependencies are androidx.core:core-ktx, androidx.appcompat:appcompat, com.google.android.material:material, androidx.activity:activity-ktx, and androidx.webkit:webkit. The only test dependency is junit:junit (4.x). Remove all Compose and template dependencies. No native code, no abiFilters, no ABI splits. The APK must contain zero .so files.
-- R1.2 MUST use the latest stable AGP, Gradle, and Kotlin versions that support COMPILE_SDK <<COMPILE_SDK>> (confirm in Phase 0 from maven.google.com/services.gradle.org metadata). Use a version catalog (gradle/libs.versions.toml) and `kotlin { jvmToolchain(<<JDK_TOOLCHAIN>>) }`; never pin a JDK version that is not installed. If the AGP version has built-in Kotlin support, do not also apply the standalone kotlin-android plugin. If Maven Central rate-limits dependency resolution (HTTP 429), you MAY list Google's mirror https://maven-central.storage-download.googleapis.com/maven2/ before mavenCentral(); record it in docs/BUILD_NOTES.md.
-- R1.3 MUST set namespace = applicationId = <<PACKAGE_NAME>>, versionCode = <<VERSION_CODE>>, versionName = "<<VERSION_NAME>>", rootProject.name = "<<APP_ID>>".
+- R1.2 MUST use the latest stable AGP, Gradle, and Kotlin versions that support COMPILE_SDK `<<COMPILE_SDK>>` (confirm in Phase 0 from maven.google.com/services.gradle.org metadata). Use a version catalog (gradle/libs.versions.toml) and `kotlin { jvmToolchain(<<JDK_TOOLCHAIN>>) }`; never pin a JDK version that is not installed. If the AGP version has built-in Kotlin support, do not also apply the standalone kotlin-android plugin. If Maven Central rate-limits dependency resolution (HTTP 429), you MAY list Google's mirror https://maven-central.storage-download.googleapis.com/maven2/ before mavenCentral(); record it in docs/BUILD_NOTES.md.
+- R1.3 MUST set namespace = applicationId = `<<PACKAGE_NAME>>`, versionCode = `<<VERSION_CODE>>`, versionName = `"<<VERSION_NAME>>"`, rootProject.name = `"<<APP_ID>>"`.
 - R1.4 MUST enable R8 on release builds (isMinifyEnabled = true, isShrinkResources = true, proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")). proguard-rules.pro contains no keep rules unless the code genuinely needs one. (There is no @JavascriptInterface in this design, per R7.6.)
 - R1.5 SDK-check rule: wrap an API in a Build.VERSION.SDK_INT check only when its API level is greater than MIN_SDK. Never guard APIs at or below MIN_SDK (this triggers the ObsoleteSdkInt lint warning). Prefer AndroidX compat APIs when they remove the need for a check. Features that depend on the installed WebView version (androidx.webkit) are checked at runtime with WebViewFeature.isFeatureSupported, never with SDK_INT. Each androidx.webkit call MUST sit directly inside an `if (WebViewFeature.isFeatureSupported(X))` block for its own feature X (nest the checks; lint's RequiresFeature does not follow `a && b`).
 - R1.6 If SIGN_RELEASE_WITH_DEBUG_KEY, MUST set `signingConfig = signingConfigs.getByName("debug")` on the release build type. Do not create keystores or signing properties.
 
 ## R2 Pure-JVM core (testable logic)
-- R2.1 MUST: no file in CORE_PACKAGE imports android.*, androidx.*, or com.google.android.*.
-- R2.2 MUST create CORE_PACKAGE/AppConfig.kt as a Kotlin `object` holding every <config> value and derived value as typed constants (`const val` for strings, numbers and booleans). Represent shortcuts as `data class ShortcutSpec(val label: String, val keyName: String, val modifiers: Set<Modifier>)` with `enum class Modifier { CTRL, SHIFT, ALT, META }`. The Android layer maps keyName to a key code with KeyEvent.keyCodeFromString. USER_AGENT_MODE is stored as `UaMode`. AppConfig.kt is the single source of truth: scripts/generate_icons.py reads ICON_SVG, ICON_BACKGROUND_HEX and ICON_FOREGROUND_HEX from it.
+- R2.1 MUST: no file in CORE_PACKAGE imports `android.*`, `androidx.*`, or `com.google.android.*`.
+- R2.2 MUST create CORE_PACKAGE/AppConfig.kt as a Kotlin `object` holding every `<config>` value and derived value as typed constants (`const val` for strings, numbers and booleans). Represent shortcuts as `data class ShortcutSpec(val label: String, val keyName: String, val modifiers: Set<Modifier>)` with `enum class Modifier { CTRL, SHIFT, ALT, META }`. The Android layer maps keyName to a key code with KeyEvent.keyCodeFromString. USER_AGENT_MODE is stored as `UaMode`. AppConfig.kt is the single source of truth: scripts/generate_icons.py reads ICON_SVG, ICON_BACKGROUND_HEX and ICON_FOREGROUND_HEX from it.
 - R2.3 MUST create CORE_PACKAGE/DesktopSessionController.kt. Dependencies are passed in through the constructor: `interface ZoomStore { fun load(): Int?; fun save(value: Int) }`, `interface UaStore { var userChoice: UaMode?; var learnedDesktop: Boolean }`, and a `data class SessionConfig` (internal/OAuth domains, PAUSE_ON_POWER_SAVE, ENABLE_MULTI_WINDOW, APP_SHORTCUTS, NEW_WINDOW_SHORTCUT) whose defaults come from AppConfig, so tests can cover config-dependent branches. Small helper classes in CORE_PACKAGE are allowed. It is responsible for:
   a. URL classification `classify(url)` returning one of INTERNAL, OAUTH, EXTERNAL, PASSTHROUGH (about:, blob:, data:, javascript:), SPECIAL_SCHEME (intent:, mailto:, tel:, sms:, market:, and other non-http schemes), or BLOCKED (malformed URL, or http(s) without a host). Host matching is case-insensitive: host == d OR host ends with "." + d (a trailing dot on the host is ignored). Parse with java.net.URI, and ignore user-info.
   b. Text zoom: range 50–300 %, steps of 10, default 100. Expose `val textZoom: Int` (loaded from ZoomStore at construction) and `zoomIn()`, `zoomOut()`, `resetZoom()`, each returning the new value. Values are clamped, persisted via ZoomStore, and an invalid stored value snaps to the nearest valid step.
@@ -124,11 +138,11 @@ Do not implement: Jetpack Compose, NDK/JNI, analytics, crash reporting, custom o
      - `resolveUaMode(configMode: UaMode, isLargeOrPc: Boolean, userChoice: UaMode?, learnedDesktop: Boolean): UaMode` returns resolveUa(...).mode.
      - `buildUserAgent(defaultUa: String, mode: UaMode, override: String): String`:
        - override non-empty: return the override.
-       - DESKTOP: "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/<ver> Safari/537.36", where <ver> is taken from "Chrome/<ver>" in defaultUa. If no Chrome version is found, return the MOBILE result.
+       - DESKTOP: `"Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/<ver> Safari/537.36"`, where `<ver>` is taken from `"Chrome/<ver>"` in defaultUa. If no Chrome version is found, return the MOBILE result.
        - MOBILE: defaultUa with "; wv" and " Version/<x.y>" removed.
      - `isStoreRedirect(url: String): Boolean`: true for any market: URI; for intent: URIs containing "package=" or a URL-decoded S.browser_fallback_url pointing to play.google.com/store/apps; and for http(s)://play.google.com/store/apps (exactly, or followed by "/"). Everything else, including intent: URIs without package= and play.google.com/store/(books|movies|...), returns false.
      - `toggleTarget(current: UaMode): UaMode` returns MOBILE for DESKTOP, otherwise DESKTOP.
-  g. Shortcut validation `validateShortcuts(): List<String>`: report errors for key names that don't match ^KEYCODE_[A-Z0-9_]+$, for blank labels, for any APP_SHORTCUTS entry that resolves to a built-in from R2.3c (including NEW_WINDOW), and for a NEW_WINDOW_SHORTCUT that resolves to RELOAD/ZOOM_*.
+  g. Shortcut validation `validateShortcuts(): List<String>`: report errors for key names that don't match `^KEYCODE_[A-Z0-9_]+$`, for blank labels, for any APP_SHORTCUTS entry that resolves to a built-in from R2.3c (including NEW_WINDOW), and for a NEW_WINDOW_SHORTCUT that resolves to RELOAD/ZOOM_*.
   h. `isDarkColor(hex)`, using the rule from <derived_values> (throws IllegalArgumentException on invalid input), and `parseHex(hex): Int?` validation for #RRGGBB.
 - R2.4 MUST write JUnit 4 tests:
   - DesktopSessionControllerTest.kt covering all branches of a–h, using SessionConfig to reach config-dependent branches. Include subdomain matching, look-alike hosts such as "notdiscord.com" and "discord.com.evil.example", user-info tricks such as "https://discord.com@evil.example/", malformed URLs, zoom bounds and snapping, and repeated key events. It also covers:
@@ -153,12 +167,12 @@ Do not implement: Jetpack Compose, NDK/JNI, analytics, crash reporting, custom o
 
 ## R4 Manifest and adaptive windowing
 - R4.1 MUST NOT use android:screenOrientation, android:minAspectRatio, android:maxAspectRatio, resizeableActivity="false", or setRequestedOrientation anywhere.
-- R4.2 MUST declare <uses-feature android:required="false"> for android.hardware.type.pc and android.hardware.touchscreen. Add android.hardware.microphone only if ALLOW_MICROPHONE, and android.hardware.camera plus android.hardware.camera.autofocus only if ALLOW_CAMERA.
+- R4.2 MUST declare `<uses-feature android:required="false">` for android.hardware.type.pc and android.hardware.touchscreen. Add android.hardware.microphone only if ALLOW_MICROPHONE, and android.hardware.camera plus android.hardware.camera.autofocus only if ALLOW_CAMERA.
 - R4.3 MUST declare exactly these permissions: INTERNET always; RECORD_AUDIO and MODIFY_AUDIO_SETTINGS only if ALLOW_MICROPHONE; CAMERA only if ALLOW_CAMERA; POST_NOTIFICATIONS only if ALLOW_NOTIFICATIONS.
-- R4.4 MUST set these on <application>: android:label="@string/app_name", android:icon="@mipmap/ic_launcher", android:roundIcon="@mipmap/ic_launcher_round", android:theme, android:hardwareAccelerated="true", android:allowBackup="false", android:dataExtractionRules="@xml/data_extraction_rules", android:enableOnBackInvokedCallback="true". res/xml/data_extraction_rules.xml MUST exclude the root, file, database, sharedpref and external domains under both <cloud-backup> and <device-transfer> (since Android 12, allowBackup="false" does not stop device-to-device transfer, and session cookies must never leave the device). Do not set usesCleartextTraffic.
+- R4.4 MUST set these on `<application>`: android:label="@string/app_name", android:icon="@mipmap/ic_launcher", android:roundIcon="@mipmap/ic_launcher_round", android:theme, android:hardwareAccelerated="true", android:allowBackup="false", android:dataExtractionRules="@xml/data_extraction_rules", android:enableOnBackInvokedCallback="true". res/xml/data_extraction_rules.xml MUST exclude the root, file, database, sharedpref and external domains under both `<cloud-backup>` and `<device-transfer>` (since Android 12, allowBackup="false" does not stop device-to-device transfer, and session cookies must never leave the device). Do not set usesCleartextTraffic.
 - R4.5 MUST set these on MainActivity: android:exported="true"; the LAUNCHER intent filter; the same icon and roundIcon as the application (do not repeat the label; it is inherited, and repeating it triggers lint RedundantLabel); android:resizeableActivity="true"; android:launchMode="singleInstancePerTask" if ENABLE_MULTI_WINDOW, otherwise "singleTask"; and android:configChanges="orientation|screenSize|smallestScreenSize|screenLayout|keyboard|keyboardHidden|navigation|uiMode|density|fontScale|colorMode|touchscreen". Also add, inside the activity:
-  <layout android:defaultWidth="<<DEFAULT_WINDOW_DP[0]>>dp" android:defaultHeight="<<DEFAULT_WINDOW_DP[1]>>dp" android:minWidth="<<MIN_WINDOW_DP[0]>>dp" android:minHeight="<<MIN_WINDOW_DP[1]>>dp" android:gravity="center" />
-- R4.6 If ENABLE_MULTI_WINDOW, MUST add <property android:name="android.window.PROPERTY_SUPPORTS_MULTI_INSTANCE_SYSTEM_UI" android:value="true" /> inside MainActivity (apply R1.5 if MIN_SDK < 35; the attribute is ignored on older versions). When the NEW_WINDOW action fires, start MainActivity with FLAG_ACTIVITY_NEW_TASK | FLAG_ACTIVITY_MULTIPLE_TASK; the new window loads START_URL.
+  `<layout android:defaultWidth="<<DEFAULT_WINDOW_DP[0]>>dp" android:defaultHeight="<<DEFAULT_WINDOW_DP[1]>>dp" android:minWidth="<<MIN_WINDOW_DP[0]>>dp" android:minHeight="<<MIN_WINDOW_DP[1]>>dp" android:gravity="center" />`
+- R4.6 If ENABLE_MULTI_WINDOW, MUST add `<property android:name="android.window.PROPERTY_SUPPORTS_MULTI_INSTANCE_SYSTEM_UI" android:value="true" />` inside MainActivity (apply R1.5 if MIN_SDK < 35; the attribute is ignored on older versions). When the NEW_WINDOW action fires, start MainActivity with FLAG_ACTIVITY_NEW_TASK | FLAG_ACTIVITY_MULTIPLE_TASK; the new window loads START_URL.
 
 ## R5 Input: keyboard, pointer, touch, drag and drop
 - R5.1 MUST set webView.isFocusable = true and isFocusableInTouchMode = true, and call requestFocus().
@@ -237,43 +251,46 @@ Do not implement: Jetpack Compose, NDK/JNI, analytics, crash reporting, custom o
 - R8.5 Activity lifecycle methods MUST NOT call pauseTimers()/resumeTimers(), because they are process-wide and would freeze other windows. Only if KEEP_ALIVE_WHEN_HIDDEN is false: onStop calls webView.onPause() and onStart calls webView.onResume().
 
 ## R9 Adaptive icons (zero-dependency Python generator)
-- R9.1 MUST delete all template launcher assets (every res/mipmap-*/ directory and the template drawable/ic_launcher_* files) before generating. The script performs this deletion itself on every run, so reruns are idempotent.
+- R9.1 MUST delete all template launcher assets (every `res/mipmap-*/` directory and the template `drawable/ic_launcher_*` files) before generating. The script performs this deletion itself on every run, so reruns are idempotent.
 - R9.2 MUST write scripts/generate_icons.py using only the Python 3 standard library (e.g. urllib.request, ssl, re, shutil, json, argparse, pathlib, xml.etree.ElementTree). It reads ICON_SVG, ICON_BACKGROUND_HEX and ICON_FOREGROUND_HEX from CORE_PACKAGE/AppConfig.kt.
 - R9.3 Source acquisition:
   - ICON_SVG is either an http(s) URL or a path relative to the project root. It MUST be a single-color glyph with no background shape. The background and glyph colors come only from ICON_BACKGROUND_HEX and ICON_FOREGROUND_HEX.
   - URL: fetch it and save the response verbatim as scripts/icon_source.svg (commit this file). If the fetch fails (for example, no network), use the existing scripts/icon_source.svg. File path: read it directly.
-  - Extract the viewBox, concatenate every <path d> (a leading lowercase "m" in each path is treated as absolute, as SVG specifies), and record the fill-rule (evenodd if any path declares fill-rule="evenodd" via attribute or style, inherited through <g>, otherwise nonzero). Ignore any fill colors in the SVG. <title>, <desc> and <metadata> are ignored.
-  - Exit non-zero with a clear message ("ICON_SVG must be a single-color glyph made only of <path> elements") if the SVG contains transforms, <use>, <defs>, non-path shapes (circle, rect, ellipse, polygon, polyline, line, image, text), gradients or pattern fills, or stroke-only/unfilled paths.
+  - Extract the viewBox, concatenate every `<path d>` (a leading lowercase "m" in each path is treated as absolute, as SVG specifies), and record the fill-rule (evenodd if any path declares fill-rule="evenodd" via attribute or style, inherited through `<g>`, otherwise nonzero). Ignore any fill colors in the SVG. `<title>`, `<desc>` and `<metadata>` are ignored.
+  - Exit non-zero with a clear message ("ICON_SVG must be a single-color glyph made only of `<path>` elements") if the SVG contains transforms, `<use>`, `<defs>`, non-path shapes (circle, rect, ellipse, polygon, polyline, line, image, text), gradients or pattern fills, or stroke-only/unfilled paths.
   - NEVER write path data from memory. If neither the source nor scripts/icon_source.svg is available, stop and ask the user.
 - R9.4 Android PathParser normalization (the reason this matters: minified SVG path data makes Android's PathParser miscount arc parameters and silently render a blank icon):
   - Tokenize with an arc-flag-aware tokenizer. For A/a, parameters at positions 3 and 4 (mod 7, zero-based: rx, ry, rotation, large-arc-flag, sweep-flag, x, y) each consume exactly one '0' or '1' character, so "00-4.88" becomes "0", "0", "-4.88". Split chained decimals ("-1.51.074" becomes "-1.51", "0.074"). Handle exponents.
   - Re-serialize as android_safe_path: put the command letter before every parameter group (implicit repeats become explicit, and implicit lineto after M/m becomes an explicit L/l), separate every token with exactly one space, format numbers with a leading zero, at most 4 decimals, trailing zeros trimmed, no exponent notation, and "-0" written as "0".
   - Use android_safe_path, never the raw d string, in every android:pathData.
-- R9.5 MUST support a `--verify` mode that re-parses every generated pathData and exits non-zero unless: every generated file exists and is well-formed XML; every command has the correct parameter count (M2 L2 H1 V1 C6 S4 Q4 T2 A7 Z0, case-insensitive); every arc flag is 0 or 1; no number starts with a bare "." (regex (^|[\s-])\.\d); there is no exponent notation; and there is no "<<" or ">>" (build these marker strings at runtime, e.g. "<" * 2, so the script itself never contains them).
+- R9.5 MUST support a `--verify` mode that re-parses every generated pathData and exits non-zero unless: every generated file exists and is well-formed XML; every command has the correct parameter count (M2 L2 H1 V1 C6 S4 Q4 T2 A7 Z0, case-insensitive); every arc flag is 0 or 1; no number starts with a bare "." (regex `(^|[\s-])\.\d`); there is no exponent notation; and there is no `"<<"` or ">>" (build these marker strings at runtime, e.g. `"<" * 2`, so the script itself never contains them).
 - R9.6 MUST generate:
   - res/drawable/ic_launcher_background.xml: 108dp x 108dp, viewport 108 x 108, pathData "M 0 0 H 108 V 108 H 0 Z", fill ICON_BACKGROUND_HEX.
-  - res/drawable/ic_launcher_foreground.xml: 108dp x 108dp, viewport 108 x 108, containing <group> with scale s = 54 / max(vbW, vbH), translateX = 54 - (vbMinX + vbW / 2) * s, and translateY = 54 - (vbMinY + vbH / 2) * s, wrapping <path fillColor=ICON_FOREGROUND_HEX pathData=android_safe_path fillType=(evenOdd if the source fill-rule is evenodd, else nonZero)>. For a 24 x 24 viewBox this gives scale 2.25 and translate 27, centered in the 66dp safe zone.
+  - res/drawable/ic_launcher_foreground.xml: 108dp x 108dp, viewport 108 x 108, containing `<group>` with scale s = 54 / max(vbW, vbH), translateX = 54 - (vbMinX + vbW / 2) * s, and translateY = 54 - (vbMinY + vbH / 2) * s, wrapping `<path fillColor=ICON_FOREGROUND_HEX pathData=android_safe_path fillType=(evenOdd if the source fill-rule is evenodd, else nonZero)>`. For a 24 x 24 viewBox this gives scale 2.25 and translate 27, centered in the 66dp safe zone.
   - res/drawable/ic_stat_notify.xml: 24dp x 24dp, viewport = viewBox size (translated by -vbMinX, -vbMinY if they are non-zero), fill #FFFFFF, same fillType as the foreground.
-  - res/mipmap-anydpi/ic_launcher.xml and ic_launcher_round.xml: <adaptive-icon> with <background @drawable/ic_launcher_background>, <foreground @drawable/ic_launcher_foreground>, and <monochrome @drawable/ic_launcher_foreground>. Use no -v26 qualifier (MIN_SDK >= 26) and generate no density PNG mipmaps.
+  - res/mipmap-anydpi/ic_launcher.xml and ic_launcher_round.xml: `<adaptive-icon>` with `<background @drawable/ic_launcher_background>`, `<foreground @drawable/ic_launcher_foreground>`, and `<monochrome @drawable/ic_launcher_foreground>`. Use no -v26 qualifier (MIN_SDK >= 26) and generate no density PNG mipmaps.
   - Each generated file starts with a comment saying it is generated by scripts/generate_icons.py.
 
 </requirements>
 
 <forbidden>
+
 Do not use any of the following to pass checks: lint baselines, abortOnError = false, disabling lint checks or issues, @SuppressLint (the only exception is "SetJavaScriptEnabled" on applyWebSettings), Kotlin @Suppress, JaCoCo exclusions beyond generated classes (R, BuildConfig), lowering any threshold, deleting or weakening tests, or hand-editing generated icon XML instead of fixing the script.
 If a gate still fails after 3 fix attempts, stop and report the failure with its log. Do not weaken the requirement.
+
 </forbidden>
 
 <execution_plan>
+
 Phase 0: Preflight and research
   - Print the <derived_values> table.
-  - Check that the tools exist: JDK 17+, Android SDK platform <<COMPILE_SDK>> and build-tools, aapt2, python3, unzip. If scripts/setup_android_sdk.sh exists, run it: it installs missing SDK packages and prints this check. Report anything missing and stop if a required tool is absent.
+  - Check that the tools exist: JDK 17+, Android SDK platform `<<COMPILE_SDK>>` and build-tools, aapt2, python3, unzip. If scripts/setup_android_sdk.sh exists, run it: it installs missing SDK packages and prints this check. Report anything missing and stop if a required tool is absent.
   - Read the current versions of the pages below if the network allows. Record findings that affect this build (with URLs) in docs/BUILD_NOTES.md. Findings never silently override an R-requirement; conflicts go into the Deviations table. If a page is too large to read, say so and rely on the library check below.
       https://developer.android.com/develop/adaptive-apps/guides/googlebook/overview
       https://developer.android.com/develop/adaptive-apps/guides/support-desktop-windowing
       https://developer.android.com/develop/ui/views/layout/support-multi-window-mode
       https://developer.android.com/reference/androidx/webkit/WebSettingsCompat
-      https://developer.android.com/about/versions/<<TARGET_SDK - 20>>/behavior-changes-<<TARGET_SDK - 20>>   (e.g., API 37 -> Android 17)
+      https://developer.android.com/about/versions/`<<TARGET_SDK - 20>>`/behavior-changes-`<<TARGET_SDK - 20>>`   (e.g., API 37 -> Android 17)
   - Confirm the AGP, Gradle, Kotlin and androidx.webkit versions (R1.2). Confirm the androidx.webkit APIs from the downloaded library itself (e.g. `javap` on classes.jar from the AAR in the Gradle cache, once Phase 1 has resolved dependencies): WebViewFeature.USER_AGENT_METADATA / WEB_MESSAGE_LISTENER / DOCUMENT_START_SCRIPT, WebSettingsCompat.get/setUserAgentMetadata, UserAgentMetadata.Builder(UserAgentMetadata), WebViewCompat.addWebMessageListener and addDocumentStartJavaScript.
   - Gate: the derived values are printed and the tools are present.
 
@@ -305,20 +322,22 @@ Phase 6: Full verification (all checks must pass)
   If scripts/ci_verify.sh exists, run it; it performs steps 1–7 and prints a pass/fail summary. Still report each step below with its excerpt.
   1. ./gradlew GRADLE_FLAGS clean testDebugUnitTest jacocoTestReport jacocoTestCoverageVerification lintDebug assembleDebug assembleRelease
   2. The lint XML report shows 0 errors, 0 UnusedResources, and 0 ObsoleteSdkInt. List any remaining warnings in the report; aim for zero.
-  3. `unzip -l` on both the debug APK and RELEASE_APK_PATH: no entries under lib/ and no *.so files.
-  4. `aapt2 dump badging` on the DEBUG APK (release resource paths may be shortened by R8): package name = <<PACKAGE_NAME>>, the min SDK line (`sdkVersion:` or `minSdkVersion:`, depending on the aapt2 version) = <<MIN_SDK>>, targetSdkVersion = <<TARGET_SDK>>, and the icon on both the application: and launchable-activity: lines matches res/mipmap-anydpi(-v\d+)?/ic_launcher.xml (aapt2 may add a version qualifier such as -v21).
+  3. `unzip -l` on both the debug APK and RELEASE_APK_PATH: no entries under `lib/` and no `*.so` files.
+  4. `aapt2 dump badging` on the DEBUG APK (release resource paths may be shortened by R8): package name = `<<PACKAGE_NAME>>`, the min SDK line (`sdkVersion:` or `minSdkVersion:`, depending on the aapt2 version) = `<<MIN_SDK>>`, targetSdkVersion = `<<TARGET_SDK>>`, and the icon on both the application: and launchable-activity: lines matches res/mipmap-anydpi(-v\d+)?/ic_launcher.xml (aapt2 may add a version qualifier such as -v21).
   5. python3 scripts/generate_icons.py --verify exits 0.
   6. Static checks (each must return no matches unless stated):
      - grep -rE "^import (android|androidx|com\.google\.android)\." in CORE_PACKAGE sources
      - grep -rE "addJavascriptInterface|@JavascriptInterface" app/src
      - grep -E "screenOrientation|minAspectRatio|maxAspectRatio" app/src/main/AndroidManifest.xml
-     - grep -rE "<<|>>" in app/src (non-Kotlin files; for Kotlin, only inside string literals), scripts/generate_icons.py, and the Gradle files
+     - grep -rE `"<<|>>"` in app/src (non-Kotlin files; for Kotlin, only inside string literals), scripts/generate_icons.py, and the Gradle files
      - grep -rn "userAgentString\s*=" app/src/main: exactly one match, located inside applyWebSettings
-  7. Copy the debug APK to dist/<<DEBUG_APK_NAME>> and RELEASE_APK_PATH to dist/<<RELEASE_APK_NAME>>. dist/ is not committed.
+  7. Copy the debug APK to dist/`<<DEBUG_APK_NAME>>` and RELEASE_APK_PATH to dist/`<<RELEASE_APK_NAME>>`. dist/ is not committed.
   8. Optional: if adb and a device or emulator are available, install, launch, confirm there is no FATAL EXCEPTION in logcat within 15 seconds, and include the R6.12 log line in the report.
+
 </execution_plan>
 
 <final_reminders>
+
 - Zero .so files. Only the listed dependencies.
 - APP_SHORTCUTS are listed in the shortcuts helper, never intercepted.
 - android:pathData always uses the normalized android_safe_path, checked by --verify.
@@ -327,10 +346,12 @@ Phase 6: Full verification (all checks must pass)
 - The notification bridge accepts messages only from ALLOWED_ORIGIN_RULES. No @JavascriptInterface.
 - Every WebView is configured only through applyWebSettings. The UA mode is resolved once and changes only through R6.10/R6.11, never on resize.
 - Session data never leaves the device (R4.4).
-- Conflicts are resolved by <precedence> and recorded in the Deviations table.
+- Conflicts are resolved by `<precedence>` and recorded in the Deviations table.
+
 </final_reminders>
 
 <output_contract>
+
 Finish with a report containing, in this order:
 1. Derived values table.
 2. Project file tree (excluding build/ and .gradle/).
@@ -345,4 +366,6 @@ Finish with a report containing, in this order:
    - While the workspace is asleep (screen off, or Battery Saver when PAUSE_ON_POWER_SAVE is true), page timers are paused, so real-time connections drop and web notifications arrive only after wake. There is no background delivery (no foreground service, by design).
    - The notification polyfill always reports "granted" to the page; if the user denies POST_NOTIFICATIONS, notifications are dropped silently.
    - If SIGN_RELEASE_WITH_DEBUG_KEY: the release APK is signed with the local debug key, installable only for personal sideloading and not suitable for distribution.
+
 </output_contract>
+
