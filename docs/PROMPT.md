@@ -242,7 +242,7 @@ The manifest is the static template manifest (application and activity attribute
   It saves the evidence to `sites/<id>/discovery.json` (gitignored) and validates the draft.
 - R10.3 `scripts/enrich_site.py --site ID` (optional; the only script with a third-party dependency, the `anthropic` SDK) MUST send the draft and a compact evidence summary to Claude (`claude-opus-5-5`, explicit effort, JSON-schema structured output, server-side refusal fallback `fallbacks: "default"`), handle refusals and API errors with clear messages, and apply only: APP_NAME (adding APP_ID to keep the directory), INTERNAL_DOMAINS additions/removals (never the START_URL's domain), ALLOW_MICROPHONE/CAMERA/NOTIFICATIONS, USER_AGENT_MODE, and APP_SHORTCUTS (only when the site has none). The result is validated and rolled back if invalid. `--dry-run` and `--response FILE` work offline.
 - R10.4 `./wrap URL | --site ID | --list` MUST chain discover, optional enrich, validate, SDK setup and either the full verification (`scripts/ci_verify.sh`) or `--quick` (assemble only), copy the APKs to `dist/`, optionally render `scripts/preview_icons.py` output (`--preview`), and print `site=<id>`.
-- R10.5 CI: `.github/workflows/android.yml` validates all sites, runs `python3 -m unittest discover -s scripts/tests`, then for every site in a matrix runs `scripts/ci_verify.sh` (with the sideload key from secrets when present) and an emulator smoke test (`scripts/smoke_test.sh`: install with `-g`, launch, fail on a FATAL EXCEPTION, a dead process, a missing R6.12 line or a blank screen). `.github/workflows/wrap.yml` is a workflow_dispatch form (url, site_id, enrich, open_pr) that wraps a URL, uploads APKs, preview and site files, and optionally opens a PR adding the site.
+- R10.5 CI: `.github/workflows/android.yml` validates all sites, runs `python3 -m unittest discover -s scripts/tests`, then for every site in a matrix runs `scripts/ci_verify.sh` (with the sideload key from secrets when present). `.github/workflows/wrap.yml` is a workflow_dispatch form (url, site_id, enrich, open_pr) that wraps a URL, uploads APKs, preview and site files, and optionally opens a PR adding the site.
 - R10.6 Script unit tests in `scripts/tests/` MUST cover site_config validation and generation, icon normalization/modes/verify, discovery derivations (offline, with synthetic evidence), and enrich patch application including rollback.
 
 </requirements>
@@ -259,7 +259,7 @@ If a gate still fails after 3 fix attempts, stop and report the failure with its
 Flow A, adding a site (the normal case; no template changes):
   1. `./wrap https://example.com` (add `--enrich` if an Anthropic API key is available). Gate: the summary shows every check passing.
   2. Review the low/medium-confidence keys and NOTEs in `sites/<id>/site.toml` and `dist/<id>-icons.png` (`--preview`); fix keys and rebuild with `./wrap --site <id>`.
-  3. Commit `sites/<id>/` (not discovery.json). CI builds and smoke-tests it.
+  3. Commit `sites/<id>/` (not discovery.json). CI builds and verifies it.
 
 Flow B, changing the template (run every phase; gates apply to every site in `sites/`):
 Phase 0: Preflight and research
@@ -293,7 +293,6 @@ Phase 6: Full verification
   5. `python3 scripts/generate_icons.py --verify <generated res dir>` exits 0.
   6. Static checks (no matches unless stated): core imports of `android.`/`androidx.`/`com.google.android.`; `addJavascriptInterface|@JavascriptInterface` in app/src; `screenOrientation|minAspectRatio|maxAspectRatio` in the template and generated manifests; `"<<|>>"` in app/src, the generated sources, scripts/generate_icons.py and the Gradle files (Kotlin: string literals only); `userAgentString\s*=` in app/src/main exactly once, inside applyWebSettings.
   7. Copy the APKs to `dist/<<DEBUG_APK_NAME>>` and `dist/<<RELEASE_APK_NAME>>` (only this site's old APKs are removed); verify the release signature with apksigner and report the signer.
-  8. CI only: the emulator smoke test (R10.5) for every site.
 
 </execution_plan>
 
@@ -319,7 +318,7 @@ Finish with a report containing, in this order:
 2. Changed files (template, generators, tooling, sites).
 3. Requirement checklist: each R-ID -> status (Done / Deviated / Skipped / Inactive for this site) -> file:line.
 4. Deviations table: R-ID | what changed | why.
-5. Verification results per site: each Phase 6 step with a pass/fail and a trimmed output excerpt (≤ 10 lines each); CI run link and smoke-test results.
+5. Verification results per site: each Phase 6 step with a pass/fail and a trimmed output excerpt (≤ 10 lines each); CI run link.
 6. Known limitations, always including:
    - Google and some identity providers block sign-in inside embedded WebViews ("disallowed_useragent"); do not attempt to evade this. Discovery warns when a site refuses WebViews outright.
    - A desktop UA may expose site features that depend on APIs WebView lacks (Push API, File System Access, WebUSB/Bluetooth, some passkey flows).

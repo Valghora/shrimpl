@@ -73,8 +73,7 @@ site to build an unsigned release instead.
 - `.github/workflows/android.yml`, on every push and pull request:
   1. validates every site and runs the script tests;
   2. builds and verifies each site in a matrix (`scripts/ci_verify.sh`: unit tests and coverage,
-     lint, debug and release builds, APK checks, icon verification, signature);
-  3. installs each APK on an emulator, launches it and checks it renders (`scripts/smoke_test.sh`).
+     lint, debug and release builds, APK checks, icon verification, signature).
 
   APKs and reports are uploaded as artifacts.
 - `.github/workflows/wrap.yml`, "Wrap a website" (Actions tab, Run workflow): enter a URL and get

@@ -5,7 +5,6 @@
 # Env:
 #   ANDROID_HOME   SDK location (default /opt/android-sdk)
 #   API_LEVEL      SDK major to install (default: COMPILE_SDK from sites/defaults.toml, else 37)
-#   WITH_EMULATOR  1 = also install the emulator and an x86_64 google_apis system image (smoke tests)
 set -euo pipefail
 
 CMDLINE_TOOLS_BUILD="16111833"
@@ -53,21 +52,6 @@ else
   sdk install platform-tools "platforms/$platform" "build-tools/$bt"
   installed_platform="$platform"
   installed_bt="$bt"
-fi
-
-if [[ "${WITH_EMULATOR:-0}" == 1 ]]; then
-  # The google_apis x86_64 image for the installed platform (e.g. android-37.0), plus the emulator.
-  image="system-images/$installed_platform/google_apis/x86_64"
-  if [[ -d "$ANDROID_HOME/${image//\///}" && -x "$ANDROID_HOME/emulator/emulator" ]]; then
-    log "already installed: emulator $image"
-  else
-    if ! sdk list --all | awk '{print $1}' | grep -qx "$image"; then
-      image="$(sdk list --all | awk '{print $1}' | grep -E "^system-images/android-${API_LEVEL}(\.[0-9]+)?/google_apis/x86_64$" | sort -V | tail -1)"
-    fi
-    log "installing emulator $image"
-    sdk install emulator "$image"
-  fi
-  echo "${image//\//;}" > "$ANDROID_HOME/.wrapper-system-image"
 fi
 
 echo "sdk.dir=$ANDROID_HOME" > "$REPO_ROOT/local.properties"

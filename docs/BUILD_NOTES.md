@@ -94,7 +94,6 @@ tasks.register<JacocoCoverageVerification>("jacocoTestCoverageVerification") {
   for the caption-bar constants (API 35) and `PROPERTY_SUPPORTS_MULTI_INSTANCE_SYSTEM_UI` (API 35).
 - Lint warns `DataExtractionRules` on `allowBackup="false"` (it is a warning, not an error, so
   Phase 6.2 still passes). List it among the remaining warnings.
-- No emulator or KVM is available in the cloud container, so Phase 6.8 (adb) cannot run here.
 
 ## Phase 0 research for the Discord build (2026-10-24)
 
@@ -174,6 +173,3 @@ The app became a template: one code base, one config file per site (`sites/<id>/
 - **Enrich.** `anthropic` SDK 2.3.0, model `claude-opus-5-5`, structured JSON output, and the
   `server-side-fallback-2026-07-01` beta with `fallbacks="default"`. Verified offline and with an
   invalid key (clean 401 message); not run with a live key here.
-- **Emulator smoke test.** GitHub's Linux runners have KVM. Image
-  `system-images;android-37.0;google_apis;x86_64`, a `pixel_7` AVD, headless. Not runnable in the
-  cloud container (no KVM).
