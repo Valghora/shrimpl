@@ -1,0 +1,21 @@
+# Discord. Keys not set here come from sites/defaults.toml.
+
+APP_NAME = "Discord"
+VERSION_NAME = "1.1.0"
+
+START_URL = "https://discord.com/app"
+INTERNAL_DOMAINS = ["discord.com", "discordapp.com", "discord.gg", "discord.net", "discordapp.net"]
+
+ICON_SVG = "icon.svg"          # simple-icons "discord"
+ICON_BACKGROUND_HEX = "#5865F2"
+ICON_FOREGROUND_HEX = "#FFFFFF"
+HEADER_SURFACE_HEX = "#1E1F22"
+
+ALLOW_MICROPHONE = true
+ALLOW_CAMERA = true
+
+APP_SHORTCUTS = [
+  { label = "Quick Switcher", key = "KEYCODE_K", modifiers = ["CTRL"] },
+  { label = "Toggle Mute", key = "KEYCODE_M", modifiers = ["CTRL", "SHIFT"] },
+  { label = "Toggle Deafen", key = "KEYCODE_D", modifiers = ["CTRL", "SHIFT"] },
+]

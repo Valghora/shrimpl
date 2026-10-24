@@ -1,9 +1,9 @@
-package com.valghora.pwa.discord
+package com.valghora.wrapper
 
 import android.content.Context
 import android.util.AttributeSet
 import android.webkit.WebView
-import com.valghora.pwa.discord.core.AppConfig
+import com.valghora.wrapper.core.AppConfig
 
 /**
  * WebView whose visibility follows the workspace wake state instead of the window (R8.2):

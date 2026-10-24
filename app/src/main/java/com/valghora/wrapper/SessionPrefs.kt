@@ -1,11 +1,11 @@
-package com.valghora.pwa.discord
+package com.valghora.wrapper
 
 import android.content.Context
 import androidx.core.content.edit
-import com.valghora.pwa.discord.core.AppConfig
-import com.valghora.pwa.discord.core.UaMode
-import com.valghora.pwa.discord.core.UaStore
-import com.valghora.pwa.discord.core.ZoomStore
+import com.valghora.wrapper.core.AppConfig
+import com.valghora.wrapper.core.UaMode
+import com.valghora.wrapper.core.UaStore
+import com.valghora.wrapper.core.ZoomStore
 
 /** ZoomStore and UaStore backed by one private SharedPreferences file (R6.1). */
 class SessionPrefs(context: Context) : ZoomStore, UaStore {

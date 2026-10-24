@@ -1,9 +1,8 @@
 #!/usr/bin/env bash
-# Phase 6 verification driver (config-agnostic).
-# Every app-specific value is read from the project itself, so this works for any
-# <config> in the Universal APK Wrapper spec.
+# Phase 6 verification driver for one site of the Universal Android Wrapper.
+# Every site-specific value comes from scripts/site_config.py, so this works for any site.
 #
-# Usage: scripts/ci_verify.sh [project_dir]   (default: repo root)
+# Usage: SITE=<id> scripts/ci_verify.sh [project_dir]   (default site: `site` in gradle.properties)
 set -uo pipefail
 
 PROJECT="$(cd "${1:-$(dirname "${BASH_SOURCE[0]}")/..}" && pwd)"
@@ -15,30 +14,31 @@ if [[ ! -f app/build.gradle.kts ]]; then
 fi
 
 if command -v sha1sum >/dev/null; then hash() { sha1sum; }; else hash() { shasum -a 1; }; fi
-GRADLE_FLAGS=(--project-cache-dir="$HOME/.cache/projects/$(basename "$PWD")-$(pwd -P | hash | cut -c1-8)/gradle")
+SITE="${SITE:-$(sed -n 's/^site=//p' gradle.properties)}"
+GRADLE_FLAGS=(--project-cache-dir="$HOME/.cache/projects/$(basename "$PWD")-$(pwd -P | hash | cut -c1-8)/gradle" "-Psite=$SITE")
 
-gradle_kts="app/build.gradle.kts"
-kts_value() { grep -oE "$1\s*=\s*\"?[^\"[:space:]]+\"?" "$gradle_kts" | head -1 | sed -E 's/.*=\s*"?([^"]+)"?/\1/'; }
-APP_ID="$(grep -oE 'rootProject\.name\s*=\s*"[^"]+"' settings.gradle.kts | sed -E 's/.*"([^"]+)"/\1/')"
-PACKAGE_NAME="$(kts_value applicationId)"
-# Accepts both `minSdk = 37` and AGP 9's `minSdk { version = release(37) }` (same line).
-sdk_value() { grep -oE "$1[^0-9]*[0-9]+" "$gradle_kts" | head -1 | grep -oE '[0-9]+$'; }
-MIN_SDK="$(sdk_value minSdk)"
-TARGET_SDK="$(sdk_value targetSdk)"
-CORE_DIR="app/src/main/java/${PACKAGE_NAME//.//}/core"
-[[ -d "$CORE_DIR" ]] || CORE_DIR="app/src/main/kotlin/${PACKAGE_NAME//.//}/core"
+if ! site_props="$(python3 scripts/site_config.py properties --site "$SITE")"; then
+  echo "site '$SITE' is invalid" >&2
+  exit 1
+fi
+prop() { sed -n "s/^$1=//p" <<<"$site_props"; }
+APP_ID="$(prop appId)"
+PACKAGE_NAME="$(prop applicationId)"
+NAMESPACE="$(prop namespace)"
+MIN_SDK="$(prop minSdk)"
+TARGET_SDK="$(prop targetSdk)"
+CORE_DIR="app/src/main/java/${NAMESPACE//.//}/core"
 DEBUG_APK="app/build/outputs/apk/debug/app-debug.apk"
-# Release is app-release.apk when signed (SIGN_RELEASE_WITH_DEBUG_KEY), else app-release-unsigned.apk;
-# resolved after the build.
-RELEASE_APK=""
-RELEASE_NAME=""
+DEBUG_NAME="$(prop debugApkName)"
+RELEASE_APK="$(prop releaseApkPath)"
+RELEASE_NAME="$(prop releaseApkName)"
 
 ANDROID_HOME="${ANDROID_HOME:-$(sed -n 's/^sdk\.dir=//p' local.properties 2>/dev/null)}"
 BUILD_TOOLS="$(ls -d "$ANDROID_HOME"/build-tools/* 2>/dev/null | sort -V | tail -1)"
 AAPT2="$BUILD_TOOLS/aapt2"
 APKSIGNER="$BUILD_TOOLS/apksigner"
 
-echo "APP_ID=$APP_ID PACKAGE_NAME=$PACKAGE_NAME MIN_SDK=$MIN_SDK TARGET_SDK=$TARGET_SDK"
+echo "SITE=$SITE APP_ID=$APP_ID PACKAGE_NAME=$PACKAGE_NAME MIN_SDK=$MIN_SDK TARGET_SDK=$TARGET_SDK"
 
 declare -a SUMMARY
 status=0
@@ -59,18 +59,16 @@ if ./gradlew "${GRADLE_FLAGS[@]}" --console=plain "${tasks[@]}"; then
 else
   record FAIL "6.1 gradle ${tasks[*]}"
 fi
-if [[ -f app/build/outputs/apk/release/app-release.apk ]]; then
-  RELEASE_APK="app/build/outputs/apk/release/app-release.apk"
-  RELEASE_NAME="$APP_ID-release.apk"
-else
-  RELEASE_APK="app/build/outputs/apk/release/app-release-unsigned.apk"
-  RELEASE_NAME="$APP_ID-release-unsigned.apk"
-fi
+# Generated site sources (AppConfig.kt, resources/icons, manifest overlay) of the debug variant.
+GEN_RES="$(dirname "$(dirname "$(find app/build/generated -path '*ebug*' -path '*mipmap-anydpi*' -name ic_launcher.xml 2>/dev/null | head -1)")")"
+GEN_KOTLIN="$(dirname "$(find app/build/generated -path '*ebug*' -name AppConfig.kt 2>/dev/null | head -1)")"
+GEN_MANIFEST="$(find app/build/generated -path '*ebug*' -name AndroidManifest.xml -path '*SiteSources*' 2>/dev/null | head -1)"
+echo "generated: res=$GEN_RES kotlin=$GEN_KOTLIN manifest=$GEN_MANIFEST"
 
 # Coverage must measure real core classes: an empty report passes JaCoCo's rule vacuously.
 jacoco_xml="app/build/reports/jacoco/jacocoTestReport/jacocoTestReport.xml"
 if [[ -f "$jacoco_xml" ]]; then
-  coverage="$(python3 -I - "$jacoco_xml" "${PACKAGE_NAME//.//}/core/" <<'PY'
+  coverage="$(python3 -I - "$jacoco_xml" "${NAMESPACE//.//}/core/" <<'PY'
 import sys, xml.etree.ElementTree as ET
 root = ET.parse(sys.argv[1]).getroot()
 names = [c.get("name") for c in root.iter("class")]
@@ -143,10 +141,10 @@ fi
 
 # 6.5 Icon verifier
 section "6.5 icons"
-if [[ -f scripts/generate_icons.py ]]; then
-  if python3 scripts/generate_icons.py --verify; then record PASS "6.5 generate_icons.py --verify"; else record FAIL "6.5 generate_icons.py --verify"; fi
+if [[ -d "$GEN_RES" && "$GEN_RES" != "." ]]; then
+  if python3 scripts/generate_icons.py --verify "$GEN_RES"; then record PASS "6.5 generate_icons.py --verify"; else record FAIL "6.5 generate_icons.py --verify"; fi
 else
-  record SKIP "6.5 scripts/generate_icons.py not present"
+  record FAIL "6.5 generated resources not found"
 fi
 
 # 6.6 Static checks
@@ -162,12 +160,13 @@ else
   record SKIP "6.6 core package dir not present"
 fi
 static_none "no JavascriptInterface" -rnE 'addJavascriptInterface|@JavascriptInterface' app/src
-static_none "no orientation/aspect attrs" -nE 'screenOrientation|minAspectRatio|maxAspectRatio' app/src/main/AndroidManifest.xml
+static_none "no orientation/aspect attrs" -nE 'screenOrientation|minAspectRatio|maxAspectRatio' app/src/main/AndroidManifest.xml ${GEN_MANIFEST:+"$GEN_MANIFEST"}
 # Placeholders: generated sources, the icon script and Gradle files; Kotlin only inside string literals.
 placeholder_scope=(app/src settings.gradle.kts build.gradle.kts app/build.gradle.kts gradle/libs.versions.toml)
+for generated in "$GEN_RES" "$GEN_KOTLIN" "$GEN_MANIFEST"; do [[ -e "$generated" && "$generated" != "." ]] && placeholder_scope+=("$generated"); done
 [[ -f scripts/generate_icons.py ]] && placeholder_scope+=(scripts/generate_icons.py)
 static_none "no << >> placeholders (non-Kotlin)" -rnE '<<|>>' "${placeholder_scope[@]}" --exclude='*.kt'
-static_none "no << >> placeholders (Kotlin strings)" -rnE '"[^"]*(<<|>>)[^"]*"' app/src --include='*.kt'
+static_none "no << >> placeholders (Kotlin strings)" -rnE '"[^"]*(<<|>>)[^"]*"' app/src ${GEN_KOTLIN:+"$GEN_KOTLIN"} --include='*.kt'
 ua_hits="$(grep -rnE 'userAgentString\s*=' app/src/main 2>/dev/null || true)"
 ua_count="$(grep -c . <<<"$ua_hits" || true)"
 [[ -z "$ua_hits" ]] && ua_count=0
@@ -177,12 +176,12 @@ if [[ "$ua_count" == 1 ]]; then record PASS "6.6 exactly one userAgentString =";
 # 6.7 dist/
 section "6.7 dist"
 mkdir -p dist
-rm -f dist/*.apk
+rm -f "dist/$APP_ID-"*.apk
 if [[ -f "$DEBUG_APK" && -f "$RELEASE_APK" ]]; then
-  cp "$DEBUG_APK" "dist/$APP_ID-debug.apk"
+  cp "$DEBUG_APK" "dist/$DEBUG_NAME"
   cp "$RELEASE_APK" "dist/$RELEASE_NAME"
   ls -l dist/
-  record PASS "6.7 dist/$APP_ID-debug.apk dist/$RELEASE_NAME"
+  record PASS "6.7 dist/$DEBUG_NAME dist/$RELEASE_NAME"
 else
   record FAIL "6.7 APKs missing"
 fi

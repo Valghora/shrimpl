@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">Discord</string>
+    <!-- app_name is generated per site (values/site.xml). -->
     <string name="notification_channel_name">Notifications</string>
 
     <string name="menu_copy_link">Copy link</string>
@@ -12,6 +12,7 @@
     <string name="shortcut_zoom_in">Zoom in</string>
     <string name="shortcut_zoom_out">Zoom out</string>
     <string name="shortcut_zoom_reset">Reset zoom</string>
+    <string name="shortcut_new_window">New window</string>
 
     <string name="shortcut_request_desktop">Desktop site</string>
     <string name="shortcut_request_desktop_long">Request desktop site</string>

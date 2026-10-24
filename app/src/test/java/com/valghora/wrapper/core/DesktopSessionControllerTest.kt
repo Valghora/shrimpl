@@ -1,4 +1,4 @@
-package com.valghora.pwa.discord.core
+package com.valghora.wrapper.core
 
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -25,9 +25,22 @@ class DesktopSessionControllerTest {
     private val ctrl = setOf(Modifier.CTRL)
     private val newWindow = ShortcutSpec("New Window", "KEYCODE_N", ctrl)
 
+    /** Fixed test data so these tests do not depend on which site is being built. */
+    private val fixture = SessionConfig(
+        internalDomains = listOf("discord.com", "discordapp.com", "discord.gg", "discord.net", "discordapp.net"),
+        oauthDomains = listOf("accounts.google.com", "github.com"),
+        pauseOnPowerSave = false,
+        enableMultiWindow = true,
+        appShortcuts = listOf(
+            ShortcutSpec("Quick Switcher", "KEYCODE_K", ctrl),
+            ShortcutSpec("Toggle Mute", "KEYCODE_M", setOf(Modifier.CTRL, Modifier.SHIFT)),
+        ),
+        newWindowShortcut = null,
+    )
+
     private fun controller(
         zoom: FakeZoomStore = FakeZoomStore(),
-        config: SessionConfig = SessionConfig(),
+        config: SessionConfig = fixture,
     ) = DesktopSessionController(zoom, FakeUaStore(), config)
 
     // ---------- a. URL classification ----------
@@ -157,14 +170,14 @@ class DesktopSessionControllerTest {
 
     @Test
     fun newWindowRequiresShortcutAndMultiWindow() {
-        val enabled = controller(config = SessionConfig(newWindowShortcut = newWindow, enableMultiWindow = true))
+        val enabled = controller(config = fixture.copy(newWindowShortcut = newWindow, enableMultiWindow = true))
         assertEquals(KeyAction.NEW_WINDOW, enabled.resolveKey("KEYCODE_N", ctrl, 0))
         assertEquals(KeyAction.NONE, enabled.resolveKey("KEYCODE_N", ctrl, 1))
         assertEquals(KeyAction.NONE, enabled.resolveKey("KEYCODE_N", setOf(Modifier.ALT), 0))
         assertEquals(KeyAction.NONE, enabled.resolveKey("KEYCODE_M", ctrl, 0))
-        val disabled = controller(config = SessionConfig(newWindowShortcut = newWindow, enableMultiWindow = false))
+        val disabled = controller(config = fixture.copy(newWindowShortcut = newWindow, enableMultiWindow = false))
         assertEquals(KeyAction.NONE, disabled.resolveKey("KEYCODE_N", ctrl, 0))
-        val unset = controller(config = SessionConfig(newWindowShortcut = null, enableMultiWindow = true))
+        val unset = controller(config = fixture.copy(newWindowShortcut = null, enableMultiWindow = true))
         assertEquals(KeyAction.NONE, unset.resolveKey("KEYCODE_N", ctrl, 0))
     }
 
@@ -186,7 +199,7 @@ class DesktopSessionControllerTest {
 
     @Test
     fun wakeEventsOnlyOnStateChange() {
-        val c = controller(config = SessionConfig(pauseOnPowerSave = false))
+        val c = controller(config = fixture.copy(pauseOnPowerSave = false))
         assertTrue(c.isAwake)
         assertEquals(WakeEvent.NONE, c.onWakeInput(interactive = true, anyDisplayOn = true, powerSaveMode = false))
         assertEquals(WakeEvent.SLEEP, c.onWakeInput(interactive = false, anyDisplayOn = true, powerSaveMode = false))
@@ -198,11 +211,11 @@ class DesktopSessionControllerTest {
 
     @Test
     fun powerSaveCountsAsSleepOnlyWhenConfigured() {
-        val pausing = controller(config = SessionConfig(pauseOnPowerSave = true))
+        val pausing = controller(config = fixture.copy(pauseOnPowerSave = true))
         assertFalse(pausing.computeAwake(interactive = true, anyDisplayOn = true, powerSaveMode = true))
         assertEquals(WakeEvent.SLEEP, pausing.onWakeInput(interactive = true, anyDisplayOn = true, powerSaveMode = true))
         assertEquals(WakeEvent.WAKE, pausing.onWakeInput(interactive = true, anyDisplayOn = true, powerSaveMode = false))
-        val ignoring = controller(config = SessionConfig(pauseOnPowerSave = false))
+        val ignoring = controller(config = fixture.copy(pauseOnPowerSave = false))
         assertTrue(ignoring.computeAwake(interactive = true, anyDisplayOn = true, powerSaveMode = true))
     }
 
@@ -336,13 +349,13 @@ class DesktopSessionControllerTest {
     @Test
     fun configuredShortcutsAreValid() {
         assertTrue(controller().validateShortcuts().isEmpty())
-        val withNewWindow = controller(config = SessionConfig(newWindowShortcut = newWindow))
+        val withNewWindow = controller(config = fixture.copy(newWindowShortcut = newWindow))
         assertTrue(withNewWindow.validateShortcuts().isEmpty())
     }
 
     @Test
     fun reportsInvalidShortcuts() {
-        val bad = SessionConfig(
+        val bad = fixture.copy(
             appShortcuts = listOf(
                 ShortcutSpec("Lower", "keycode_k", ctrl),
                 ShortcutSpec(" ", "KEYCODE_J", ctrl),
@@ -361,7 +374,7 @@ class DesktopSessionControllerTest {
 
     @Test
     fun appShortcutMayNotReuseNewWindowShortcut() {
-        val config = SessionConfig(
+        val config = fixture.copy(
             appShortcuts = listOf(ShortcutSpec("Window clash", "KEYCODE_N", ctrl)),
             newWindowShortcut = newWindow,
             enableMultiWindow = true,

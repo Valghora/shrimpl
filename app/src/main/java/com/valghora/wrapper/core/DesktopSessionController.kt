@@ -1,4 +1,4 @@
-package com.valghora.pwa.discord.core
+package com.valghora.wrapper.core
 
 import java.net.URI
 import java.net.URISyntaxException

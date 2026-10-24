@@ -10,3 +10,6 @@ captures/
 .externalNativeBuild/
 .cxx/
 __pycache__/
+sites/defaults.local.toml
+*.jks
+*.keystore

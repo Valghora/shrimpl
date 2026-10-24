@@ -18,5 +18,5 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "discord"
+rootProject.name = "universal-android-wrapper"
 include(":app")

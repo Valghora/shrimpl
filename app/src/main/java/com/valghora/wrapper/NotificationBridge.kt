@@ -1,4 +1,4 @@
-package com.valghora.pwa.discord
+package com.valghora.wrapper
 
 import android.Manifest
 import android.app.NotificationChannel
@@ -15,9 +15,9 @@ import androidx.core.content.ContextCompat
 import androidx.core.graphics.toColorInt
 import androidx.webkit.WebViewCompat
 import androidx.webkit.WebViewFeature
-import com.valghora.pwa.discord.core.AppConfig
-import com.valghora.pwa.discord.core.DesktopSessionController
-import com.valghora.pwa.discord.core.UrlClass
+import com.valghora.wrapper.core.AppConfig
+import com.valghora.wrapper.core.DesktopSessionController
+import com.valghora.wrapper.core.UrlClass
 import java.util.concurrent.atomic.AtomicInteger
 import org.json.JSONException
 import org.json.JSONObject

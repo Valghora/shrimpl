@@ -1,4 +1,4 @@
-package com.valghora.pwa.discord.core
+package com.valghora.wrapper.core
 
 import java.net.URI
 import org.junit.Assert.assertEquals
@@ -57,28 +57,30 @@ class AppConfigTest {
     }
 
     @Test
-    fun iconSourceIsHttpsOrRelativeSvg() {
-        val icon = AppConfig.ICON_SVG
-        val isHttps = icon.startsWith("https://")
-        val isRelativeSvg = !icon.contains("://") && !icon.startsWith("/") && icon.endsWith(".svg")
-        assertTrue(isHttps || isRelativeSvg)
+    fun iconModeIsKnown() {
+        assertTrue(AppConfig.ICON_MODE in setOf("svg", "raster", "letter"))
+    }
+
+    @Test
+    fun corePackageMatchesThisPackage() {
+        assertEquals(AppConfig.CORE_PACKAGE, AppConfig::class.java.packageName)
     }
 
     @Test
     fun derivedValuesMatchConfig() {
-        val appId = AppConfig.APP_NAME.lowercase().filter { it in 'a'..'z' || it in '0'..'9' }
-        assertEquals(appId, AppConfig.APP_ID)
+        // APP_ID defaults to the lowercased alphanumerics of APP_NAME; a site may override it.
+        assertTrue(Regex("^[a-z][a-z0-9]*$").matches(AppConfig.APP_ID))
         assertEquals("${AppConfig.PACKAGE_PREFIX}.${AppConfig.APP_ID}", AppConfig.PACKAGE_NAME)
-        assertEquals("${AppConfig.PACKAGE_NAME}.core", AppConfig.CORE_PACKAGE)
+        assertTrue(AppConfig.CORE_PACKAGE.endsWith(".core"))
         assertEquals("${AppConfig.APP_ID}_notifications", AppConfig.NOTIFICATION_CHANNEL_ID)
         assertEquals(AppConfig.HEADER_SURFACE_HEX_NIGHT.ifEmpty { AppConfig.HEADER_SURFACE_HEX }, AppConfig.HEADER_NIGHT)
-        assertEquals(AppConfig.HEADER_NIGHT != AppConfig.HEADER_SURFACE_HEX, AppConfig.USES_NIGHT_RESOURCES)
+        assertEquals(!AppConfig.HEADER_NIGHT.equals(AppConfig.HEADER_SURFACE_HEX, ignoreCase = true), AppConfig.USES_NIGHT_RESOURCES)
         assertEquals(DesktopSessionController.isDarkColor(AppConfig.HEADER_SURFACE_HEX), AppConfig.HEADER_IS_DARK)
         assertEquals(DesktopSessionController.isDarkColor(AppConfig.HEADER_NIGHT), AppConfig.HEADER_NIGHT_IS_DARK)
         assertEquals(AppConfig.USER_AGENT_OVERRIDE.isEmpty(), AppConfig.UA_FEATURES_ACTIVE)
-        assertTrue(AppConfig.JDK_TOOLCHAIN >= 17)
         assertEquals("${AppConfig.APP_ID}-debug.apk", AppConfig.DEBUG_APK_NAME)
-        val release = if (AppConfig.SIGN_RELEASE_WITH_DEBUG_KEY) "release" else "release-unsigned"
+        assertTrue(AppConfig.RELEASE_SIGNING in setOf("auto", "unsigned"))
+        val release = if (AppConfig.RELEASE_SIGNING == "unsigned") "release-unsigned" else "release"
         assertEquals("${AppConfig.APP_ID}-$release.apk", AppConfig.RELEASE_APK_NAME)
         assertEquals("app/build/outputs/apk/release/app-$release.apk", AppConfig.RELEASE_APK_PATH)
     }
@@ -101,7 +103,5 @@ class AppConfigTest {
         assertEquals(2, AppConfig.MIN_WINDOW_DP.size)
         assertTrue(AppConfig.MIN_WINDOW_DP[0] <= AppConfig.DEFAULT_WINDOW_DP[0])
         assertTrue(AppConfig.MIN_WINDOW_DP[1] <= AppConfig.DEFAULT_WINDOW_DP[1])
-        assertTrue(AppConfig.VERSION_CODE >= 1)
-        assertTrue(AppConfig.VERSION_NAME.isNotBlank())
     }
 }

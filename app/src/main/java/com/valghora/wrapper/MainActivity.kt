@@ -1,4 +1,4 @@
-package com.valghora.pwa.discord
+package com.valghora.wrapper
 
 import android.Manifest
 import android.annotation.SuppressLint
@@ -58,15 +58,15 @@ import androidx.core.view.WindowInsetsControllerCompat
 import androidx.webkit.UserAgentMetadata
 import androidx.webkit.WebSettingsCompat
 import androidx.webkit.WebViewFeature
-import com.valghora.pwa.discord.core.AppConfig
-import com.valghora.pwa.discord.core.DesktopSessionController
-import com.valghora.pwa.discord.core.HitType
-import com.valghora.pwa.discord.core.KeyAction
-import com.valghora.pwa.discord.core.MenuAction
-import com.valghora.pwa.discord.core.Modifier
-import com.valghora.pwa.discord.core.UaMode
-import com.valghora.pwa.discord.core.UrlClass
-import com.valghora.pwa.discord.core.WakeEvent
+import com.valghora.wrapper.core.AppConfig
+import com.valghora.wrapper.core.DesktopSessionController
+import com.valghora.wrapper.core.HitType
+import com.valghora.wrapper.core.KeyAction
+import com.valghora.wrapper.core.MenuAction
+import com.valghora.wrapper.core.Modifier
+import com.valghora.wrapper.core.UaMode
+import com.valghora.wrapper.core.UrlClass
+import com.valghora.wrapper.core.WakeEvent
 import java.net.URISyntaxException
 import java.util.Collections
 import java.util.WeakHashMap
@@ -170,7 +170,7 @@ class MainActivity : AppCompatActivity() {
             val restored = savedInstanceState?.getBundle(STATE_WEBVIEW)?.let { webView.restoreState(it) }
             if (restored == null) webView.loadUrl(AppConfig.START_URL)
         }
-        if (savedInstanceState == null) requestNotificationPermissionIfNeeded()
+        if (savedInstanceState == null && AppConfig.ALLOW_NOTIFICATIONS) requestNotificationPermissionIfNeeded()
     }
 
     override fun onNewIntent(intent: Intent) {
@@ -183,9 +183,16 @@ class MainActivity : AppCompatActivity() {
         CookieManager.getInstance().flush()
     }
 
+    override fun onStart() {
+        super.onStart()
+        // R8.5: only when the page should not keep running while hidden. Never pauseTimers() here.
+        if (!AppConfig.KEEP_ALIVE_WHEN_HIDDEN && webViewAlive) webView.onResume()
+    }
+
     override fun onStop() {
         super.onStop()
         CookieManager.getInstance().flush()
+        if (!AppConfig.KEEP_ALIVE_WHEN_HIDDEN && webViewAlive) webView.onPause()
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
@@ -282,9 +289,9 @@ class MainActivity : AppCompatActivity() {
             if (event.action == DragEvent.ACTION_DROP) requestDragAndDropPermissions(event)
             false
         }
-        registerForContextMenu(webView)
+        if (AppConfig.NATIVE_CONTEXT_MENU) registerForContextMenu(webView)
         onBackPressedDispatcher.addCallback(this, backCallback)
-        NotificationBridge(this, controller).install(webView)
+        if (AppConfig.ALLOW_NOTIFICATIONS) NotificationBridge(this, controller).install(webView)
     }
 
     /** The only place WebView settings and the user agent are configured (R6.1). */
@@ -373,6 +380,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun applyStoreRedirectFallback(url: String): Boolean {
+        if (!AppConfig.UA_STORE_REDIRECT_FALLBACK || !AppConfig.UA_FEATURES_ACTIVE) return false
         if (resolvedMode != UaMode.MOBILE || prefs.userChoice != null || prefs.learnedDesktop) return false
         val windowOpen = storeWindowOpenedAt != 0L &&
             SystemClock.elapsedRealtime() - storeWindowOpenedAt <= STORE_REDIRECT_WINDOW_MS
@@ -788,6 +796,18 @@ class MainActivity : AppCompatActivity() {
                 KeyboardShortcutInfo(getString(R.string.shortcut_zoom_in), KeyEvent.KEYCODE_EQUALS, KeyEvent.META_CTRL_ON),
                 KeyboardShortcutInfo(getString(R.string.shortcut_zoom_out), KeyEvent.KEYCODE_MINUS, KeyEvent.META_CTRL_ON),
                 KeyboardShortcutInfo(getString(R.string.shortcut_zoom_reset), KeyEvent.KEYCODE_0, KeyEvent.META_CTRL_ON),
+            ) + newWindowShortcutInfo(),
+        )
+    }
+
+    private fun newWindowShortcutInfo(): List<KeyboardShortcutInfo> {
+        val shortcut = AppConfig.NEW_WINDOW_SHORTCUT ?: return emptyList()
+        if (!AppConfig.ENABLE_MULTI_WINDOW) return emptyList()
+        return listOf(
+            KeyboardShortcutInfo(
+                getString(R.string.shortcut_new_window),
+                KeyEvent.keyCodeFromString(shortcut.keyName),
+                metaStateOf(shortcut.modifiers),
             ),
         )
     }
@@ -803,7 +823,14 @@ class MainActivity : AppCompatActivity() {
 
     // ---------- Desktop/mobile toggle (R6.11) ----------
 
+    private val uaToggleEnabled: Boolean
+        get() = AppConfig.UA_USER_TOGGLE && AppConfig.UA_FEATURES_ACTIVE
+
     private fun publishToggleShortcut() {
+        if (!uaToggleEnabled) {
+            ShortcutManagerCompat.removeAllDynamicShortcuts(this)
+            return
+        }
         val toDesktop = resolvedMode == UaMode.MOBILE
         val shortcut = ShortcutInfoCompat.Builder(this, SHORTCUT_TOGGLE_UA)
             .setShortLabel(getString(if (toDesktop) R.string.shortcut_request_desktop else R.string.shortcut_request_mobile))
@@ -825,6 +852,7 @@ class MainActivity : AppCompatActivity() {
         if (intent?.getBooleanExtra(EXTRA_TOGGLE_UA, false) != true) return false
         intent.removeExtra(EXTRA_TOGGLE_UA)
         setIntent(intent)
+        if (!uaToggleEnabled) return false
         ShortcutManagerCompat.reportShortcutUsed(this, SHORTCUT_TOGGLE_UA)
         val target = controller.toggleTarget(resolvedMode)
         prefs.userChoice = target
