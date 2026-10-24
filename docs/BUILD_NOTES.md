@@ -95,3 +95,38 @@ tasks.register<JacocoCoverageVerification>("jacocoTestCoverageVerification") {
 - Lint warns `DataExtractionRules` on `allowBackup="false"` (it is a warning, not an error, so
   Phase 6.2 still passes). List it among the remaining warnings.
 - No emulator or KVM is available in the cloud container, so Phase 6.8 (adb) cannot run here.
+
+## Phase 0 research for the Discord build (2026-10-24)
+
+Pages read; findings that affect this build. None overrides an R-requirement.
+
+- https://developer.android.com/develop/adaptive-apps/guides/support-desktop-windowing
+  - Every app in desktop windowing gets a header (caption) bar. Use
+    `APPEARANCE_TRANSPARENT_CAPTION_BAR_BACKGROUND` / `APPEARANCE_LIGHT_CAPTION_BARS` via
+    `window.insetsController.setSystemBarsAppearance` and pad for `WindowInsets.Type.captionBar()`
+    (R3.3, R3.4).
+  - Shows `PROPERTY_SUPPORTS_MULTI_INSTANCE_SYSTEM_UI` on `<application>`; the property is valid
+    on `<activity>` too, which is where R4.6 puts it.
+  - Cross-window drag and drop uses `Activity.requestDragAndDropPermissions(DragEvent)` (R5.2).
+- https://developer.android.com/develop/ui/views/layout/support-multi-window-mode
+  - `<layout>` `defaultWidth`/`defaultHeight`/`minWidth`/`minHeight`/`gravity` apply to desktop
+    windowing (R4.5). From API 36, `resizeableActivity` is ignored on displays with sw >= 600dp.
+  - `singleInstancePerTask` can run in several tasks with `FLAG_ACTIVITY_NEW_TASK |
+    FLAG_ACTIVITY_MULTIPLE_TASK` (R4.6).
+- https://developer.android.com/develop/adaptive-apps/guides/googlebook/overview
+  - Recommends multi-instance, cross-window drag and drop, right-click menus and the Keyboard
+    Shortcuts Helper; all are covered (R4.6, R5.2, R5.4, R5.5).
+- https://developer.android.com/about/versions/17/behavior-changes-17
+  - Orientation/aspect-ratio restrictions are ignored on large screens for apps targeting 37, with
+    no opt-out. The app declares none (R4.1).
+  - Certificate Transparency is on by default for apps targeting 37. No effect on discord.com.
+  - Nothing found about WebView, notifications, DownloadManager or SharedPreferences.
+- https://developer.android.com/reference/androidx/webkit/WebSettingsCompat
+  - The page was too large to read. Instead, the webkit 1.18.0 AAR was inspected with `javap`: it has
+    `WebViewFeature.USER_AGENT_METADATA`, `WEB_MESSAGE_LISTENER`, `DOCUMENT_START_SCRIPT`,
+    `WebSettingsCompat.get/setUserAgentMetadata`, `UserAgentMetadata.Builder(UserAgentMetadata)`
+    with `setPlatform`/`setPlatformVersion`/`setMobile`/`setModel`,
+    `WebViewCompat.addWebMessageListener` and `addDocumentStartJavaScript`.
+- Lint `DataExtractionRules`: with targetSdk 31+, `allowBackup="false"` no longer blocks
+  device-to-device transfer, so `res/xml/data_extraction_rules.xml` excludes all app data from both
+  cloud backup and device transfer. Session cookies stay on the device.

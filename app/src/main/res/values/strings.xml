@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Discord</string>
+    <string name="notification_channel_name">Notifications</string>
+
+    <string name="menu_copy_link">Copy link</string>
+    <string name="menu_open_link">Open link in browser</string>
+    <string name="menu_save_image">Save image</string>
+
+    <string name="shortcut_group_window">Window</string>
+    <string name="shortcut_reload">Reload</string>
+    <string name="shortcut_zoom_in">Zoom in</string>
+    <string name="shortcut_zoom_out">Zoom out</string>
+    <string name="shortcut_zoom_reset">Reset zoom</string>
+
+    <string name="shortcut_request_desktop">Desktop site</string>
+    <string name="shortcut_request_desktop_long">Request desktop site</string>
+    <string name="shortcut_request_mobile">Mobile site</string>
+    <string name="shortcut_request_mobile_long">Request mobile site</string>
+
+    <string name="toast_download_started">Downloading…</string>
+    <string name="toast_download_unsupported">This file can\'t be downloaded</string>
+    <string name="toast_no_app">No app can open this link</string>
+</resources>

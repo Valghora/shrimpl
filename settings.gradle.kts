@@ -18,5 +18,5 @@ dependencyResolutionManagement {
     }
 }
 
-// Placeholder until the app is scaffolded: Phase 1 sets this to APP_ID and adds include(":app").
-rootProject.name = "wrapper"
+rootProject.name = "discord"
+include(":app")
