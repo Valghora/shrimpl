@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">APK Cloner PoC</string>
+    <string name="intro">Makes a copy of the bundled template app under a new package name, signs it on this device and installs it next to the original.</string>
+    <string name="template_info">Template: %1$s (%2$s)</string>
+    <string name="label_hint">App name for the copy</string>
+    <string name="package_hint">Package name for the copy</string>
+    <string name="default_label">%1$s 2</string>
+    <string name="default_package">%1$s.clone2</string>
+    <string name="create">Create and install copy</string>
+    <string name="invalid_package">Not a valid package name.</string>
+    <string name="allow_installs">Allow this app to install apps, then tap the button again.</string>
+    <string name="status_building">Building %1$s…</string>
+    <string name="status_installing">Built and signed in %1$d ms (%2$d KB). Installing…</string>
+    <string name="status_installed">Installed %1$s.</string>
+    <string name="status_failed">Failed: %1$s</string>
+</resources>

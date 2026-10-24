@@ -48,13 +48,13 @@ section() { echo; echo "=== $* ==="; }
 
 # 6.1 Gradle pipeline. The JaCoCo tasks are included only once they exist (Phase 2).
 section "6.1 gradle"
-tasks=(clean testDebugUnitTest)
+tasks=(:app:clean :app:testDebugUnitTest)
 if ./gradlew "${GRADLE_FLAGS[@]}" -q :app:tasks --all 2>/dev/null | grep -q '^jacocoTestCoverageVerification'; then
-  tasks+=(jacocoTestReport jacocoTestCoverageVerification)
+  tasks+=(:app:jacocoTestReport :app:jacocoTestCoverageVerification)
 else
   echo "note: jacoco tasks not defined yet; skipping them"
 fi
-tasks+=(lintDebug assembleDebug assembleRelease)
+tasks+=(:app:lintDebug :app:assembleDebug :app:assembleRelease)
 if ./gradlew "${GRADLE_FLAGS[@]}" --console=plain "${tasks[@]}"; then
   record PASS "6.1 gradle ${tasks[*]}"
 else

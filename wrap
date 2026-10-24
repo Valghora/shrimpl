@@ -62,7 +62,7 @@ if [[ $quick == 1 ]]; then
   step "Building $site (quick)"
   if command -v sha1sum >/dev/null; then hash() { sha1sum; }; else hash() { shasum -a 1; }; fi
   ./gradlew --project-cache-dir="$HOME/.cache/projects/$(basename "$PWD")-$(pwd -P | hash | cut -c1-8)/gradle" \
-    "-Psite=$site" --console=plain -q assembleDebug assembleRelease
+    "-Psite=$site" --console=plain -q :app:assembleDebug :app:assembleRelease
   props="$(python3 scripts/site_config.py properties --site "$site")"
   prop() { sed -n "s/^$1=//p" <<<"$props"; }
   mkdir -p "$(prop apkDir)"
