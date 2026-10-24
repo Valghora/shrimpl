@@ -45,8 +45,11 @@ object AppConfig {
     const val ALLOW_PROTECTED_MEDIA = false
     const val ENABLE_MULTI_WINDOW = true
     const val KEEP_ALIVE_WHEN_HIDDEN = true
-    const val PAUSE_ON_POWER_SAVE = true
+    const val PAUSE_ON_POWER_SAVE = false
     const val NATIVE_CONTEXT_MENU = true
+
+    // ---------- Build output ----------
+    const val SIGN_RELEASE_WITH_DEBUG_KEY = true
 
     // ---------- Freeform window defaults (dp) ----------
     val DEFAULT_WINDOW_DP: List<Int> = listOf(1280, 800)
@@ -72,6 +75,8 @@ object AppConfig {
     val ALLOWED_ORIGIN_RULES: Set<String> =
         INTERNAL_DOMAINS.flatMap { listOf("https://$it", "https://*.$it") }.toSet()
     const val UA_FEATURES_ACTIVE = true
+    const val JDK_TOOLCHAIN = 21
     const val DEBUG_APK_NAME = "discord-debug.apk"
-    const val RELEASE_APK_NAME = "discord-release-unsigned.apk"
+    const val RELEASE_APK_NAME = "discord-release.apk"
+    const val RELEASE_APK_PATH = "app/build/outputs/apk/release/app-release.apk"
 }

@@ -28,10 +28,15 @@ TARGET_SDK="$(sdk_value targetSdk)"
 CORE_DIR="app/src/main/java/${PACKAGE_NAME//.//}/core"
 [[ -d "$CORE_DIR" ]] || CORE_DIR="app/src/main/kotlin/${PACKAGE_NAME//.//}/core"
 DEBUG_APK="app/build/outputs/apk/debug/app-debug.apk"
-RELEASE_APK="app/build/outputs/apk/release/app-release-unsigned.apk"
+# Release is app-release.apk when signed (SIGN_RELEASE_WITH_DEBUG_KEY), else app-release-unsigned.apk;
+# resolved after the build.
+RELEASE_APK=""
+RELEASE_NAME=""
 
 ANDROID_HOME="${ANDROID_HOME:-$(sed -n 's/^sdk\.dir=//p' local.properties 2>/dev/null)}"
-AAPT2="$(ls -d "$ANDROID_HOME"/build-tools/*/aapt2 2>/dev/null | sort -V | tail -1)"
+BUILD_TOOLS="$(ls -d "$ANDROID_HOME"/build-tools/* 2>/dev/null | sort -V | tail -1)"
+AAPT2="$BUILD_TOOLS/aapt2"
+APKSIGNER="$BUILD_TOOLS/apksigner"
 
 echo "APP_ID=$APP_ID PACKAGE_NAME=$PACKAGE_NAME MIN_SDK=$MIN_SDK TARGET_SDK=$TARGET_SDK"
 
@@ -53,6 +58,32 @@ if ./gradlew "${GRADLE_FLAGS[@]}" --console=plain "${tasks[@]}"; then
   record PASS "6.1 gradle ${tasks[*]}"
 else
   record FAIL "6.1 gradle ${tasks[*]}"
+fi
+if [[ -f app/build/outputs/apk/release/app-release.apk ]]; then
+  RELEASE_APK="app/build/outputs/apk/release/app-release.apk"
+  RELEASE_NAME="$APP_ID-release.apk"
+else
+  RELEASE_APK="app/build/outputs/apk/release/app-release-unsigned.apk"
+  RELEASE_NAME="$APP_ID-release-unsigned.apk"
+fi
+
+# Coverage must measure real core classes: an empty report passes JaCoCo's rule vacuously.
+jacoco_xml="app/build/reports/jacoco/jacocoTestReport/jacocoTestReport.xml"
+if [[ -f "$jacoco_xml" ]]; then
+  coverage="$(python3 -I - "$jacoco_xml" "${PACKAGE_NAME//.//}/core/" <<'PY'
+import sys, xml.etree.ElementTree as ET
+root = ET.parse(sys.argv[1]).getroot()
+names = [c.get("name") for c in root.iter("class")]
+outside = [n for n in names if not n.startswith(sys.argv[2])]
+line = next((c for c in root.findall("counter") if c.get("type") == "LINE"), None)
+ratio = "n/a"
+if line is not None:
+    covered, missed = int(line.get("covered")), int(line.get("missed"))
+    ratio = f"{covered}/{covered + missed}"
+print(f"{'ok' if names and not outside else 'bad'} classes={len(names)} outside_core={len(outside)} line={ratio}")
+PY
+  )"
+  if [[ "$coverage" == ok* ]]; then record PASS "6.1 coverage ${coverage#ok }"; else record FAIL "6.1 coverage ${coverage#bad }"; fi
 fi
 
 # 6.2 Lint XML
@@ -132,9 +163,10 @@ else
 fi
 static_none "no JavascriptInterface" -rnE 'addJavascriptInterface|@JavascriptInterface' app/src
 static_none "no orientation/aspect attrs" -nE 'screenOrientation|minAspectRatio|maxAspectRatio' app/src/main/AndroidManifest.xml
-# Placeholders: XML/resources/scripts/Gradle anywhere, Kotlin only inside string literals (skip shl/shr operators).
-static_none "no << >> placeholders (non-Kotlin)" -rnE '<<|>>' app/src scripts settings.gradle.kts build.gradle.kts app/build.gradle.kts gradle/libs.versions.toml \
-  --exclude='*.kt' --exclude='ci_verify.sh' --exclude='setup_android_sdk.sh'
+# Placeholders: generated sources, the icon script and Gradle files; Kotlin only inside string literals.
+placeholder_scope=(app/src settings.gradle.kts build.gradle.kts app/build.gradle.kts gradle/libs.versions.toml)
+[[ -f scripts/generate_icons.py ]] && placeholder_scope+=(scripts/generate_icons.py)
+static_none "no << >> placeholders (non-Kotlin)" -rnE '<<|>>' "${placeholder_scope[@]}" --exclude='*.kt'
 static_none "no << >> placeholders (Kotlin strings)" -rnE '"[^"]*(<<|>>)[^"]*"' app/src --include='*.kt'
 ua_hits="$(grep -rnE 'userAgentString\s*=' app/src/main 2>/dev/null || true)"
 ua_count="$(grep -c . <<<"$ua_hits" || true)"
@@ -145,13 +177,22 @@ if [[ "$ua_count" == 1 ]]; then record PASS "6.6 exactly one userAgentString =";
 # 6.7 dist/
 section "6.7 dist"
 mkdir -p dist
+rm -f dist/*.apk
 if [[ -f "$DEBUG_APK" && -f "$RELEASE_APK" ]]; then
   cp "$DEBUG_APK" "dist/$APP_ID-debug.apk"
-  cp "$RELEASE_APK" "dist/$APP_ID-release-unsigned.apk"
+  cp "$RELEASE_APK" "dist/$RELEASE_NAME"
   ls -l dist/
-  record PASS "6.7 dist/$APP_ID-debug.apk dist/$APP_ID-release-unsigned.apk"
+  record PASS "6.7 dist/$APP_ID-debug.apk dist/$RELEASE_NAME"
 else
   record FAIL "6.7 APKs missing"
+fi
+if [[ "$RELEASE_NAME" == "$APP_ID-release.apk" && -x "$APKSIGNER" ]]; then
+  if "$APKSIGNER" verify "dist/$RELEASE_NAME" >/dev/null 2>&1; then
+    record PASS "6.7 release APK signature verifies (debug key)"
+  else
+    "$APKSIGNER" verify --verbose "dist/$RELEASE_NAME" 2>&1 | tail -5
+    record FAIL "6.7 release APK signature"
+  fi
 fi
 
 section "summary"

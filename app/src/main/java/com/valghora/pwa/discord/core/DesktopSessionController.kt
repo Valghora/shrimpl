@@ -16,8 +16,7 @@ class DesktopSessionController(
 
     // ---------- a. URL classification ----------
 
-    /** Classifies [url]. Popups use the same rules; [isPopup] lets callers state the context. */
-    fun classify(url: String, isPopup: Boolean = false): UrlClass {
+    fun classify(url: String): UrlClass {
         val trimmed = url.trim()
         val scheme = schemeOf(trimmed) ?: return UrlClass.BLOCKED
         if (scheme in PASSTHROUGH_SCHEMES) return UrlClass.PASSTHROUGH

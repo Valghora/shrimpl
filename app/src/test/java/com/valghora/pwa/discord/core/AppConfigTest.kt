@@ -76,8 +76,11 @@ class AppConfigTest {
         assertEquals(DesktopSessionController.isDarkColor(AppConfig.HEADER_SURFACE_HEX), AppConfig.HEADER_IS_DARK)
         assertEquals(DesktopSessionController.isDarkColor(AppConfig.HEADER_NIGHT), AppConfig.HEADER_NIGHT_IS_DARK)
         assertEquals(AppConfig.USER_AGENT_OVERRIDE.isEmpty(), AppConfig.UA_FEATURES_ACTIVE)
+        assertTrue(AppConfig.JDK_TOOLCHAIN >= 17)
         assertEquals("${AppConfig.APP_ID}-debug.apk", AppConfig.DEBUG_APK_NAME)
-        assertEquals("${AppConfig.APP_ID}-release-unsigned.apk", AppConfig.RELEASE_APK_NAME)
+        val release = if (AppConfig.SIGN_RELEASE_WITH_DEBUG_KEY) "release" else "release-unsigned"
+        assertEquals("${AppConfig.APP_ID}-$release.apk", AppConfig.RELEASE_APK_NAME)
+        assertEquals("app/build/outputs/apk/release/app-$release.apk", AppConfig.RELEASE_APK_PATH)
     }
 
     @Test
