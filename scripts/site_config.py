@@ -224,6 +224,9 @@ def validate(cfg, site_id):
         errors.append(f"site directory 'sites/{site_id}' must be named after APP_ID '{app_id}'")
     if not PACKAGE_RE.match(cfg["PACKAGE_PREFIX"] + "." + app_id):
         errors.append(f"PACKAGE_PREFIX {cfg['PACKAGE_PREFIX']!r} does not form a valid package name")
+    if _str(cfg["VERSION_NAME"]) and not re.fullmatch(r"[0-9A-Za-z][0-9A-Za-z._+-]*", cfg["VERSION_NAME"]):
+        errors.append("VERSION_NAME must start with a letter or digit and contain only letters, digits and . _ + - "
+                      "(it names the APK folder)")
     if _int(cfg["VERSION_CODE"]) and not 1 <= cfg["VERSION_CODE"] <= 2100000000:
         errors.append("VERSION_CODE must be between 1 and 2100000000")
     for key in ("MIN_SDK", "TARGET_SDK", "COMPILE_SDK"):
@@ -314,6 +317,7 @@ def derive(cfg, site_id):
     out["RELEASE_APK_NAME"] = f"{out['APP_ID']}-release{'' if signed else '-unsigned'}.apk"
     out["RELEASE_APK_PATH"] = f"app/build/outputs/apk/release/app-release{'' if signed else '-unsigned'}.apk"
     out["SITE_DIR"] = str(site_dir(site_id))
+    out["APK_DIR"] = f"sites/{site_id}/apks/{cfg['VERSION_NAME']}"
     return out
 
 
@@ -555,6 +559,7 @@ def main():
                 "debugApkName": c["DEBUG_APK_NAME"],
                 "releaseApkName": c["RELEASE_APK_NAME"],
                 "releaseApkPath": c["RELEASE_APK_PATH"],
+                "apkDir": c["APK_DIR"],
             }
             print("\n".join(f"{k}={v}" for k, v in props.items()))
         elif args.command == "generate":

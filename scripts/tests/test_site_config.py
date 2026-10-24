@@ -76,6 +76,7 @@ class SiteConfigTest(unittest.TestCase):
         self.assertEqual(["https://discord.com", "https://*.discord.com",
                           "https://discordapp.com", "https://*.discordapp.com"], c["ALLOWED_ORIGIN_RULES"])
         self.assertEqual("discord-release.apk", c["RELEASE_APK_NAME"])
+        self.assertEqual("sites/discord/apks/1.0.0", c["APK_DIR"])
 
     def test_auto_foreground_is_black_on_light_background(self):
         self.make_site("discord", {**DISCORD, "ICON_BACKGROUND_HEX": "#FFEB3B"})
@@ -106,6 +107,9 @@ class SiteConfigTest(unittest.TestCase):
 
     def test_directory_must_match_app_id(self):
         self.assertIn("must be named after APP_ID 'discord'", self.errors(DISCORD, site_id="chat"))
+
+    def test_version_name_must_be_a_safe_folder_name(self):
+        self.assertIn("VERSION_NAME must start with a letter or digit", self.errors({**DISCORD, "VERSION_NAME": "../1.0"}))
 
     def test_sdk_is_fixed_by_template(self):
         self.assertIn("MIN_SDK must be 37", self.errors({**DISCORD, "MIN_SDK": 26}))

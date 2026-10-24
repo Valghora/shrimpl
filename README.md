@@ -10,7 +10,8 @@ sign-in that stays on the device.
 ```bash
 ./wrap https://discord.com/app
 # ... discovers the site, writes sites/discord/site.toml, builds and verifies
-# dist/discord-debug.apk  dist/discord-release.apk
+# sites/discord/apks/1.1.0/discord-debug.apk
+# sites/discord/apks/1.1.0/discord-release.apk
 ```
 
 One template app is shared by every site. A site is a small config file (`sites/<id>/site.toml`)
@@ -27,7 +28,7 @@ plus an icon; everything site-specific is generated from it at build time.
 ## Wrapping a site
 
 ```bash
-./wrap https://example.com            # discover, build, verify; APKs land in dist/
+./wrap https://example.com            # discover, build, verify; APKs land in sites/<id>/apks/<version>/
 ./wrap https://example.com --enrich   # also let Claude review the draft config
 ./wrap https://example.com --preview  # also render dist/<id>-icons.png
 ./wrap --site example                 # rebuild after editing sites/example/site.toml
@@ -45,6 +46,9 @@ theme, dark theme, Android WebView user agent) and drafts the config:
   large manifest icon, a letter.
 - **Microphone, camera and notifications** from the APIs the page's scripts use.
 - **Warnings** for sites that block WebViews or push mobile users to the Play Store.
+
+APKs go to `sites/<id>/apks/<VERSION_NAME>/`. A rebuild of the same version replaces that folder's
+APKs; bump `VERSION_NAME` to keep the previous ones. The `apks/` folders are gitignored.
 
 Each key gets a `# source (confidence)` comment. Review medium/low values and `# NOTE:` lines,
 fix anything wrong, run `./wrap --site <id>`, and commit `sites/<id>/`. Every key is documented in

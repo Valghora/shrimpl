@@ -21,7 +21,7 @@ The directory name must equal the site's APP_ID. Build a site with `./wrap --sit
 | `APP_ID` | string | from APP_NAME | Lowercase `[a-z0-9]`, starting with a letter. Set it to keep the id when renaming the app. |
 | `PACKAGE_PREFIX` | string | `com.valghora.pwa` | The applicationId is `<PACKAGE_PREFIX>.<APP_ID>`. Change it in `defaults.local.toml` if you share builds. |
 | `VERSION_CODE` | integer or `"auto"` | `"auto"` | `"auto"` is the minutes since 2024-01-01 UTC, so every rebuild installs as an update. |
-| `VERSION_NAME` | string | `1.0.0` | Shown in app info. |
+| `VERSION_NAME` | string | `1.0.0` | Shown in app info. Also names the APK folder, `sites/<id>/apks/<VERSION_NAME>/`, so it may contain only letters, digits and `. _ + -`. |
 | `MIN_SDK`, `TARGET_SDK`, `COMPILE_SDK` | integer | 37 | Fixed by the template; any other value is rejected. |
 
 ## Domains

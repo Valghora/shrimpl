@@ -92,7 +92,7 @@ jobs:
         uses: actions/upload-artifact@v7
         with:
           name: apks-${{ matrix.site }}
-          path: dist/*.apk
+          path: sites/${{ matrix.site }}/apks/
 
       - name: Upload reports
         if: always() && hashFiles('app/build/reports/**') != ''
