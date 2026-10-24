@@ -187,7 +187,8 @@ else
 fi
 if [[ "$RELEASE_NAME" == "$APP_ID-release.apk" && -x "$APKSIGNER" ]]; then
   if "$APKSIGNER" verify "dist/$RELEASE_NAME" >/dev/null 2>&1; then
-    record PASS "6.7 release APK signature verifies (debug key)"
+    signer="$("$APKSIGNER" verify --print-certs "dist/$RELEASE_NAME" 2>/dev/null | sed -n 's/^Signer #1 certificate DN: //p;s/^V2 Signer: certificate DN: //p' | head -1)"
+    record PASS "6.7 release APK signature verifies (${signer:-unknown signer})"
   else
     "$APKSIGNER" verify --verbose "dist/$RELEASE_NAME" 2>&1 | tail -5
     record FAIL "6.7 release APK signature"

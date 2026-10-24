@@ -55,6 +55,10 @@ jobs:
           echo "NODE_PATH=$(npm root --global)" >> "$GITHUB_ENV"
           npx --yes "playwright@$PLAYWRIGHT_VERSION" install --with-deps chromium
 
+      - name: Install the Anthropic SDK (enrich only)
+        if: inputs.enrich
+        run: python3 -m pip install --user anthropic
+
       - name: Cache Android SDK
         uses: actions/cache@v6
         with:
