@@ -22,5 +22,10 @@ if [ -n "${CLAUDE_ENV_FILE:-}" ]; then
   } >> "$CLAUDE_ENV_FILE"
 fi
 
-# Download the Gradle distribution and plugin dependencies so they are cached with the container.
-./gradlew "$GRADLE_FLAGS" --console=plain -q help >/dev/null
+# Download the Gradle distribution, plugins and (once the app module exists) every app dependency,
+# so they are cached with the container. Best-effort: a broken work-in-progress build script
+# must not block the session from starting.
+warm=(help)
+[ -f app/build.gradle.kts ] && warm+=(:app:dependencies)
+./gradlew "$GRADLE_FLAGS" --console=plain -q "${warm[@]}" >/dev/null \
+  || echo "session-start: Gradle warm-up failed (build script error?); continuing" >&2

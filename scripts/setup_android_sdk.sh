@@ -13,7 +13,7 @@ REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 export ANDROID_HOME="$(realpath -m "${ANDROID_HOME:-/opt/android-sdk}")"
 
 if [[ -z "${API_LEVEL:-}" ]]; then
-  API_LEVEL="$(grep -oE 'compileSdk\s*=\s*[0-9]+' "$REPO_ROOT/app/build.gradle.kts" 2>/dev/null | grep -oE '[0-9]+$' || true)"
+  API_LEVEL="$(grep -oE 'compileSdk[^0-9]*[0-9]+' "$REPO_ROOT/app/build.gradle.kts" 2>/dev/null | grep -oE '[0-9]+$' || true)"
   API_LEVEL="${API_LEVEL:-37}"
 fi
 

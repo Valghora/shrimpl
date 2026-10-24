@@ -21,8 +21,10 @@ gradle_kts="app/build.gradle.kts"
 kts_value() { grep -oE "$1\s*=\s*\"?[^\"[:space:]]+\"?" "$gradle_kts" | head -1 | sed -E 's/.*=\s*"?([^"]+)"?/\1/'; }
 APP_ID="$(grep -oE 'rootProject\.name\s*=\s*"[^"]+"' settings.gradle.kts | sed -E 's/.*"([^"]+)"/\1/')"
 PACKAGE_NAME="$(kts_value applicationId)"
-MIN_SDK="$(kts_value minSdk)"
-TARGET_SDK="$(kts_value targetSdk)"
+# Accepts both `minSdk = 37` and AGP 9's `minSdk { version = release(37) }` (same line).
+sdk_value() { grep -oE "$1[^0-9]*[0-9]+" "$gradle_kts" | head -1 | grep -oE '[0-9]+$'; }
+MIN_SDK="$(sdk_value minSdk)"
+TARGET_SDK="$(sdk_value targetSdk)"
 CORE_DIR="app/src/main/java/${PACKAGE_NAME//.//}/core"
 [[ -d "$CORE_DIR" ]] || CORE_DIR="app/src/main/kotlin/${PACKAGE_NAME//.//}/core"
 DEBUG_APK="app/build/outputs/apk/debug/app-debug.apk"

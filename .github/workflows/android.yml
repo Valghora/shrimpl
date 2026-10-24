@@ -5,6 +5,9 @@ on:
   pull_request:
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
@@ -24,12 +27,19 @@ jobs:
           java-version: "21"
 
       - uses: gradle/actions/setup-gradle@v6
+        with:
+          # Default is read-only on non-default branches; write so feature-branch runs warm the cache too.
+          cache-read-only: false
+
+      - name: Resolve compileSdk
+        id: sdk
+        run: echo "api=$(grep -oE 'compileSdk[^0-9]*[0-9]+' app/build.gradle.kts 2>/dev/null | grep -oE '[0-9]+$' || echo 37)" >> "$GITHUB_OUTPUT"
 
       - name: Cache Android SDK
         uses: actions/cache@v6
         with:
           path: ${{ env.ANDROID_HOME }}
-          key: android-sdk-${{ runner.os }}-${{ hashFiles('scripts/setup_android_sdk.sh', 'app/build.gradle.kts') }}
+          key: android-sdk-${{ runner.os }}-api${{ steps.sdk.outputs.api }}-${{ hashFiles('scripts/setup_android_sdk.sh') }}
 
       - name: Set up Android SDK and check tools
         run: scripts/setup_android_sdk.sh
