@@ -463,7 +463,7 @@ class MainActivity : AppCompatActivity() {
             if (decided) return routePopupNavigation(url)
             if (url == "about:blank") return false
             decided = true
-            val urlClass = controller.classify(url, isPopup = true)
+            val urlClass = controller.classify(url)
             return when {
                 urlClass == UrlClass.EXTERNAL -> {
                     openExternal(url)
@@ -491,7 +491,7 @@ class MainActivity : AppCompatActivity() {
             if (!decided) onNavigation(url)
         }
 
-        private fun routePopupNavigation(url: String): Boolean = when (controller.classify(url, isPopup = true)) {
+        private fun routePopupNavigation(url: String): Boolean = when (controller.classify(url)) {
             UrlClass.INTERNAL, UrlClass.OAUTH, UrlClass.PASSTHROUGH -> false
             UrlClass.EXTERNAL -> {
                 openExternal(url)
@@ -514,9 +514,12 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
+        /** Called from the popup's own WebView callbacks, so the teardown is posted (R6.6). */
         fun dismiss() {
-            val shown = dialog
-            if (shown != null && shown.isShowing) shown.dismiss() else destroy()
+            root.post {
+                val shown = dialog
+                if (shown != null && shown.isShowing) shown.dismiss() else destroy()
+            }
         }
 
         private fun destroyLater() {

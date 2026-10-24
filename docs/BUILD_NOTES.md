@@ -130,3 +130,17 @@ Pages read; findings that affect this build. None overrides an R-requirement.
 - Lint `DataExtractionRules`: with targetSdk 31+, `allowBackup="false"` no longer blocks
   device-to-device transfer, so `res/xml/data_extraction_rules.xml` excludes all app data from both
   cloud backup and device transfer. Session cookies stay on the device.
+
+## Rerun with the revised prompt (docs/PROMPT.md, 2026-10-24)
+
+- `PAUSE_ON_POWER_SAVE` is now false. `SIGN_RELEASE_WITH_DEBUG_KEY` signs the release build with the
+  local debug key (R1.6), so `dist/discord-release.apk` is an installable 1.7 MB R8 build for
+  personal sideloading only.
+- The activity no longer repeats the application label (R4.5), so lint reports zero warnings.
+- `classify(url)` no longer takes an `isPopup` flag.
+- Popup teardown triggered from the popup's own callbacks (`onCloseWindow`, `onRenderProcessGone`) is
+  posted to the main thread (R6.6). The main WebView's `onRenderProcessGone` still destroys it
+  synchronously, as R6.7 and Google's renderer-crash guidance specify.
+- `scripts/ci_verify.sh` now fails if the JaCoCo report has no core classes, checks the release
+  signature with `apksigner`, and scans only `app/src`, `scripts/generate_icons.py` and the Gradle
+  files for `<<`/`>>`.

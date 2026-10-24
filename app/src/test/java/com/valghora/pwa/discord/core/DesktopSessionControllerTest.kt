@@ -40,7 +40,7 @@ class DesktopSessionControllerTest {
         assertEquals(UrlClass.INTERNAL, c.classify("https://a.b.discord.net/"))
         assertEquals(UrlClass.INTERNAL, c.classify("HTTPS://DISCORD.GG/invite"))
         assertEquals(UrlClass.INTERNAL, c.classify("http://discord.com."))
-        assertEquals(UrlClass.INTERNAL, c.classify("  https://discord.com/  ", isPopup = true))
+        assertEquals(UrlClass.INTERNAL, c.classify("  https://discord.com/  "))
     }
 
     @Test
