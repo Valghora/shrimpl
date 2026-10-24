@@ -32,7 +32,8 @@ for _ in $(seq 1 30); do adb shell pm path android >/dev/null 2>&1 && break; sle
 # page fail with ERR_NAME_NOT_RESOLVED, which is the runner's problem, not the app's.
 online=0
 for _ in $(seq 1 90); do
-  adb logcat -d -s NetworkMonitor 2>/dev/null | grep -q "isCaptivePortal: isSuccessful()=true" && { online=1; break; }
+  adb shell dumpsys connectivity 2>/dev/null \
+    | grep -qE 'ni\{[A-Z_]+(\[[A-Z_]+\])? CONNECTED.*Capabilities: [A-Z_&]*&VALIDATED&' && { online=1; break; }
   sleep 2
 done
 if [[ $online != 1 ]]; then
