@@ -48,8 +48,8 @@ theme, dark theme, Android WebView user agent) and drafts the config:
 - **Warnings** for sites that block WebViews or push mobile users to the Play Store.
 
 APKs go to `sites/<id>/apks/<VERSION_NAME>/`. A rebuild of the same version replaces that folder's
-APKs; bump `VERSION_NAME` to keep the previous ones. Only the last 3 versions built are kept, and the
-`apks/` folders are gitignored.
+APKs; bump `VERSION_NAME` to keep the previous ones. Only the last 3 versions built are kept. Release
+APKs are committed with the site; debug APKs stay local (gitignored).
 
 Each key gets a `# source (confidence)` comment. Review medium/low values and `# NOTE:` lines,
 fix anything wrong, run `./wrap --site <id>`, and commit `sites/<id>/`. Every key is documented in

@@ -516,8 +516,8 @@ APK_VERSIONS_KEPT = 3
 def prune_apks(site_id, keep=APK_VERSIONS_KEPT):
     """Deletes sites/<id>/apks/<version>/ folders beyond the `keep` most recently built ones.
 
-    Recency is the newest file in each folder. The current VERSION_NAME is always kept. Returns the
-    removed version names.
+    Recency is the newest file in each folder, then the version number (a fresh clone gives every
+    file the same time). The current VERSION_NAME is always kept. Returns the removed version names.
     """
     import shutil
 
@@ -529,8 +529,11 @@ def prune_apks(site_id, keep=APK_VERSIONS_KEPT):
     def built_at(folder):
         return max((f.stat().st_mtime for f in folder.iterdir()), default=folder.stat().st_mtime)
 
+    def version_key(name):
+        return [(0, int(part), "") if part.isdigit() else (1, 0, part) for part in re.split(r"(\d+)", name) if part]
+
     folders = sorted((d for d in root.iterdir() if d.is_dir()),
-                     key=lambda d: (d.name == current, built_at(d), d.name), reverse=True)
+                     key=lambda d: (d.name == current, built_at(d), version_key(d.name)), reverse=True)
     removed = []
     for folder in folders[keep:]:
         shutil.rmtree(folder)

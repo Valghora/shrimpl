@@ -124,4 +124,4 @@ jobs:
           git push --force-with-lease -u origin "$branch"
           gh pr create --base "${{ github.event.repository.default_branch }}" --head "$branch" \
             --title "Add site: $SITE" \
-            --body "Adds \`sites/$SITE/\`, drafted from $URL by the *Wrap a website* workflow. Review the low/medium-confidence keys in \`site.toml\` before merging. APKs are attached to the workflow run."
+            --body "Adds \`sites/$SITE/\`, drafted from $URL by the *Wrap a website* workflow. Review the low/medium-confidence keys in \`site.toml\` before merging. The release APK is included under `apks/`; the debug APK is attached to the workflow run."

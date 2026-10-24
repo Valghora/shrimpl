@@ -199,6 +199,16 @@ class SiteConfigTest(unittest.TestCase):
         self.assertEqual(["1.0.0", "1.5.0", "1.6.0"], sorted(p.name for p in apks.iterdir()))
         self.assertEqual([], site_config.prune_apks("discord"))
 
+    def test_prune_apks_after_fresh_clone_uses_version_order(self):
+        self.make_site("discord", {**DISCORD, "VERSION_NAME": "1.10.0"})
+        apks = self.tmp / "discord" / "apks"
+        for version in ("1.2.0", "1.9.0", "1.10.0", "1.8.0"):
+            (apks / version).mkdir(parents=True)
+            apk = apks / version / "discord-release.apk"
+            apk.write_bytes(b"apk")
+            os.utime(apk, (1_000_000, 1_000_000))
+        self.assertEqual(["1.2.0"], site_config.prune_apks("discord"))
+
     def test_prune_apks_without_builds(self):
         self.make_site("discord", DISCORD)
         self.assertEqual([], site_config.prune_apks("discord"))

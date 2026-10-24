@@ -2,7 +2,7 @@
 .kotlin/
 build/
 dist/
-sites/*/apks/
+sites/*/apks/**/*-debug.apk
 local.properties
 .idea/
 *.iml

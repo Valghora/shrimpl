@@ -61,7 +61,7 @@ Computed by `scripts/site_config.py` (shown by `site_config.py show --site <id>`
 - ALLOWED_ORIGIN_RULES: for each domain d in INTERNAL_DOMAINS: `"https://d"` and `"https://*.d"`
 - UA_FEATURES_ACTIVE: true only if USER_AGENT_OVERRIDE is empty (otherwise R6.10 and R6.11 stay inactive).
 - DEBUG_APK_NAME: `"<<APP_ID>>-debug.apk"`. RELEASE_APK_NAME / RELEASE_APK_PATH: `"<<APP_ID>>-release.apk"` / `app/build/outputs/apk/release/app-release.apk`, or the `-release-unsigned` variants when RELEASE_SIGNING is `"unsigned"`.
-- APK_DIR: `sites/<<APP_ID>>/apks/<<VERSION_NAME>>` (gitignored). After each build, `site_config.py prune-apks` keeps only the 3 most recently built version folders (always including the current VERSION_NAME). VERSION_NAME may contain only letters, digits and `. _ + -`.
+- APK_DIR: `sites/<<APP_ID>>/apks/<<VERSION_NAME>>`. Release APKs are committed; debug APKs are gitignored. After each build, `site_config.py prune-apks` keeps only the 3 most recently built version folders (by newest file, then version number; always including the current VERSION_NAME). VERSION_NAME may contain only letters, digits and `. _ + -`.
 - GRADLE_FLAGS: `--project-cache-dir="$HOME/.cache/projects/$(basename "$PWD")-$(pwd -P | sha1sum | cut -c1-8)/gradle" -Psite=<<APP_ID>>`   (if sha1sum is missing, use `"shasum -a 1"`)
 
 </derived_values>
