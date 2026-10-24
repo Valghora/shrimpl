@@ -147,11 +147,14 @@ jobs:
         run: |
           image="$(cat "$ANDROID_HOME/.wrapper-system-image")"
           echo "no" | "$ANDROID_HOME/cmdline-tools/latest/bin/avdmanager" create avd -n smoke -k "$image" -d pixel_7 --force
+          # The image asks for a 12 GB data partition; a hosted runner has about 8 GB free.
+          sed -i '/^disk.dataPartition.size=/d' "$HOME/.android/avd/smoke.avd/config.ini"
+          echo "disk.dataPartition.size=4G" >> "$HOME/.android/avd/smoke.avd/config.ini"
           mkdir -p "dist/smoke-${{ matrix.site }}"
           log="$PWD/dist/smoke-${{ matrix.site }}/emulator.log"
           "$ANDROID_HOME/emulator/emulator" -accel-check || true
           "$ANDROID_HOME/emulator/emulator" -avd smoke -no-window -no-audio -no-boot-anim -no-snapshot \
-            -gpu swiftshader_indirect -memory 4096 > "$log" 2>&1 &
+            -gpu swiftshader_indirect -memory 4096 -partition-size 4096 > "$log" 2>&1 &
           emulator_pid=$!
           adb="$ANDROID_HOME/platform-tools/adb"
           fail() { echo "::error::$1"; tail -n 80 "$log"; exit 1; }
