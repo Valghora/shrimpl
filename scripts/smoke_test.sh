@@ -16,7 +16,7 @@ ACTIVITY="$(prop namespace).MainActivity"
 APP_ID="$(prop appId)"
 APK="${2:-dist/$(prop debugApkName)}"
 OUT="${3:-dist/smoke-$SITE}"
-WAIT_SECONDS="${SMOKE_WAIT_SECONDS:-45}"
+WAIT_SECONDS="${SMOKE_WAIT_SECONDS:-180}"
 mkdir -p "$OUT"
 
 status=0
@@ -50,11 +50,34 @@ ADB_TIMEOUT=180 adb install -r -g "$APK" >/dev/null || { echo "FAIL   install $A
 adb logcat -c
 adb shell am start -W -n "$PACKAGE/$ACTIVITY" >/dev/null || echo "note: am start did not report back in time"
 
-# Wait for the page: the UA startup line appears at once; give the site time to render.
-for _ in $(seq 1 "$WAIT_SECONDS"); do
-  sleep 1
+# Count distinct (coarsely quantized) colors in the middle of the screen; a blank page has few.
+# Uses the raw screencap format: a 16-byte header (width, height, format, dataspace), then RGBA rows.
+count_colors() {
+  python3 -I -c '
+import struct, sys
+data = sys.stdin.buffer.read()
+width, height = struct.unpack("<II", data[:8])
+pixels = data[16:]
+seen = set()
+for gy in range(40):
+    y = int(height * (0.15 + 0.7 * gy / 39))
+    for gx in range(40):
+        i = (y * width + int(width * (0.05 + 0.9 * gx / 39))) * 4
+        seen.add(tuple(v // 16 for v in pixels[i:i + 3]))
+print(len(seen))' 2>/dev/null
+}
+
+# Wait for the page. The startup line appears at once, but a large web app can take a minute or more
+# to paint on an emulator with software rendering, so poll the screen until it shows content.
+colors=0
+waited=0
+while (( waited < WAIT_SECONDS )); do
+  sleep 10; waited=$((waited + 10))
   adb logcat -d | grep -q "FATAL EXCEPTION" && break
+  colors="$(adb exec-out screencap | count_colors)"
+  [[ "${colors:-0}" -ge 6 ]] && break
 done
+echo "waited ${waited}s for the page"
 adb logcat -d > "$OUT/logcat.txt"
 adb exec-out screencap -p > "$OUT/screen.png"
 
@@ -68,50 +91,7 @@ if [[ -n "$(adb shell pidof "$PACKAGE" | tr -d '\r')" ]]; then check pass "proce
 ua_line="$(grep -E " $APP_ID *: UA mode=" "$OUT/logcat.txt" | head -1)"
 if [[ -n "$ua_line" ]]; then check pass "startup log: ${ua_line#*: }"; else check fail "startup log line (tag $APP_ID) missing"; fi
 
-colors="$(python3 -I - "$OUT/screen.png" <<'PY'
-# Counts distinct (coarsely quantized) colors in the middle of the screen; a blank page has few.
-import struct, sys, zlib
-data = open(sys.argv[1], "rb").read()
-assert data[:8] == b"\x89PNG\r\n\x1a\n", "not a PNG"
-pos, idat, width = 8, b"", 0
-while pos < len(data):
-    length, kind = struct.unpack(">I4s", data[pos:pos + 8])
-    body = data[pos + 8:pos + 8 + length]
-    if kind == b"IHDR":
-        width, height, depth, ctype = struct.unpack(">IIBB", body[:10])
-        assert depth == 8 and ctype in (2, 6), f"unsupported PNG (depth {depth}, type {ctype})"
-        bpp = 4 if ctype == 6 else 3
-    elif kind == b"IDAT":
-        idat += body
-    pos += 12 + length
-raw, stride = zlib.decompress(idat), width * bpp
-rows, prev = [], bytearray(stride)
-for y in range(height):
-    line = raw[y * (stride + 1):(y + 1) * (stride + 1)]
-    ftype, cur = line[0], bytearray(line[1:])
-    for x in range(stride):
-        a = cur[x - bpp] if x >= bpp else 0
-        b, c = prev[x], prev[x - bpp] if x >= bpp else 0
-        if ftype == 1: cur[x] = (cur[x] + a) % 256
-        elif ftype == 2: cur[x] = (cur[x] + b) % 256
-        elif ftype == 3: cur[x] = (cur[x] + (a + b) // 2) % 256
-        elif ftype == 4:
-            p = a + b - c
-            pa, pb, pc = abs(p - a), abs(p - b), abs(p - c)
-            cur[x] = (cur[x] + (a if pa <= pb and pa <= pc else b if pb <= pc else c)) % 256
-    rows.append(cur)
-    prev = cur
-seen = set()
-for gy in range(40):
-    y = int(height * (0.15 + 0.7 * gy / 39))
-    for gx in range(40):
-        x = int(width * (0.05 + 0.9 * gx / 39))
-        px = rows[y][x * bpp:x * bpp + 3]
-        seen.add(tuple(v // 16 for v in px))
-print(len(seen))
-PY
-)"
-if [[ "${colors:-0}" -ge 6 ]]; then check pass "screen not blank ($colors colors)"; else check fail "screen looks blank (${colors:-?} colors)"; fi
+if [[ "${colors:-0}" -ge 6 ]]; then check pass "screen not blank ($colors colors)"; else check fail "screen looks blank after ${waited}s (${colors:-?} colors)"; fi
 
 echo "artifacts: $OUT/screen.png $OUT/logcat.txt"
 exit $status
