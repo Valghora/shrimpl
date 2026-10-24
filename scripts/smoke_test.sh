@@ -22,12 +22,17 @@ mkdir -p "$OUT"
 status=0
 check() { if [[ "$1" == pass ]]; then echo "PASS   $2"; else echo "FAIL   $2"; status=1; fi; }
 
-adb wait-for-device
+# Every adb call is bounded: a wedged emulator must fail the test, not hang the job.
+adb() { timeout "${ADB_TIMEOUT:-60}" "$(type -P adb)" "$@"; }
+
+adb wait-for-device || { echo "FAIL   no device"; exit 1; }
+# The package manager comes up a little after sys.boot_completed.
+for _ in $(seq 1 30); do adb shell pm path android >/dev/null 2>&1 && break; sleep 2; done
 adb uninstall "$PACKAGE" >/dev/null 2>&1 || true
 # -g grants runtime permissions up front so no permission dialog covers the page.
-adb install -r -g "$APK" >/dev/null || { echo "FAIL   install $APK"; exit 1; }
+ADB_TIMEOUT=180 adb install -r -g "$APK" >/dev/null || { echo "FAIL   install $APK"; exit 1; }
 adb logcat -c
-adb shell am start -W -n "$PACKAGE/$ACTIVITY" >/dev/null
+adb shell am start -W -n "$PACKAGE/$ACTIVITY" >/dev/null || echo "note: am start did not report back in time"
 
 # Wait for the page: the UA startup line appears at once; give the site time to render.
 for _ in $(seq 1 "$WAIT_SECONDS"); do

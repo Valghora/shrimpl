@@ -144,6 +144,7 @@ jobs:
         run: scripts/setup_android_sdk.sh
 
       - name: Boot emulator
+        timeout-minutes: 15
         run: |
           image="$(cat "$ANDROID_HOME/.wrapper-system-image")"
           echo "no" | "$ANDROID_HOME/cmdline-tools/latest/bin/avdmanager" create avd -n smoke -k "$image" -d pixel_7 --force
@@ -170,6 +171,7 @@ jobs:
           echo "$ANDROID_HOME/platform-tools" >> "$GITHUB_PATH"
 
       - name: Smoke test
+        timeout-minutes: 10
         run: scripts/smoke_test.sh "${{ matrix.site }}" "" "dist/smoke-${{ matrix.site }}"
 
       - name: Upload smoke artifacts
@@ -179,3 +181,13 @@ jobs:
           name: smoke-${{ matrix.site }}
           path: dist/smoke-${{ matrix.site }}/
           if-no-files-found: ignore
+
+      # The emulator runs in the background; left running, it stalls the runner's orphan-process cleanup.
+      - name: Stop emulator
+        if: always()
+        run: |
+          timeout 20 "$ANDROID_HOME/platform-tools/adb" emu kill || true
+          sleep 5
+          pkill -9 -f qemu-system || true
+          pkill -9 -f "emulator/emulator" || true
+          timeout 10 "$ANDROID_HOME/platform-tools/adb" kill-server || true
