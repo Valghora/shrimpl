@@ -3,8 +3,12 @@
 [![Android](https://github.com/Valghora/universal-android-wrapper/actions/workflows/android.yml/badge.svg)](https://github.com/Valghora/universal-android-wrapper/actions/workflows/android.yml)
 
 An Android project that wraps a single website in a WebView so it behaves like an installed PWA
-on Android desktops, tablets and phones. The app is generated from the "Universal APK Wrapper" spec.
-This branch holds only the build infrastructure; the app module is added from the spec.
+on Android desktops, tablets and phones. The app is generated from the "Universal APK Wrapper" spec;
+this build wraps Discord (`com.valghora.pwa.discord`, https://discord.com/app).
+
+- `app/src/main/java/.../core/`: pure-JVM logic (`AppConfig`, `DesktopSessionController`), unit tested
+- `app/src/main/java/.../`: Android layer (`MainActivity`, `DesktopWebView`, notification bridge, power monitor)
+- `scripts/generate_icons.py`: regenerates the launcher and notification icons from `ICON_SVG` in `AppConfig.kt`
 
 ## Requirements
 
