@@ -14,7 +14,6 @@ prop() { sed -n "s/^$1=//p" <<<"$props"; }
 PACKAGE="$(prop applicationId)"
 ACTIVITY="$(prop namespace).MainActivity"
 APP_ID="$(prop appId)"
-START_HOST="$(python3 -c 'import sys, urllib.parse; sys.path.insert(0, "scripts"); import site_config; print(urllib.parse.urlsplit(site_config.load(sys.argv[1])["START_URL"]).hostname)' "$SITE")"
 APK="${2:-dist/$(prop debugApkName)}"
 OUT="${3:-dist/smoke-$SITE}"
 WAIT_SECONDS="${SMOKE_WAIT_SECONDS:-45}"
@@ -29,15 +28,19 @@ adb() { timeout "${ADB_TIMEOUT:-60}" "$(type -P adb)" "$@"; }
 adb wait-for-device || { echo "FAIL   no device"; exit 1; }
 # The package manager comes up a little after sys.boot_completed.
 for _ in $(seq 1 30); do adb shell pm path android >/dev/null 2>&1 && break; sleep 2; done
-# The emulator needs working DNS to load the site; without it the failure is the runner's, not the app's.
+# Wi-Fi comes up a while after boot. Launching before Android has validated internet access makes the
+# page fail with ERR_NAME_NOT_RESOLVED, which is the runner's problem, not the app's.
 online=0
-# ping exits 1 when the name resolves but ICMP gets no reply (blocked on hosted runners), 2 when it cannot resolve.
-for _ in $(seq 1 15); do
-  adb shell ping -c 1 -W 2 "$START_HOST" >/dev/null 2>&1; rc=$?
-  [[ $rc == 0 || $rc == 1 ]] && { online=1; break; }
+for _ in $(seq 1 90); do
+  adb logcat -d -s NetworkMonitor 2>/dev/null | grep -q "isCaptivePortal: isSuccessful()=true" && { online=1; break; }
   sleep 2
 done
-[[ $online == 1 ]] || { echo "FAIL   emulator cannot reach $START_HOST (network/DNS); not an app failure"; exit 1; }
+if [[ $online != 1 ]]; then
+  adb shell dumpsys connectivity > "$OUT/connectivity.txt" 2>&1
+  adb logcat -d > "$OUT/logcat.txt"
+  echo "FAIL   the emulator has no validated internet connection after 3 minutes; not an app failure"
+  exit 1
+fi
 # A slow first boot can leave a "System UI isn't responding" dialog over the screen.
 adb shell am broadcast -a android.intent.action.CLOSE_SYSTEM_DIALOGS >/dev/null 2>&1 || true
 adb uninstall "$PACKAGE" >/dev/null 2>&1 || true
