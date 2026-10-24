@@ -9,7 +9,8 @@ set -euo pipefail
 
 CMDLINE_TOOLS_BUILD="16111833"
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-export ANDROID_HOME="${ANDROID_HOME:-/opt/android-sdk}"
+# Canonicalize: the android CLI's unzip guard rejects paths containing ".." ("Illegal entry path escaping destination").
+export ANDROID_HOME="$(realpath -m "${ANDROID_HOME:-/opt/android-sdk}")"
 
 if [[ -z "${API_LEVEL:-}" ]]; then
   API_LEVEL="$(grep -oE 'compileSdk\s*=\s*[0-9]+' "$REPO_ROOT/app/build.gradle.kts" 2>/dev/null | grep -oE '[0-9]+$' || true)"
