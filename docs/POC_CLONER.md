@@ -7,6 +7,17 @@ app" can run entirely on the device.
 This branch answers the first half: making and installing the copy. Site discovery and per-site
 configuration on the device come later.
 
+## Result (2026-10-24): positive
+
+Tested on a device: the cloner installed, and the "Discord 2" copy it built and signed installed
+and ran as expected. CI passes on the branch (host clone test, lint, build).
+
+Android shows strong warnings at several points: installing the sideloaded cloner, allowing it to
+install apps, and installing each copy. That is expected for an app that installs other apps. The
+plan is to use [Shizuku](https://shizuku.rikka.app/) later: it lets the cloner use ADB-level (shell)
+privileges, so installs can go through the shell user like `adb install` does, which avoids the
+per-app "install unknown apps" permission and most of the prompts.
+
 ## What it does
 
 `cloner/` is a small app that bundles one template APK (by default the committed
