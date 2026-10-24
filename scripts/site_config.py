@@ -127,6 +127,13 @@ REQUIRED = (
 
 # ---------- Loading ----------
 
+def _rel(path):
+    try:
+        return path.relative_to(ROOT)
+    except ValueError:
+        return path
+
+
 def site_ids():
     return sorted(p.parent.name for p in SITES.glob("*/site.toml"))
 
@@ -140,7 +147,7 @@ def _load_toml(path):
         with open(path, "rb") as fh:
             return tomllib.load(fh)
     except tomllib.TOMLDecodeError as exc:
-        raise ConfigError(f"{path.relative_to(ROOT)}: {exc}") from exc
+        raise ConfigError(f"{_rel(path)}: {exc}") from exc
 
 
 def load(site_id):
@@ -148,7 +155,7 @@ def load(site_id):
     path = site_dir(site_id) / "site.toml"
     if not path.is_file():
         known = ", ".join(site_ids()) or "none"
-        raise ConfigError(f"unknown site '{site_id}' (no {path.relative_to(ROOT)}); known sites: {known}")
+        raise ConfigError(f"unknown site '{site_id}' (no {_rel(path)}); known sites: {known}")
     merged = {}
     for layer in (SITES / "defaults.toml", SITES / "defaults.local.toml", path):
         if layer.is_file():

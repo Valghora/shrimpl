@@ -1,0 +1,123 @@
+name: Wrap a website
+
+# Actions tab -> "Wrap a website" -> Run workflow. Discovers the site, builds and verifies it, and
+# uploads the APKs. Optionally opens a pull request that adds sites/<id>/ to the repository.
+
+on:
+  workflow_dispatch:
+    inputs:
+      url:
+        description: Website URL (e.g. https://example.com)
+        required: true
+        type: string
+      site_id:
+        description: Site id (optional; default is derived from the app name)
+        required: false
+        type: string
+      enrich:
+        description: Let Claude review the draft config (needs the ANTHROPIC_API_KEY secret)
+        required: false
+        type: boolean
+        default: false
+      open_pr:
+        description: Open a pull request that adds the site
+        required: false
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+  pull-requests: write
+
+env:
+  ANDROID_HOME: /home/runner/android-sdk
+  PLAYWRIGHT_VERSION: "1.63.0"
+
+jobs:
+  wrap:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      HAS_SIDELOAD_KEY: ${{ secrets.SIDELOAD_KEYSTORE_B64 != '' }}
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      - uses: gradle/actions/setup-gradle@v6
+
+      - name: Install Playwright and Chromium
+        run: |
+          npm install --global "playwright@$PLAYWRIGHT_VERSION"
+          echo "NODE_PATH=$(npm root --global)" >> "$GITHUB_ENV"
+          npx --yes "playwright@$PLAYWRIGHT_VERSION" install --with-deps chromium
+
+      - name: Cache Android SDK
+        uses: actions/cache@v6
+        with:
+          path: ${{ env.ANDROID_HOME }}
+          key: android-sdk-${{ runner.os }}-wrap-${{ hashFiles('scripts/setup_android_sdk.sh', 'sites/defaults.toml') }}
+
+      - name: Sideload signing key
+        if: env.HAS_SIDELOAD_KEY == 'true'
+        env:
+          KEYSTORE_B64: ${{ secrets.SIDELOAD_KEYSTORE_B64 }}
+        run: |
+          echo "$KEYSTORE_B64" | base64 -d > "$RUNNER_TEMP/sideload.jks"
+          echo "SIDELOAD_KEYSTORE=$RUNNER_TEMP/sideload.jks" >> "$GITHUB_ENV"
+
+      - name: Wrap
+        id: wrap
+        env:
+          URL: ${{ inputs.url }}
+          SITE_ID: ${{ inputs.site_id }}
+          ENRICH: ${{ inputs.enrich }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          SIDELOAD_KEYSTORE_PASSWORD: ${{ secrets.SIDELOAD_KEYSTORE_PASSWORD }}
+          SIDELOAD_KEY_ALIAS: ${{ secrets.SIDELOAD_KEY_ALIAS }}
+          SIDELOAD_KEY_PASSWORD: ${{ secrets.SIDELOAD_KEY_PASSWORD }}
+        run: |
+          args=("$URL" --force --preview)
+          [[ -n "$SITE_ID" ]] && args+=(--id "$SITE_ID")
+          if [[ "$ENRICH" == true ]]; then
+            [[ -n "$ANTHROPIC_API_KEY" ]] || { echo "::error::enrich needs the ANTHROPIC_API_KEY secret"; exit 1; }
+            args+=(--enrich)
+          fi
+          ./wrap "${args[@]}" | tee "$RUNNER_TEMP/wrap.log"
+          site="$(sed -n 's/^site=//p' "$RUNNER_TEMP/wrap.log" | tail -1)"
+          echo "site=$site" >> "$GITHUB_OUTPUT"
+          {
+            echo "### $site"
+            echo '```toml'
+            cat "sites/$site/site.toml"
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload APKs and site config
+        uses: actions/upload-artifact@v7
+        with:
+          name: wrap-${{ steps.wrap.outputs.site }}
+          path: |
+            dist/
+            sites/${{ steps.wrap.outputs.site }}/
+
+      - name: Open pull request
+        if: inputs.open_pr
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SITE: ${{ steps.wrap.outputs.site }}
+          URL: ${{ inputs.url }}
+        run: |
+          branch="site/$SITE"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git checkout -b "$branch"
+          git add "sites/$SITE"
+          git commit -m "Add site $SITE ($URL)" -m "Drafted by the Wrap a website workflow."
+          git push --force-with-lease -u origin "$branch"
+          gh pr create --base "${{ github.event.repository.default_branch }}" --head "$branch" \
+            --title "Add site: $SITE" \
+            --body "Adds \`sites/$SITE/\`, drafted from $URL by the *Wrap a website* workflow. Review the low/medium-confidence keys in \`site.toml\` before merging. APKs are attached to the workflow run."
