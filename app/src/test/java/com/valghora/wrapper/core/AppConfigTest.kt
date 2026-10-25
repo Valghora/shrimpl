@@ -18,6 +18,7 @@ class AppConfigTest {
             override var userChoice: UaMode? = null
             override var learnedDesktop: Boolean = false
         },
+        config = AppConfig.sessionConfig(),
     )
 
     @Test

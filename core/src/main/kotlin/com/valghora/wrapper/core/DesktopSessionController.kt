@@ -11,7 +11,7 @@ import java.net.URLDecoder
 class DesktopSessionController(
     private val zoomStore: ZoomStore,
     val uaStore: UaStore,
-    private val config: SessionConfig = SessionConfig(),
+    private val config: SessionConfig,
 ) {
 
     // ---------- a. URL classification ----------

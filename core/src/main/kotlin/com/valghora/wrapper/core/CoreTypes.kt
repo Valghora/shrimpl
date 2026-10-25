@@ -1,10 +1,24 @@
 package com.valghora.wrapper.core
 
-enum class UaMode { AUTO, DESKTOP, MOBILE }
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 
+@Serializable
+enum class UaMode {
+    @SerialName("auto") AUTO,
+    @SerialName("desktop") DESKTOP,
+    @SerialName("mobile") MOBILE,
+}
+
+@Serializable
 enum class Modifier { CTRL, SHIFT, ALT, META }
 
-data class ShortcutSpec(val label: String, val keyName: String, val modifiers: Set<Modifier>)
+@Serializable
+data class ShortcutSpec(
+    val label: String,
+    @SerialName("key") val keyName: String,
+    val modifiers: Set<Modifier> = emptySet(),
+)
 
 enum class UrlClass { INTERNAL, OAUTH, EXTERNAL, PASSTHROUGH, SPECIAL_SCHEME, BLOCKED }
 
@@ -40,10 +54,10 @@ interface UaStore {
 
 /** The config values the controller depends on, injectable so tests can cover every branch. */
 data class SessionConfig(
-    val internalDomains: List<String> = AppConfig.INTERNAL_DOMAINS,
-    val oauthDomains: List<String> = AppConfig.OAUTH_DOMAINS,
-    val pauseOnPowerSave: Boolean = AppConfig.PAUSE_ON_POWER_SAVE,
-    val enableMultiWindow: Boolean = AppConfig.ENABLE_MULTI_WINDOW,
-    val appShortcuts: List<ShortcutSpec> = AppConfig.APP_SHORTCUTS,
-    val newWindowShortcut: ShortcutSpec? = AppConfig.NEW_WINDOW_SHORTCUT,
+    val internalDomains: List<String>,
+    val oauthDomains: List<String>,
+    val pauseOnPowerSave: Boolean,
+    val enableMultiWindow: Boolean,
+    val appShortcuts: List<ShortcutSpec>,
+    val newWindowShortcut: ShortcutSpec?,
 )

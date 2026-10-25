@@ -48,7 +48,7 @@ section() { echo; echo "=== $* ==="; }
 
 # 6.1 Gradle pipeline. The JaCoCo tasks are included only once they exist (Phase 2).
 section "6.1 gradle"
-tasks=(:app:clean :app:testDebugUnitTest)
+tasks=(:core:clean :core:test :core:jacocoTestCoverageVerification :app:clean :app:testDebugUnitTest)
 if ./gradlew "${GRADLE_FLAGS[@]}" -q :app:tasks --all 2>/dev/null | grep -q '^jacocoTestCoverageVerification'; then
   tasks+=(:app:jacocoTestReport :app:jacocoTestCoverageVerification)
 else

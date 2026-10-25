@@ -413,7 +413,7 @@ class DesktopSessionControllerTest {
     @Test
     fun exposesUaStore() {
         val store = FakeUaStore(userChoice = UaMode.DESKTOP, learnedDesktop = true)
-        val c = DesktopSessionController(FakeZoomStore(), store)
+        val c = DesktopSessionController(FakeZoomStore(), store, fixture)
         assertEquals(UaMode.DESKTOP, c.uaStore.userChoice)
         assertTrue(c.uaStore.learnedDesktop)
     }

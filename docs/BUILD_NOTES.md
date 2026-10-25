@@ -173,3 +173,32 @@ The app became a template: one code base, one config file per site (`sites/<id>/
 - **Enrich.** `anthropic` SDK 2.3.0, model `claude-opus-5-5`, structured JSON output, and the
   `server-side-fallback-2026-07-01` beta with `fallbacks="default"`. Verified offline and with an
   invalid key (clean 401 message); not run with a live key here.
+
+## UniWrap Phase 0 and 1 (2026-10-25)
+
+Latest stable versions, checked against maven.google.com, Maven Central (via Google's mirror) and
+services.gradle.org for docs/UNIWRAP_SPEC.md:
+
+| Component | Version | Used from |
+|---|---|---|
+| AGP / apksig | 9.4.1 | now / Phase 3 |
+| Kotlin (Android built-in, `kotlin.jvm`, `plugin.serialization`) | 2.4.21 | now |
+| Gradle | 9.8.2 | now |
+| kotlinx-serialization-json | 1.12.0 | now (`:core`) |
+| Compose BOM | 2026.09.00 | Phase 5 |
+| Compose Material 3 | 1.4.0 | Phase 5 |
+| material3-adaptive / adaptive-navigation-suite | 1.3.0 / 1.4.0 | Phase 5 |
+| activity-compose | 1.13.0 | Phase 5 |
+| navigation-compose | 2.10.2 | Phase 5 |
+| lifecycle (runtime-compose, viewmodel-compose) | 2.11.0 | Phase 5 |
+| Shizuku api / provider | 13.1.5 | Phase 5 |
+
+Phase 1 notes:
+
+- `:core` is a plain Kotlin JVM module (`org.jetbrains.kotlin.jvm` next to AGP's built-in Kotlin works
+  with both at 2.4.21). It compiles for Java 17 bytecode (toolchain 21) so the Android modules,
+  which target Java 17, can consume it.
+- `SessionConfig` no longer defaults to the generated `AppConfig` (which `:core` cannot see); the app
+  builds it with `AppConfig.sessionConfig()` until the template reads profiles (Phase 2).
+- kotlinx-serialization adds about 14 KB to the Discord release APK after R8.
+- KDoc gotcha: `https://*.d` inside a `/** */` comment opens a nested comment in Kotlin.

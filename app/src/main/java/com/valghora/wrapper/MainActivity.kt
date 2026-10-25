@@ -67,6 +67,7 @@ import com.valghora.wrapper.core.Modifier
 import com.valghora.wrapper.core.UaMode
 import com.valghora.wrapper.core.UrlClass
 import com.valghora.wrapper.core.WakeEvent
+import com.valghora.wrapper.core.sessionConfig
 import java.net.URISyntaxException
 import java.util.Collections
 import java.util.WeakHashMap
@@ -126,7 +127,7 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         prefs = SessionPrefs(this)
-        controller = DesktopSessionController(prefs, prefs)
+        controller = DesktopSessionController(prefs, prefs, AppConfig.sessionConfig())
 
         isLargeOrPc = packageManager.hasSystemFeature(PackageManager.FEATURE_PC) ||
             resources.configuration.smallestScreenWidthDp >= 600
