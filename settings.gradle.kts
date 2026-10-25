@@ -20,6 +20,6 @@ dependencyResolutionManagement {
 
 rootProject.name = "universal-android-wrapper"
 include(":core")
-include(":app")
+include(":template")
 // Proof of concept: clone an APK on the device (docs/POC_CLONER.md).
 include(":cloner")

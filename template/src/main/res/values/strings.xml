@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- app_name is generated per site (values/site.xml). -->
-    <string name="notification_channel_name">Notifications</string>
+    <!-- app_name comes from values/site.xml: generated per site, or neutral in the template build. -->
 
     <string name="menu_copy_link">Copy link</string>
     <string name="menu_open_link">Open link in browser</string>

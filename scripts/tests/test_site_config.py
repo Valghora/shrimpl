@@ -1,5 +1,6 @@
 """Tests for scripts/site_config.py. Run: python3 -m unittest discover -s scripts/tests"""
 
+import json
 import os
 import shutil
 import sys
@@ -146,23 +147,40 @@ class SiteConfigTest(unittest.TestCase):
         c = site_config.load("app3dprint")
         self.assertEqual(("letter", "3"), (c["ICON_MODE"], c["ICON_LETTER"]))
 
-    def test_manifest_overlay_follows_capabilities(self):
+    def test_manifest_overlay_removes_disabled_capabilities(self):
+        # The template declares the superset; the overlay removes what the site disables.
         self.make_site("discord", {**DISCORD, "ALLOW_MICROPHONE": True, "ENABLE_MULTI_WINDOW": False})
         manifest = site_config.render_manifest(site_config.load("discord"))
-        self.assertIn("android.permission.RECORD_AUDIO", manifest)
-        self.assertIn("android.hardware.microphone", manifest)
-        self.assertNotIn("android.permission.CAMERA", manifest)
-        self.assertIn("android.permission.POST_NOTIFICATIONS", manifest)
+        self.assertNotIn("RECORD_AUDIO", manifest)
+        self.assertNotIn("android.hardware.microphone", manifest)
+        self.assertIn('android:name="android.permission.CAMERA"\n        tools:node="remove"', manifest)
+        self.assertIn('android:name="android.hardware.camera.autofocus"\n        tools:node="remove"', manifest)
+        self.assertNotIn("POST_NOTIFICATIONS", manifest)
         self.assertIn('android:launchMode="singleTask"', manifest)
-        self.assertNotIn("PROPERTY_SUPPORTS_MULTI_INSTANCE_SYSTEM_UI", manifest)
+        self.assertIn('android:value="false"', manifest)
         self.assertIn('android:defaultWidth="1280dp"', manifest)
 
-    def test_generated_kotlin_escapes_strings(self):
-        self.make_site("discord", {**DISCORD, "APP_NAME": 'Discord "$beta"', "APP_ID": "discord"})
-        kotlin = site_config.render_app_config(site_config.load("discord"))
-        self.assertIn('const val APP_NAME = "Discord \\"\\$beta\\""', kotlin)
-        self.assertIn("val NEW_WINDOW_SHORTCUT: ShortcutSpec? = null", kotlin)
-        self.assertNotIn("<" * 2, kotlin)
+    def test_manifest_overlay_removes_nothing_when_everything_is_enabled(self):
+        self.make_site("discord", {**DISCORD, "ALLOW_MICROPHONE": True, "ALLOW_CAMERA": True})
+        manifest = site_config.render_manifest(site_config.load("discord"))
+        self.assertNotIn('tools:node="remove"', manifest)
+        self.assertIn('android:launchMode="singleInstancePerTask"', manifest)
+        self.assertIn('android:value="true"', manifest)
+
+    def test_profile_json(self):
+        values = {**DISCORD, "APP_NAME": 'Discord "beta"', "APP_ID": "discord", "HEADER_SURFACE_HEX_NIGHT": "#000000",
+                  "NEW_WINDOW_SHORTCUT": {"key": "KEYCODE_N", "modifiers": ["CTRL", "SHIFT"]},
+                  "APP_SHORTCUTS": [{"label": "Search", "key": "KEYCODE_K", "modifiers": ["CTRL"]}]}
+        self.make_site("discord", values)
+        profile = json.loads(site_config.render_profile(site_config.load("discord")))
+        self.assertEqual('Discord "beta"', profile["name"])
+        self.assertEqual("discord", profile["appId"])
+        self.assertEqual("#FFFFFF", profile["iconForeground"])  # "auto" resolved
+        self.assertEqual("#000000", profile["headerColorNight"])
+        self.assertEqual({"width": 1280, "height": 800}, profile["defaultWindowDp"])
+        self.assertEqual({"key": "KEYCODE_N", "modifiers": ["CTRL", "SHIFT"]}, profile["newWindowShortcut"])
+        self.assertEqual([{"label": "Search", "key": "KEYCODE_K", "modifiers": ["CTRL"]}], profile["appShortcuts"])
+        self.assertEqual("auto", profile["userAgentMode"])
 
     def test_android_string_escaping(self):
         self.assertEqual("Bob\\'s &amp; \\\"Co\\\"", site_config.android_string('Bob\'s & "Co"'))
@@ -179,8 +197,8 @@ class SiteConfigTest(unittest.TestCase):
     def test_generate_writes_all_outputs(self):
         self.make_site("discord", DISCORD)
         out = self.tmp / "out"
-        site_config.generate(site_config.load("discord"), out / "kotlin", out / "res", out / "manifest" / "AndroidManifest.xml")
-        self.assertTrue((out / "kotlin/com/valghora/wrapper/core/AppConfig.kt").is_file())
+        site_config.generate(site_config.load("discord"), out / "assets", out / "res", out / "manifest" / "AndroidManifest.xml")
+        self.assertTrue((out / "assets/uniwrap/profile.json").is_file())
         self.assertTrue((out / "res/values/site.xml").is_file())
         self.assertTrue((out / "res/mipmap-anydpi/ic_launcher.xml").is_file())
         self.assertTrue((out / "manifest/AndroidManifest.xml").is_file())

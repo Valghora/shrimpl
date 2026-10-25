@@ -15,9 +15,10 @@ import androidx.core.content.ContextCompat
 import androidx.core.graphics.toColorInt
 import androidx.webkit.WebViewCompat
 import androidx.webkit.WebViewFeature
-import com.valghora.wrapper.core.AppConfig
 import com.valghora.wrapper.core.DesktopSessionController
 import com.valghora.wrapper.core.UrlClass
+import com.valghora.wrapper.core.profile.allowedOriginRules
+import com.valghora.wrapper.core.profile.notificationChannelId
 import java.util.concurrent.atomic.AtomicInteger
 import org.json.JSONException
 import org.json.JSONObject
@@ -38,21 +39,21 @@ class NotificationBridge(context: Context, private val controller: DesktopSessio
         if (WebViewFeature.isFeatureSupported(WebViewFeature.WEB_MESSAGE_LISTENER)) {
             if (WebViewFeature.isFeatureSupported(WebViewFeature.DOCUMENT_START_SCRIPT)) {
                 createChannel()
-                WebViewCompat.addWebMessageListener(webView, "AndroidNotify", AppConfig.ALLOWED_ORIGIN_RULES, listener)
-                WebViewCompat.addDocumentStartJavaScript(webView, POLYFILL, AppConfig.ALLOWED_ORIGIN_RULES)
+                WebViewCompat.addWebMessageListener(webView, "AndroidNotify", WebApp.profile.allowedOriginRules, listener)
+                WebViewCompat.addDocumentStartJavaScript(webView, POLYFILL, WebApp.profile.allowedOriginRules)
                 return
             }
         }
         if (!unsupportedLogged) {
             unsupportedLogged = true
-            Log.w(AppConfig.APP_ID, "Notification bridge disabled: WebView lacks WEB_MESSAGE_LISTENER or DOCUMENT_START_SCRIPT")
+            Log.w(WebApp.profile.appId, "Notification bridge disabled: WebView lacks WEB_MESSAGE_LISTENER or DOCUMENT_START_SCRIPT")
         }
     }
 
     private fun createChannel() {
         val channel = NotificationChannel(
-            AppConfig.NOTIFICATION_CHANNEL_ID,
-            appContext.getString(R.string.notification_channel_name),
+            WebApp.profile.notificationChannelId,
+            WebApp.profile.name,
             NotificationManager.IMPORTANCE_HIGH,
         )
         appContext.getSystemService(NotificationManager::class.java).createNotificationChannel(channel)
@@ -83,9 +84,9 @@ class NotificationBridge(context: Context, private val controller: DesktopSessio
             launch,
             PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT,
         )
-        val notification = NotificationCompat.Builder(appContext, AppConfig.NOTIFICATION_CHANNEL_ID)
+        val notification = NotificationCompat.Builder(appContext, WebApp.profile.notificationChannelId)
             .setSmallIcon(R.drawable.ic_stat_notify)
-            .setColor(AppConfig.ICON_BACKGROUND_HEX.toColorInt())
+            .setColor(WebApp.profile.iconBackground.toColorInt())
             .setContentTitle(title)
             .setContentText(body)
             .setStyle(NotificationCompat.BigTextStyle().bigText(body))

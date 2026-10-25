@@ -1,18 +1,31 @@
 import javax.inject.Inject
 import org.gradle.process.ExecOperations
 
+// The web app template (docs/UNIWRAP_SPEC.md R7). It reads its site from assets/uniwrap/profile.json.
+//
+// Two build modes:
+// - Template (default): a site-neutral APK for UniWrap to patch: placeholder name and icons at fixed
+//   paths, the superset manifest, and a default profile (src/neutral/).
+// - Site (-Psite=<id>, used by ./wrap and CI until UniWrap replaces them): the profile, resources,
+//   icons and a manifest overlay are generated from sites/<id>/site.toml by scripts/site_config.py.
 plugins {
     alias(libs.plugins.android.application)
-    jacoco
 }
 
-// ---------- Site selection ----------
-// The template builds one site at a time: sites/<id>/site.toml layered over sites/defaults.toml.
-// Choose it with -Psite=<id> (default: the `site` property in gradle.properties).
-val selectedSite: String = providers.gradleProperty("site").get()
+/** Bump whenever template code or resources change; UniWrap uses it to offer updates (R11.4). */
+val templateVersion = 1
+
+val selectedSite: String? = providers.gradleProperty("site").orNull?.takeIf { it.isNotBlank() }
 val siteConfigScript = rootProject.file("scripts/site_config.py")
 
-val siteProperties: Map<String, String> = run {
+val siteProperties: Map<String, String> = if (selectedSite == null) {
+    mapOf(
+        "applicationId" to "com.valghora.uniwrap.template",
+        "versionCode" to "$templateVersion",
+        "versionName" to "template-$templateVersion",
+        "releaseSigning" to "auto",
+    )
+} else {
     val result = providers.exec {
         commandLine("python3", siteConfigScript.path, "properties", "--site", selectedSite)
         isIgnoreExitValue = true
@@ -27,7 +40,7 @@ val siteProperties: Map<String, String> = run {
 
 fun site(key: String): String = siteProperties[key] ?: throw GradleException("site_config.py did not report '$key'")
 
-/** Generates AppConfig.kt, site resources/icons and the manifest overlay for one variant. */
+/** Generates the profile asset, site resources and icons, and the manifest overlay for one variant. */
 abstract class GenerateSiteSources @Inject constructor(private val execOps: ExecOperations) : DefaultTask() {
     @get:Input
     abstract val siteId: Property<String>
@@ -40,7 +53,7 @@ abstract class GenerateSiteSources @Inject constructor(private val execOps: Exec
     abstract val script: RegularFileProperty
 
     @get:OutputDirectory
-    abstract val kotlinDir: DirectoryProperty
+    abstract val assetsDir: DirectoryProperty
 
     @get:OutputDirectory
     abstract val resDir: DirectoryProperty
@@ -54,7 +67,7 @@ abstract class GenerateSiteSources @Inject constructor(private val execOps: Exec
             commandLine(
                 "python3", script.get().asFile.path, "generate",
                 "--site", siteId.get(),
-                "--kotlin-out", kotlinDir.get().asFile.path,
+                "--assets-out", assetsDir.get().asFile.path,
                 "--res-out", resDir.get().asFile.path,
                 "--manifest-out", manifestFile.get().asFile.path,
             )
@@ -70,13 +83,14 @@ fun sideload(env: String, prop: String): String? =
 val sideloadKeystore = sideload("SIDELOAD_KEYSTORE", "sideload.keystore")
 
 android {
-    namespace = site("namespace")
-    compileSdk = site("compileSdk").toInt()
+    // Fixed for every web app, so the classes keep their names when UniWrap renames the package (R7.6).
+    namespace = "com.valghora.wrapper"
+    compileSdk = 37
 
     defaultConfig {
         applicationId = site("applicationId")
-        minSdk = site("minSdk").toInt()
-        targetSdk = site("targetSdk").toInt()
+        minSdk = 37
+        targetSdk = 37
         versionCode = site("versionCode").toInt()
         versionName = site("versionName")
     }
@@ -93,11 +107,8 @@ android {
     }
 
     buildTypes {
-        debug {
-            enableUnitTestCoverage = true
-        }
         release {
-            // R1.6: for personal sideloading only; never for store distribution.
+            // For personal sideloading only; never for store distribution. UniWrap re-signs the template.
             signingConfig = when (site("releaseSigning")) {
                 "unsigned" -> null
                 else -> signingConfigs.findByName("sideload") ?: signingConfigs.getByName("debug")
@@ -116,20 +127,37 @@ android {
 
 androidComponents {
     onVariants { variant ->
-        val generate = tasks.register<GenerateSiteSources>(
-            "generate${variant.name.replaceFirstChar { it.uppercase() }}SiteSources",
-        ) {
-            siteId.set(selectedSite)
-            script.set(siteConfigScript)
-            configInputs.from(
-                rootProject.fileTree("sites") { include("defaults.toml", "defaults.local.toml", "$selectedSite/**") },
-                rootProject.files("scripts/site_config.py", "scripts/generate_icons.py", "scripts/letter_glyphs.json"),
-            )
+        if (selectedSite == null) {
+            variant.sources.assets?.addStaticSourceDirectory("src/neutral/assets")
+            variant.sources.res?.addStaticSourceDirectory("src/neutral/res")
+            variant.sources.manifests.addStaticManifestFile("src/neutral/AndroidManifest.xml")
+        } else {
+            val generate = tasks.register<GenerateSiteSources>(
+                "generate${variant.name.replaceFirstChar { it.uppercase() }}SiteSources",
+            ) {
+                siteId.set(selectedSite)
+                script.set(siteConfigScript)
+                configInputs.from(
+                    rootProject.fileTree("sites") { include("defaults.toml", "defaults.local.toml", "$selectedSite/**") },
+                    rootProject.files("scripts/site_config.py", "scripts/generate_icons.py", "scripts/letter_glyphs.json"),
+                )
+            }
+            variant.sources.assets?.addGeneratedSourceDirectory(generate, GenerateSiteSources::assetsDir)
+            variant.sources.res?.addGeneratedSourceDirectory(generate, GenerateSiteSources::resDir)
+            variant.sources.manifests.addGeneratedManifestFile(generate, GenerateSiteSources::manifestFile)
         }
-        variant.sources.kotlin?.addGeneratedSourceDirectory(generate, GenerateSiteSources::kotlinDir)
-        variant.sources.res?.addGeneratedSourceDirectory(generate, GenerateSiteSources::resDir)
-        variant.sources.manifests.addGeneratedManifestFile(generate, GenerateSiteSources::manifestFile)
     }
+}
+
+// Unit tests check the profile this build ships: the generated one for a site build, else the default.
+tasks.withType<Test>().configureEach {
+    val profile: Provider<RegularFile> = if (selectedSite == null) {
+        provider { layout.projectDirectory.file("src/neutral/assets/uniwrap/profile.json") }
+    } else {
+        tasks.named<GenerateSiteSources>("generateDebugSiteSources").flatMap { it.assetsDir.file("uniwrap/profile.json") }
+    }
+    inputs.file(profile).withPropertyName("profileJson")
+    jvmArgumentProviders.add(CommandLineArgumentProvider { listOf("-DprofileJson=${profile.get().asFile.path}") })
 }
 
 kotlin {
@@ -144,39 +172,4 @@ dependencies {
     implementation(libs.androidx.activity.ktx)
     implementation(libs.androidx.webkit)
     testImplementation(libs.junit)
-}
-
-// JaCoCo (R2.5): unit-test line coverage of the pure-JVM core package only.
-val corePackagePath = site("namespace").replace('.', '/') + "/core/**"
-val coreClasses = fileTree(layout.buildDirectory) {
-    include("intermediates/built_in_kotlinc/debug/**/$corePackagePath")
-    exclude("**/R.class", "**/R$*.class", "**/BuildConfig.*")
-}
-val coverageData = fileTree(layout.buildDirectory) {
-    include("outputs/unit_test_code_coverage/debugUnitTest/*.exec")
-}
-
-tasks.register<JacocoReport>("jacocoTestReport") {
-    dependsOn("testDebugUnitTest")
-    classDirectories.setFrom(coreClasses)
-    sourceDirectories.setFrom("src/main/java")
-    executionData.setFrom(coverageData)
-    reports {
-        xml.required.set(true)
-        html.required.set(true)
-    }
-}
-
-tasks.register<JacocoCoverageVerification>("jacocoTestCoverageVerification") {
-    dependsOn("testDebugUnitTest")
-    classDirectories.setFrom(coreClasses)
-    executionData.setFrom(coverageData)
-    violationRules {
-        rule {
-            limit {
-                counter = "LINE"
-                minimum = "0.85".toBigDecimal()
-            }
-        }
-    }
 }

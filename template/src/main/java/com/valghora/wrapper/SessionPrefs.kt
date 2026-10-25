@@ -2,7 +2,6 @@ package com.valghora.wrapper
 
 import android.content.Context
 import androidx.core.content.edit
-import com.valghora.wrapper.core.AppConfig
 import com.valghora.wrapper.core.UaMode
 import com.valghora.wrapper.core.UaStore
 import com.valghora.wrapper.core.ZoomStore
@@ -10,7 +9,7 @@ import com.valghora.wrapper.core.ZoomStore
 /** ZoomStore and UaStore backed by one private SharedPreferences file (R6.1). */
 class SessionPrefs(context: Context) : ZoomStore, UaStore {
 
-    private val prefs = context.getSharedPreferences("${AppConfig.APP_ID}_session", Context.MODE_PRIVATE)
+    private val prefs = context.getSharedPreferences("${WebApp.profile.appId}_session", Context.MODE_PRIVATE)
 
     override fun load(): Int? = if (prefs.contains(KEY_TEXT_ZOOM)) prefs.getInt(KEY_TEXT_ZOOM, 0) else null
 

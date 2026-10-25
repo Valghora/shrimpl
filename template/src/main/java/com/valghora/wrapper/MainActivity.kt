@@ -58,7 +58,6 @@ import androidx.core.view.WindowInsetsControllerCompat
 import androidx.webkit.UserAgentMetadata
 import androidx.webkit.WebSettingsCompat
 import androidx.webkit.WebViewFeature
-import com.valghora.wrapper.core.AppConfig
 import com.valghora.wrapper.core.DesktopSessionController
 import com.valghora.wrapper.core.HitType
 import com.valghora.wrapper.core.KeyAction
@@ -67,7 +66,10 @@ import com.valghora.wrapper.core.Modifier
 import com.valghora.wrapper.core.UaMode
 import com.valghora.wrapper.core.UrlClass
 import com.valghora.wrapper.core.WakeEvent
-import com.valghora.wrapper.core.sessionConfig
+import com.valghora.wrapper.core.profile.headerNight
+import com.valghora.wrapper.core.profile.newWindowShortcutSpec
+import com.valghora.wrapper.core.profile.sessionConfig
+import com.valghora.wrapper.core.profile.uaFeaturesActive
 import java.net.URISyntaxException
 import java.util.Collections
 import java.util.WeakHashMap
@@ -127,16 +129,16 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         prefs = SessionPrefs(this)
-        controller = DesktopSessionController(prefs, prefs, AppConfig.sessionConfig())
+        controller = DesktopSessionController(prefs, prefs, WebApp.profile.sessionConfig())
 
         isLargeOrPc = packageManager.hasSystemFeature(PackageManager.FEATURE_PC) ||
             resources.configuration.smallestScreenWidthDp >= 600
         val resolution = controller.resolveUa(
-            AppConfig.USER_AGENT_MODE,
+            WebApp.profile.userAgentMode,
             isLargeOrPc,
             prefs.userChoice,
             prefs.learnedDesktop,
-            AppConfig.USER_AGENT_OVERRIDE,
+            WebApp.profile.userAgentOverride,
         )
         resolvedMode = resolution.mode
 
@@ -159,7 +161,7 @@ class MainActivity : AppCompatActivity() {
 
         configureMainWebView()
         Log.i(
-            AppConfig.APP_ID,
+            WebApp.profile.appId,
             "UA mode=${resolvedMode.name} reason=${resolution.reason.label} metadata=$uaMetadataState",
         )
 
@@ -169,9 +171,9 @@ class MainActivity : AppCompatActivity() {
 
         if (!handleToggleIntent(intent)) {
             val restored = savedInstanceState?.getBundle(STATE_WEBVIEW)?.let { webView.restoreState(it) }
-            if (restored == null) webView.loadUrl(AppConfig.START_URL)
+            if (restored == null) webView.loadUrl(WebApp.profile.startUrl)
         }
-        if (savedInstanceState == null && AppConfig.ALLOW_NOTIFICATIONS) requestNotificationPermissionIfNeeded()
+        if (savedInstanceState == null && WebApp.profile.allowNotifications) requestNotificationPermissionIfNeeded()
     }
 
     override fun onNewIntent(intent: Intent) {
@@ -187,13 +189,13 @@ class MainActivity : AppCompatActivity() {
     override fun onStart() {
         super.onStart()
         // R8.5: only when the page should not keep running while hidden. Never pauseTimers() here.
-        if (!AppConfig.KEEP_ALIVE_WHEN_HIDDEN && webViewAlive) webView.onResume()
+        if (!WebApp.profile.keepAliveWhenHidden && webViewAlive) webView.onResume()
     }
 
     override fun onStop() {
         super.onStop()
         CookieManager.getInstance().flush()
-        if (!AppConfig.KEEP_ALIVE_WHEN_HIDDEN && webViewAlive) webView.onPause()
+        if (!WebApp.profile.keepAliveWhenHidden && webViewAlive) webView.onPause()
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
@@ -236,7 +238,7 @@ class MainActivity : AppCompatActivity() {
     // ---------- Window, insets and theme (R3) ----------
 
     private fun currentHeaderHex(): String =
-        if (nightMode == Configuration.UI_MODE_NIGHT_YES) AppConfig.HEADER_NIGHT else AppConfig.HEADER_SURFACE_HEX
+        if (nightMode == Configuration.UI_MODE_NIGHT_YES) WebApp.profile.headerNight else WebApp.profile.headerColor
 
     private fun applyHeaderColors() {
         val hex = currentHeaderHex()
@@ -265,7 +267,7 @@ class MainActivity : AppCompatActivity() {
 
         setTaskDescription(
             ActivityManager.TaskDescription.Builder()
-                .setLabel(getString(R.string.app_name))
+                .setLabel(WebApp.profile.name)
                 .setPrimaryColor(color)
                 .setBackgroundColor(color)
                 .build(),
@@ -290,9 +292,9 @@ class MainActivity : AppCompatActivity() {
             if (event.action == DragEvent.ACTION_DROP) requestDragAndDropPermissions(event)
             false
         }
-        if (AppConfig.NATIVE_CONTEXT_MENU) registerForContextMenu(webView)
+        if (WebApp.profile.nativeContextMenu) registerForContextMenu(webView)
         onBackPressedDispatcher.addCallback(this, backCallback)
-        if (AppConfig.ALLOW_NOTIFICATIONS) NotificationBridge(this, controller).install(webView)
+        if (WebApp.profile.allowNotifications) NotificationBridge(this, controller).install(webView)
     }
 
     /** The only place WebView settings and the user agent are configured (R6.1). */
@@ -314,10 +316,10 @@ class MainActivity : AppCompatActivity() {
         settings.userAgentString = controller.buildUserAgent(
             WebSettings.getDefaultUserAgent(this),
             mode,
-            AppConfig.USER_AGENT_OVERRIDE,
+            WebApp.profile.userAgentOverride,
         )
 
-        if (mode == UaMode.DESKTOP && AppConfig.USER_AGENT_OVERRIDE.isEmpty()) {
+        if (mode == UaMode.DESKTOP && WebApp.profile.userAgentOverride.isEmpty()) {
             if (WebViewFeature.isFeatureSupported(WebViewFeature.USER_AGENT_METADATA)) {
                 val current = WebSettingsCompat.getUserAgentMetadata(settings)
                 if (webView !in uaMetadataChanged) originalUaMetadata = originalUaMetadata ?: current
@@ -333,7 +335,7 @@ class MainActivity : AppCompatActivity() {
             } else {
                 if (!uaMetadataUnsupportedLogged) {
                     uaMetadataUnsupportedLogged = true
-                    Log.w(AppConfig.APP_ID, "WebView lacks USER_AGENT_METADATA; desktop UA metadata not applied")
+                    Log.w(WebApp.profile.appId, "WebView lacks USER_AGENT_METADATA; desktop UA metadata not applied")
                 }
                 uaMetadataState = "unsupported"
             }
@@ -381,7 +383,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun applyStoreRedirectFallback(url: String): Boolean {
-        if (!AppConfig.UA_STORE_REDIRECT_FALLBACK || !AppConfig.UA_FEATURES_ACTIVE) return false
+        if (!WebApp.profile.uaStoreRedirectFallback || !WebApp.profile.uaFeaturesActive) return false
         if (resolvedMode != UaMode.MOBILE || prefs.userChoice != null || prefs.learnedDesktop) return false
         val windowOpen = storeWindowOpenedAt != 0L &&
             SystemClock.elapsedRealtime() - storeWindowOpenedAt <= STORE_REDIRECT_WINDOW_MS
@@ -389,9 +391,9 @@ class MainActivity : AppCompatActivity() {
         prefs.learnedDesktop = true
         resolvedMode = UaMode.DESKTOP
         applyWebSettings(webView, UaMode.DESKTOP)
-        webView.loadUrl(AppConfig.START_URL)
+        webView.loadUrl(WebApp.profile.startUrl)
         publishToggleShortcut()
-        Log.i(AppConfig.APP_ID, "Store redirect on a mobile UA; switched to desktop UA")
+        Log.i(WebApp.profile.appId, "Store redirect on a mobile UA; switched to desktop UA")
         return true
     }
 
@@ -451,7 +453,7 @@ class MainActivity : AppCompatActivity() {
         }
 
         override fun onRenderProcessGone(view: WebView, detail: RenderProcessGoneDetail): Boolean {
-            Log.w(AppConfig.APP_ID, "Renderer gone (crashed=${detail.didCrash()}); recreating")
+            Log.w(WebApp.profile.appId, "Renderer gone (crashed=${detail.didCrash()}); recreating")
             destroyMainWebView()
             recreate()
             return true
@@ -594,9 +596,9 @@ class MainActivity : AppCompatActivity() {
             }
             val allowed = request.resources.filter {
                 when (it) {
-                    PermissionRequest.RESOURCE_AUDIO_CAPTURE -> AppConfig.ALLOW_MICROPHONE
-                    PermissionRequest.RESOURCE_VIDEO_CAPTURE -> AppConfig.ALLOW_CAMERA
-                    PermissionRequest.RESOURCE_PROTECTED_MEDIA_ID -> AppConfig.ALLOW_PROTECTED_MEDIA
+                    PermissionRequest.RESOURCE_AUDIO_CAPTURE -> WebApp.profile.allowMicrophone
+                    PermissionRequest.RESOURCE_VIDEO_CAPTURE -> WebApp.profile.allowCamera
+                    PermissionRequest.RESOURCE_PROTECTED_MEDIA_ID -> WebApp.profile.allowProtectedMedia
                     else -> false
                 }
             }
@@ -786,10 +788,10 @@ class MainActivity : AppCompatActivity() {
 
     override fun onProvideKeyboardShortcuts(data: MutableList<KeyboardShortcutGroup>, menu: Menu?, deviceId: Int) {
         super.onProvideKeyboardShortcuts(data, menu, deviceId)
-        val appShortcuts = AppConfig.APP_SHORTCUTS.map {
+        val appShortcuts = WebApp.profile.appShortcuts.map {
             KeyboardShortcutInfo(it.label, KeyEvent.keyCodeFromString(it.keyName), metaStateOf(it.modifiers))
         }
-        data += KeyboardShortcutGroup(getString(R.string.app_name), appShortcuts)
+        data += KeyboardShortcutGroup(WebApp.profile.name, appShortcuts)
         data += KeyboardShortcutGroup(
             getString(R.string.shortcut_group_window),
             listOf(
@@ -802,8 +804,8 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun newWindowShortcutInfo(): List<KeyboardShortcutInfo> {
-        val shortcut = AppConfig.NEW_WINDOW_SHORTCUT ?: return emptyList()
-        if (!AppConfig.ENABLE_MULTI_WINDOW) return emptyList()
+        val shortcut = WebApp.profile.newWindowShortcutSpec ?: return emptyList()
+        if (!WebApp.profile.enableMultiWindow) return emptyList()
         return listOf(
             KeyboardShortcutInfo(
                 getString(R.string.shortcut_new_window),
@@ -825,7 +827,7 @@ class MainActivity : AppCompatActivity() {
     // ---------- Desktop/mobile toggle (R6.11) ----------
 
     private val uaToggleEnabled: Boolean
-        get() = AppConfig.UA_USER_TOGGLE && AppConfig.UA_FEATURES_ACTIVE
+        get() = WebApp.profile.uaUserToggle && WebApp.profile.uaFeaturesActive
 
     private fun publishToggleShortcut() {
         if (!uaToggleEnabled) {
@@ -860,7 +862,7 @@ class MainActivity : AppCompatActivity() {
         resolvedMode = target
         applyWebSettings(webView, target)
         storeWindowArmed = true
-        webView.loadUrl(AppConfig.START_URL)
+        webView.loadUrl(WebApp.profile.startUrl)
         publishToggleShortcut()
         return true
     }

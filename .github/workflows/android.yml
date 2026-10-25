@@ -95,13 +95,13 @@ jobs:
           path: sites/${{ matrix.site }}/apks/
 
       - name: Upload reports
-        if: always() && hashFiles('app/build/reports/**') != ''
+        if: always() && hashFiles('template/build/reports/**') != ''
         uses: actions/upload-artifact@v7
         with:
           name: reports-${{ matrix.site }}
           path: |
-            app/build/reports/
-            app/build/test-results/
+            template/build/reports/
+            template/build/test-results/
           if-no-files-found: ignore
 
   cloner:

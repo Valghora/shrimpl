@@ -2,19 +2,19 @@
 # Phase 6 verification driver for one site of the Universal Android Wrapper.
 # Every site-specific value comes from scripts/site_config.py, so this works for any site.
 #
-# Usage: SITE=<id> scripts/ci_verify.sh [project_dir]   (default site: `site` in gradle.properties)
+# Usage: SITE=<id> scripts/ci_verify.sh [project_dir]   (default site: discord)
 set -uo pipefail
 
 PROJECT="$(cd "${1:-$(dirname "${BASH_SOURCE[0]}")/..}" && pwd)"
 cd "$PROJECT"
 
-if [[ ! -f app/build.gradle.kts ]]; then
+if [[ ! -f template/build.gradle.kts ]]; then
   echo "no app module, skipping Phase 6"
   exit 0
 fi
 
 if command -v sha1sum >/dev/null; then hash() { sha1sum; }; else hash() { shasum -a 1; }; fi
-SITE="${SITE:-$(sed -n 's/^site=//p' gradle.properties)}"
+SITE="${SITE:-discord}"
 GRADLE_FLAGS=(--project-cache-dir="$HOME/.cache/projects/$(basename "$PWD")-$(pwd -P | hash | cut -c1-8)/gradle" "-Psite=$SITE")
 
 if ! site_props="$(python3 scripts/site_config.py properties --site "$SITE")"; then
@@ -27,8 +27,8 @@ PACKAGE_NAME="$(prop applicationId)"
 NAMESPACE="$(prop namespace)"
 MIN_SDK="$(prop minSdk)"
 TARGET_SDK="$(prop targetSdk)"
-CORE_DIR="app/src/main/java/${NAMESPACE//.//}/core"
-DEBUG_APK="app/build/outputs/apk/debug/app-debug.apk"
+CORE_DIR="core/src/main/kotlin"
+DEBUG_APK="template/build/outputs/apk/debug/template-debug.apk"
 DEBUG_NAME="$(prop debugApkName)"
 RELEASE_APK="$(prop releaseApkPath)"
 RELEASE_NAME="$(prop releaseApkName)"
@@ -46,28 +46,23 @@ status=0
 record() { SUMMARY+=("$(printf '%-6s %s' "$1" "$2")"); [[ "$1" == FAIL ]] && status=1; }
 section() { echo; echo "=== $* ==="; }
 
-# 6.1 Gradle pipeline. The JaCoCo tasks are included only once they exist (Phase 2).
+# 6.1 Gradle pipeline. Coverage is measured on the pure-JVM :core module.
 section "6.1 gradle"
-tasks=(:core:clean :core:test :core:jacocoTestCoverageVerification :app:clean :app:testDebugUnitTest)
-if ./gradlew "${GRADLE_FLAGS[@]}" -q :app:tasks --all 2>/dev/null | grep -q '^jacocoTestCoverageVerification'; then
-  tasks+=(:app:jacocoTestReport :app:jacocoTestCoverageVerification)
-else
-  echo "note: jacoco tasks not defined yet; skipping them"
-fi
-tasks+=(:app:lintDebug :app:assembleDebug :app:assembleRelease)
+tasks=(:core:clean :core:test :core:jacocoTestReport :core:jacocoTestCoverageVerification)
+tasks+=(:template:clean :template:testDebugUnitTest :template:lintDebug :template:assembleDebug :template:assembleRelease)
 if ./gradlew "${GRADLE_FLAGS[@]}" --console=plain "${tasks[@]}"; then
   record PASS "6.1 gradle ${tasks[*]}"
 else
   record FAIL "6.1 gradle ${tasks[*]}"
 fi
-# Generated site sources (AppConfig.kt, resources/icons, manifest overlay) of the debug variant.
-GEN_RES="$(dirname "$(dirname "$(find app/build/generated -path '*ebug*' -path '*mipmap-anydpi*' -name ic_launcher.xml 2>/dev/null | head -1)")")"
-GEN_KOTLIN="$(dirname "$(find app/build/generated -path '*ebug*' -name AppConfig.kt 2>/dev/null | head -1)")"
-GEN_MANIFEST="$(find app/build/generated -path '*ebug*' -name AndroidManifest.xml -path '*SiteSources*' 2>/dev/null | head -1)"
-echo "generated: res=$GEN_RES kotlin=$GEN_KOTLIN manifest=$GEN_MANIFEST"
+# Generated site sources (profile asset, resources/icons, manifest overlay) of the debug variant.
+GEN_RES="$(dirname "$(dirname "$(find template/build/generated -path '*ebug*' -path '*mipmap-anydpi*' -name ic_launcher.xml 2>/dev/null | head -1)")")"
+GEN_PROFILE="$(find template/build/generated -path '*ebug*' -path '*uniwrap*' -name profile.json 2>/dev/null | head -1)"
+GEN_MANIFEST="$(find template/build/generated -path '*ebug*' -name AndroidManifest.xml -path '*SiteSources*' 2>/dev/null | head -1)"
+echo "generated: res=$GEN_RES profile=$GEN_PROFILE manifest=$GEN_MANIFEST"
 
 # Coverage must measure real core classes: an empty report passes JaCoCo's rule vacuously.
-jacoco_xml="app/build/reports/jacoco/jacocoTestReport/jacocoTestReport.xml"
+jacoco_xml="core/build/reports/jacoco/test/jacocoTestReport.xml"
 if [[ -f "$jacoco_xml" ]]; then
   coverage="$(python3 -I - "$jacoco_xml" "${NAMESPACE//.//}/core/" <<'PY'
 import sys, xml.etree.ElementTree as ET
@@ -87,7 +82,7 @@ fi
 
 # 6.2 Lint XML
 section "6.2 lint"
-lint_xml="$(ls app/build/reports/lint-results-debug.xml 2>/dev/null | head -1)"
+lint_xml="$(ls template/build/reports/lint-results-debug.xml 2>/dev/null | head -1)"
 if [[ -f "$lint_xml" ]]; then
   read -r errs unused obsolete < <(python3 -I - "$lint_xml" <<'PY'
 import sys, xml.etree.ElementTree as ET
@@ -129,7 +124,7 @@ if [[ -f "$DEBUG_APK" && -x "$AAPT2" ]]; then
   grep -q "^targetSdkVersion:'$TARGET_SDK'" <<<"$badging" || { echo "targetSdkVersion mismatch"; ok=0; }
   # aapt2 auto-versions anydpi resources (observed: mipmap-anydpi-v21), so accept any -vNN qualifier.
   icon_re="icon='res/mipmap-anydpi(-v[0-9]+)?/ic_launcher\.xml'"
-  if ls app/src/main/res/mipmap-anydpi*/ic_launcher.xml >/dev/null 2>&1; then
+  if ls "$GEN_RES"/mipmap-anydpi*/ic_launcher.xml >/dev/null 2>&1; then
     grep -E "^application:" <<<"$badging" | grep -qE "$icon_re" || { echo "application icon mismatch"; ok=0; }
     grep -E "^launchable-activity:" <<<"$badging" | grep -qE "$icon_re" || { echo "launchable-activity icon mismatch"; ok=0; }
   else
@@ -160,15 +155,15 @@ if [[ -d "$CORE_DIR" ]]; then
 else
   record SKIP "6.6 core package dir not present"
 fi
-static_none "no JavascriptInterface" -rnE 'addJavascriptInterface|@JavascriptInterface' app/src
-static_none "no orientation/aspect attrs" -nE 'screenOrientation|minAspectRatio|maxAspectRatio' app/src/main/AndroidManifest.xml ${GEN_MANIFEST:+"$GEN_MANIFEST"}
+static_none "no JavascriptInterface" -rnE 'addJavascriptInterface|@JavascriptInterface' template/src
+static_none "no orientation/aspect attrs" -nE 'screenOrientation|minAspectRatio|maxAspectRatio' template/src/main/AndroidManifest.xml ${GEN_MANIFEST:+"$GEN_MANIFEST"}
 # Placeholders: generated sources, the icon script and Gradle files; Kotlin only inside string literals.
-placeholder_scope=(app/src settings.gradle.kts build.gradle.kts app/build.gradle.kts gradle/libs.versions.toml)
-for generated in "$GEN_RES" "$GEN_KOTLIN" "$GEN_MANIFEST"; do [[ -e "$generated" && "$generated" != "." ]] && placeholder_scope+=("$generated"); done
+placeholder_scope=(template/src settings.gradle.kts build.gradle.kts template/build.gradle.kts gradle/libs.versions.toml)
+for generated in "$GEN_RES" "$GEN_PROFILE" "$GEN_MANIFEST"; do [[ -e "$generated" && "$generated" != "." ]] && placeholder_scope+=("$generated"); done
 [[ -f scripts/generate_icons.py ]] && placeholder_scope+=(scripts/generate_icons.py)
 static_none "no << >> placeholders (non-Kotlin)" -rnE '<<|>>' "${placeholder_scope[@]}" --exclude='*.kt'
-static_none "no << >> placeholders (Kotlin strings)" -rnE '"[^"]*(<<|>>)[^"]*"' app/src ${GEN_KOTLIN:+"$GEN_KOTLIN"} --include='*.kt'
-ua_hits="$(grep -rnE 'userAgentString\s*=' app/src/main 2>/dev/null || true)"
+static_none "no << >> placeholders (Kotlin strings)" -rnE '"[^"]*(<<|>>)[^"]*"' template/src core/src --include='*.kt'
+ua_hits="$(grep -rnE 'userAgentString\s*=' template/src/main 2>/dev/null || true)"
 ua_count="$(grep -c . <<<"$ua_hits" || true)"
 [[ -z "$ua_hits" ]] && ua_count=0
 echo "$ua_hits"

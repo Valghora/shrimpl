@@ -3,7 +3,6 @@ package com.valghora.wrapper
 import android.content.Context
 import android.util.AttributeSet
 import android.webkit.WebView
-import com.valghora.wrapper.core.AppConfig
 
 /**
  * WebView whose visibility follows the workspace wake state instead of the window (R8.2):
@@ -26,7 +25,7 @@ class DesktopWebView @JvmOverloads constructor(
     override fun onWindowVisibilityChanged(visibility: Int) {
         when {
             !awake -> super.onWindowVisibilityChanged(GONE)
-            AppConfig.KEEP_ALIVE_WHEN_HIDDEN -> super.onWindowVisibilityChanged(VISIBLE)
+            WebApp.profile.keepAliveWhenHidden -> super.onWindowVisibilityChanged(VISIBLE)
             else -> super.onWindowVisibilityChanged(visibility)
         }
     }

@@ -9,7 +9,7 @@ Three icon sources, chosen by which key the site config sets:
 Normally run by site_config.py during the Gradle build. Standard library only.
 
     python3 scripts/generate_icons.py --site discord --res-out /tmp/res   # generate
-    python3 scripts/generate_icons.py --verify app/build/generated/...    # check generated pathData
+    python3 scripts/generate_icons.py --verify template/build/generated/...    # check generated pathData
 """
 
 import argparse

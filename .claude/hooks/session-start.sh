@@ -26,6 +26,6 @@ fi
 # so they are cached with the container. Best-effort: a broken work-in-progress build script
 # must not block the session from starting.
 warm=(help)
-[ -f app/build.gradle.kts ] && warm+=(:app:dependencies)
+[ -f template/build.gradle.kts ] && warm+=(:template:dependencies)
 ./gradlew "$GRADLE_FLAGS" --console=plain -q "${warm[@]}" >/dev/null \
   || echo "session-start: Gradle warm-up failed (build script error?); continuing" >&2

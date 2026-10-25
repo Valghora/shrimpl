@@ -202,3 +202,39 @@ Phase 1 notes:
   builds it with `AppConfig.sessionConfig()` until the template reads profiles (Phase 2).
 - kotlinx-serialization adds about 14 KB to the Discord release APK after R8.
 - KDoc gotcha: `https://*.d` inside a `/** */` comment opens a nested comment in Kotlin.
+
+## UniWrap Phase 2: the template (2026-10-25)
+
+`app/` is now `:template` (namespace `com.valghora.wrapper` unchanged). It reads its site from
+`assets/uniwrap/profile.json` at start (`WebApp.kt`) and builds in two modes:
+
+- **Template** (default): applicationId `com.valghora.uniwrap.template`, version `template-1`, the
+  superset manifest, and `src/neutral/` (placeholder name "Web App", globe icon PNGs, the default
+  Discord profile, the `<layout>` window sizes). This is the APK UniWrap will patch.
+- **Site** (`-Psite=<id>`, kept for `./wrap` and CI until Phase 6): `site_config.py generate` writes the
+  profile asset, resources, icons and a manifest overlay that removes disabled permissions/features.
+  The Discord build matches the pre-template build: identical `aapt2 dump badging`, and the only
+  manifest difference is the new `android:name=".WebApp"`.
+
+Findings:
+
+- **Resource path shortening.** AGP release builds rename resources to short paths (`res/E4.xml`),
+  so icon files had no fixed path to replace. `android.enableResourceOptimizations=false` in
+  gradle.properties keeps real paths; the template's icon layers land at
+  `res/drawable-nodpi-v4/ic_launcher_{background,foreground,monochrome}.png` and
+  `res/drawable-nodpi-v4/ic_stat_notify.png`. No deprecation warning on AGP 9.4.1.
+- **`<layout>` does not merge.** The manifest merger appends an overlay's `<layout>` instead of
+  merging it into the main manifest's, and Android uses the last one, so a site's window sizes were
+  silently replaced by the template defaults. `<layout>` now comes from exactly one overlay per build
+  (`src/neutral/AndroidManifest.xml` or the generated one).
+- `POST_NOTIFICATIONS` stays declared in site builds even when notifications are off (lint requires
+  it for the compiled-in notification code); UniWrap's patcher may remove it (Phase 3).
+- The template's unit tests decode the profile the build ships (`ProfileAssetTest`); coverage is
+  measured on `:core` only.
+
+Deviations to carry into the final report:
+
+| Requirement | Change | Why |
+|---|---|---|
+| PROMPT R3.5 (`windowBackground` = header color) | In template builds the starting window uses a neutral `#202124` until the app applies the profile's header color at launch. Site builds are unchanged. | The header color is a compiled resource; making it per app needs `resources.arsc` patching (possible in Phase 3). |
+| PROMPT R3.7 (`notification_channel_name` string) | The notification channel is named after the app (UNIWRAP_SPEC R7.2). | Labels come from the profile. |
