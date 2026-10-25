@@ -9,6 +9,7 @@ webkit = "1.18.0"
 junit = "4.13.2"
 apksig = "9.4.1"
 kotlinxSerialization = "1.12.0"
+lifecycle = "2.11.0"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -19,6 +20,7 @@ androidx-webkit = { group = "androidx.webkit", name = "webkit", version.ref = "w
 junit = { group = "junit", name = "junit", version.ref = "junit" }
 # Proof of concept only (cloner module): APK signing on the device.
 apksig = { group = "com.android.tools.build", name = "apksig", version.ref = "apksig" }
+androidx-lifecycle-runtime-ktx = { group = "androidx.lifecycle", name = "lifecycle-runtime-ktx", version.ref = "lifecycle" }
 kotlinx-serialization-json = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version.ref = "kotlinxSerialization" }
 
 [plugins]

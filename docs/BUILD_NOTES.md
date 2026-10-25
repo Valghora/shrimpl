@@ -267,3 +267,45 @@ into a local `val` first.
 To try built web apps on a device:
 `UNIWRAP_SAMPLES_OUT=<dir> ./gradlew :core:test --tests '*SampleWebApps*'` builds Discord and GitHub
 samples signed with one key.
+
+## UniWrap Phase 4: discovery and icons (2026-10-25)
+
+**Rules in `:core`, ported from the Python version.** `core/.../discovery/` holds the evidence model
+(the shape of the retired `collect.js` output), the Public Suffix List, simple-icons matching and
+`titleToSlug`, color parsing, the start URL / domains / name / colors / capabilities / notes rules,
+icon choice (simple-icons glyph > mask-icon > raster by maskable then size > letter), PNG/WebP
+header sizes, a static `<head>` reader, and the script-signal patterns. `core/.../icons/` holds the
+glyph SVG checks and Android PathParser normalization from `generate_icons.py`, and the icon geometry.
+
+**Gate: parity with Python.** `scripts/dev/make_discovery_fixtures.py` ran `collect.js` on
+example.com, github.com, squoosh.app and discord.com/app, ran Python's `derive()` while recording
+every fetch, and saved evidence, responses and drafts to `core/src/test/resources/discovery/`.
+`DiscoveryParityTest` replays them: every field's value, source and confidence, the icon (mode,
+color, bytes), the notes and the fetch order match for all four sites. (`data:` URLs are decoded in
+Kotlin rather than passed to the fetcher; Python's `fetch()` decoded them too.)
+
+**Android layer in `:uniwrap`** (new module, no UI until Phase 5):
+
+- `Network`: HTTPS only (http is upgraded), 15 s per request, 5 MB per response, manual redirects so
+  the chain is known, no cookies.
+- `RenderedPass`: an offscreen WebView laid out at 1280x800 dp (light or dark theme context, desktop
+  Linux Chrome user agent with the WebView's Chrome version) or 412x915 dp with the plain WebView user
+  agent; images blocked; runs `assets/discovery/collect_page.js` (the page part of `collect.js`)
+  after load plus 2.5 s; records requests, main-frame navigations (market:/intent: blocked) and the
+  main document's HTTP error status; survives renderer crashes.
+- `SiteDiscovery`: static fetch of the page and manifest, then the three rendered visits (12 s + 4 s +
+  4 s = 20 s), script scanning, then the core rules; stages for R3.2; cancellable.
+- `IconRenderer`: Canvas layers at 432 px (adaptive) and 96 px (notification) with
+  `androidx.core.graphics.PathParser`; images via `ImageDecoder` (PNG, WebP, ICO, JPEG...).
+- Bundled data (`scripts/dev/update_uniwrap_data.py`): the Public Suffix List and simple-icons
+  16.35.0 with every glyph's path, 5 MB of JSON (2.1 MB compressed in the APK).
+
+Differences from the Python/Playwright collector, recorded as deviations:
+
+| Requirement | Change | Why |
+|---|---|---|
+| R9.4 (5 MB total) | 5 MB is per response; script scanning has its own 20 MB budget (as `collect.js` had). | Large web apps keep `getUserMedia`/`Notification` calls in multi-MB bundles; a 5 MB total would miss them. |
+| R9.3 | Request types come from resource timing (`xhr`, `fetch`, `script`, ...); WebSocket hosts are not seen. | WebView has no per-request resource type; only the "other domains" note uses types. |
+| R9.3 | The WebView visit's HTTP status is known only when it is an error (>= 400). | WebView reports main-document errors, not successes. |
+| R10 | Letter icons use the system bold font instead of DejaVu Sans Bold outlines. | Native rendering; no bundled font needed. |
+| R1.2 | `uniwrap` lint keeps one `SetJavaScriptEnabled` warning (the hidden discovery WebView). | Discovery must run the page's scripts; the spec allows suppression only in the template. |

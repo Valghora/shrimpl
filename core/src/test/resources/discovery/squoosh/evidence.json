@@ -1,0 +1,352 @@
+{
+ "desktop": {
+  "requestedUrl": "https://squoosh.app",
+  "finalUrl": "https://squoosh.app/",
+  "status": 200,
+  "error": null,
+  "headers": {
+   "accept-ranges": "bytes",
+   "age": "9708",
+   "cache-control": "no-cache",
+   "cache-status": "\"Netlify Edge\"; hit; ttl=31526292",
+   "connection": "close",
+   "content-encoding": "br",
+   "content-length": "19458",
+   "content-type": "text/html; charset=UTF-8",
+   "cross-origin-embedder-policy": "require-corp",
+   "cross-origin-opener-policy": "same-origin",
+   "date": "Sun, 25 Oct 2026 05:04:51 GMT",
+   "etag": "\"a423f909282681c3bd225a5ce4f6cc9a-ssl-df\"",
+   "server": "Netlify",
+   "strict-transport-security": "max-age=31536000",
+   "vary": "Accept-Encoding",
+   "x-nf-request-id": "01M5RQ4ZS4FE1C4732AVP6WAJV"
+  },
+  "redirectChain": [
+   "https://squoosh.app/"
+  ],
+  "requests": [
+   {
+    "url": "https://squoosh.app/",
+    "type": "document"
+   },
+   {
+    "url": "https://squoosh.app/c/icon-demo-large-photo-18da387a.jpg",
+    "type": "image"
+   },
+   {
+    "url": "https://squoosh.app/c/icon-demo-artwork-9eba1655.jpg",
+    "type": "image"
+   },
+   {
+    "url": "https://squoosh.app/c/icon-demo-device-screen-5d52d8b9.jpg",
+    "type": "image"
+   },
+   {
+    "url": "https://squoosh.app/c/icon-demo-logo-326ed9b6.png",
+    "type": "image"
+   },
+   {
+    "url": "https://squoosh.app/c/small-db1eae6f.svg",
+    "type": "image"
+   },
+   {
+    "url": "https://squoosh.app/c/simple-258b6ed5.svg",
+    "type": "image"
+   },
+   {
+    "url": "https://squoosh.app/c/secure-a66bbdfe.svg",
+    "type": "image"
+   },
+   {
+    "url": "https://squoosh.app/c/github-logo-bc05494c.svg",
+    "type": "image"
+   },
+   {
+    "url": "https://squoosh.app/c/blob-anim-97c315b2.js",
+    "type": "script"
+   },
+   {
+    "url": "https://squoosh.app/c/Compress-5b50107e.js",
+    "type": "script"
+   },
+   {
+    "url": "https://squoosh.app/c/sw-bridge-ceda69b8.js",
+    "type": "script"
+   },
+   {
+    "url": "https://squoosh.app/c/idb-keyval-c33d3116.js",
+    "type": "script"
+   },
+   {
+    "url": "https://squoosh.app/c/util-06ce6ead.js",
+    "type": "script"
+   },
+   {
+    "url": "https://www.google-analytics.com/analytics.js",
+    "type": "script"
+   }
+  ],
+  "signals": {
+   "getUserMedia": false,
+   "notificationPermission": false,
+   "showNotification": false,
+   "pushManager": false,
+   "serviceWorker": true,
+   "webRtc": false
+  },
+  "manifestUrl": "https://squoosh.app/manifest.json",
+  "manifest": {
+   "name": "Squoosh",
+   "short_name": "Squoosh",
+   "start_url": "/?utm_medium=PWA&utm_source=launcher",
+   "display": "standalone",
+   "orientation": "any",
+   "background_color": "#fff",
+   "theme_color": "#ff3385",
+   "icons": [
+    {
+     "src": "/c/icon-large-cb438cac.png",
+     "type": "image/png",
+     "sizes": "1024x1024"
+    },
+    {
+     "src": "/c/icon-large-maskable-c2078ced.png",
+     "type": "image/png",
+     "sizes": "1024x1024",
+     "purpose": "maskable"
+    }
+   ],
+   "description": "Compress and compare images with different codecs, right in your browser.",
+   "lang": "en",
+   "categories": [
+    "photo",
+    "productivity",
+    "utilities"
+   ],
+   "screenshots": [
+    {
+     "src": "/c/screenshot1-0ff68546.png",
+     "type": "image/png",
+     "sizes": "540x720",
+     "form_factor": "narrow"
+    },
+    {
+     "src": "/c/screenshot2-1f78c4db.jpg",
+     "type": "image/jpeg",
+     "sizes": "540x720",
+     "form_factor": "narrow"
+    },
+    {
+     "src": "/c/screenshot3-c1e02216.jpg",
+     "type": "image/jpeg",
+     "sizes": "540x720",
+     "form_factor": "narrow"
+    },
+    {
+     "src": "/c/screenshot4-3a706c3c.png",
+     "type": "image/png",
+     "sizes": "1024x593",
+     "form_factor": "wide"
+    },
+    {
+     "src": "/c/screenshot5-ea50826f.jpg",
+     "type": "image/jpeg",
+     "sizes": "1024x593",
+     "form_factor": "wide"
+    },
+    {
+     "src": "/c/screenshot6-0168d284.jpg",
+     "type": "image/jpeg",
+     "sizes": "1024x593",
+     "form_factor": "wide"
+    }
+   ],
+   "share_target": {
+    "action": "/?utm_medium=PWA&utm_source=share-target&share-target",
+    "method": "POST",
+    "enctype": "multipart/form-data",
+    "params": {
+     "files": [
+      {
+       "name": "file",
+       "accept": [
+        "image/*"
+       ]
+      }
+     ]
+    }
+   }
+  },
+  "page": {
+   "title": "Squoosh",
+   "metas": [
+    {
+     "name": "description",
+     "content": "Squoosh is the ultimate image optimizer that allows you to compress and compare images with different codecs in your browser.",
+     "media": ""
+    },
+    {
+     "name": "twitter:card",
+     "content": "summary",
+     "media": ""
+    },
+    {
+     "name": "twitter:site",
+     "content": "@SquooshApp",
+     "media": ""
+    },
+    {
+     "name": "og:title",
+     "content": "Squoosh",
+     "media": ""
+    },
+    {
+     "name": "og:type",
+     "content": "website",
+     "media": ""
+    },
+    {
+     "name": "og:image",
+     "content": "https://squoosh.app/c/icon-large-maskable-c2078ced.png",
+     "media": ""
+    },
+    {
+     "name": "og:image:secure_url",
+     "content": "https://squoosh.app/c/icon-large-maskable-c2078ced.png",
+     "media": ""
+    },
+    {
+     "name": "og:image:type",
+     "content": "image/png",
+     "media": ""
+    },
+    {
+     "name": "og:image:width",
+     "content": "500",
+     "media": ""
+    },
+    {
+     "name": "og:image:height",
+     "content": "500",
+     "media": ""
+    },
+    {
+     "name": "og:image:alt",
+     "content": "A cartoon of a hand squeezing an image file on a dark background.",
+     "media": ""
+    },
+    {
+     "name": "og:description",
+     "content": "Squoosh is the ultimate image optimizer that allows you to compress and compare images with different codecs in your browser.",
+     "media": ""
+    },
+    {
+     "name": "viewport",
+     "content": "width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no",
+     "media": ""
+    },
+    {
+     "name": "mobile-web-app-capable",
+     "content": "yes",
+     "media": ""
+    },
+    {
+     "name": "apple-mobile-web-app-capable",
+     "content": "yes",
+     "media": ""
+    },
+    {
+     "name": "theme-color",
+     "content": "#ff3385",
+     "media": ""
+    }
+   ],
+   "links": [
+    {
+     "rel": "shortcut icon",
+     "href": "https://squoosh.app/c/favicon-c9cf50ef.ico",
+     "sizes": "",
+     "color": ""
+    },
+    {
+     "rel": "apple-touch-icon",
+     "href": "https://squoosh.app/c/icon-large-maskable-c2078ced.png",
+     "sizes": "",
+     "color": ""
+    },
+    {
+     "rel": "manifest",
+     "href": "https://squoosh.app/manifest.json",
+     "sizes": "",
+     "color": ""
+    },
+    {
+     "rel": "canonical",
+     "href": "https://squoosh.app/",
+     "sizes": "",
+     "color": ""
+    },
+    {
+     "rel": "preload",
+     "href": "https://squoosh.app/c/blob-anim-97c315b2.js",
+     "sizes": "",
+     "color": ""
+    },
+    {
+     "rel": "preload",
+     "href": "https://squoosh.app/c/Compress-5b50107e.js",
+     "sizes": "",
+     "color": ""
+    },
+    {
+     "rel": "preload",
+     "href": "https://squoosh.app/c/sw-bridge-ceda69b8.js",
+     "sizes": "",
+     "color": ""
+    },
+    {
+     "rel": "preload",
+     "href": "https://squoosh.app/c/idb-keyval-c33d3116.js",
+     "sizes": "",
+     "color": ""
+    },
+    {
+     "rel": "preload",
+     "href": "https://squoosh.app/c/util-06ce6ead.js",
+     "sizes": "",
+     "color": ""
+    }
+   ],
+   "themeColors": [
+    {
+     "color": "#FF3385",
+     "media": ""
+    }
+   ],
+   "topColor": "#FFFFFF"
+  }
+ },
+ "dark": {
+  "status": 200,
+  "error": null,
+  "finalUrl": "https://squoosh.app/",
+  "title": "Squoosh",
+  "topColor": "#FFFFFF",
+  "text": "Drop OR Paste\n\nOr try one of these:\n\n2.8MB\n2.9MB\n1.6MB\n13KB\nSmall\n\nSmaller images mean faster load times. Squoosh can reduce file size and maintain high quality.\n\nSimple\n\nOpen your image, inspect the differences, then save instantly. Feeling adventurous? Adjust the settings for even smaller files.\n\nSecure\n\nWorried about privacy? Images never leave your device since Squoosh does all the work locally.\n\nPrivacy\nSource on Github",
+  "navigations": [
+   "https://squoosh.app/"
+  ]
+ },
+ "webview": {
+  "status": 200,
+  "error": null,
+  "finalUrl": "https://squoosh.app/",
+  "title": "Squoosh",
+  "topColor": "#FFFFFF",
+  "text": "OR Paste\n\nOr try one of these:\n\n2.8MB\n2.9MB\n1.6MB\n13KB\nSmall\n\nSmaller images mean faster load times. Squoosh can reduce file size and maintain high quality.\n\nSimple\n\nOpen your image, inspect the differences, then save instantly. Feeling adventurous? Adjust the settings for even smaller files.\n\nSecure\n\nWorried about privacy? Images never leave your device since Squoosh does all the work locally.\n\nPrivacy\nSource on Github",
+  "navigations": [
+   "https://squoosh.app/"
+  ]
+ }
+}

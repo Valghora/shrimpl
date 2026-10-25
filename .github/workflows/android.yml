@@ -183,20 +183,26 @@ jobs:
         run: scripts/setup_android_sdk.sh
 
       # :core:check runs the core tests (including building real web apps from the template release
-      # APK) and the 85% line-coverage rule. No -Psite: this is the neutral template UniWrap patches.
-      - name: Core tests, template lint and release build
-        run: ./gradlew --console=plain :core:check :core:jacocoTestReport :template:lintRelease :template:assembleRelease
+      # APK and the discovery fixtures recorded from the Python version) and the 85% line-coverage
+      # rule. No -Psite: this is the neutral template UniWrap patches.
+      - name: Core tests, template and UniWrap builds
+        run: >-
+          ./gradlew --console=plain :core:check :core:jacocoTestReport
+          :template:lintRelease :template:assembleRelease
+          :uniwrap:testDebugUnitTest :uniwrap:lintDebug :uniwrap:assembleDebug :uniwrap:assembleRelease
 
       - name: Template has no native code
         run: |
           apk=template/build/outputs/apk/release/template-release.apk
           if unzip -l "$apk" | grep -qE '(^|/)lib/|\.so$'; then echo "::error::native code in $apk"; exit 1; fi
 
-      - name: Upload template APK
+      - name: Upload template and UniWrap APKs
         uses: actions/upload-artifact@v7
         with:
-          name: uniwrap-template
-          path: template/build/outputs/apk/release/template-release.apk
+          name: uniwrap
+          path: |
+            template/build/outputs/apk/release/template-release.apk
+            uniwrap/build/outputs/apk/debug/uniwrap-debug.apk
 
       - name: Upload reports
         if: always()
@@ -207,4 +213,5 @@ jobs:
             core/build/reports/
             core/build/test-results/
             template/build/reports/
+            uniwrap/build/reports/
           if-no-files-found: ignore

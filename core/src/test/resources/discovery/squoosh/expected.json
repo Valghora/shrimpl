@@ -1,0 +1,62 @@
+{
+ "requestedUrl": "https://squoosh.app",
+ "appId": "squoosh",
+ "fields": {
+  "START_URL": {
+   "value": "https://squoosh.app/?utm_medium=PWA&utm_source=launcher",
+   "source": "web manifest start_url",
+   "confidence": "high"
+  },
+  "INTERNAL_DOMAINS": {
+   "value": [
+    "squoosh.app"
+   ],
+   "source": "site domain + observed domains containing 'squoosh'",
+   "confidence": "medium"
+  },
+  "APP_NAME": {
+   "value": "Squoosh",
+   "source": "web manifest short_name",
+   "confidence": "high"
+  },
+  "HEADER_SURFACE_HEX": {
+   "value": "#FF3385",
+   "source": "theme-color meta",
+   "confidence": "high"
+  },
+  "HEADER_SURFACE_HEX_NIGHT": {
+   "value": "",
+   "source": "same as light (no dark variant detected)",
+   "confidence": "medium"
+  },
+  "ICON_BACKGROUND_HEX": {
+   "value": "#FF3385",
+   "source": "web manifest theme_color",
+   "confidence": "medium"
+  },
+  "ALLOW_MICROPHONE": {
+   "value": false,
+   "source": "getUserMedia/WebRTC in page scripts or Permissions-Policy",
+   "confidence": "low"
+  },
+  "ALLOW_CAMERA": {
+   "value": false,
+   "source": "getUserMedia in page scripts or Permissions-Policy",
+   "confidence": "low"
+  },
+  "ALLOW_NOTIFICATIONS": {
+   "value": false,
+   "source": "Notification/showNotification/Push in page scripts",
+   "confidence": "medium"
+  }
+ },
+ "icon": {
+  "mode": "raster",
+  "ext": "png",
+  "maskable": true,
+  "source": "web manifest icon (maskable 1024px png)",
+  "confidence": "medium",
+  "sha256": "333f8909fbc77e83824c4aeba04697dda38428d1628508e0eca7c9631202822e"
+ },
+ "notes": []
+}
