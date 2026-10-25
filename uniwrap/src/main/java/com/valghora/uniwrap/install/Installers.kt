@@ -16,11 +16,6 @@ class Installers(context: Context, private val settings: AppSettings) {
         InstallMethod.ROOT -> root
     }
 
-    /** The user's choice, else Shizuku if usable, else root if granted, else the system installer. */
-    suspend fun preferred(): Installer {
-        settings.installMethod.value?.let { return of(it) }
-        if (shizuku.availability() == Availability.AVAILABLE) return shizuku
-        if (root.availability() == Availability.AVAILABLE) return root
-        return session
-    }
+    /** The method chosen in Settings (the system installer by default). */
+    fun preferred(): Installer = of(settings.installMethod.value)
 }

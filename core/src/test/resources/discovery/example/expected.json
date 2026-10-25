@@ -47,6 +47,13 @@
     "letter": "E"
   },
   "notes": [
-    "No web manifest found; name and colors come from page metadata."
+    {
+      "level": "caution",
+      "text": "Could not locate a glyph for this service; defaulting to manifest. Consider installing an icon pack."
+    },
+    {
+      "level": "info",
+      "text": "No web manifest found; name and colors come from page metadata."
+    }
   ]
 }

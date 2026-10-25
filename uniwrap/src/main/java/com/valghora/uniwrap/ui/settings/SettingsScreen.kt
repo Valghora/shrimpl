@@ -16,7 +16,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -49,9 +48,10 @@ import com.valghora.uniwrap.R
 import com.valghora.uniwrap.container
 import com.valghora.uniwrap.data.InstallMethod
 import com.valghora.uniwrap.data.ThemeSetting
-import com.valghora.uniwrap.install.Availability
 import com.valghora.uniwrap.ui.common.DropdownItem
 import com.valghora.uniwrap.ui.common.NavigationItem
+import com.valghora.uniwrap.ui.common.Notice
+import com.valghora.uniwrap.ui.common.NoticeCard
 import com.valghora.uniwrap.ui.common.SettingsItem
 import com.valghora.uniwrap.ui.common.SettingsSection
 
@@ -63,10 +63,9 @@ fun SettingsScreen(onBack: () -> Unit) {
     val model = viewModel { SettingsViewModel(context.container) }
     val method by model.installMethod.collectAsStateWithLifecycle()
     val theme by model.theme.collectAsStateWithLifecycle()
-    val shizuku by model.shizuku.collectAsStateWithLifecycle()
-    val root by model.root.collectAsStateWithLifecycle()
+    val methodError by model.methodError.collectAsStateWithLifecycle()
+    val checking by model.checking.collectAsStateWithLifecycle()
     val fingerprint by model.fingerprint.collectAsStateWithLifecycle()
-    val backedUp by model.keyBackedUp.collectAsStateWithLifecycle()
     val message by model.message.collectAsStateWithLifecycle()
     val pendingRestore by model.pendingRestore.collectAsStateWithLifecycle()
     val snackbar = remember { SnackbarHostState() }
@@ -106,54 +105,7 @@ fun SettingsScreen(onBack: () -> Unit) {
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             Column(Modifier.widthIn(max = 720.dp).fillMaxWidth().padding(horizontal = 16.dp).padding(bottom = 32.dp)) {
-                SettingsSection(stringResource(R.string.settings_install)) {
-                    DropdownItem(
-                        stringResource(R.string.install_method),
-                        method,
-                        listOf(
-                            null to stringResource(R.string.install_automatic),
-                            InstallMethod.SESSION to stringResource(R.string.install_session),
-                            InstallMethod.SHIZUKU to stringResource(R.string.install_shizuku),
-                            InstallMethod.ROOT to stringResource(R.string.install_root),
-                        ),
-                        model::setInstallMethod,
-                        summary = stringResource(methodDetail(method)),
-                    )
-                    SettingsItem(
-                        stringResource(R.string.install_shizuku),
-                        summary = stringResource(shizukuDetail(shizuku)),
-                        trailing = {
-                            if (shizuku == Availability.NEEDS_PERMISSION) {
-                                FilledTonalButton(onClick = model::requestShizuku) { Text(stringResource(R.string.action_grant)) }
-                            }
-                        },
-                    )
-                    SettingsItem(
-                        stringResource(R.string.install_root),
-                        summary = stringResource(rootDetail(root)),
-                        trailing = {
-                            if (root != Availability.AVAILABLE) {
-                                FilledTonalButton(onClick = model::checkRoot) { Text(stringResource(R.string.action_check)) }
-                            }
-                        },
-                    )
-                }
-
-                SettingsSection(stringResource(R.string.settings_signing)) {
-                    SettingsItem(
-                        stringResource(R.string.signing_fingerprint),
-                        summary = fingerprint ?: stringResource(R.string.signing_none),
-                    )
-                    SettingsItem(
-                        stringResource(R.string.signing_backup),
-                        summary = stringResource(if (backedUp) R.string.signing_backed_up else R.string.signing_not_backed_up),
-                        error = if (!backedUp && fingerprint != null) stringResource(R.string.signing_backup_warning) else null,
-                    )
-                    NavigationItem(stringResource(R.string.action_export_key), { askExportPassword = true }, enabled = fingerprint != null)
-                    NavigationItem(stringResource(R.string.action_restore_key), { openFile.launch(arrayOf(PKCS12_TYPE, "application/octet-stream")) })
-                }
-
-                SettingsSection(stringResource(R.string.settings_theme)) {
+                SettingsSection(stringResource(R.string.settings_appearance)) {
                     DropdownItem(
                         stringResource(R.string.theme_mode),
                         theme,
@@ -167,10 +119,42 @@ fun SettingsScreen(onBack: () -> Unit) {
                     )
                 }
 
+                SettingsSection(stringResource(R.string.settings_install)) {
+                    DropdownItem(
+                        stringResource(R.string.install_method),
+                        method,
+                        listOf(
+                            InstallMethod.SESSION to stringResource(R.string.install_session),
+                            InstallMethod.SHIZUKU to stringResource(R.string.install_shizuku),
+                            InstallMethod.ROOT to stringResource(R.string.install_root),
+                        ),
+                        model::selectMethod,
+                        summary = stringResource(methodDetail(method)),
+                        enabled = !checking,
+                    )
+                    methodError?.let { error ->
+                        NoticeCard(
+                            Notice(Notice.Kind.ERROR, error.message),
+                            onDismiss = model::dismissMethodError,
+                            action = stringResource(R.string.action_retry) to { model.selectMethod(error.method) },
+                        )
+                    }
+                }
+
+                SettingsSection(stringResource(R.string.settings_signing)) {
+                    SettingsItem(
+                        stringResource(R.string.signing_certificate),
+                        summary = fingerprint ?: stringResource(R.string.signing_none),
+                    )
+                    NavigationItem(stringResource(R.string.action_export_key), { askExportPassword = true }, enabled = fingerprint != null)
+                    NavigationItem(stringResource(R.string.action_restore_key), { openFile.launch(arrayOf(PKCS12_TYPE, "application/octet-stream")) })
+                }
+
                 SettingsSection(stringResource(R.string.settings_about)) {
                     SettingsItem(
                         stringResource(R.string.app_name),
-                        summary = stringResource(R.string.about_versions, BuildConfig.VERSION_NAME, model.templateVersion),
+                        summary = stringResource(R.string.about_app, BuildConfig.VERSION_NAME) + "\n" +
+                            stringResource(R.string.about_template, model.templateVersion),
                     )
                 }
             }
@@ -213,23 +197,10 @@ fun SettingsScreen(onBack: () -> Unit) {
     }
 }
 
-private fun methodDetail(method: InstallMethod?) = when (method) {
-    null -> R.string.install_automatic_detail
+private fun methodDetail(method: InstallMethod) = when (method) {
     InstallMethod.SESSION -> R.string.install_session_detail
     InstallMethod.SHIZUKU -> R.string.install_shizuku_detail
     InstallMethod.ROOT -> R.string.install_root_detail
-}
-
-private fun shizukuDetail(state: Availability) = when (state) {
-    Availability.AVAILABLE -> R.string.install_shizuku_ready
-    Availability.NEEDS_PERMISSION -> R.string.install_shizuku_permission
-    Availability.UNAVAILABLE -> R.string.install_shizuku_missing
-}
-
-private fun rootDetail(state: Availability?) = when (state) {
-    null -> R.string.install_root_unchecked
-    Availability.AVAILABLE -> R.string.install_root_ready
-    else -> R.string.install_root_missing
 }
 
 /** Asks for a backup password; with [confirm], twice. The array is the caller's to clear. */

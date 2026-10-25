@@ -43,6 +43,7 @@ import com.valghora.uniwrap.R
 import com.valghora.uniwrap.container
 import com.valghora.uniwrap.data.InstalledApps
 import com.valghora.uniwrap.ui.common.BuildSheet
+import com.valghora.uniwrap.ui.common.Notice
 import com.valghora.uniwrap.ui.form.ProfileFormFields
 import com.valghora.uniwrap.ui.icons.IconEditor
 import com.valghora.uniwrap.ui.icons.rememberIconLayers
@@ -153,7 +154,7 @@ fun EditScreen(appId: String, showBack: Boolean, onBack: () -> Unit) {
                 form = form.form,
                 onChange = model::update,
                 hints = emptyMap(),
-                notes = if (installed == false) listOf(stringResource(R.string.edit_not_installed)) else emptyList(),
+                notes = if (installed == false) listOf(Notice(Notice.Kind.INFO, stringResource(R.string.edit_not_installed))) else emptyList(),
                 iconLayers = layers,
                 iconOrigin = form.icon.origin,
                 onEditIcon = { editingIcon = true },

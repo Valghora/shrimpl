@@ -96,7 +96,10 @@ class DiscoveryFixturesTest {
                 assertEquals("$name icon letter", icon.getValue("letter").jsonPrimitive.content, choice.letter.toString())
             }
         }
-        assertEquals("$name notes", (expected.getValue("notes") as JsonArray).map { it.jsonPrimitive.content }, draft.notes)
+        val notes = (expected.getValue("notes") as JsonArray).map {
+            Note(Note.Level.valueOf(it.jsonObject.getValue("level").jsonPrimitive.content.uppercase()), it.jsonObject.getValue("text").jsonPrimitive.content)
+        }
+        assertEquals("$name notes", notes, draft.notes)
         assertEquals("$name fetch order", sources.recordInOrder(), sources.fetched)
     }
 

@@ -15,10 +15,12 @@ enum class ThemeSetting { SYSTEM, LIGHT, DARK }
 class AppSettings(context: Context) {
     private val prefs = context.getSharedPreferences("uniwrap_settings", Context.MODE_PRIVATE)
 
-    private val _installMethod = MutableStateFlow(prefs.getString(KEY_INSTALL_METHOD, null)?.let { runCatching { InstallMethod.valueOf(it) }.getOrNull() })
+    private val _installMethod = MutableStateFlow(
+        prefs.getString(KEY_INSTALL_METHOD, null)?.let { runCatching { InstallMethod.valueOf(it) }.getOrNull() } ?: InstallMethod.SESSION,
+    )
 
-    /** The user's choice, or null to pick the best available method (R6.2). */
-    val installMethod: StateFlow<InstallMethod?> = _installMethod.asStateFlow()
+    /** How web apps are installed (R6.2); the system installer unless the user picked Shizuku or root. */
+    val installMethod: StateFlow<InstallMethod> = _installMethod.asStateFlow()
 
     private val _theme = MutableStateFlow(prefs.getString(KEY_THEME, null)?.let { runCatching { ThemeSetting.valueOf(it) }.getOrNull() } ?: ThemeSetting.SYSTEM)
     val theme: StateFlow<ThemeSetting> = _theme.asStateFlow()
@@ -31,8 +33,8 @@ class AppSettings(context: Context) {
         get() = prefs.getBoolean(KEY_PROMPT_SHOWN, false)
         set(value) = prefs.edit { putBoolean(KEY_PROMPT_SHOWN, value) }
 
-    fun setInstallMethod(method: InstallMethod?) {
-        prefs.edit { if (method == null) remove(KEY_INSTALL_METHOD) else putString(KEY_INSTALL_METHOD, method.name) }
+    fun setInstallMethod(method: InstallMethod) {
+        prefs.edit { putString(KEY_INSTALL_METHOD, method.name) }
         _installMethod.value = method
     }
 

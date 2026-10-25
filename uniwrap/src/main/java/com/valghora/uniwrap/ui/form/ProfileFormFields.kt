@@ -18,10 +18,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Info
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -50,6 +47,8 @@ import com.valghora.uniwrap.icons.IconLayers
 import com.valghora.uniwrap.ui.common.ColorSwatch
 import com.valghora.uniwrap.ui.common.DropdownItem
 import com.valghora.uniwrap.ui.common.NavigationItem
+import com.valghora.uniwrap.ui.common.Notice
+import com.valghora.uniwrap.ui.common.NoticeCard
 import com.valghora.uniwrap.ui.common.SettingsItem
 import com.valghora.uniwrap.ui.common.SettingsSection
 import com.valghora.uniwrap.ui.common.SwitchItem
@@ -70,7 +69,7 @@ fun ProfileFormFields(
     form: ProfileForm,
     onChange: (ProfileForm) -> Unit,
     hints: Map<String, String>,
-    notes: List<String>,
+    notes: List<Notice>,
     iconLayers: IconLayers?,
     iconOrigin: String,
     onEditIcon: () -> Unit,
@@ -112,18 +111,12 @@ fun ProfileFormFields(
     }
 }
 
+/** Discovery's notes as dismissible notifications; a dismissed note stays hidden while the page is open. */
 @Composable
-private fun Notes(notes: List<String>) {
-    notes.forEach { note ->
-        Card(
-            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer),
-            modifier = Modifier.fillMaxWidth().padding(top = 12.dp),
-        ) {
-            Row(Modifier.padding(16.dp), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                Icon(Icons.Filled.Info, contentDescription = null)
-                Text(note, style = MaterialTheme.typography.bodyMedium)
-            }
-        }
+private fun Notes(notes: List<Notice>) {
+    var dismissed by remember(notes) { mutableStateOf(emptySet<Notice>()) }
+    notes.filter { it !in dismissed }.forEach { note ->
+        NoticeCard(note, Modifier.padding(top = 12.dp), onDismiss = { dismissed = dismissed + note })
     }
 }
 
@@ -215,7 +208,10 @@ private class Fields(
                 stringResource(R.string.field_keep_alive), form.keepAliveWhenHidden, { onChange(form.copy(keepAliveWhenHidden = it)) },
                 summary = stringResource(R.string.field_keep_alive_detail),
             )
-            SwitchItem(stringResource(R.string.field_pause_power_save), form.pauseOnPowerSave, { onChange(form.copy(pauseOnPowerSave = it)) })
+            SwitchItem(
+                stringResource(R.string.field_pause_power_save), form.pauseOnPowerSave, { onChange(form.copy(pauseOnPowerSave = it)) },
+                summary = stringResource(R.string.field_pause_power_save_detail),
+            )
             SwitchItem(stringResource(R.string.field_context_menu), form.nativeContextMenu, { onChange(form.copy(nativeContextMenu = it)) })
         }
     }

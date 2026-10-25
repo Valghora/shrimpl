@@ -251,7 +251,8 @@ class DiscoveryRulesTest {
         })
         val draft = draft(evidence)
         assertEquals(listOf("example.com", "examplestatic.com"), draft.internalDomains.value)
-        assertEquals(listOf("Other domains the page called (not internal; add any that belong to the site): analytics.io"), draft.notes.filter { it.startsWith("Other") })
+        // Other domains the page called are not reported.
+        assertTrue(draft.notes.none { "analytics.io" in it.text })
     }
 
     @Test
@@ -286,6 +287,7 @@ class DiscoveryRulesTest {
         assertEquals(Field("Acme & Co", "simple-icons brand title", Confidence.HIGH), draft.name)
         assertEquals(Field("#12AB9F", "simple-icons brand color (Acme & Co)", Confidence.HIGH), draft.iconBackground)
         assertEquals(Confidence.HIGH, draft.icon.confidence)
+        assertTrue(draft.notes.none { it.text == Discovery.NO_GLYPH })
 
         // Matched only through the domain word: likely, not certain.
         val byDomain = Map(mapOf(SimpleIcons.url("example") to acmeSvg))
@@ -344,9 +346,10 @@ class DiscoveryRulesTest {
             webview = SlimVisit(status = 403, text = "This browser is not supported", navigations = listOf("intent://details?id=x#Intent;end")),
         )
         val notes = draft(evidence).notes
-        assertTrue(notes.toString(), notes.any { it.startsWith("WARNING: the site may refuse Android WebViews (status 403") })
-        assertTrue(notes.any { it.startsWith("With a mobile user agent the site redirects to the Play Store") })
-        assertTrue(notes.any { it.startsWith("No web manifest found") })
+        assertTrue(notes.toString(), notes.any { it.level == Note.Level.CAUTION && it.text.startsWith("The site may refuse Android WebViews (status 403") })
+        assertTrue(notes.any { it.level == Note.Level.INFO && it.text.startsWith("With a mobile user agent the site redirects to the Play Store") })
+        assertTrue(notes.any { it.level == Note.Level.INFO && it.text.startsWith("No web manifest found") })
+        assertTrue(Note(Note.Level.CAUTION, Discovery.NO_GLYPH) in notes)
     }
 
     @Test

@@ -16,7 +16,6 @@
     <string name="action_done">Done</string>
     <string name="action_edit_app">Edit %1$s</string>
     <string name="action_export_key">Export backup…</string>
-    <string name="action_grant">Grant permission</string>
     <string name="action_keep">Keep</string>
     <string name="action_later">Later</string>
     <string name="action_more">More options</string>
@@ -141,24 +140,13 @@
 
     <!-- Settings -->
     <string name="settings_title">Settings</string>
-    <string name="settings_install">Install method</string>
-    <string name="install_automatic">Automatic</string>
-    <string name="install_automatic_detail">Shizuku if ready, then root, then the system installer</string>
-    <string name="install_session">System installer</string>
-    <string name="install_session_detail">Android confirms each install</string>
+    <string name="settings_install">Installation</string>
+    <string name="install_session">System</string>
+    <string name="install_session_detail">All installation attempts will request confirmation</string>
     <string name="install_shizuku">Shizuku</string>
-    <string name="install_shizuku_ready">Ready: installs without a prompt</string>
-    <string name="install_shizuku_permission">Shizuku is running; UniWrap needs permission</string>
-    <string name="install_shizuku_missing">Shizuku isn\'t running</string>
     <string name="install_root">Root</string>
-    <string name="install_root_unchecked">Not checked yet</string>
-    <string name="install_root_ready">Root access granted</string>
-    <string name="install_root_missing">No root access</string>
-    <string name="settings_signing">Signing key</string>
-    <string name="signing_fingerprint">Certificate SHA-256</string>
-    <string name="signing_none">Created with the first web app</string>
-    <string name="signing_backed_up">Backed up</string>
-    <string name="signing_not_backed_up">Not backed up</string>
+    <string name="settings_signing">Signing</string>
+    <string name="signing_none">Add a site to generate your signing key, or import an existing one.</string>
     <string name="export_title">Backup password</string>
     <string name="export_text">The backup file is protected with this password. You need it to restore the key.</string>
     <plurals name="password_min">
@@ -169,12 +157,10 @@
     <string name="restore_text">Enter the backup\'s password.</string>
     <string name="restore_replace_title">Replace the signing key?</string>
     <string name="restore_replace_text">Your web apps were signed with the current key. After replacing it they can\'t be updated until they are uninstalled and created again.</string>
-    <string name="settings_theme">Theme</string>
     <string name="theme_system">System default</string>
     <string name="theme_light">Light</string>
     <string name="theme_dark">Dark</string>
     <string name="settings_about">About</string>
-    <string name="about_versions">Version %1$s · template %2$d</string>
 
     <!-- Settings items -->
     <string name="field_icon">App icon</string>
@@ -192,16 +178,23 @@
     <string name="shortcut_edit_title">Edit shortcut</string>
     <string name="field_shortcut_key_detail">A letter, digit, F1 to F12, or a key name like SLASH</string>
     <string name="action_ok">OK</string>
-    <string name="install_method">Install method</string>
-    <string name="install_shizuku_detail">Installs through Shizuku without prompts</string>
-    <string name="install_root_detail">Installs with root without prompts</string>
-    <string name="action_check">Check</string>
-    <string name="signing_backup">Backup</string>
-    <string name="signing_backup_warning">Without a backup, web apps can\'t be updated after UniWrap is reinstalled</string>
-    <string name="theme_mode">Theme mode</string>
+    <string name="install_method">Method</string>
+    <string name="install_shizuku_detail">All installations will silently proceed through ADB.</string>
+    <string name="install_root_detail">All installations will silently proceed through superuser.</string>
+    <string name="theme_mode">Theme</string>
     <string name="theme_dynamic_detail">Colors come from your wallpaper</string>
     <string name="icon_brand_not_found">No simple-icons brand named “%1$s”</string>
     <string name="icon_brand_found">Using the %1$s brand icon</string>
     <string name="icon_brand_name">Brand name</string>
     <string name="icon_brand_detail">Looks the name up on simple-icons.org</string>
+    <string name="settings_appearance">Appearance</string>
+    <string name="signing_certificate">Certificate</string>
+    <string name="about_app">App: %1$s</string>
+    <string name="about_template">Template: %1$d</string>
+    <string name="action_retry">Retry</string>
+    <string name="action_dismiss">Dismiss</string>
+    <string name="notice_info">Information</string>
+    <string name="notice_caution">Caution</string>
+    <string name="notice_error">Error</string>
+    <string name="field_pause_power_save_detail">Pauses the page while battery saver is on, even with the screen on. Saves battery; messages and notifications arrive once the app resumes.</string>
 </resources>

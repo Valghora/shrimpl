@@ -11,7 +11,10 @@ import com.valghora.uniwrap.data.InstallMethod
 import java.io.File
 import kotlin.coroutines.resume
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.suspendCancellableCoroutine
@@ -31,10 +34,18 @@ class ShizukuInstaller(private val context: Context) : Installer {
     /** Live availability: Shizuku's binder arrives after app start, and permission can change. */
     val state: StateFlow<Availability> = _state.asStateFlow()
 
+    private val _permissionResults = MutableSharedFlow<Boolean>(extraBufferCapacity = 1)
+
+    /** The answers to [requestPermission]: true when granted. */
+    val permissionResults: SharedFlow<Boolean> = _permissionResults.asSharedFlow()
+
     init {
         Shizuku.addBinderReceivedListenerSticky { _state.value = currentAvailability() }
         Shizuku.addBinderDeadListener { _state.value = currentAvailability() }
-        Shizuku.addRequestPermissionResultListener { _, _ -> _state.value = currentAvailability() }
+        Shizuku.addRequestPermissionResultListener { _, result ->
+            _state.value = currentAvailability()
+            _permissionResults.tryEmit(result == PackageManager.PERMISSION_GRANTED)
+        }
     }
 
     override suspend fun availability(): Availability = currentAvailability().also { _state.value = it }

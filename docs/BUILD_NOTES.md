@@ -381,3 +381,19 @@ Changes after the first device test on Googlebook OS:
   discovery fixtures recorded from the Python version stay as regression tests
   (`DiscoveryFixturesTest`); their expectations now follow the new rules (example.com's icon
   background is the default blue gray instead of its gray page color).
+
+## UI refinements (2026-10-25)
+
+- Home: a regular top bar (title at the top) in `surfaceContainer`, like Settings, with a settings
+  icon instead of the overflow menu.
+- In-app notifications (`NoticeCard`) have three kinds with fixed pastel palettes, the same in light
+  and dark theme: Info (blue, info mark), Caution (yellow, warning triangle) and Error (red, error
+  symbol drawn from Material's path because material-icons-core lacks it). They can be dismissed.
+  Discovery notes now carry a level (`Note.Level`). The "other domains the page called" note is gone,
+  and a Caution note appears when no simple-icons glyph is found.
+- Settings: Appearance first, then Installation (one Method item: System by default, Shizuku or Root;
+  no Automatic), Signing (Certificate, Export, Restore) and About (app and template versions).
+  Choosing Root runs `su`; on failure an Error notification ("Unable to achieve root access") with
+  Retry appears under the Installation items. Shizuku asks for its permission the same way. The
+  "backed up" status line is gone; the one-time backup prompt after the first web app remains.
+- The template version is an integer (`uniwrap.templateVersion`), so About shows "Template: 1".

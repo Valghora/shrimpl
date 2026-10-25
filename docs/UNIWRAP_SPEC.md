@@ -158,7 +158,7 @@ Do not implement: Play Store distribution, analytics, crash reporting, cloud syn
   - **Session**: `PackageInstaller` sessions, as in the proof of concept. Needs REQUEST_INSTALL_PACKAGES; the user confirms each install.
   - **Shizuku**: when the Shizuku service is running and has granted UniWrap permission, create and commit the install session as the shell user via the Shizuku API. No per-install prompt.
   - **Root**: when `su` is available and grants access, stream the APK to `pm install-create`, `pm install-write` and `pm install-commit` (and `pm uninstall` for uninstalls).
-- R6.2 The settings page lists the three methods with their availability (and how to enable an unavailable one); the user picks one. Default: Shizuku if available, else Root, else Session.
+- R6.2 Settings has one Method choice: System (the default; every install asks for confirmation), Shizuku (silent, through ADB) or Root (silent, through superuser). Choosing Shizuku or Root asks for access first (Shizuku's permission dialog, or the root manager's prompt); if access is not granted, the previous method stays and an error notification with Retry appears below the Installation items.
   - If the chosen method fails at install time because it became unavailable (Shizuku stopped, root denied), UniWrap MUST say so and offer Session for this install.
 - R6.3 The Session method needs the "Install unknown apps" permission. If it's missing, the install sheet explains it and opens the setting, then continues when the user returns.
 - R6.4 Uninstall uses the selected method (Session: the system uninstall dialog).

@@ -6,6 +6,7 @@ import com.valghora.uniwrap.AppContainer
 import com.valghora.uniwrap.build.BuildRequest
 import com.valghora.uniwrap.discovery.SiteDiscovery
 import com.valghora.uniwrap.ui.common.BuildController
+import com.valghora.uniwrap.ui.common.Notice
 import com.valghora.uniwrap.ui.form.WebAppDraft
 import com.valghora.uniwrap.ui.icons.IconSelection
 import com.valghora.wrapper.core.discovery.Confidence
@@ -48,7 +49,7 @@ class CreateViewModel(private val container: AppContainer) : ViewModel() {
     /** Field key -> where discovery got a low- or medium-confidence value (R3.3). */
     var hints: Map<String, String> = emptyMap()
         private set
-    var notes: List<String> = emptyList()
+    var notes: List<Notice> = emptyList()
         private set
 
     /** Discovery's own icon, offered again in the icon editor. */
@@ -117,7 +118,7 @@ class CreateViewModel(private val container: AppContainer) : ViewModel() {
                 iconBackground = brand?.color ?: Discovery.DEFAULT_BRAND,
             )
             hints = emptyMap()
-            notes = listOf("Discovery didn't finish, so these are defaults. Check the icon color and the domains.")
+            notes = listOf(Notice(Notice.Kind.CAUTION, "Discovery didn't finish, so these are defaults. Check the icon color and the domains."))
             siteIcon = null
             val icon = brand?.let { IconRecord.glyph(it.svg, "simple-icons '${it.slug}'") } ?: IconRecord.letter(name.first(), "Letter")
             _draft.value = WebAppDraft(ProfileForm.from(profile), icon, null)
@@ -139,7 +140,7 @@ class CreateViewModel(private val container: AppContainer) : ViewModel() {
             hint("allowCamera", found.allowCamera)
             hint("allowNotifications", found.allowNotifications)
         }
-        notes = found.notes
+        notes = found.notes.map(Notice::of)
         val (icon, image) = IconRecord.from(found.icon)
         val draft = WebAppDraft(ProfileForm.from(profile), icon, image)
         siteIcon = draft.iconSelection

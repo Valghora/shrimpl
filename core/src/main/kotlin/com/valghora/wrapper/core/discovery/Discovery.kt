@@ -22,7 +22,7 @@ data class Draft(
     val allowCamera: Field<Boolean>,
     val allowNotifications: Field<Boolean>,
     val icon: IconChoice,
-    val notes: List<String>,
+    val notes: List<Note>,
 ) {
     /** The draft as a profile; every other setting (header color, glyph color, ...) keeps its default. */
     fun toProfile(): Profile = Profile(
@@ -35,6 +35,11 @@ data class Draft(
         allowCamera = allowCamera.value,
         allowNotifications = allowNotifications.value,
     )
+}
+
+/** Something the user should know about a draft, shown as an in-app notification. */
+data class Note(val level: Level, val text: String) {
+    enum class Level { INFO, CAUTION }
 }
 
 class DiscoveryException(message: String) : Exception(message)
@@ -99,7 +104,6 @@ object Discovery {
         "please (use|open this in) (a|another|your) (supported )?browser",
         "embedded browsers? (are|is) not supported",
     )
-    private val API_TYPES = setOf("xhr", "fetch", "websocket", "eventsource", "document")
     private val TITLE_SEPARATOR = Regex("\\s+[|\\-–—:·•]\\s+")
 
     fun draft(
@@ -121,7 +125,7 @@ object Discovery {
         val site = psl.registrable(startHost) ?: startHost
         val token = site.substringBefore('.')
         val meta = page.metas.associate { it.name to it.content }
-        val notes = mutableListOf<String>()
+        val notes = mutableListOf<Note>()
 
         // ----- Start URL -----
         // Keep the URL that was asked for: redirects on the same host are usually logged-out bounces
@@ -164,12 +168,7 @@ object Discovery {
         for (reg in observed.keys) {
             if (reg !in internal && token.length >= 3 && token in reg.substringBefore('.')) internal += reg
         }
-        val apiHosts = observed.filter { (reg, types) -> reg !in internal && types.any { it in API_TYPES } }.keys.toList()
         val internalDomains = Field(internal.toList(), "site domain + observed domains containing '$token'", Confidence.MEDIUM)
-        if (apiHosts.isNotEmpty()) {
-            notes += "Other domains the page called (not internal; add any that belong to the site): " +
-                apiHosts.take(15).joinToString(", ")
-        }
 
         // ----- Name -----
         val shortName = manifest.string("short_name")
@@ -232,14 +231,20 @@ object Discovery {
         val blob = listOf(webview.title, webview.text, webview.error).joinToString(" ") { it.orEmpty() }
         val blocked = WEBVIEW_BLOCK_PATTERNS.filter { Regex(it, RegexOption.IGNORE_CASE).containsMatchIn(blob) }
         if ((webview.status ?: 0) >= 400 || blocked.isNotEmpty()) {
-            notes += "WARNING: the site may refuse Android WebViews (status ${webview.status ?: "unknown"}, " +
-                "matched: ${blocked.joinToString(", ").ifEmpty { "HTTP error" }}). The app may not work."
+            notes += Note(
+                Note.Level.CAUTION,
+                "The site may refuse Android WebViews (status ${webview.status ?: "unknown"}, " +
+                    "matched: ${blocked.joinToString(", ").ifEmpty { "HTTP error" }}). The app may not work.",
+            )
         }
         if (webview.navigations.any { it.startsWith("market:") || it.startsWith("intent:") || "play.google.com/store/apps" in it }) {
-            notes += "With a mobile user agent the site redirects to the Play Store; the store-redirect " +
-                "fallback (UA_STORE_REDIRECT_FALLBACK) will switch to the desktop site."
+            notes += Note(
+                Note.Level.INFO,
+                "With a mobile user agent the site redirects to the Play Store; the app switches to the desktop site when that happens.",
+            )
         }
-        if (d.manifest == null || d.manifest.isEmpty()) notes += "No web manifest found; name and colors come from page metadata."
+        if (simple == null) notes += Note(Note.Level.CAUTION, NO_GLYPH)
+        if (d.manifest == null || d.manifest.isEmpty()) notes += Note(Note.Level.INFO, "No web manifest found; name and colors come from page metadata.")
 
         return Draft(
             appId = appId,
@@ -311,6 +316,8 @@ object Discovery {
         }
         return variables.maxByOrNull(::score)
     }
+
+    const val NO_GLYPH = "Could not locate a glyph for this service; defaulting to manifest. Consider installing an icon pack."
 
     /** Blue gray, for sites without a brand color. */
     const val DEFAULT_BRAND = "#607D8B"
