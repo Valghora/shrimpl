@@ -74,7 +74,7 @@ class RecordsAndFormTest {
     fun formRoundTripsAProfile() {
         val form = ProfileForm.from(profile)
         assertEquals(listOf(ShortcutRow("Search", "K", setOf(Modifier.CTRL))), form.shortcuts)
-        assertEquals("", form.iconForeground) // "auto" shows as empty
+        assertEquals("", ProfileForm.from(profile.copy(iconForeground = Profile.AUTO)).iconForeground) // "auto" shows as empty
         val result = form.result()
         assertEquals(emptyList<Any>(), result.errors)
         assertEquals(profile, result.profile)
@@ -87,7 +87,6 @@ class RecordsAndFormTest {
             startUrl = " https://app.example.com/ ",
             internalDomains = listOf("Example.com ", "", "example.com", "cdn.example.net"),
             headerColor = "fff",
-            headerColorNight = "#121212",
             iconForeground = "000000",
             userAgentMode = UaMode.DESKTOP,
             defaultWidth = " 1000", defaultHeight = "700",
@@ -97,7 +96,8 @@ class RecordsAndFormTest {
         assertEquals("Example", p.name)
         assertEquals(listOf("example.com", "cdn.example.net"), p.internalDomains)
         assertEquals("#FFFFFF", p.headerColor)
-        assertEquals("#121212", p.headerColorNight)
+        assertEquals(Profile.SYSTEM, form.copy(headerColor = " ").result().profile!!.headerColor)
+        assertEquals("", ProfileForm.from(p.copy(headerColor = Profile.SYSTEM)).headerColor)
         assertEquals("#000000", p.iconForeground)
         assertEquals(UaMode.DESKTOP, p.userAgentMode)
         assertEquals(WindowSize(1000, 700), p.defaultWindowDp)
@@ -110,7 +110,7 @@ class RecordsAndFormTest {
         val result = bad.result()
         assertNull(result.profile)
         assertEquals("must not be empty", result.errorFor("name"))
-        assertEquals("must be #RRGGBB", result.errorFor("headerColor"))
+        assertEquals("must be #RRGGBB or \"system\"", result.errorFor("headerColor"))
         assertEquals("must be an https:// URL", result.errorFor("startUrl"))
         assertNull(result.errorFor("iconBackground"))
 

@@ -14,15 +14,11 @@ abstract class BundleTemplate : DefaultTask() {
     @get:Input
     abstract val templateVersion: Property<Int>
 
-    @get:Input
-    abstract val siteBuild: Property<Boolean>
-
     @get:OutputDirectory
     abstract val outputDir: DirectoryProperty
 
     @TaskAction
     fun bundle() {
-        if (siteBuild.get()) throw GradleException("UniWrap bundles the neutral template; build it without -Psite")
         val out = outputDir.get().asFile.resolve("template")
         out.deleteRecursively()
         out.mkdirs()
@@ -73,7 +69,6 @@ androidComponents {
             dependsOn(":template:assembleRelease")
             templateApk.set(neutralTemplateApk)
             templateVersion.set(providers.gradleProperty("uniwrap.templateVersion").map(String::toInt))
-            siteBuild.set(providers.gradleProperty("site").map { it.isNotBlank() }.orElse(false))
         }
         variant.sources.assets?.addGeneratedSourceDirectory(bundle, BundleTemplate::outputDir)
     }

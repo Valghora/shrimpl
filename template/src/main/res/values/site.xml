@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Template placeholders. UniWrap sets each web app's label in its manifest. The window starts in
+     the system's surface color; the app applies the profile's header color at launch. -->
+<resources>
+    <string name="app_name" translatable="false">Web App</string>
+    <color name="header_surface">@android:color/system_surface_container_light</color>
+</resources>

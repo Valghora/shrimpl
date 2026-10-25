@@ -12,6 +12,7 @@ import com.valghora.wrapper.core.discovery.PublicSuffixList
 import com.valghora.wrapper.core.discovery.Request
 import com.valghora.wrapper.core.discovery.ScriptSignals
 import com.valghora.wrapper.core.discovery.SimpleIcon
+import com.valghora.wrapper.core.discovery.SimpleIcons
 import com.valghora.wrapper.core.discovery.SlimVisit
 import com.valghora.wrapper.core.discovery.Visit
 import java.io.IOException
@@ -94,11 +95,21 @@ class SiteDiscovery(private val context: Context) {
 
         onStage(Stage.FINDING_ICON)
         val sources = object : IconSources {
-            override fun simpleIconSvg(slug: String) = data.simpleIconsBySlug[slug]?.svg()
             override fun fetch(url: String) = network.bodyOrNull(url)
         }
         return withContext(Dispatchers.IO) {
-            runInterruptible { Discovery.draft(evidence, url, data.psl, data.simpleIcons, sources) }
+            runInterruptible { Discovery.draft(evidence, url, data.psl, sources) }
+        }
+    }
+
+    /** The simple-icons brand named [name] ("Discord" -> `discord`), or null (R10.1). */
+    suspend fun simpleIcon(name: String): SimpleIcon? = withContext(Dispatchers.IO) {
+        runInterruptible {
+            val network = Network(WebSettings.getDefaultUserAgent(context))
+            val sources = object : IconSources {
+                override fun fetch(url: String) = network.bodyOrNull(url)
+            }
+            SimpleIcons.find(listOf(name), sources)?.first
         }
     }
 
@@ -147,10 +158,8 @@ class SiteDiscovery(private val context: Context) {
     }
 }
 
-/** Bundled discovery data, loaded once: the Public Suffix List and simple-icons with glyph paths. */
-class DiscoveryData private constructor(val psl: PublicSuffixList, val simpleIcons: List<SimpleIcon>) {
-    val simpleIconsBySlug: Map<String, SimpleIcon> by lazy { simpleIcons.associateBy { it.resolvedSlug } }
-
+/** Bundled discovery data, loaded once: the Public Suffix List. */
+class DiscoveryData private constructor(val psl: PublicSuffixList) {
     companion object {
         @Volatile
         private var instance: DiscoveryData? = null
@@ -159,8 +168,7 @@ class DiscoveryData private constructor(val psl: PublicSuffixList, val simpleIco
             instance ?: run {
                 val assets = context.applicationContext.assets
                 val psl = assets.open("discovery/public_suffix_list.dat").bufferedReader().use { PublicSuffixList(it.readText()) }
-                val icons = assets.open("discovery/simple-icons.json").bufferedReader().use { SimpleIcon.parseList(it.readText()) }
-                DiscoveryData(psl, icons).also { instance = it }
+                DiscoveryData(psl).also { instance = it }
             }
         }
     }

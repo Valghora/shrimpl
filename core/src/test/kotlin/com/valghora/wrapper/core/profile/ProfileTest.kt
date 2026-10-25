@@ -38,22 +38,23 @@ class ProfileTest {
         assertEquals(UaMode.AUTO, discord.userAgentMode)
         assertTrue(discord.allowMicrophone && discord.allowCamera)
         assertEquals(ShortcutSpec("Toggle Mute", "KEYCODE_M", setOf(Modifier.CTRL, Modifier.SHIFT)), discord.appShortcuts[1])
-        assertNull(discord.headerColorNight)
+        assertEquals("#1E1F22", discord.headerColor)
     }
 
     @Test
     fun roundTrips() {
         assertEquals(discord, ProfileCodec.decode(ProfileCodec.encode(discord)))
-        val full = minimal.copy(headerColorNight = "#121212", newWindowShortcut = KeyCombo("KEYCODE_N", setOf(Modifier.CTRL, Modifier.SHIFT)))
+        val full = minimal.copy(headerColor = "#121212", newWindowShortcut = KeyCombo("KEYCODE_N", setOf(Modifier.CTRL, Modifier.SHIFT)))
         assertEquals(full, ProfileCodec.decode(ProfileCodec.encode(full)))
     }
 
     @Test
     fun encodesDefaultsAndOmitsNulls() {
-        val json = ProfileCodec.encode(minimal)
+        val json = ProfileCodec.encode(minimal.copy(headerColor = Profile.SYSTEM))
         assertTrue(json.contains("\"allowNotifications\": true"))
         assertTrue(json.contains("\"userAgentMode\": \"auto\""))
-        assertFalse(json.contains("headerColorNight"))
+        assertTrue(json.contains("\"headerColor\": \"system\""))
+        assertFalse(json.contains("newWindowShortcut"))
     }
 
     @Test
@@ -155,8 +156,8 @@ class ProfileTest {
         assertEquals(listOf("iconBackground"), fields(minimal.copy(iconBackground = "#12345")))
         assertEquals(listOf("iconForeground"), fields(minimal.copy(iconForeground = "white")))
         assertEquals(listOf("headerColor"), fields(minimal.copy(headerColor = "123456")))
-        assertEquals(listOf("headerColorNight"), fields(minimal.copy(headerColorNight = "#GGGGGG")))
-        assertEquals(emptyList<String>(), fields(minimal.copy(iconForeground = "#ffffff", headerColorNight = "#000000")))
+        assertEquals(emptyList<String>(), fields(minimal.copy(iconForeground = "#ffffff", headerColor = "#000000")))
+        assertEquals(emptyList<String>(), fields(minimal.copy(iconForeground = Profile.AUTO, headerColor = Profile.SYSTEM)))
     }
 
     @Test
@@ -192,9 +193,7 @@ class ProfileTest {
 
     @Test
     fun derivedValuesForDiscord() {
-        assertEquals("#1E1F22", discord.headerNight)
-        assertTrue(discord.headerIsDark)
-        assertTrue(discord.headerNightIsDark)
+        assertFalse(discord.headerFollowsSystem)
         assertEquals("#FFFFFF", discord.resolvedIconForeground)
         assertEquals("discord_notifications", discord.notificationChannelId)
         assertTrue(discord.uaFeaturesActive)
@@ -204,17 +203,18 @@ class ProfileTest {
 
     @Test
     fun autoForegroundFollowsContrast() {
-        assertEquals("#FFFFFF", minimal.copy(iconBackground = "#5865F2").resolvedIconForeground)
-        assertEquals("#000000", minimal.copy(iconBackground = "#FFEB3B").resolvedIconForeground)
+        assertEquals("#FFFFFF", minimal.copy(iconBackground = "#5865F2", iconForeground = Profile.AUTO).resolvedIconForeground)
+        assertEquals("#000000", minimal.copy(iconBackground = "#FFEB3B", iconForeground = Profile.AUTO).resolvedIconForeground)
         assertEquals("#123456", minimal.copy(iconForeground = "#123456").resolvedIconForeground)
+        assertEquals("#FFFFFF", minimal.copy(iconBackground = "#FFEB3B", iconForeground = Profile.DEFAULT_ICON_FOREGROUND).resolvedIconForeground)
     }
 
     @Test
-    fun nightHeader() {
-        val light = minimal.copy(headerColor = "#FFFFFF", headerColorNight = "#121212")
-        assertEquals("#121212", light.headerNight)
-        assertFalse(light.headerIsDark)
-        assertTrue(light.headerNightIsDark)
+    fun headerAndGlyphDefaults() {
+        val plain = Profile(name = "A", appId = "a", startUrl = "https://a.com/", internalDomains = listOf("a.com"), iconBackground = "#123456")
+        assertTrue(plain.headerFollowsSystem)
+        assertEquals("#FFFFFF", plain.iconForeground)
+        assertFalse(plain.copy(headerColor = "#FFFFFF").headerFollowsSystem)
     }
 
     @Test

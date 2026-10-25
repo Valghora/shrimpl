@@ -1,6 +1,7 @@
 package com.valghora.wrapper.core.discovery
 
 import com.valghora.wrapper.core.icons.IconException
+import com.valghora.wrapper.core.profile.Profile
 import com.valghora.wrapper.core.profile.ProfileValidator
 import java.io.ByteArrayOutputStream
 import java.util.zip.CRC32
@@ -18,9 +19,8 @@ import org.junit.Test
 class DiscoveryRulesTest {
     private val psl = PublicSuffixList(javaClass.getResource("/discovery/public_suffix_list.dat")!!.readText())
 
-    private class Map(private val responses: kotlin.collections.Map<String, ByteArray>, private val glyphs: kotlin.collections.Map<String, ByteArray> = emptyMap()) : IconSources {
+    private class Map(private val responses: kotlin.collections.Map<String, ByteArray>) : IconSources {
         val fetched = mutableListOf<String>()
-        override fun simpleIconSvg(slug: String) = glyphs[slug]
         override fun fetch(url: String): ByteArray? {
             fetched += url
             return responses[url]
@@ -82,11 +82,11 @@ class DiscoveryRulesTest {
 
     @Test
     fun titleToSlug() {
-        assertEquals("discord", SimpleIcon.titleToSlug("Discord"))
-        assertEquals("dotnet", SimpleIcon.titleToSlug(".NET"))
-        assertEquals("cplusplus", SimpleIcon.titleToSlug("C++"))
-        assertEquals("pokemon", SimpleIcon.titleToSlug("Pokémon"))
-        assertEquals("larss", SimpleIcon.titleToSlug("Larß!"))
+        assertEquals("discord", SimpleIcons.titleToSlug("Discord"))
+        assertEquals("dotnet", SimpleIcons.titleToSlug(".NET"))
+        assertEquals("cplusplus", SimpleIcons.titleToSlug("C++"))
+        assertEquals("pokemon", SimpleIcons.titleToSlug("Pokémon"))
+        assertEquals("larss", SimpleIcons.titleToSlug("Larß!"))
     }
 
     @Test
@@ -96,19 +96,26 @@ class DiscoveryRulesTest {
         assertEquals("", Discovery.cleanTitle("", "x"))
     }
 
+    private val acmeSvg = """<svg fill="#12ab9F" role="img" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><title>Acme &amp; Co</title><path d="M0 0h24v24H0z"/></svg>""".toByteArray()
+
     @Test
-    fun simpleIconsPreferDomainMatches() {
-        val icons = SimpleIcon.parseList(
-            """[{"title":"Acme","hex":"111111","source":"https://other.org/brand"},
-                {"title":"Acme Corp","hex":"222222","source":"https://www.acme.com/press","aliases":{"aka":["Acme"]}}]""",
-        )
-        val match = SimpleIconMatcher.match(icons, listOf("Acme"), "acme.com", psl)!!
-        assertEquals("Acme Corp", match.icon.title)
-        assertTrue(match.domainMatch)
-        assertEquals("Acme", SimpleIconMatcher.match(icons, listOf("acme"), "elsewhere.com", psl)!!.icon.title)
-        assertNull(SimpleIconMatcher.match(icons, listOf("nothing", null), "acme.com", psl))
-        assertEquals("<svg", String(SimpleIcon("X", "000000", path = "M0 0h1z").svg()!!).take(4))
-        assertNull(SimpleIcon("X", "000000").svg())
+    fun simpleIconsByName() {
+        val icon = SimpleIcons.parse("acmeandco", acmeSvg)!!
+        assertEquals("Acme & Co", icon.title)
+        assertEquals("#12AB9F", icon.color)
+        assertNull(SimpleIcons.parse("x", glyphSvg))
+        assertEquals("acme", SimpleIcons.parse("acme", "<svg fill=\"#000000\"><path d=\"M0 0h1z\"/></svg>".toByteArray())!!.title)
+
+        val sources = Map(mapOf(SimpleIcons.url("acmeandco") to acmeSvg))
+        val (found, name) = SimpleIcons.find(listOf(null, "", "Nope", "nope", "Acme & Co", "later"), sources)!!
+        assertEquals("acmeandco", found.slug)
+        assertEquals("Acme & Co", name)
+        // "Nope" and "nope" share a slug, so it is asked for once.
+        assertEquals(listOf("nope", "acmeandco").map(SimpleIcons::url), sources.fetched)
+
+        val many = Map(emptyMap())
+        assertNull(SimpleIcons.find(listOf("a", "b", "c", "d", "e"), many))
+        assertEquals(SimpleIcons.MAX_LOOKUPS, many.fetched.size)
     }
 
     // ---------- Raster headers ----------
@@ -151,6 +158,7 @@ class DiscoveryRulesTest {
         val sources = Map(mapOf("https://a.com/any512.png" to png(512, 512), "https://a.com/mask.png" to png(256, 256)))
         val choice = IconChooser.choose(
             null,
+            Confidence.LOW,
             listOf(Link("apple-touch-icon", "https://a.com/touch.png", sizes = "180x180"), Link("icon", "https://a.com/tiny.png", sizes = "32x32 16x16")),
             manifest("""{"icons":[{"src":"any512.png","sizes":"512x512"},{"src":"mask.png","sizes":"256x256","purpose":"any maskable"},{"src":"odd.png","sizes":"300x200"}]}"""),
             "https://a.com/manifest.json",
@@ -166,7 +174,7 @@ class DiscoveryRulesTest {
     fun smallOrNonSquareRastersAreSkipped() {
         val sources = Map(mapOf("https://a.com/wide.png" to png(400, 200), "https://a.com/apple-touch-icon.png" to png(128, 128)))
         val choice = IconChooser.choose(
-            null, listOf(Link("icon", "https://a.com/wide.png", sizes = "400x400")), manifest("{}"), "", "https://a.com/page", sources,
+            null, Confidence.LOW, listOf(Link("icon", "https://a.com/wide.png", sizes = "400x400")), manifest("{}"), "", "https://a.com/page", sources,
         )
         assertNull(choice)
         assertEquals(listOf("https://a.com/wide.png", "https://a.com/apple-touch-icon.png"), sources.fetched)
@@ -176,7 +184,7 @@ class DiscoveryRulesTest {
     fun maskIconGlyphWithColor() {
         val sources = Map(mapOf("https://a.com/mask.svg" to glyphSvg))
         val choice = IconChooser.choose(
-            null, listOf(Link("mask-icon", "https://a.com/mask.svg", color = "#ff0000")), manifest("{}"), "", "https://a.com/", sources,
+            null, Confidence.LOW, listOf(Link("mask-icon", "https://a.com/mask.svg", color = "#ff0000")), manifest("{}"), "", "https://a.com/", sources,
         ) as IconChoice.Glyph
         assertEquals("#FF0000", choice.color)
         assertEquals("Safari pinned-tab icon (mask-icon)", choice.source)
@@ -184,12 +192,12 @@ class DiscoveryRulesTest {
 
     @Test
     fun unusableSimpleIconFallsThrough() {
-        val simple = SimpleIconMatch(SimpleIcon("Acme", "123456"), domainMatch = false)
-        val sources = Map(emptyMap(), glyphs = mapOf("acme" to "<svg/>".toByteArray()))
-        assertNull(IconChooser.choose(simple, emptyList(), manifest("{}"), "", "https://a.com/", sources))
-        val good = Map(emptyMap(), glyphs = mapOf("acme" to glyphSvg))
-        val choice = IconChooser.choose(simple, emptyList(), manifest("{}"), "", "https://a.com/", good) as IconChoice.Glyph
-        assertEquals("simple-icons 'acme' (brand name matched)", choice.source)
+        val broken = SimpleIcon("acme", "Acme", "123456", "<svg/>".toByteArray())
+        assertNull(IconChooser.choose(broken, Confidence.HIGH, emptyList(), manifest("{}"), "", "https://a.com/", Map(emptyMap())))
+        val good = SimpleIcon("acme", "Acme", "123456", glyphSvg)
+        val choice = IconChooser.choose(good, Confidence.MEDIUM, emptyList(), manifest("{}"), "", "https://a.com/", Map(emptyMap())) as IconChoice.Glyph
+        assertEquals("simple-icons 'acme'", choice.source)
+        assertEquals("#123456", choice.color)
         assertEquals(Confidence.MEDIUM, choice.confidence)
     }
 
@@ -214,7 +222,7 @@ class DiscoveryRulesTest {
     ).extra()
 
     private fun draft(evidence: Evidence, url: String = "https://app.example.com/start") =
-        Discovery.draft(evidence, url, psl, emptyList(), Map(emptyMap()))
+        Discovery.draft(evidence, url, psl, Map(emptyMap()))
 
     @Test
     fun startUrlRules() {
@@ -258,15 +266,75 @@ class DiscoveryRulesTest {
         })
         val draft = draft(evidence)
         assertEquals(Field("Example Mail", "og:site_name meta", Confidence.MEDIUM), draft.name)
-        assertEquals("#FFFFFF", draft.headerColor.value)
-        assertEquals(Field("#000000", "theme-color meta for prefers-color-scheme: dark", Confidence.HIGH), draft.headerColorNight)
+        // White and black theme colors are no brand color.
+        assertEquals(Field(Discovery.DEFAULT_BRAND, "default (no brand color found)", Confidence.LOW), draft.iconBackground)
         assertTrue(draft.allowMicrophone.value)
         assertTrue(draft.allowCamera.value)
         assertTrue(draft.allowNotifications.value)
         assertEquals(IconChoice.Letter('E', "no usable brand icon found", Confidence.LOW), draft.icon)
         assertEquals("examplemail", draft.appId)
         assertEquals(emptyList<Any>(), ProfileValidator.validate(draft.toProfile()))
-        assertEquals("#000000", draft.toProfile().headerColorNight)
+        assertEquals(Profile.SYSTEM, draft.toProfile().headerColor)
+        assertEquals("#FFFFFF", draft.toProfile().iconForeground)
+    }
+
+    @Test
+    fun simpleIconBrandNamesTheAppAndColorsTheIcon() {
+        val evidence = Evidence(visit(PageInfo(title = "Home", metas = listOf(Meta("og:site_name", "Acme & Co")))))
+        val sources = Map(mapOf(SimpleIcons.url("acmeandco") to acmeSvg))
+        val draft = Discovery.draft(evidence, "https://app.example.com/start", psl, sources)
+        assertEquals(Field("Acme & Co", "simple-icons brand title", Confidence.HIGH), draft.name)
+        assertEquals(Field("#12AB9F", "simple-icons brand color (Acme & Co)", Confidence.HIGH), draft.iconBackground)
+        assertEquals(Confidence.HIGH, draft.icon.confidence)
+
+        // Matched only through the domain word: likely, not certain.
+        val byDomain = Map(mapOf(SimpleIcons.url("example") to acmeSvg))
+        assertEquals(Confidence.MEDIUM, Discovery.draft(Evidence(visit(PageInfo(title = "Home"))), "https://app.example.com/start", psl, byDomain).icon.confidence)
+    }
+
+    @Test
+    fun brandColorPrefersColorfulSiteColors() {
+        val letter = IconChoice.Letter('A', "x", Confidence.LOW)
+        val empty = manifest("{}")
+        assertEquals(
+            Field("#FF3385", "theme-color meta", Confidence.MEDIUM),
+            Discovery.brandColor(letter, PageInfo(themeColors = listOf(ThemeColor("#ffffff", "(prefers-color-scheme: dark)"), ThemeColor("#ff3385"))), empty),
+        )
+        assertEquals(
+            Field("#336699", "web manifest theme_color", Confidence.MEDIUM),
+            Discovery.brandColor(letter, PageInfo(), manifest("""{"theme_color":"#336699","background_color":"#ff0000"}""")),
+        )
+        assertEquals(
+            Field("#00AA55", "mask-icon color", Confidence.MEDIUM),
+            Discovery.brandColor(letter, PageInfo(links = listOf(Link("mask-icon", "https://a.com/m.svg", color = "#00aa55"))), empty),
+        )
+        val buttons = PageInfo(brandColors = listOf(BrandColor("#EEEEEE", "button background"), BrandColor("#E91E63", "button background")))
+        assertEquals(Field("#E91E63", "button background", Confidence.LOW), Discovery.brandColor(letter, buttons, empty))
+        // Gray site colors are used only when nothing is colorful.
+        assertEquals(Field("#222222", "web manifest theme_color", Confidence.LOW), Discovery.brandColor(letter, PageInfo(), manifest("""{"theme_color":"#222222"}""")))
+        assertEquals(Field("#AA0000", "web manifest background_color", Confidence.LOW), Discovery.brandColor(letter, PageInfo(), manifest("""{"background_color":"#aa0000"}""")))
+        // A mask-icon glyph's color is a candidate like any other, not taken as is.
+        val mask = IconChoice.Glyph(glyphSvg, com.valghora.wrapper.core.icons.SvgGlyph.parse(glyphSvg), "#000000", "mask-icon color", "m", Confidence.MEDIUM)
+        assertEquals(Discovery.DEFAULT_BRAND, Discovery.brandColor(mask, PageInfo(), empty).value)
+    }
+
+    @Test
+    fun cssBrandVariablesAreRanked() {
+        // A slice of discord.com/app's variables: a shade scale, persona colors and grays.
+        val discord = listOf(
+            "--brand-760" to "#172354", "--logo-primary" to "#FFFFFF", "--primary-300" to "#C9CACE", "--brand-560" to "#4654C0",
+            "--checkpoint-persona-eight-primary" to "#D9B777", "--brand-130" to "#E6EAFF", "--brand-345" to "#94A8FF",
+            "--checkpoint-guilds-primary" to "#5EFDE2", "--checkpoint-persona-five-primary" to "#F75990", "--brand-430" to "#6C7FF6",
+            "--checkpoint-persona-one-primary" to "#5EFDE2", "--brand-600" to "#3A48A3", "--brand-90a" to "#5865F2",
+            "--brand-500" to "#5865F2", "--checkpoint-persona-four-primary" to "#F262D5", "--primary-800" to "#121214",
+        ).map { (name, color) -> BrandColor(color, "CSS variable $name") } + BrandColor("#123456", "button background")
+        assertEquals("#5865F2", Discovery.cssBrandColor(discord)?.color)
+        assertEquals("CSS variable --color-primary", Discovery.cssBrandColor(listOf(
+            BrandColor("#E91E63", "CSS variable --brand-accent-900"), BrandColor("#3F51B5", "CSS variable --color-primary"),
+        ))?.source)
+        assertNull(Discovery.cssBrandColor(listOf(BrandColor("#FFFFFF", "CSS variable --primary"), BrandColor("bogus", "CSS variable --brand"))))
+        assertTrue(Colors.isColorful("#5865F2"))
+        assertTrue(!Colors.isColorful("#777777") && !Colors.isColorful("#FAFAFF") && !Colors.isColorful("#050510"))
     }
 
     @Test

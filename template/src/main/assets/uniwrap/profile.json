@@ -1,0 +1,12 @@
+{
+  "schemaVersion": 1,
+  "name": "Web App",
+  "appId": "webapp",
+  "startUrl": "https://example.com/",
+  "internalDomains": [
+    "example.com"
+  ],
+  "iconBackground": "#607D8B",
+  "iconForeground": "#FFFFFF",
+  "headerColor": "system"
+}

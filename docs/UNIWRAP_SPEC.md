@@ -103,14 +103,15 @@ Do not implement: Play Store distribution, analytics, crash reporting, cloud syn
   - Cancelable.
   - On network failure, show the error with Retry and "Continue without discovery" (defaults only).
 - R3.3 Step 3, review. A form prefilled from discovery:
-  - At the top, a large preview of the launcher icon (adaptive mask preview) and the app name.
-  - Then grouped sections:
-    - **Identity**: name, icon (opens R10).
-    - **Website**: start URL, internal domains (chips with add/remove).
+  - Laid out like the system settings: titled sections of rounded tonal items, each showing its value (a summary, a switch, a menu value or a color swatch); text, color, domain, window-size and shortcut values open a dialog. Nothing is collapsed.
+    - **Identity**: icon with its preview (opens R10), name, and the fixed app ID on the edit page.
+    - **Website**: start URL, internal domains.
     - **Permissions**: microphone, camera, notifications.
-    - **Appearance**: header color (light and dark), icon background/foreground colors.
-    - **Advanced** (collapsed by default): user agent mode, keep alive when hidden, pause on power save, multi-window, context menu, default and minimum window size, keyboard shortcuts.
-  - Fields discovered with low or medium confidence show a hint icon explaining where the value came from.
+    - **Appearance**: header color (one value: "System" by default, which follows the system's light or dark surface color, or one fixed color), icon background (the site's brand color), icon glyph color (`#FFFFFF` by default).
+    - **Browser**: user agent mode, keep alive when hidden, pause on power save, context menu.
+    - **Window**: multi-window, default and minimum window size.
+    - **Keyboard shortcuts**: one item per shortcut, and Add.
+  - Fields discovered with low or medium confidence show where the value came from.
   - Every field is editable and validated as the user types, using the core validator (R4.2).
 - R3.4 Step 4, create.
   - A "Create app" button builds, signs and installs (R8, R6).
@@ -221,11 +222,13 @@ The template keeps every behavior of `docs/PROMPT.md` R2 to R8 (window, insets, 
     - name priority;
     - start URL rules (manifest start URL on the same site; keep the requested URL across auth redirects);
     - registrable domain via a bundled Public Suffix List;
-    - header colors;
-    - icon priority: simple-icons glyph (bundled `simple-icons.json` and glyphs), mask-icon, maskable manifest icon, large icon, letter.
+    - simple-icons by name, not bundled: the slugs of the names the site gives itself (manifest short_name and name, application-name, apple-mobile-web-app-title, og:site_name), then the domain word, are looked up at `https://cdn.simpleicons.org/<slug>` (at most 4 requests), which returns the glyph with its brand color;
+    - icon priority: simple-icons glyph, mask-icon, maskable manifest icon, large icon, letter;
+    - icon background = the site's brand color: the simple-icons brand color, else the first colorful value (not white, black or gray) among the mask-icon color, manifest theme_color, theme-color meta, the page's CSS brand variables (R9.3), its button colors and the manifest background_color, else any non-white theme color, else blue gray;
+    - no header color: web apps follow the system color unless the user sets one.
   - Also apply the WebView-blocking and Play Store redirect notes.
 - R9.3 Rendered pass (SHOULD), in a hidden WebView in `:uniwrap` with a desktop and an Android WebView user agent:
-  - computed top-edge color when no theme color exists;
+  - brand color candidates: CSS custom properties named brand, primary or accent (ranked in `:core` by colorfulness, plain names and middle shades such as `-500`, and repeated use), and the colors of visible buttons by area;
   - observed domains;
   - use of getUserMedia, Notification, Push and WebRTC, giving the microphone, camera and notification suggestions.
 
@@ -236,7 +239,7 @@ The template keeps every behavior of `docs/PROMPT.md` R2 to R8 (window, insets, 
 
 - R10.1 Icon sources the user can pick:
   - the discovered site icon;
-  - a simple-icons glyph (searchable);
+  - a simple-icons glyph, looked up by brand name (prefilled with the app name);
   - a letter;
   - an image from the device (Photo Picker), with crop;
   - an icon pack (R10.2).
@@ -269,7 +272,7 @@ The template keeps every behavior of `docs/PROMPT.md` R2 to R8 (window, insets, 
 
 ## R12 Repository and CI
 
-- R12.1 Once UniWrap creates and installs web apps end to end (Phase 5 gate), remove the retired computer-side flow:
+- R12.1 Remove the retired computer-side flow (done during Phase 5 at the user's request: only the template and UniWrap are built):
   - `wrap`, `sites/`;
   - `scripts/site_config.py`, `discover_site.py`, `enrich_site.py`, `generate_icons.py` and `preview_icons.py`, and their tests and data;
   - `scripts/create_sideload_key.sh`, `scripts/ci_verify.sh`;

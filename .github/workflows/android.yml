@@ -16,35 +16,10 @@ env:
   ANDROID_HOME: /home/runner/android-sdk
 
 jobs:
-  sites:
-    name: Validate sites and scripts
-    runs-on: ubuntu-latest
-    outputs:
-      sites: ${{ steps.list.outputs.sites }}
-    steps:
-      - uses: actions/checkout@v7
-
-      - name: Validate every site config
-        run: python3 scripts/site_config.py validate --all
-
-      - name: Script tests
-        run: python3 -m unittest discover -s scripts/tests -v
-
-      - name: List sites
-        id: list
-        run: echo "sites=$(python3 scripts/site_config.py list --json)" >> "$GITHUB_OUTPUT"
-
   build:
-    name: Build ${{ matrix.site }}
-    needs: sites
+    name: Core, template and UniWrap
     runs-on: ubuntu-latest
-    timeout-minutes: 45
-    strategy:
-      fail-fast: false
-      matrix:
-        site: ${{ fromJSON(needs.sites.outputs.sites) }}
-    env:
-      HAS_SIDELOAD_KEY: ${{ secrets.SIDELOAD_KEYSTORE_B64 != '' }}
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v7
 
@@ -58,137 +33,21 @@ jobs:
           # Default is read-only on non-default branches; write so feature-branch runs warm the cache too.
           cache-read-only: false
 
-      - name: Resolve compileSdk
-        id: sdk
-        run: echo "api=$(grep -oE '^COMPILE_SDK\s*=\s*[0-9]+' sites/defaults.toml | grep -oE '[0-9]+$' || echo 37)" >> "$GITHUB_OUTPUT"
-
       - name: Cache Android SDK
         uses: actions/cache@v6
         with:
           path: ${{ env.ANDROID_HOME }}
-          key: android-sdk-${{ runner.os }}-api${{ steps.sdk.outputs.api }}-${{ hashFiles('scripts/setup_android_sdk.sh') }}
-
-      - name: Set up Android SDK and check tools
-        run: scripts/setup_android_sdk.sh
-
-      - name: Sideload signing key
-        if: env.HAS_SIDELOAD_KEY == 'true'
-        env:
-          KEYSTORE_B64: ${{ secrets.SIDELOAD_KEYSTORE_B64 }}
-        run: |
-          echo "$KEYSTORE_B64" | base64 -d > "$RUNNER_TEMP/sideload.jks"
-          echo "SIDELOAD_KEYSTORE=$RUNNER_TEMP/sideload.jks" >> "$GITHUB_ENV"
-
-      - name: Verify (Phase 6)
-        env:
-          SITE: ${{ matrix.site }}
-          SIDELOAD_KEYSTORE_PASSWORD: ${{ secrets.SIDELOAD_KEYSTORE_PASSWORD }}
-          SIDELOAD_KEY_ALIAS: ${{ secrets.SIDELOAD_KEY_ALIAS }}
-          SIDELOAD_KEY_PASSWORD: ${{ secrets.SIDELOAD_KEY_PASSWORD }}
-        run: scripts/ci_verify.sh
-
-      - name: Upload APKs
-        if: success()
-        uses: actions/upload-artifact@v7
-        with:
-          name: apks-${{ matrix.site }}
-          path: sites/${{ matrix.site }}/apks/
-
-      - name: Upload reports
-        if: always() && hashFiles('template/build/reports/**') != ''
-        uses: actions/upload-artifact@v7
-        with:
-          name: reports-${{ matrix.site }}
-          path: |
-            template/build/reports/
-            template/build/test-results/
-          if-no-files-found: ignore
-
-  cloner:
-    name: Cloner proof of concept
-    runs-on: ubuntu-latest
-    timeout-minutes: 30
-    steps:
-      - uses: actions/checkout@v7
-
-      - uses: actions/setup-java@v6
-        with:
-          distribution: temurin
-          java-version: "21"
-
-      - uses: gradle/actions/setup-gradle@v6
-        with:
-          cache-read-only: false
-
-      - name: Resolve compileSdk
-        id: sdk
-        run: echo "api=$(grep -oE '^COMPILE_SDK\s*=\s*[0-9]+' sites/defaults.toml | grep -oE '[0-9]+$' || echo 37)" >> "$GITHUB_OUTPUT"
-
-      - name: Cache Android SDK
-        uses: actions/cache@v6
-        with:
-          path: ${{ env.ANDROID_HOME }}
-          key: android-sdk-${{ runner.os }}-api${{ steps.sdk.outputs.api }}-${{ hashFiles('scripts/setup_android_sdk.sh') }}
-
-      - name: Set up Android SDK and check tools
-        run: scripts/setup_android_sdk.sh
-
-      # The host test clones the committed Discord release APK and checks the copy with apksig and aapt2.
-      - name: Test, lint and build
-        run: ./gradlew --console=plain :cloner:testDebugUnitTest :cloner:lintDebug :cloner:assembleDebug
-
-      - name: Upload cloner APK
-        uses: actions/upload-artifact@v7
-        with:
-          name: cloner-poc
-          path: cloner/build/outputs/apk/debug/cloner-debug.apk
-
-      - name: Upload reports
-        if: always()
-        uses: actions/upload-artifact@v7
-        with:
-          name: reports-cloner
-          path: |
-            cloner/build/reports/
-            cloner/build/test-results/
-          if-no-files-found: ignore
-
-  uniwrap:
-    name: UniWrap core and template
-    runs-on: ubuntu-latest
-    timeout-minutes: 30
-    steps:
-      - uses: actions/checkout@v7
-
-      - uses: actions/setup-java@v6
-        with:
-          distribution: temurin
-          java-version: "21"
-
-      - uses: gradle/actions/setup-gradle@v6
-        with:
-          cache-read-only: false
-
-      - name: Resolve compileSdk
-        id: sdk
-        run: echo "api=$(grep -oE '^COMPILE_SDK\s*=\s*[0-9]+' sites/defaults.toml | grep -oE '[0-9]+$' || echo 37)" >> "$GITHUB_OUTPUT"
-
-      - name: Cache Android SDK
-        uses: actions/cache@v6
-        with:
-          path: ${{ env.ANDROID_HOME }}
-          key: android-sdk-${{ runner.os }}-api${{ steps.sdk.outputs.api }}-${{ hashFiles('scripts/setup_android_sdk.sh') }}
+          key: android-sdk-${{ runner.os }}-api37-${{ hashFiles('scripts/setup_android_sdk.sh') }}
 
       - name: Set up Android SDK and check tools
         run: scripts/setup_android_sdk.sh
 
       # :core:check runs the core tests (including building real web apps from the template release
-      # APK and the discovery fixtures recorded from the Python version) and the 85% line-coverage
-      # rule. No -Psite: this is the neutral template UniWrap patches.
-      - name: Core tests, template and UniWrap builds
+      # APK) and the 85% line-coverage rule.
+      - name: Tests, lint and builds
         run: >-
           ./gradlew --console=plain :core:check :core:jacocoTestReport
-          :template:lintRelease :template:assembleRelease
+          :template:testDebugUnitTest :template:lintRelease :template:assembleRelease
           :uniwrap:testDebugUnitTest :uniwrap:lintDebug :uniwrap:assembleDebug :uniwrap:assembleRelease
 
       - name: Template has no native code
@@ -199,19 +58,21 @@ jobs:
       - name: Upload template and UniWrap APKs
         uses: actions/upload-artifact@v7
         with:
-          name: uniwrap
+          name: apks
           path: |
             template/build/outputs/apk/release/template-release.apk
             uniwrap/build/outputs/apk/debug/uniwrap-debug.apk
+            uniwrap/build/outputs/apk/release/uniwrap-release.apk
 
       - name: Upload reports
         if: always()
         uses: actions/upload-artifact@v7
         with:
-          name: reports-uniwrap
+          name: reports
           path: |
             core/build/reports/
             core/build/test-results/
             template/build/reports/
+            template/build/test-results/
             uniwrap/build/reports/
           if-no-files-found: ignore

@@ -62,7 +62,13 @@ data class PageInfo(
     val themeColors: List<ThemeColor> = emptyList(),
     /** The most common background color along the top edge of the viewport, as #RRGGBB. */
     val topColor: String? = null,
+    /** Colors the rendered page uses for its brand: CSS variables named brand/primary/accent, then buttons. */
+    val brandColors: List<BrandColor> = emptyList(),
 )
+
+/** A brand color seen on the page and where it was seen ("CSS variable --brand", "button background"). */
+@Serializable
+data class BrandColor(val color: String, val source: String)
 
 /** A `<meta>` with its name (or property) in lowercase. */
 @Serializable

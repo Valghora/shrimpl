@@ -10,28 +10,24 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.selection.selectable
-import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -43,8 +39,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.Role
-import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
@@ -56,6 +50,10 @@ import com.valghora.uniwrap.container
 import com.valghora.uniwrap.data.InstallMethod
 import com.valghora.uniwrap.data.ThemeSetting
 import com.valghora.uniwrap.install.Availability
+import com.valghora.uniwrap.ui.common.DropdownItem
+import com.valghora.uniwrap.ui.common.NavigationItem
+import com.valghora.uniwrap.ui.common.SettingsItem
+import com.valghora.uniwrap.ui.common.SettingsSection
 
 /** UniWrap's settings page (docs/UNIWRAP_SPEC.md R2.5). */
 @OptIn(ExperimentalMaterial3Api::class)
@@ -98,6 +96,7 @@ fun SettingsScreen(onBack: () -> Unit) {
                 navigationIcon = {
                     IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.action_back)) }
                 },
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
             )
         },
         snackbarHost = { SnackbarHost(snackbar) },
@@ -106,64 +105,74 @@ fun SettingsScreen(onBack: () -> Unit) {
             Modifier.padding(padding).fillMaxSize().verticalScroll(rememberScrollState()),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
-            Column(Modifier.widthIn(max = 720.dp).fillMaxWidth()) {
-                Section(R.string.settings_install)
-                Column(Modifier.selectableGroup()) {
-                    MethodRow(R.string.install_automatic, R.string.install_automatic_detail, method == null) { model.setInstallMethod(null) }
-                    MethodRow(R.string.install_session, R.string.install_session_detail, method == InstallMethod.SESSION) {
-                        model.setInstallMethod(InstallMethod.SESSION)
-                    }
-                    MethodRow(R.string.install_shizuku, shizukuDetail(shizuku), method == InstallMethod.SHIZUKU, enabled = shizuku != Availability.UNAVAILABLE) {
-                        model.setInstallMethod(InstallMethod.SHIZUKU)
-                    }
-                    if (shizuku == Availability.NEEDS_PERMISSION) {
-                        OutlinedButton(onClick = model::requestShizuku, modifier = Modifier.padding(start = 72.dp)) {
-                            Text(stringResource(R.string.action_grant))
-                        }
-                    }
-                    MethodRow(R.string.install_root, rootDetail(root), method == InstallMethod.ROOT, enabled = root == Availability.AVAILABLE) {
-                        model.setInstallMethod(InstallMethod.ROOT)
-                    }
-                    if (root != Availability.AVAILABLE) {
-                        OutlinedButton(onClick = model::checkRoot, modifier = Modifier.padding(start = 72.dp)) {
-                            Text(stringResource(R.string.action_check_root))
-                        }
-                    }
+            Column(Modifier.widthIn(max = 720.dp).fillMaxWidth().padding(horizontal = 16.dp).padding(bottom = 32.dp)) {
+                SettingsSection(stringResource(R.string.settings_install)) {
+                    DropdownItem(
+                        stringResource(R.string.install_method),
+                        method,
+                        listOf(
+                            null to stringResource(R.string.install_automatic),
+                            InstallMethod.SESSION to stringResource(R.string.install_session),
+                            InstallMethod.SHIZUKU to stringResource(R.string.install_shizuku),
+                            InstallMethod.ROOT to stringResource(R.string.install_root),
+                        ),
+                        model::setInstallMethod,
+                        summary = stringResource(methodDetail(method)),
+                    )
+                    SettingsItem(
+                        stringResource(R.string.install_shizuku),
+                        summary = stringResource(shizukuDetail(shizuku)),
+                        trailing = {
+                            if (shizuku == Availability.NEEDS_PERMISSION) {
+                                FilledTonalButton(onClick = model::requestShizuku) { Text(stringResource(R.string.action_grant)) }
+                            }
+                        },
+                    )
+                    SettingsItem(
+                        stringResource(R.string.install_root),
+                        summary = stringResource(rootDetail(root)),
+                        trailing = {
+                            if (root != Availability.AVAILABLE) {
+                                FilledTonalButton(onClick = model::checkRoot) { Text(stringResource(R.string.action_check)) }
+                            }
+                        },
+                    )
                 }
 
-                HorizontalDivider(Modifier.padding(top = 16.dp))
-                Section(R.string.settings_signing)
-                ListItem(
-                    headlineContent = { Text(stringResource(R.string.signing_fingerprint)) },
-                    supportingContent = {
-                        Text(fingerprint ?: stringResource(R.string.signing_none), fontFamily = FontFamily.Monospace, style = MaterialTheme.typography.bodySmall)
-                    },
-                )
-                Text(
-                    stringResource(if (backedUp) R.string.signing_backed_up else R.string.signing_not_backed_up),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = if (backedUp) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.error,
-                    modifier = Modifier.padding(horizontal = 16.dp),
-                )
-                Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    OutlinedButton(onClick = { askExportPassword = true }, enabled = fingerprint != null) { Text(stringResource(R.string.action_export_key)) }
-                    OutlinedButton(onClick = { openFile.launch(arrayOf(PKCS12_TYPE, "application/octet-stream")) }) { Text(stringResource(R.string.action_restore_key)) }
+                SettingsSection(stringResource(R.string.settings_signing)) {
+                    SettingsItem(
+                        stringResource(R.string.signing_fingerprint),
+                        summary = fingerprint ?: stringResource(R.string.signing_none),
+                    )
+                    SettingsItem(
+                        stringResource(R.string.signing_backup),
+                        summary = stringResource(if (backedUp) R.string.signing_backed_up else R.string.signing_not_backed_up),
+                        error = if (!backedUp && fingerprint != null) stringResource(R.string.signing_backup_warning) else null,
+                    )
+                    NavigationItem(stringResource(R.string.action_export_key), { askExportPassword = true }, enabled = fingerprint != null)
+                    NavigationItem(stringResource(R.string.action_restore_key), { openFile.launch(arrayOf(PKCS12_TYPE, "application/octet-stream")) })
                 }
 
-                HorizontalDivider()
-                Section(R.string.settings_theme)
-                Column(Modifier.selectableGroup()) {
-                    listOf(ThemeSetting.SYSTEM to R.string.theme_system, ThemeSetting.LIGHT to R.string.theme_light, ThemeSetting.DARK to R.string.theme_dark).forEach { (value, label) ->
-                        MethodRow(label, null, theme == value) { model.setTheme(value) }
-                    }
+                SettingsSection(stringResource(R.string.settings_theme)) {
+                    DropdownItem(
+                        stringResource(R.string.theme_mode),
+                        theme,
+                        listOf(
+                            ThemeSetting.SYSTEM to stringResource(R.string.theme_system),
+                            ThemeSetting.LIGHT to stringResource(R.string.theme_light),
+                            ThemeSetting.DARK to stringResource(R.string.theme_dark),
+                        ),
+                        model::setTheme,
+                        summary = stringResource(R.string.theme_dynamic_detail),
+                    )
                 }
 
-                HorizontalDivider()
-                Section(R.string.settings_about)
-                ListItem(
-                    headlineContent = { Text(stringResource(R.string.app_name)) },
-                    supportingContent = { Text(stringResource(R.string.about_versions, BuildConfig.VERSION_NAME, model.templateVersion)) },
-                )
+                SettingsSection(stringResource(R.string.settings_about)) {
+                    SettingsItem(
+                        stringResource(R.string.app_name),
+                        summary = stringResource(R.string.about_versions, BuildConfig.VERSION_NAME, model.templateVersion),
+                    )
+                }
             }
         }
     }
@@ -204,6 +213,13 @@ fun SettingsScreen(onBack: () -> Unit) {
     }
 }
 
+private fun methodDetail(method: InstallMethod?) = when (method) {
+    null -> R.string.install_automatic_detail
+    InstallMethod.SESSION -> R.string.install_session_detail
+    InstallMethod.SHIZUKU -> R.string.install_shizuku_detail
+    InstallMethod.ROOT -> R.string.install_root_detail
+}
+
 private fun shizukuDetail(state: Availability) = when (state) {
     Availability.AVAILABLE -> R.string.install_shizuku_ready
     Availability.NEEDS_PERMISSION -> R.string.install_shizuku_permission
@@ -214,26 +230,6 @@ private fun rootDetail(state: Availability?) = when (state) {
     null -> R.string.install_root_unchecked
     Availability.AVAILABLE -> R.string.install_root_ready
     else -> R.string.install_root_missing
-}
-
-@Composable
-private fun Section(label: Int) {
-    Text(
-        stringResource(label),
-        style = MaterialTheme.typography.titleSmall,
-        color = MaterialTheme.colorScheme.primary,
-        modifier = Modifier.padding(start = 16.dp, top = 16.dp, bottom = 4.dp),
-    )
-}
-
-@Composable
-private fun MethodRow(label: Int, detail: Int?, selected: Boolean, enabled: Boolean = true, onSelect: () -> Unit) {
-    ListItem(
-        leadingContent = { RadioButton(selected = selected, onClick = null, enabled = enabled) },
-        headlineContent = { Text(stringResource(label)) },
-        supportingContent = detail?.let { { Text(stringResource(it)) } },
-        modifier = Modifier.selectable(selected = selected, enabled = enabled, role = Role.RadioButton, onClick = onSelect),
-    )
 }
 
 /** Asks for a backup password; with [confirm], twice. The array is the caller's to clear. */

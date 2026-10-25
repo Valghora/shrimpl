@@ -4,7 +4,7 @@
 #
 # Env:
 #   ANDROID_HOME   SDK location (default /opt/android-sdk)
-#   API_LEVEL      SDK major to install (default: COMPILE_SDK from sites/defaults.toml, else 37)
+#   API_LEVEL      SDK major to install (default: 37, the modules' compileSdk)
 set -euo pipefail
 
 CMDLINE_TOOLS_BUILD="16111833"
@@ -12,10 +12,7 @@ REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 # Canonicalize: the android CLI's unzip guard rejects paths containing ".." ("Illegal entry path escaping destination").
 export ANDROID_HOME="$(realpath -m "${ANDROID_HOME:-/opt/android-sdk}")"
 
-if [[ -z "${API_LEVEL:-}" ]]; then
-  API_LEVEL="$(grep -oE '^COMPILE_SDK\s*=\s*[0-9]+' "$REPO_ROOT/sites/defaults.toml" 2>/dev/null | grep -oE '[0-9]+$' || true)"
-  API_LEVEL="${API_LEVEL:-37}"
-fi
+API_LEVEL="${API_LEVEL:-37}"
 
 log() { echo "[setup_android_sdk] $*"; }
 
@@ -66,12 +63,5 @@ check "platforms/$installed_platform" "[ -f '$ANDROID_HOME/platforms/$installed_
 check "build-tools/$installed_bt" "[ -d '$ANDROID_HOME/build-tools/$installed_bt' ]"
 check "aapt2" "[ -x '$ANDROID_HOME/build-tools/$installed_bt/aapt2' ]"
 check "platform-tools (adb)" "[ -x '$ANDROID_HOME/platform-tools/adb' ]"
-check "python3 3.11+ (tomllib)" "python3 -c 'import tomllib'"
 check "unzip" "command -v unzip"
-# Discovery (./wrap URL) also needs node with the playwright package; building does not.
-if node -e "require('playwright')" >/dev/null 2>&1; then
-  printf '  %-28s ok\n' "node + playwright (optional)"
-else
-  printf '  %-28s not found (needed only for ./wrap URL)\n' "node + playwright (optional)"
-fi
 exit $fail

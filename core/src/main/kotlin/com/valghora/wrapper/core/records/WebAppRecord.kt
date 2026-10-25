@@ -94,7 +94,8 @@ data class WebAppRecord(
             encodeDefaults = true
             explicitNulls = false
             prettyPrint = true
-            ignoreUnknownKeys = false
+            // Records written by older versions may carry settings that were since removed.
+            ignoreUnknownKeys = true
         }
 
         fun create(profile: Profile, icon: IconRecord, templateVersion: Int, signerFingerprint: String, now: Long) = WebAppRecord(

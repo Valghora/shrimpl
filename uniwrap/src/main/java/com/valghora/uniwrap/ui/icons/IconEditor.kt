@@ -3,7 +3,6 @@ package com.valghora.uniwrap.ui.icons
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -22,8 +21,11 @@ import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -39,32 +41,30 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.ImageBitmap
-import androidx.compose.ui.graphics.asComposePath
 import androidx.compose.ui.graphics.asImageBitmap
-import androidx.compose.ui.graphics.drawscope.scale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
-import androidx.core.graphics.PathParser
 import com.valghora.uniwrap.R
-import com.valghora.uniwrap.discovery.DiscoveryData
+import com.valghora.uniwrap.container
 import com.valghora.uniwrap.icons.IconImages
 import com.valghora.uniwrap.icons.IconPack
 import com.valghora.uniwrap.icons.IconPacks
 import com.valghora.wrapper.core.discovery.SimpleIcon
-import com.valghora.wrapper.core.icons.PathData
 import com.valghora.wrapper.core.records.IconRecord
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -136,11 +136,11 @@ fun IconEditor(
                                 modifier = Modifier.clickable { selection = selection.copy(icon = site.icon, image = site.image) },
                             )
                         }
-                        Source.BRAND -> BrandPicker { icon ->
+                        Source.BRAND -> BrandPicker(appName) { icon ->
                             selection = selection.copy(
-                                icon = IconRecord.glyph(requireNotNull(icon.svg()), "simple-icons '${icon.resolvedSlug}'"),
+                                icon = IconRecord.glyph(icon.svg, "simple-icons '${icon.slug}'"),
                                 image = null,
-                                background = "#" + icon.hex.uppercase(),
+                                background = icon.color,
                             )
                         }
                         Source.LETTER -> LetterPicker(selection.icon.letter ?: WebAppLetter.of(appName)) { letter ->
@@ -184,51 +184,46 @@ private fun ColorFields(selection: IconSelection, onChange: (IconSelection) -> U
     }
 }
 
+/** R10.1: looks a brand up by name on simple-icons.org; the app name is tried when the page opens. */
 @Composable
-private fun BrandPicker(onPick: (SimpleIcon) -> Unit) {
+private fun BrandPicker(appName: String, onPick: (SimpleIcon) -> Unit) {
     val context = LocalContext.current
-    var query by remember { mutableStateOf("") }
-    val all by produceState<List<SimpleIcon>?>(null) {
-        value = withContext(Dispatchers.IO) { DiscoveryData.get(context).simpleIcons.filter { it.path != null } }
+    val scope = rememberCoroutineScope()
+    var query by rememberSaveable { mutableStateOf(appName) }
+    var status by remember { mutableStateOf<String?>(null) }
+    var searching by remember { mutableStateOf(false) }
+    val notFound = stringResource(R.string.icon_brand_not_found)
+    val foundText = stringResource(R.string.icon_brand_found)
+    fun search() {
+        val name = query.trim()
+        if (name.isEmpty() || searching) return
+        searching = true
+        scope.launch {
+            val icon = context.container.discovery.simpleIcon(name)
+            searching = false
+            status = if (icon == null) notFound.format(name) else foundText.format(icon.title)
+            icon?.let(onPick)
+        }
     }
+    LaunchedEffect(Unit) { search() }
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         OutlinedTextField(
             value = query,
             onValueChange = { query = it },
-            label = { Text(stringResource(R.string.icon_search_brands)) },
+            label = { Text(stringResource(R.string.icon_brand_name)) },
+            supportingText = { Text(status ?: stringResource(R.string.icon_brand_detail)) },
             singleLine = true,
+            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
+            keyboardActions = KeyboardActions(onSearch = { search() }),
+            trailingIcon = {
+                if (searching) {
+                    CircularProgressIndicator(Modifier.size(24.dp))
+                } else {
+                    IconButton(onClick = ::search) { Icon(Icons.Filled.Search, contentDescription = stringResource(R.string.action_search)) }
+                }
+            },
             modifier = Modifier.fillMaxWidth(),
         )
-        val icons = all
-        if (icons == null) {
-            CircularProgressIndicator()
-        } else {
-            val q = query.trim().lowercase()
-            val matches = remember(q, icons) {
-                (if (q.isEmpty()) icons else icons.filter { q in it.title.lowercase() || q in it.resolvedSlug }).take(MAX_RESULTS)
-            }
-            LazyVerticalGrid(GridCells.Adaptive(72.dp), contentPadding = PaddingValues(bottom = 16.dp)) {
-                items(matches, key = { it.resolvedSlug }) { icon -> GlyphCell(icon) { onPick(icon) } }
-            }
-        }
-    }
-}
-
-@Composable
-private fun GlyphCell(icon: SimpleIcon, onClick: () -> Unit) {
-    val path = remember(icon.resolvedSlug) {
-        runCatching { PathParser.createPathFromPathData(PathData.androidSafe(listOf(requireNotNull(icon.path)))).asComposePath() }.getOrNull()
-    }
-    val color = MaterialTheme.colorScheme.onSurface
-    Column(
-        Modifier.clickable(onClick = onClick).padding(8.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(4.dp),
-    ) {
-        Canvas(Modifier.size(36.dp)) {
-            if (path != null) scale(size.width / 24f, size.height / 24f, pivot = Offset.Zero) { drawPath(path, color) }
-        }
-        Text(icon.title, style = MaterialTheme.typography.labelSmall, maxLines = 1)
     }
 }
 

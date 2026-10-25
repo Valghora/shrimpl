@@ -8,13 +8,13 @@ import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 
-/** Where icon bytes come from. UniWrap downloads over HTTPS and reads simple-icons from its bundled data. */
+/** Where icon bytes come from: UniWrap downloads them over HTTPS. */
 interface IconSources {
-    /** The glyph SVG for a simple-icons slug, or null if unavailable. */
-    fun simpleIconSvg(slug: String): ByteArray?
-
-    /** The body of an http(s) URL, or null on any failure. */
+    /** The body of an http(s) URL, or null on any failure (including 404). */
     fun fetch(url: String): ByteArray?
+
+    /** The simple-icons brand for [slug], or null if there is none. */
+    fun simpleIcon(slug: String): SimpleIcon? = fetch(SimpleIcons.url(slug))?.let { SimpleIcons.parse(slug, it) }
 }
 
 /** The icon discovery picked (docs/UNIWRAP_SPEC.md R9.2). */
@@ -84,8 +84,10 @@ object IconChooser {
 
     private data class Candidate(val url: String, val size: Int, val maskable: Boolean, val source: String)
 
+    /** [simple] is the brand found by name; [simpleConfidence] says how sure that match is. */
     fun choose(
-        simple: SimpleIconMatch?,
+        simple: SimpleIcon?,
+        simpleConfidence: Confidence,
         links: List<Link>,
         manifest: JsonObject,
         manifestUrl: String,
@@ -93,18 +95,15 @@ object IconChooser {
         sources: IconSources,
     ): IconChoice? {
         if (simple != null) {
-            val slug = simple.icon.resolvedSlug
-            val svg = sources.simpleIconSvg(slug)
-            val glyph = svg?.let { tryGlyph(it) }
-            if (svg != null && glyph != null) {
-                val how = if (simple.domainMatch) "brand domain matched" else "brand name matched"
+            val glyph = tryGlyph(simple.svg)
+            if (glyph != null) {
                 return IconChoice.Glyph(
-                    svg = svg,
+                    svg = simple.svg,
                     glyph = glyph,
-                    color = "#" + simple.icon.hex.uppercase(),
-                    colorSource = "simple-icons brand color (${simple.icon.title})",
-                    source = "simple-icons '$slug' ($how)",
-                    confidence = if (simple.domainMatch) Confidence.HIGH else Confidence.MEDIUM,
+                    color = simple.color,
+                    colorSource = "simple-icons brand color (${simple.title})",
+                    source = "simple-icons '${simple.slug}'",
+                    confidence = simpleConfidence,
                 )
             }
         }

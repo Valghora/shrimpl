@@ -27,6 +27,34 @@
     samples[c] = (samples[c] || 0) + 1;
   }
   const topColor = Object.entries(samples).sort((a, b) => b[1] - a[1])[0][0];
+
+  // Brand colors (docs/UNIWRAP_SPEC.md R9.2): CSS variables named for the brand (core ranks them), then
+  // the colors the page paints its visible buttons with, by area. Invalid values are dropped, not read
+  // as black.
+  const parsed = (value) => {
+    ctx.fillStyle = '#010203';
+    ctx.fillStyle = value;
+    return ctx.fillStyle === '#010203' && !/^#010203$/i.test(value.trim()) ? null : toHex(value);
+  };
+  const brandColors = [];
+  const rootStyle = getComputedStyle(document.documentElement);
+  for (let i = 0; i < rootStyle.length && brandColors.length < 80; i++) {
+    const name = rootStyle[i];
+    if (!name.startsWith('--') || !/brand|primary|accent/i.test(name)) continue;
+    if (/text|fg|foreground|background|bg|border|shadow|hover|active|focus|pressed|disabled|muted|visited|icon|label/i.test(name)) continue;
+    const hex = parsed(rootStyle.getPropertyValue(name).trim());
+    if (hex) brandColors.push({ color: hex, source: 'CSS variable ' + name });
+  }
+  const areas = {};
+  for (const el of document.querySelectorAll('button, [role="button"], input[type="submit"], a[class*="btn"], a[class*="button"]')) {
+    const r = el.getBoundingClientRect();
+    if (r.width < 24 || r.height < 16 || r.bottom < 0 || r.top > innerHeight) continue;
+    const hex = toHex(getComputedStyle(el).backgroundColor);
+    if (hex) areas[hex] = (areas[hex] || 0) + r.width * r.height;
+  }
+  for (const [color] of Object.entries(areas).sort((a, b) => b[1] - a[1]).slice(0, 3)) {
+    brandColors.push({ color, source: 'button background' });
+  }
   const types = { xmlhttprequest: 'xhr', fetch: 'fetch', script: 'script', img: 'image', css: 'stylesheet',
     link: 'stylesheet', iframe: 'document', beacon: 'ping', other: 'other' };
   let inline = '';
@@ -54,6 +82,7 @@
         media: m.getAttribute('media') || '',
       })),
       topColor,
+      brandColors,
     },
     text: (document.body ? document.body.innerText : '').slice(0, 3000),
     resources: performance.getEntriesByType('resource').map((r) => ({

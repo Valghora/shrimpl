@@ -16,9 +16,7 @@ data class Draft(
     val name: Field<String>,
     val startUrl: Field<String>,
     val internalDomains: Field<List<String>>,
-    val headerColor: Field<String>,
-    /** Empty when there is no distinct dark-theme color. */
-    val headerColorNight: Field<String>,
+    /** The site's brand color, for the icon background. */
     val iconBackground: Field<String>,
     val allowMicrophone: Field<Boolean>,
     val allowCamera: Field<Boolean>,
@@ -26,15 +24,13 @@ data class Draft(
     val icon: IconChoice,
     val notes: List<String>,
 ) {
-    /** The draft as a profile; every other setting keeps its default. */
+    /** The draft as a profile; every other setting (header color, glyph color, ...) keeps its default. */
     fun toProfile(): Profile = Profile(
         name = name.value,
         appId = appId,
         startUrl = startUrl.value,
         internalDomains = internalDomains.value,
         iconBackground = iconBackground.value,
-        headerColor = headerColor.value,
-        headerColorNight = headerColorNight.value.ifEmpty { null },
         allowMicrophone = allowMicrophone.value,
         allowCamera = allowCamera.value,
         allowNotifications = allowNotifications.value,
@@ -75,6 +71,22 @@ object Colors {
         }
         return null
     }
+
+    /** Not white, black or gray: HSL saturation at least 0.25 and lightness between 0.12 and 0.88. */
+    fun isColorful(hex: String): Boolean {
+        val rgb = channels(hex)
+        val max = rgb.max()
+        val min = rgb.min()
+        val lightness = (max + min) / 2
+        if (max == min || lightness < 0.12 || lightness > 0.88) return false
+        val saturation = (max - min) / (1 - kotlin.math.abs(2 * lightness - 1))
+        return saturation >= 0.25
+    }
+
+    /** How far from gray a `#RRGGBB` color is, 0 to 1. */
+    fun chroma(hex: String): Double = channels(hex).let { it.max() - it.min() }
+
+    private fun channels(hex: String) = hex.removePrefix("#").chunked(2).map { it.toInt(16) / 255.0 }
 }
 
 /** The discovery rules, ported from the retired scripts/discover_site.py. */
@@ -94,7 +106,6 @@ object Discovery {
         evidence: Evidence,
         requestedUrl: String,
         psl: PublicSuffixList,
-        simpleIcons: List<SimpleIcon>,
         sources: IconSources,
         forcedId: String? = null,
     ): Draft {
@@ -163,16 +174,16 @@ object Discovery {
         // ----- Name -----
         val shortName = manifest.string("short_name")
         val manifestName = manifest.string("name")
-        val simple = SimpleIconMatcher.match(
-            simpleIcons,
-            listOf(shortName, manifestName, meta["application-name"], meta["apple-mobile-web-app-title"], meta["og:site_name"], token),
-            site,
-            psl,
-        )
+        // simple-icons by name (docs/UNIWRAP_SPEC.md R9.2): a match on a name the site gives itself is
+        // trusted; a match on the bare domain word ("example" of example.com) is only likely.
+        val siteNames = listOf(shortName, manifestName, meta["application-name"], meta["apple-mobile-web-app-title"], meta["og:site_name"])
+        val found = SimpleIcons.find(siteNames + token, sources)
+        val simple = found?.first
+        val simpleConfidence = if (found != null && found.second in siteNames) Confidence.HIGH else Confidence.MEDIUM
         val nameCandidates = listOf(
             (shortName?.takeIf { it.codePointCount(0, it.length) in 1..15 }) to "web manifest short_name",
             manifestName to "web manifest name",
-            (if (simple != null && simple.domainMatch) simple.icon.title else null) to "simple-icons brand title",
+            simple?.title to "simple-icons brand title",
             meta["application-name"] to "application-name meta",
             meta["apple-mobile-web-app-title"] to "apple-mobile-web-app-title meta",
             meta["og:site_name"] to "og:site_name meta",
@@ -186,48 +197,17 @@ object Discovery {
             if ("manifest" in nameSource || "simple-icons" in nameSource) Confidence.HIGH else Confidence.MEDIUM,
         )
 
-        // ----- Colors -----
-        var themeLight: String? = null
-        var themeDark: String? = null
-        for (tc in page.themeColors) {
-            if ("dark" in tc.media) themeDark = themeDark ?: Colors.parse(tc.color) else themeLight = themeLight ?: Colors.parse(tc.color)
-        }
-        val topLight = Colors.parse(page.topColor)
-        val topDark = Colors.parse(evidence.dark.topColor)
-        val manifestTheme = Colors.parse(manifest.string("theme_color"))
-        val manifestBackground = Colors.parse(manifest.string("background_color"))
-        val header = listOf(
-            Field(themeLight, "theme-color meta", Confidence.HIGH),
-            Field(topLight, "page background at the top edge (light mode)", Confidence.MEDIUM),
-            Field(manifestTheme, "web manifest theme_color", Confidence.MEDIUM),
-            Field("#FFFFFF", "default", Confidence.LOW),
-        ).first { it.value != null }.let { Field(it.value!!, it.source, it.confidence) }
-        val night = when {
-            themeDark != null && themeDark != header.value ->
-                Field(themeDark, "theme-color meta for prefers-color-scheme: dark", Confidence.HIGH)
-            topDark != null && topDark != header.value && topDark != topLight ->
-                Field(topDark, "page background at the top edge (dark mode)", Confidence.MEDIUM)
-            else -> Field("", "same as light (no dark variant detected)", Confidence.MEDIUM)
-        }
-
         // ----- Icon -----
         val appId = forcedId ?: AppIds.fromName(name)
-        val icon = IconChooser.choose(simple, page.links, manifest, manifestUrl, finalUrl, sources)
+        val icon = IconChooser.choose(simple, simpleConfidence, page.links, manifest, manifestUrl, finalUrl, sources)
             ?: IconChoice.Letter(
                 letter = name.uppercase().firstOrNull { it.code < 128 && it.isLetterOrDigit() } ?: 'A',
                 source = "no usable brand icon found",
                 confidence = Confidence.LOW,
             )
-        val iconBackground = when {
-            icon is IconChoice.Glyph && icon.color != null -> Field(icon.color, icon.colorSource, Confidence.HIGH)
-            icon is IconChoice.Raster && !icon.maskable && manifestBackground != null ->
-                Field(manifestBackground, "web manifest background_color", Confidence.MEDIUM)
-            else -> listOf(
-                Field(manifestTheme, "web manifest theme_color", Confidence.MEDIUM),
-                Field(themeLight, "theme-color meta", Confidence.MEDIUM),
-                Field(header.value, "header color", Confidence.LOW),
-            ).first { it.value != null }.let { Field(it.value!!, it.source, it.confidence) }
-        }
+
+        // ----- Brand color, for the icon background -----
+        val iconBackground = brandColor(icon, page, manifest)
 
         // ----- Capabilities -----
         val signals = d.signals
@@ -266,8 +246,6 @@ object Discovery {
             name = nameField,
             startUrl = start,
             internalDomains = internalDomains,
-            headerColor = header,
-            headerColorNight = night,
             iconBackground = iconBackground,
             allowMicrophone = microphone,
             allowCamera = camera,
@@ -277,10 +255,70 @@ object Discovery {
         )
     }
 
+    /**
+     * The site's brand color: the simple-icons brand color, else the first colorful value among the
+     * mask-icon color, the manifest and meta theme colors, CSS brand variables and buttons, else any
+     * theme color, else [DEFAULT_BRAND] (docs/UNIWRAP_SPEC.md R9.2).
+     */
+    internal fun brandColor(icon: IconChoice, page: PageInfo, manifest: JsonObject): Field<String> {
+        if (icon is IconChoice.Glyph && icon.color != null && "simple-icons" in icon.colorSource) {
+            return Field(icon.color, icon.colorSource, Confidence.HIGH)
+        }
+        val maskIcon = page.links.firstOrNull { "mask-icon" in it.rel.split(Regex("\\s+")) }?.color
+        val themeMeta = page.themeColors.firstOrNull { "dark" !in it.media }?.color
+        val candidates = buildList {
+            add(Field(Colors.parse(maskIcon), "mask-icon color", Confidence.MEDIUM))
+            add(Field(Colors.parse(manifest.string("theme_color")), "web manifest theme_color", Confidence.MEDIUM))
+            add(Field(Colors.parse(themeMeta), "theme-color meta", Confidence.MEDIUM))
+            cssBrandColor(page.brandColors)?.let { add(Field(it.color, it.source, Confidence.MEDIUM)) }
+            page.brandColors.filter { it.source == BUTTON_SOURCE }.forEach { add(Field(Colors.parse(it.color), it.source, Confidence.LOW)) }
+            add(Field(Colors.parse(manifest.string("background_color")), "web manifest background_color", Confidence.LOW))
+        }
+        candidates.firstOrNull { it.value != null && Colors.isColorful(it.value) }?.let { return Field(it.value!!, it.source, it.confidence) }
+        candidates.take(3).firstOrNull { it.value != null && it.value != "#FFFFFF" }?.let {
+            return Field(it.value!!, it.source, Confidence.LOW)
+        }
+        return Field(DEFAULT_BRAND, "default (no brand color found)", Confidence.LOW)
+    }
+
+    private const val CSS_VARIABLE = "CSS variable "
+    private const val BUTTON_SOURCE = "button background"
+    private val SHADE = Regex("-(\\d{2,3})$")
+    private val PLAIN_NAME = Regex("^(color-)?(brand|primary|accent)(-color)?(-(base|default|main))?$")
+
+    /**
+     * The most likely brand color among CSS variables named brand/primary/accent: colorful, a plain
+     * name (`--brand`, `--color-primary`) or a middle shade of a scale (`--brand-500`), and used by
+     * several variables. Null if none of them is colorful.
+     */
+    internal fun cssBrandColor(colors: List<BrandColor>): BrandColor? {
+        val variables = colors.filter { it.source.startsWith(CSS_VARIABLE) }
+            .mapNotNull { brand -> Colors.parse(brand.color)?.let { BrandColor(it, brand.source) } }
+            .filter { Colors.isColorful(it.color) }
+        val uses = variables.groupingBy { it.color }.eachCount()
+        fun score(brand: BrandColor): Double {
+            val name = brand.source.removePrefix(CSS_VARIABLE).removePrefix("--").lowercase()
+            var score = 2 * Colors.chroma(brand.color) + 0.3 * (uses.getValue(brand.color) - 1)
+            if (PLAIN_NAME.matches(name)) score += 1.0 else if ("brand" in name) score += 0.4
+            SHADE.find(name)?.groupValues?.get(1)?.toInt()?.let { shade ->
+                score += when (shade) {
+                    in 400..600 -> 0.3
+                    in 300..700 -> 0.0
+                    else -> -0.5
+                }
+            }
+            return score
+        }
+        return variables.maxByOrNull(::score)
+    }
+
+    /** Blue gray, for sites without a brand color. */
+    const val DEFAULT_BRAND = "#607D8B"
+
     /** The part of a page title that names the site ("Pull requests · GitHub" -> "GitHub"). */
     internal fun cleanTitle(title: String, token: String): String {
         val parts = title.split(TITLE_SEPARATOR).map(String::trim).filter(String::isNotEmpty)
-        return parts.firstOrNull { token.isNotEmpty() && token in SimpleIcon.titleToSlug(it) } ?: parts.lastOrNull().orEmpty()
+        return parts.firstOrNull { token.isNotEmpty() && token in SimpleIcons.titleToSlug(it) } ?: parts.lastOrNull().orEmpty()
     }
 
     private fun JsonObject.string(key: String): String? = (this[key] as? JsonPrimitive)?.takeIf { it.isString }?.content

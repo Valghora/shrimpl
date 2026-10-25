@@ -29,12 +29,13 @@ data class Profile(
     val uaUserToggle: Boolean = true,
     /** Adaptive icon background; also the notification accent color. */
     val iconBackground: String,
-    /** `#RRGGBB`, or [AUTO] for white or black, whichever contrasts better with [iconBackground]. */
-    val iconForeground: String = AUTO,
-    /** Window, caption bar and splash color. */
-    val headerColor: String,
-    /** Header color in dark theme; null means the same as [headerColor]. */
-    val headerColorNight: String? = null,
+    /** The glyph color: `#RRGGBB`, or [AUTO] for white or black, whichever contrasts better with [iconBackground]. */
+    val iconForeground: String = DEFAULT_ICON_FOREGROUND,
+    /**
+     * Window and caption bar color: [SYSTEM] for the system's surface color in the current light or
+     * dark theme, or `#RRGGBB` for one color in both themes.
+     */
+    val headerColor: String = SYSTEM,
     val allowMicrophone: Boolean = false,
     val allowCamera: Boolean = false,
     val allowNotifications: Boolean = true,
@@ -53,6 +54,8 @@ data class Profile(
     companion object {
         const val SCHEMA_VERSION = 1
         const val AUTO = "auto"
+        const val SYSTEM = "system"
+        const val DEFAULT_ICON_FOREGROUND = "#FFFFFF"
         val DEFAULT_OAUTH_DOMAINS = listOf(
             "accounts.google.com",
             "appleid.apple.com",

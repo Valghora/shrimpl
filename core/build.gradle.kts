@@ -27,18 +27,12 @@ dependencies {
 }
 
 // The builder tests patch the real template APK (docs/UNIWRAP_SPEC.md R8.5), so it is built first.
-// A -Psite build would produce a site APK instead of the neutral template, so the two don't mix.
 val templateApk = rootProject.layout.projectDirectory.file("template/build/outputs/apk/release/template-release.apk")
-val siteBuild = providers.gradleProperty("site").orNull?.isNotBlank() == true
 
 tasks.test {
     dependsOn(":template:assembleRelease")
     inputs.file(templateApk).withPropertyName("templateApk")
     systemProperty("templateApk", templateApk.asFile.path)
-    val rejectSiteBuild = siteBuild // a local copy: the configuration cache can't hold script references
-    doFirst {
-        if (rejectSiteBuild) throw GradleException(":core:test needs the neutral template; run it without -Psite")
-    }
 }
 
 tasks.jacocoTestReport {

@@ -10,28 +10,42 @@ import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.boolean
 import kotlinx.serialization.json.booleanOrNull
+import kotlinx.serialization.json.jsonArray
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import org.junit.Assert.assertEquals
 import org.junit.Test
 
 /**
- * The Phase 4 gate (docs/UNIWRAP_SPEC.md): the Kotlin rules reproduce the retired Python discovery's
- * drafts. Fixtures were recorded by scripts/dev/make_discovery_fixtures.py: the evidence collect.js saw,
- * every response Python's derive() fetched, and the draft it produced.
+ * Whole drafts for four real sites. The fixtures were recorded from the retired Python discovery (the
+ * Phase 4 parity gate): the evidence its collector saw, every response it fetched, and its draft. The
+ * expectations have since moved with the rules: brand colors for the icon background, simple-icons
+ * looked up by name, and no header color.
  */
-class DiscoveryParityTest {
+class DiscoveryFixturesTest {
     private val psl = PublicSuffixList(resource("public_suffix_list.dat"))
-    private val icons = SimpleIcon.parseList(resource("simple-icons.json"))
+    private val brands = Json.parseToJsonElement(resource("simple-icons.json")).jsonArray.associate { entry ->
+        val o = entry.jsonObject
+        SimpleIcons.titleToSlug(o.getValue("title").jsonPrimitive.content) to (o.getValue("title").jsonPrimitive.content to o.getValue("hex").jsonPrimitive.content)
+    }
 
     private fun resource(name: String) = javaClass.getResource("/discovery/$name")!!.readText()
 
-    /** Replays recorded fetches in order, and fails on any URL Python did not fetch. */
-    private class Recorded(json: JsonObject) : IconSources {
+    /**
+     * Replays recorded fetches in order, and fails on any URL Python did not fetch. simple-icons
+     * lookups answer from the recorded glyph files and the brand list, as cdn.simpleicons.org would.
+     */
+    private inner class Recorded(json: JsonObject) : IconSources {
         private val responses = json.mapValues { (_, v) -> if (v is JsonNull) null else Base64.getDecoder().decode(v.jsonPrimitive.content) }
         val fetched = mutableListOf<String>()
+        val lookups = mutableListOf<String>()
 
-        override fun simpleIconSvg(slug: String) = fetch("https://raw.githubusercontent.com/simple-icons/simple-icons/develop/icons/$slug.svg")
+        override fun simpleIcon(slug: String): SimpleIcon? {
+            lookups += slug
+            val (title, hex) = brands[slug] ?: return null
+            val svg = responses[GLYPHS + "$slug.svg"] ?: return null
+            return SimpleIcon(slug, title, hex, svg)
+        }
 
         override fun fetch(url: String): ByteArray? {
             fetched += url
@@ -39,21 +53,20 @@ class DiscoveryParityTest {
             return responses[url]
         }
 
-        /** What Python fetched, in order; data: URLs are decoded locally, not fetched. */
-        fun recordInOrder() = responses.keys.filterNot { it.startsWith("data:") }
+        /** What Python fetched, in order, except simple-icons glyphs; data: URLs are decoded locally. */
+        fun recordInOrder() = responses.keys.filterNot { it.startsWith("data:") || it.startsWith(GLYPHS) }
     }
 
     private fun check(name: String) {
         val expected = Json.parseToJsonElement(resource("$name/expected.json")).jsonObject
         val evidence = Evidence.decode(resource("$name/evidence.json"))
         val sources = Recorded(Json.parseToJsonElement(resource("$name/responses.json")).jsonObject)
-        val draft = Discovery.draft(evidence, expected.getValue("requestedUrl").jsonPrimitive.content, psl, icons, sources)
+        val draft = Discovery.draft(evidence, expected.getValue("requestedUrl").jsonPrimitive.content, psl, sources)
 
         assertEquals("$name appId", expected.getValue("appId").jsonPrimitive.content, draft.appId)
         val fields = expected.getValue("fields").jsonObject
         mapOf(
             "APP_NAME" to draft.name, "START_URL" to draft.startUrl, "INTERNAL_DOMAINS" to draft.internalDomains,
-            "HEADER_SURFACE_HEX" to draft.headerColor, "HEADER_SURFACE_HEX_NIGHT" to draft.headerColorNight,
             "ICON_BACKGROUND_HEX" to draft.iconBackground, "ALLOW_MICROPHONE" to draft.allowMicrophone,
             "ALLOW_CAMERA" to draft.allowCamera, "ALLOW_NOTIFICATIONS" to draft.allowNotifications,
         ).forEach { (key, field) ->
@@ -85,6 +98,10 @@ class DiscoveryParityTest {
         }
         assertEquals("$name notes", (expected.getValue("notes") as JsonArray).map { it.jsonPrimitive.content }, draft.notes)
         assertEquals("$name fetch order", sources.recordInOrder(), sources.fetched)
+    }
+
+    private companion object {
+        const val GLYPHS = "https://raw.githubusercontent.com/simple-icons/simple-icons/develop/icons/"
     }
 
     private fun plain(e: JsonElement): Any? = when (e) {

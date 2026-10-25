@@ -113,6 +113,7 @@ fun CreateScreen(onClose: () -> Unit, onBackUpKey: () -> Unit) {
                     hints = model.hints,
                     notes = model.notes,
                     iconLayers = layers,
+                    iconOrigin = current.icon.origin,
                     onEditIcon = { editingIcon = true },
                     wide = maxWidth >= 840.dp,
                     appIdEditable = true,

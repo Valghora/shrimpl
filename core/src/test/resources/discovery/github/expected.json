@@ -1,64 +1,54 @@
 {
- "requestedUrl": "https://github.com",
- "appId": "github",
- "fields": {
-  "START_URL": {
-   "value": "https://github.com/",
-   "source": "web manifest start_url",
-   "confidence": "high"
+  "requestedUrl": "https://github.com",
+  "appId": "github",
+  "fields": {
+    "START_URL": {
+      "value": "https://github.com/",
+      "source": "web manifest start_url",
+      "confidence": "high"
+    },
+    "INTERNAL_DOMAINS": {
+      "value": [
+        "github.com",
+        "githubassets.com"
+      ],
+      "source": "site domain + observed domains containing 'github'",
+      "confidence": "medium"
+    },
+    "APP_NAME": {
+      "value": "GitHub",
+      "source": "web manifest short_name",
+      "confidence": "high"
+    },
+    "ICON_BACKGROUND_HEX": {
+      "value": "#181717",
+      "source": "simple-icons brand color (GitHub)",
+      "confidence": "high"
+    },
+    "ALLOW_MICROPHONE": {
+      "value": false,
+      "source": "getUserMedia/WebRTC in page scripts or Permissions-Policy",
+      "confidence": "low"
+    },
+    "ALLOW_CAMERA": {
+      "value": false,
+      "source": "getUserMedia in page scripts or Permissions-Policy",
+      "confidence": "low"
+    },
+    "ALLOW_NOTIFICATIONS": {
+      "value": false,
+      "source": "Notification/showNotification/Push in page scripts",
+      "confidence": "medium"
+    }
   },
-  "INTERNAL_DOMAINS": {
-   "value": [
-    "github.com",
-    "githubassets.com"
-   ],
-   "source": "site domain + observed domains containing 'github'",
-   "confidence": "medium"
+  "icon": {
+    "mode": "svg",
+    "ext": "svg",
+    "color": "#181717",
+    "color_source": "simple-icons brand color (GitHub)",
+    "source": "simple-icons 'github'",
+    "confidence": "high",
+    "sha256": "3bf8cceead820aec50d4ee825a3fd02c5a1cd6665cc9cf4cbf3d9c8861a204bb"
   },
-  "APP_NAME": {
-   "value": "GitHub",
-   "source": "web manifest short_name",
-   "confidence": "high"
-  },
-  "HEADER_SURFACE_HEX": {
-   "value": "#1E2327",
-   "source": "theme-color meta",
-   "confidence": "high"
-  },
-  "HEADER_SURFACE_HEX_NIGHT": {
-   "value": "",
-   "source": "same as light (no dark variant detected)",
-   "confidence": "medium"
-  },
-  "ICON_BACKGROUND_HEX": {
-   "value": "#181717",
-   "source": "simple-icons brand color (GitHub)",
-   "confidence": "high"
-  },
-  "ALLOW_MICROPHONE": {
-   "value": false,
-   "source": "getUserMedia/WebRTC in page scripts or Permissions-Policy",
-   "confidence": "low"
-  },
-  "ALLOW_CAMERA": {
-   "value": false,
-   "source": "getUserMedia in page scripts or Permissions-Policy",
-   "confidence": "low"
-  },
-  "ALLOW_NOTIFICATIONS": {
-   "value": false,
-   "source": "Notification/showNotification/Push in page scripts",
-   "confidence": "medium"
-  }
- },
- "icon": {
-  "mode": "svg",
-  "ext": "svg",
-  "color": "#181717",
-  "color_source": "simple-icons brand color (GitHub)",
-  "source": "simple-icons 'github' (brand domain matched)",
-  "confidence": "high",
-  "sha256": "3bf8cceead820aec50d4ee825a3fd02c5a1cd6665cc9cf4cbf3d9c8861a204bb"
- },
- "notes": []
+  "notes": []
 }

@@ -66,7 +66,7 @@ import com.valghora.wrapper.core.Modifier
 import com.valghora.wrapper.core.UaMode
 import com.valghora.wrapper.core.UrlClass
 import com.valghora.wrapper.core.WakeEvent
-import com.valghora.wrapper.core.profile.headerNight
+import com.valghora.wrapper.core.profile.headerFollowsSystem
 import com.valghora.wrapper.core.profile.newWindowShortcutSpec
 import com.valghora.wrapper.core.profile.sessionConfig
 import com.valghora.wrapper.core.profile.uaFeaturesActive
@@ -237,13 +237,16 @@ class MainActivity : AppCompatActivity() {
 
     // ---------- Window, insets and theme (R3) ----------
 
-    private fun currentHeaderHex(): String =
-        if (nightMode == Configuration.UI_MODE_NIGHT_YES) WebApp.profile.headerNight else WebApp.profile.headerColor
+    /** The profile's header color, or the system surface color for the current light or dark theme. */
+    private fun currentHeaderColor(): Int = when {
+        !WebApp.profile.headerFollowsSystem -> WebApp.profile.headerColor.toColorInt()
+        nightMode == Configuration.UI_MODE_NIGHT_YES -> getColor(android.R.color.system_surface_container_dark)
+        else -> getColor(android.R.color.system_surface_container_light)
+    }
 
     private fun applyHeaderColors() {
-        val hex = currentHeaderHex()
-        val color = hex.toColorInt()
-        val dark = DesktopSessionController.isDarkColor(hex)
+        val color = currentHeaderColor()
+        val dark = DesktopSessionController.isDarkColor("#%06X".format(color and 0xFFFFFF))
 
         val barStyle = if (dark) {
             SystemBarStyle.dark(TRANSPARENT)

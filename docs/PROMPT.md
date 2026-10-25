@@ -1,3 +1,5 @@
+> **Superseded** by `docs/UNIWRAP_SPEC.md`. Kept for its R1 to R8 baseline of the web app's behavior; the per-site build, `sites/` and the scripts it describes have been removed.
+
 # Universal APK Wrapper: template specification
 
 <role>

@@ -7,12 +7,8 @@ import com.valghora.wrapper.core.ShortcutSpec
 // Values computed from a profile, ported from the retired site_config.py (docs/PROMPT.md <derived_values>).
 // They assume a valid profile (ProfileValidator).
 
-/** Header color in dark theme. */
-val Profile.headerNight: String get() = headerColorNight ?: headerColor
-
-val Profile.headerIsDark: Boolean get() = DesktopSessionController.isDarkColor(headerColor)
-
-val Profile.headerNightIsDark: Boolean get() = DesktopSessionController.isDarkColor(headerNight)
+/** The header follows the system's light or dark surface color instead of a fixed color. */
+val Profile.headerFollowsSystem: Boolean get() = headerColor == Profile.SYSTEM
 
 /** The icon foreground, with [Profile.AUTO] resolved by contrast against the background. */
 val Profile.resolvedIconForeground: String

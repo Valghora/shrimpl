@@ -56,8 +56,7 @@ object ProfileValidator {
             if (iconForeground != Profile.AUTO && !HEX.matches(iconForeground)) {
                 error("iconForeground", "must be #RRGGBB or \"auto\"")
             }
-            if (!HEX.matches(headerColor)) error("headerColor", "must be #RRGGBB")
-            headerColorNight?.let { if (!HEX.matches(it)) error("headerColorNight", "must be #RRGGBB") }
+            if (headerColor != Profile.SYSTEM && !HEX.matches(headerColor)) error("headerColor", "must be #RRGGBB or \"system\"")
 
             listOf("defaultWindowDp" to defaultWindowDp, "minWindowDp" to minWindowDp).forEach { (field, size) ->
                 if (size.width !in MIN_WINDOW_DP..MAX_WINDOW_DP || size.height !in MIN_WINDOW_DP..MAX_WINDOW_DP) {

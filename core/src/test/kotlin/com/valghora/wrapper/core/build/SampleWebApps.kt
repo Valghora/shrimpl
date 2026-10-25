@@ -26,8 +26,7 @@ class SampleWebApps {
             startUrl = "https://github.com/",
             internalDomains = listOf("github.com", "githubusercontent.com", "githubassets.com"),
             iconBackground = "#181717",
-            headerColor = "#FFFFFF",
-            headerColorNight = "#0D1117",
+            headerColor = "#0D1117",
         )
         for (profile in listOf(discord, github)) {
             val built = WebAppBuilder.build(TemplateFixture.apk, File(out, "${profile.appId}.apk"), WebAppSpec(profile, 1), TemplateFixture.key)

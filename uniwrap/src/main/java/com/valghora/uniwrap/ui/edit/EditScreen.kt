@@ -155,6 +155,7 @@ fun EditScreen(appId: String, showBack: Boolean, onBack: () -> Unit) {
                 hints = emptyMap(),
                 notes = if (installed == false) listOf(stringResource(R.string.edit_not_installed)) else emptyList(),
                 iconLayers = layers,
+                iconOrigin = form.icon.origin,
                 onEditIcon = { editingIcon = true },
                 wide = maxWidth >= 840.dp,
                 appIdEditable = false,

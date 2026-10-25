@@ -351,3 +351,33 @@ Deviations:
 | R1.2 | `uniwrap` lint keeps a `DiscouragedApi` warning (`getIdentifier` for icon packs). | Icon pack drawables are only known by name at runtime. |
 | — | `material-icons-core` instead of `material-icons-extended`. | The extended set adds megabytes for a handful of icons. |
 | R6.1 | Package visibility uses `<queries>` (launcher apps, icon packs, Shizuku) instead of `QUERY_ALL_PACKAGES`. | Narrower, and enough to see web apps, which all have a launcher entry. |
+
+## Phase 5 device feedback (2026-10-25)
+
+Changes after the first device test on Googlebook OS:
+
+- **One header color, "System" by default.** `headerColorNight` is gone. `headerColor` is `system`
+  (the default) or one `#RRGGBB`. With `system`, the web app uses the system's surface container color
+  (`system_surface_container_light`/`_dark`) and follows light and dark theme changes. Discovery no
+  longer suggests a header color; the `#161CBB` seen for discord.com was the page's top-edge color.
+  Records written before this change still load (unknown keys are ignored in records only).
+- **Glyph color `#FFFFFF` by default** for new web apps (`auto` still works for existing ones).
+- **Icon background = brand color.** The order is: the simple-icons brand color; then the first
+  colorful value among the mask-icon color, manifest `theme_color`, theme-color meta, CSS brand
+  variables, button colors and manifest `background_color`; then any non-white theme color; then
+  blue gray. CSS variables named brand, primary or accent are ranked in `:core`. The ranking was
+  checked against discord.com, reddit.com, notion.so and slack.com in Chromium; for discord.com/app
+  it picks `--brand-500` `#5865F2`.
+- **simple-icons are no longer bundled** (5 MB of JSON removed). Discovery looks up the slugs of the
+  site's own names, then the domain word, at `cdn.simpleicons.org/<slug>`, which returns the glyph
+  filled with the brand color and a title. The lookup makes at most 4 requests. The icon editor's
+  Brand tab looks up a typed name, prefilled with the app name.
+- **Settings-style pages.** The web app form and UniWrap's settings are titled sections of rounded
+  `surfaceContainer` items with values, switches (check/cross thumbs), menus and color swatches; edits
+  open dialogs. The collapsible Advanced section is gone (now Browser, Window and Keyboard shortcuts).
+- **Only the template and UniWrap are built.** Removed: the `cloner` proof of concept, `sites/`
+  (Discord), `wrap`, the wrap workflow, the per-site `-Psite` build mode, and the Python site tooling
+  and its tests. The template's `src/neutral/` overlay moved into `src/main/`. CI is one job. The
+  discovery fixtures recorded from the Python version stay as regression tests
+  (`DiscoveryFixturesTest`); their expectations now follow the new rules (example.com's icon
+  background is the default blue gray instead of its gray page color).

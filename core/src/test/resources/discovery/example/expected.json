@@ -1,62 +1,52 @@
 {
- "requestedUrl": "https://example.com",
- "appId": "exampledomain",
- "fields": {
-  "START_URL": {
-   "value": "https://example.com",
-   "source": "requested URL",
-   "confidence": "high"
+  "requestedUrl": "https://example.com",
+  "appId": "exampledomain",
+  "fields": {
+    "START_URL": {
+      "value": "https://example.com",
+      "source": "requested URL",
+      "confidence": "high"
+    },
+    "INTERNAL_DOMAINS": {
+      "value": [
+        "example.com"
+      ],
+      "source": "site domain + observed domains containing 'example'",
+      "confidence": "medium"
+    },
+    "APP_NAME": {
+      "value": "Example Domain",
+      "source": "page title",
+      "confidence": "medium"
+    },
+    "ICON_BACKGROUND_HEX": {
+      "value": "#607D8B",
+      "source": "default (no brand color found)",
+      "confidence": "low"
+    },
+    "ALLOW_MICROPHONE": {
+      "value": false,
+      "source": "getUserMedia/WebRTC in page scripts or Permissions-Policy",
+      "confidence": "low"
+    },
+    "ALLOW_CAMERA": {
+      "value": false,
+      "source": "getUserMedia in page scripts or Permissions-Policy",
+      "confidence": "low"
+    },
+    "ALLOW_NOTIFICATIONS": {
+      "value": false,
+      "source": "Notification/showNotification/Push in page scripts",
+      "confidence": "medium"
+    }
   },
-  "INTERNAL_DOMAINS": {
-   "value": [
-    "example.com"
-   ],
-   "source": "site domain + observed domains containing 'example'",
-   "confidence": "medium"
+  "icon": {
+    "mode": "letter",
+    "source": "no usable brand icon found",
+    "confidence": "low",
+    "letter": "E"
   },
-  "APP_NAME": {
-   "value": "Example Domain",
-   "source": "page title",
-   "confidence": "medium"
-  },
-  "HEADER_SURFACE_HEX": {
-   "value": "#EEEEEE",
-   "source": "page background at the top edge (light mode)",
-   "confidence": "medium"
-  },
-  "HEADER_SURFACE_HEX_NIGHT": {
-   "value": "#222222",
-   "source": "page background at the top edge (dark mode)",
-   "confidence": "medium"
-  },
-  "ICON_BACKGROUND_HEX": {
-   "value": "#EEEEEE",
-   "source": "header color",
-   "confidence": "low"
-  },
-  "ALLOW_MICROPHONE": {
-   "value": false,
-   "source": "getUserMedia/WebRTC in page scripts or Permissions-Policy",
-   "confidence": "low"
-  },
-  "ALLOW_CAMERA": {
-   "value": false,
-   "source": "getUserMedia in page scripts or Permissions-Policy",
-   "confidence": "low"
-  },
-  "ALLOW_NOTIFICATIONS": {
-   "value": false,
-   "source": "Notification/showNotification/Push in page scripts",
-   "confidence": "medium"
-  }
- },
- "icon": {
-  "mode": "letter",
-  "source": "no usable brand icon found",
-  "confidence": "low",
-  "letter": "E"
- },
- "notes": [
-  "No web manifest found; name and colors come from page metadata."
- ]
+  "notes": [
+    "No web manifest found; name and colors come from page metadata."
+  ]
 }

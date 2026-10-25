@@ -1,69 +1,60 @@
 package com.valghora.wrapper.core.discovery
 
 import java.text.Normalizer
-import kotlinx.serialization.Serializable
-import kotlinx.serialization.builtins.ListSerializer
-import kotlinx.serialization.json.Json
 
-/** One brand from simple-icons.org's data file (CC0); [path] is present in UniWrap's bundled copy. */
-@Serializable
-data class SimpleIcon(
-    val title: String,
-    val hex: String,
-    val slug: String? = null,
-    val source: String = "",
-    val guidelines: String? = null,
-    val aliases: Aliases? = null,
-    /** The glyph's SVG path data in a 24x24 viewBox. */
-    val path: String? = null,
-) {
-    @Serializable
-    data class Aliases(val aka: List<String> = emptyList())
-
-    val resolvedSlug: String get() = slug ?: titleToSlug(title)
-
-    /** The glyph as an SVG document, like simple-icons' own files. */
-    fun svg(): ByteArray? = path?.let {
-        """<svg role="img" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="$it"/></svg>""".toByteArray()
-    }
-
-    companion object {
-        private val json = Json { ignoreUnknownKeys = true }
-
-        fun parseList(text: String): List<SimpleIcon> = json.decodeFromString(ListSerializer(serializer()), text)
-
-        private val REPLACEMENTS = mapOf(
-            '+' to "plus", '.' to "dot", '&' to "and", 'đ' to "d", 'ħ' to "h", 'ı' to "i", 'ĸ' to "k",
-            'ŀ' to "l", 'ł' to "l", 'ß' to "ss", 'ŧ' to "t", 'ø' to "o",
-        )
-        private val NOT_SLUG = Regex("[^a-z0-9]")
-
-        /** simple-icons' titleToSlug. */
-        fun titleToSlug(title: String): String {
-            val replaced = title.lowercase().map { REPLACEMENTS[it] ?: it.toString() }.joinToString("")
-            return NOT_SLUG.replace(Normalizer.normalize(replaced, Normalizer.Form.NFD), "")
-        }
-    }
+/** A simple-icons.org brand found by name: its glyph and brand color (CC0; brands are trademarks). */
+class SimpleIcon(val slug: String, val title: String, val hex: String, val svg: ByteArray) {
+    /** The brand color as `#RRGGBB`. */
+    val color: String get() = "#" + hex.uppercase()
 }
 
-/** A brand that matched the site, and whether its source/guidelines domain is the site's own. */
-data class SimpleIconMatch(val icon: SimpleIcon, val domainMatch: Boolean)
+/**
+ * Finds simple-icons brands by name, without a bundled copy: `https://cdn.simpleicons.org/<slug>`
+ * serves the glyph filled with the brand color, and answers 404 for unknown slugs.
+ */
+object SimpleIcons {
+    fun url(slug: String) = "https://cdn.simpleicons.org/$slug"
 
-object SimpleIconMatcher {
-    /** Finds the simple-icons entry for the brand; null if nothing matches confidently. */
-    fun match(icons: List<SimpleIcon>, names: List<String?>, site: String, psl: PublicSuffixList): SimpleIconMatch? {
-        val wanted = names.mapNotNull { name -> name?.let(SimpleIcon::titleToSlug)?.takeIf(String::isNotEmpty) }.toSet()
-        var best: SimpleIconMatch? = null
-        for (entry in icons) {
-            val keys = setOf(entry.resolvedSlug, SimpleIcon.titleToSlug(entry.title)) +
-                entry.aliases?.aka.orEmpty().map(SimpleIcon::titleToSlug)
-            if (keys.none { it in wanted }) continue
-            val domains = listOf(entry.source, entry.guidelines.orEmpty()).map { url ->
-                Urls.hostOf(url)?.let(psl::registrable) ?: psl.registrable("")
-            }
-            val candidate = SimpleIconMatch(entry, domainMatch = site in domains)
-            if (best == null || (candidate.domainMatch && !best.domainMatch)) best = candidate
+    /** The brand for [slug] from a CDN response, or null if it isn't a simple-icons glyph. */
+    fun parse(slug: String, svg: ByteArray): SimpleIcon? {
+        val text = svg.decodeToString()
+        val hex = FILL.find(text)?.groupValues?.get(1) ?: return null
+        val title = TITLE.find(text)?.groupValues?.get(1)?.let(::unescape) ?: slug
+        return SimpleIcon(slug, title, hex, svg)
+    }
+
+    /**
+     * The first brand whose slug matches one of [names] (in order, at most [MAX_LOOKUPS] distinct
+     * slugs, so a site costs a few small requests), or null.
+     */
+    fun find(names: List<String?>, sources: IconSources): Pair<SimpleIcon, String>? {
+        val tried = mutableSetOf<String>()
+        for (name in names) {
+            val slug = name?.let(::titleToSlug)?.takeIf(String::isNotEmpty) ?: continue
+            if (!tried.add(slug)) continue
+            sources.simpleIcon(slug)?.let { return it to name }
+            if (tried.size == MAX_LOOKUPS) break
         }
-        return best
+        return null
+    }
+
+    const val MAX_LOOKUPS = 4
+
+    private val FILL = Regex("""<svg[^>]*\sfill="#([0-9A-Fa-f]{6})"""")
+    private val TITLE = Regex("<title>([^<]*)</title>")
+
+    private fun unescape(text: String) =
+        text.replace("&lt;", "<").replace("&gt;", ">").replace("&quot;", "\"").replace("&#39;", "'").replace("&amp;", "&")
+
+    private val REPLACEMENTS = mapOf(
+        '+' to "plus", '.' to "dot", '&' to "and", 'đ' to "d", 'ħ' to "h", 'ı' to "i", 'ĸ' to "k",
+        'ŀ' to "l", 'ł' to "l", 'ß' to "ss", 'ŧ' to "t", 'ø' to "o",
+    )
+    private val NOT_SLUG = Regex("[^a-z0-9]")
+
+    /** simple-icons' titleToSlug. */
+    fun titleToSlug(title: String): String {
+        val replaced = title.lowercase().map { REPLACEMENTS[it] ?: it.toString() }.joinToString("")
+        return NOT_SLUG.replace(Normalizer.normalize(replaced, Normalizer.Form.NFD), "")
     }
 }

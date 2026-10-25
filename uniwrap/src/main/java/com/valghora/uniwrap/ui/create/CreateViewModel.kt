@@ -9,6 +9,7 @@ import com.valghora.uniwrap.ui.common.BuildController
 import com.valghora.uniwrap.ui.form.WebAppDraft
 import com.valghora.uniwrap.ui.icons.IconSelection
 import com.valghora.wrapper.core.discovery.Confidence
+import com.valghora.wrapper.core.discovery.Discovery
 import com.valghora.wrapper.core.discovery.DiscoveryException
 import com.valghora.wrapper.core.discovery.Draft
 import com.valghora.wrapper.core.discovery.Field
@@ -99,24 +100,29 @@ class CreateViewModel(private val container: AppContainer) : ViewModel() {
         _step.value = Step.EnterUrl
     }
 
-    /** R3.2: discovery failed, so start from defaults for the address. */
+    /** R3.2: discovery failed, so start from defaults for the address, with the simple-icons brand if one matches. */
     fun continueWithoutDiscovery() {
         val url = SiteDiscovery.normalizeUrl(_url.value) ?: return
         val host = requireNotNull(java.net.URI(url).host).lowercase().removePrefix("www.")
         val name = host.substringBefore('.').replaceFirstChar(Char::uppercaseChar)
-        val profile = Profile(
-            name = name,
-            appId = AppIds.unique(name, container.store.takenIds()),
-            startUrl = url,
-            internalDomains = listOf(host),
-            iconBackground = DEFAULT_ICON_BACKGROUND,
-            headerColor = "#FFFFFF",
-        )
-        hints = emptyMap()
-        notes = listOf("Discovery didn't finish, so these are defaults. Check the colors and the domains.")
-        siteIcon = null
-        _draft.value = WebAppDraft(ProfileForm.from(profile), IconRecord.letter(name.first(), "Letter"), null)
-        _step.value = Step.Review
+        discovery?.cancel()
+        _step.value = Step.Discovering(SiteDiscovery.Stage.FINDING_ICON)
+        discovery = viewModelScope.launch {
+            val brand = container.discovery.simpleIcon(name)
+            val profile = Profile(
+                name = brand?.title ?: name,
+                appId = AppIds.unique(brand?.title ?: name, container.store.takenIds()),
+                startUrl = url,
+                internalDomains = listOf(host),
+                iconBackground = brand?.color ?: Discovery.DEFAULT_BRAND,
+            )
+            hints = emptyMap()
+            notes = listOf("Discovery didn't finish, so these are defaults. Check the icon color and the domains.")
+            siteIcon = null
+            val icon = brand?.let { IconRecord.glyph(it.svg, "simple-icons '${it.slug}'") } ?: IconRecord.letter(name.first(), "Letter")
+            _draft.value = WebAppDraft(ProfileForm.from(profile), icon, null)
+            _step.value = Step.Review
+        }
     }
 
     private fun apply(found: Draft) {
@@ -128,8 +134,6 @@ class CreateViewModel(private val container: AppContainer) : ViewModel() {
             hint("name", found.name)
             hint("startUrl", found.startUrl)
             hint("internalDomains", found.internalDomains)
-            hint("headerColor", found.headerColor)
-            hint("headerColorNight", found.headerColorNight)
             hint("iconBackground", found.iconBackground)
             hint("allowMicrophone", found.allowMicrophone)
             hint("allowCamera", found.allowCamera)
@@ -168,6 +172,5 @@ class CreateViewModel(private val container: AppContainer) : ViewModel() {
 
     private companion object {
         const val INVALID_URL = "Enter a web address, like example.com"
-        const val DEFAULT_ICON_BACKGROUND = "#5F6368"
     }
 }
