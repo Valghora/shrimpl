@@ -12,8 +12,8 @@ plugins {
     alias(libs.plugins.android.application)
 }
 
-/** Bump whenever template code or resources change; UniWrap uses it to offer updates (R11.4). */
-val templateVersion = 1
+/** uniwrap.templateVersion in gradle.properties; UniWrap reads it to offer updates (R11.4). */
+val templateVersion = providers.gradleProperty("uniwrap.templateVersion").get().toInt()
 
 val selectedSite: String? = providers.gradleProperty("site").orNull?.takeIf { it.isNotBlank() }
 val siteConfigScript = rootProject.file("scripts/site_config.py")

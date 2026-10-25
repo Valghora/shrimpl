@@ -309,3 +309,45 @@ Differences from the Python/Playwright collector, recorded as deviations:
 | R9.3 | The WebView visit's HTTP status is known only when it is an error (>= 400). | WebView reports main-document errors, not successes. |
 | R10 | Letter icons use the system bold font instead of DejaVu Sans Bold outlines. | Native rendering; no bundled font needed. |
 | R1.2 | `uniwrap` lint keeps one `SetJavaScriptEnabled` warning (the hidden discovery WebView). | Discovery must run the page's scripts; the spec allows suppression only in the template. |
+
+## UniWrap Phase 5: the manager app (2026-10-25)
+
+**What's in `:uniwrap` now.** A Compose (Material 3, dynamic color) app:
+
+- Home: "My Web Apps" with icon, name, build number and an edit button. Rows that aren't installed
+  offer Reinstall and Remove, and rows built with an older template offer Update. The FAB is extended
+  at 600 dp and wider. On wide screens the edit page sits beside the list
+  (`NavigableListDetailPaneScaffold`). Install state is re-read on resume.
+- Configuration page: URL, then Search with discovery stages and Cancel. A failure offers Try again
+  or "Continue without discovery" with defaults. Next comes the review form, which shows
+  low/medium-confidence sources under each field and discovery's notes as cards, then Create, which
+  opens the build sheet. After the first web app, a one-time prompt offers to back up the signing key.
+- Edit page: the same form with a fixed app ID. "Save as build N" builds the next version and
+  installs it over the current one. The menu has Rebuild/Reinstall, Discard changes, and Uninstall
+  (confirmed, then offers to remove the record) or Remove.
+- Icon editor: the website icon, simple-icons brand search, letter, photo (Photo Picker, centered
+  square crop, "fills the shape" switch) and installed icon packs (ADW/Nova `appfilter.xml`). It has
+  circle, squircle, rounded and themed previews, and background and glyph colors.
+- Settings: install method (Automatic / System installer / Shizuku with Grant / Root with Check), the
+  signing key fingerprint, backup export (password typed twice, then SAF save), restore (SAF open,
+  password, confirmation when it replaces a different key while web apps exist), theme, and versions.
+- Installers: `PackageInstaller` sessions (`USER_ACTION_NOT_REQUIRED` for updates; first installs
+  ask, and "Install unknown apps" is requested and retried on return), Shizuku (a UserService running
+  `pm install -S` with the APK piped in), and root (`su -c pm install -S`). A failed install never
+  uses up a build number.
+- The neutral template APK is bundled as `assets/template/template.apk` by `:uniwrap:bundleTemplate`
+  (the build fails with `-Psite`).
+
+**Checked here:** the debug and release (R8) builds, lint, and the core tests. There is no
+emulator in this container (no KVM), so the Phase 5 gate (create, install, open, edit, update as
+build 2) is a device test.
+
+Deviations:
+
+| Requirement | Change | Why |
+|---|---|---|
+| R10.1 | Photos are center-cropped to a square automatically; there is no interactive crop. | No crop library; can be added later. |
+| R2.5 | Theme is dynamic color only, with no fixed palette. | Material You is available on every supported version (minSdk 37). |
+| R1.2 | `uniwrap` lint keeps a `DiscouragedApi` warning (`getIdentifier` for icon packs). | Icon pack drawables are only known by name at runtime. |
+| — | `material-icons-core` instead of `material-icons-extended`. | The extended set adds megabytes for a handful of icons. |
+| R6.1 | Package visibility uses `<queries>` (launcher apps, icon packs, Shizuku) instead of `QUERY_ALL_PACKAGES`. | Narrower, and enough to see web apps, which all have a launcher entry. |

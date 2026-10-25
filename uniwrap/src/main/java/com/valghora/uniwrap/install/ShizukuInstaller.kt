@@ -1,0 +1,109 @@
+package com.valghora.uniwrap.install
+
+import android.content.ComponentName
+import android.content.Context
+import android.content.ServiceConnection
+import android.content.pm.PackageManager
+import android.os.IBinder
+import android.os.ParcelFileDescriptor
+import android.os.RemoteException
+import com.valghora.uniwrap.data.InstallMethod
+import java.io.File
+import kotlin.coroutines.resume
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.suspendCancellableCoroutine
+import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeoutOrNull
+import rikka.shizuku.Shizuku
+
+/**
+ * Installs through Shizuku (docs/UNIWRAP_SPEC.md R6.1): binds [ShellService], which Shizuku runs as the
+ * shell user, and streams the APK into `pm install`. No prompt per install.
+ */
+class ShizukuInstaller(private val context: Context) : Installer {
+    override val method = InstallMethod.SHIZUKU
+
+    private val _state = MutableStateFlow(currentAvailability())
+
+    /** Live availability: Shizuku's binder arrives after app start, and permission can change. */
+    val state: StateFlow<Availability> = _state.asStateFlow()
+
+    init {
+        Shizuku.addBinderReceivedListenerSticky { _state.value = currentAvailability() }
+        Shizuku.addBinderDeadListener { _state.value = currentAvailability() }
+        Shizuku.addRequestPermissionResultListener { _, _ -> _state.value = currentAvailability() }
+    }
+
+    override suspend fun availability(): Availability = currentAvailability().also { _state.value = it }
+
+    /** Shows Shizuku's permission dialog; [state] updates with the answer. */
+    fun requestPermission() {
+        if (Shizuku.pingBinder()) Shizuku.requestPermission(PERMISSION_REQUEST)
+    }
+
+    override suspend fun install(apk: File): InstallResult = withService { service ->
+        val (read, write) = ParcelFileDescriptor.createPipe()
+        // Write the APK into the pipe while the service reads it into `pm install`.
+        val writer = Thread {
+            ParcelFileDescriptor.AutoCloseOutputStream(write).use { out -> apk.inputStream().use { it.copyTo(out) } }
+        }.apply { start() }
+        try {
+            PmShell.result(service.install(read, apk.length()))
+        } finally {
+            read.close()
+            writer.join()
+        }
+    }
+
+    override suspend fun uninstall(packageName: String): InstallResult = withService { service ->
+        PmShell.result(service.uninstall(packageName))
+    }
+
+    private suspend fun withService(block: (IShellService) -> InstallResult): InstallResult {
+        if (availability() != Availability.AVAILABLE) {
+            return InstallResult.Failure("Shizuku is not running or has not granted UniWrap permission", methodUnavailable = true)
+        }
+        val args = Shizuku.UserServiceArgs(ComponentName(context.packageName, ShellService::class.java.name))
+            .daemon(false)
+            .processNameSuffix("shell")
+            .version(SERVICE_VERSION)
+        var connection: ServiceConnection? = null
+        val service = withTimeoutOrNull(BIND_TIMEOUT_MS) {
+            suspendCancellableCoroutine { continuation ->
+                connection = object : ServiceConnection {
+                    override fun onServiceConnected(name: ComponentName, binder: IBinder) {
+                        if (continuation.isActive) continuation.resume(IShellService.Stub.asInterface(binder))
+                    }
+
+                    override fun onServiceDisconnected(name: ComponentName) = Unit
+                }.also { Shizuku.bindUserService(args, it) }
+            }
+        }
+        return try {
+            if (service == null) {
+                InstallResult.Failure("Shizuku did not start UniWrap's shell service", methodUnavailable = true)
+            } else {
+                withContext(Dispatchers.IO) { block(service) }
+            }
+        } catch (e: RemoteException) {
+            InstallResult.Failure("Shizuku stopped during the install: ${e.message}", methodUnavailable = true)
+        } finally {
+            connection?.let { runCatching { Shizuku.unbindUserService(args, it, true) } }
+        }
+    }
+
+    private fun currentAvailability(): Availability = when {
+        !Shizuku.pingBinder() || Shizuku.isPreV11() -> Availability.UNAVAILABLE
+        Shizuku.checkSelfPermission() == PackageManager.PERMISSION_GRANTED -> Availability.AVAILABLE
+        else -> Availability.NEEDS_PERMISSION
+    }
+
+    private companion object {
+        const val PERMISSION_REQUEST = 4242
+        const val SERVICE_VERSION = 1
+        const val BIND_TIMEOUT_MS = 15_000L
+    }
+}
