@@ -15,3 +15,5 @@ sites/defaults.local.toml
 *.jks
 *.keystore
 sites/*/discovery.json
+# "build" is also a source package name (core/.../build/); keep sources tracked.
+!**/src/**/build/
