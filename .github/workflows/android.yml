@@ -152,3 +152,59 @@ jobs:
             cloner/build/reports/
             cloner/build/test-results/
           if-no-files-found: ignore
+
+  uniwrap:
+    name: UniWrap core and template
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      - uses: gradle/actions/setup-gradle@v6
+        with:
+          cache-read-only: false
+
+      - name: Resolve compileSdk
+        id: sdk
+        run: echo "api=$(grep -oE '^COMPILE_SDK\s*=\s*[0-9]+' sites/defaults.toml | grep -oE '[0-9]+$' || echo 37)" >> "$GITHUB_OUTPUT"
+
+      - name: Cache Android SDK
+        uses: actions/cache@v6
+        with:
+          path: ${{ env.ANDROID_HOME }}
+          key: android-sdk-${{ runner.os }}-api${{ steps.sdk.outputs.api }}-${{ hashFiles('scripts/setup_android_sdk.sh') }}
+
+      - name: Set up Android SDK and check tools
+        run: scripts/setup_android_sdk.sh
+
+      # :core:check runs the core tests (including building real web apps from the template release
+      # APK) and the 85% line-coverage rule. No -Psite: this is the neutral template UniWrap patches.
+      - name: Core tests, template lint and release build
+        run: ./gradlew --console=plain :core:check :core:jacocoTestReport :template:lintRelease :template:assembleRelease
+
+      - name: Template has no native code
+        run: |
+          apk=template/build/outputs/apk/release/template-release.apk
+          if unzip -l "$apk" | grep -qE '(^|/)lib/|\.so$'; then echo "::error::native code in $apk"; exit 1; fi
+
+      - name: Upload template APK
+        uses: actions/upload-artifact@v7
+        with:
+          name: uniwrap-template
+          path: template/build/outputs/apk/release/template-release.apk
+
+      - name: Upload reports
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: reports-uniwrap
+          path: |
+            core/build/reports/
+            core/build/test-results/
+            template/build/reports/
+          if-no-files-found: ignore

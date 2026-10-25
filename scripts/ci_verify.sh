@@ -46,10 +46,10 @@ status=0
 record() { SUMMARY+=("$(printf '%-6s %s' "$1" "$2")"); [[ "$1" == FAIL ]] && status=1; }
 section() { echo; echo "=== $* ==="; }
 
-# 6.1 Gradle pipeline. Coverage is measured on the pure-JVM :core module.
+# 6.1 Gradle pipeline for this site. :core's tests and coverage need the neutral template, so they
+# run without -Psite in CI's "UniWrap core and template" job.
 section "6.1 gradle"
-tasks=(:core:clean :core:test :core:jacocoTestReport :core:jacocoTestCoverageVerification)
-tasks+=(:template:clean :template:testDebugUnitTest :template:lintDebug :template:assembleDebug :template:assembleRelease)
+tasks=(:template:clean :template:testDebugUnitTest :template:lintDebug :template:assembleDebug :template:assembleRelease)
 if ./gradlew "${GRADLE_FLAGS[@]}" --console=plain "${tasks[@]}"; then
   record PASS "6.1 gradle ${tasks[*]}"
 else
@@ -60,25 +60,6 @@ GEN_RES="$(dirname "$(dirname "$(find template/build/generated -path '*ebug*' -p
 GEN_PROFILE="$(find template/build/generated -path '*ebug*' -path '*uniwrap*' -name profile.json 2>/dev/null | head -1)"
 GEN_MANIFEST="$(find template/build/generated -path '*ebug*' -name AndroidManifest.xml -path '*SiteSources*' 2>/dev/null | head -1)"
 echo "generated: res=$GEN_RES profile=$GEN_PROFILE manifest=$GEN_MANIFEST"
-
-# Coverage must measure real core classes: an empty report passes JaCoCo's rule vacuously.
-jacoco_xml="core/build/reports/jacoco/test/jacocoTestReport.xml"
-if [[ -f "$jacoco_xml" ]]; then
-  coverage="$(python3 -I - "$jacoco_xml" "${NAMESPACE//.//}/core/" <<'PY'
-import sys, xml.etree.ElementTree as ET
-root = ET.parse(sys.argv[1]).getroot()
-names = [c.get("name") for c in root.iter("class")]
-outside = [n for n in names if not n.startswith(sys.argv[2])]
-line = next((c for c in root.findall("counter") if c.get("type") == "LINE"), None)
-ratio = "n/a"
-if line is not None:
-    covered, missed = int(line.get("covered")), int(line.get("missed"))
-    ratio = f"{covered}/{covered + missed}"
-print(f"{'ok' if names and not outside else 'bad'} classes={len(names)} outside_core={len(outside)} line={ratio}")
-PY
-  )"
-  if [[ "$coverage" == ok* ]]; then record PASS "6.1 coverage ${coverage#ok }"; else record FAIL "6.1 coverage ${coverage#bad }"; fi
-fi
 
 # 6.2 Lint XML
 section "6.2 lint"

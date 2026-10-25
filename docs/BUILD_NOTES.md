@@ -238,3 +238,32 @@ Deviations to carry into the final report:
 |---|---|---|
 | PROMPT R3.5 (`windowBackground` = header color) | In template builds the starting window uses a neutral `#202124` until the app applies the profile's header color at launch. Site builds are unchanged. | The header color is a compiled resource; making it per app needs `resources.arsc` patching (possible in Phase 3). |
 | PROMPT R3.7 (`notification_channel_name` string) | The notification channel is named after the app (UNIWRAP_SPEC R7.2). | Labels come from the profile. |
+
+## UniWrap Phase 3: building web apps (2026-10-25)
+
+`:core` now builds web apps from the template (`core/.../build/`):
+
+- `ManifestPatcher` (from the proof of concept, extended): package rename (and every string derived
+  from it), literal label, versionCode/versionName, removal of `<uses-permission>` and
+  `<uses-feature>` elements, launch mode, `<layout>` window sizes, and the multi-instance flag.
+  Typed values as aapt2 writes them: ints `0x10`, booleans `0x12` (`-1`/`0`), dimensions `0x05`
+  with integer dp encoded as `value << 8 | 1` (radix 0, unit dip; 400dp = `0x00019001`).
+- `WebAppBuilder`: copies the template keeping each entry's compression, replaces
+  `assets/uniwrap/profile.json` and the four icon PNGs, signs with apksig (scheme v3 at minSdk 37),
+  then verifies the signature, the signer and the manifest before returning. Package
+  `com.valghora.uniwrap.app.<appId>`, versionCode = build number, versionName = `<template version>.<build>`
+  (the template version is the template's own versionCode). Stages and cancellation for the UI.
+- `SigningKeys`: RSA 3072 with a self-signed X.509 v3 certificate DER-encoded by hand (the JDK has
+  no public certificate builder; this keeps it identical on Android), valid 30 years (GeneralizedTime
+  after 2049), exported/imported as password-protected PKCS12. Encrypting the stored key with an
+  Android Keystore AES key is UniWrap's job (Phase 5).
+
+The tests patch the real `:template` release APK, so `:core:test` depends on
+`:template:assembleRelease` and refuses `-Psite` (that would build a site APK, not the template).
+CI runs them in the new "UniWrap core and template" job; `ci_verify.sh` no longer runs `:core`.
+Gradle's configuration cache can't serialize a `doFirst` that reads a build-script value; copy it
+into a local `val` first.
+
+To try built web apps on a device:
+`UNIWRAP_SAMPLES_OUT=<dir> ./gradlew :core:test --tests '*SampleWebApps*'` builds Discord and GitHub
+samples signed with one key.
