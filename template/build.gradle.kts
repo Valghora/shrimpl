@@ -19,7 +19,7 @@ android {
         minSdk = 37
         targetSdk = 37
         versionCode = templateVersion
-        versionName = "template-$templateVersion"
+        versionName = "$templateVersion.0"
     }
 
     buildTypes {

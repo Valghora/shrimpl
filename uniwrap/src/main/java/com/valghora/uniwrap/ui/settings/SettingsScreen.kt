@@ -119,7 +119,13 @@ fun SettingsScreen(onBack: () -> Unit) {
                             ThemeSetting.DARK to stringResource(R.string.theme_dark),
                         ),
                         model::setTheme,
-                        summary = stringResource(R.string.theme_dynamic_detail),
+                        summary = stringResource(
+                            when (theme) {
+                                ThemeSetting.SYSTEM -> R.string.theme_system_detail
+                                ThemeSetting.DARK -> R.string.theme_dark_detail
+                                ThemeSetting.LIGHT -> R.string.theme_light_detail
+                            },
+                        ),
                     )
                 }
 
