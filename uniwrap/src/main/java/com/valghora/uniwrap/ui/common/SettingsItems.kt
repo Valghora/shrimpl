@@ -76,7 +76,7 @@ fun SettingsItem(
     modifier: Modifier = Modifier,
     summary: String? = null,
     error: String? = null,
-    errorColor: Color = Tone.ERROR.content,
+    errorColor: Color = Tone.ERROR.text,
     hint: String? = null,
     enabled: Boolean = true,
     role: Role? = null,

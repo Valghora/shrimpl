@@ -32,9 +32,9 @@ import com.valghora.uniwrap.R
 import com.valghora.wrapper.core.discovery.Note
 
 /**
- * Status colors as pairs of a pastel and a deep shade. Light theme: pastel surfaces with deep text.
- * Dark theme: inverted, deep surfaces with pastel text. Status text on ordinary surfaces (a failure
- * description) uses the text shade too: dark red in light theme, light red in dark theme.
+ * Status colors as pairs of a pastel and a deep shade. Dark theme: pastel notifications and buttons
+ * with deep text, and pastel status text on ordinary surfaces (a failure description in light red).
+ * Light theme: the opposite, deep notifications and buttons with pastel text, and deep status text.
  */
 enum class Tone(private val pastel: Color, private val deep: Color) {
     INFO(Color(0xFFD6E6FF), Color(0xFF0B3A7A)),
@@ -44,10 +44,13 @@ enum class Tone(private val pastel: Color, private val deep: Color) {
     ;
 
     /** The background of a notification or button in this tone. */
-    val container: Color @Composable get() = if (isDarkTheme()) deep else pastel
+    val container: Color @Composable get() = if (isDarkTheme()) pastel else deep
 
-    /** Text and icons on [container], and status text on ordinary surfaces. */
-    val content: Color @Composable get() = if (isDarkTheme()) pastel else deep
+    /** Text and icons on [container]. */
+    val content: Color @Composable get() = if (isDarkTheme()) deep else pastel
+
+    /** Status text on ordinary surfaces, such as a failure description. */
+    val text: Color @Composable get() = if (isDarkTheme()) pastel else deep
 }
 
 /** Whether the app is showing its dark theme (set in Settings or by the system). */
