@@ -23,6 +23,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.graphics.vector.PathParser
 import androidx.compose.ui.res.stringResource
@@ -30,13 +31,36 @@ import androidx.compose.ui.unit.dp
 import com.valghora.uniwrap.R
 import com.valghora.wrapper.core.discovery.Note
 
+/**
+ * Status colors as pairs of a pastel and a deep shade. Light theme: pastel surfaces with deep text.
+ * Dark theme: inverted, deep surfaces with pastel text. Status text on ordinary surfaces (a failure
+ * description) uses the text shade too: dark red in light theme, light red in dark theme.
+ */
+enum class Tone(private val pastel: Color, private val deep: Color) {
+    INFO(Color(0xFFD6E6FF), Color(0xFF0B3A7A)),
+    CAUTION(Color(0xFFFFF1BF), Color(0xFF6B4E00)),
+    ERROR(Color(0xFFFFDAD6), Color(0xFF8C1D18)),
+    SUCCESS(Color(0xFFD4F5DC), Color(0xFF0F5223)),
+    ;
+
+    /** The background of a notification or button in this tone. */
+    val container: Color @Composable get() = if (isDarkTheme()) deep else pastel
+
+    /** Text and icons on [container], and status text on ordinary surfaces. */
+    val content: Color @Composable get() = if (isDarkTheme()) pastel else deep
+}
+
+/** Whether the app is showing its dark theme (set in Settings or by the system). */
+@Composable
+fun isDarkTheme(): Boolean = MaterialTheme.colorScheme.surface.luminance() < 0.5f
+
 /** An in-app notification: what kind it is and what it says. */
 data class Notice(val kind: Kind, val text: String) {
-    /** Each kind has its own icon and pastel palette, the same in light and dark theme. */
-    enum class Kind(val background: Color, val content: Color) {
-        INFO(Color(0xFFD6E6FF), Color(0xFF0B3A7A)),
-        CAUTION(Color(0xFFFFF1BF), Color(0xFF6B4E00)),
-        ERROR(Color(0xFFFFDAD6), Color(0xFF8C1D18)),
+    /** Each kind has its own icon and tone. */
+    enum class Kind(val tone: Tone) {
+        INFO(Tone.INFO),
+        CAUTION(Tone.CAUTION),
+        ERROR(Tone.ERROR),
     }
 
     companion object {
@@ -55,12 +79,12 @@ fun NoticeCard(
     onDismiss: (() -> Unit)? = null,
     action: Pair<String, () -> Unit>? = null,
 ) {
-    val color = notice.kind.content
+    val color = notice.kind.tone.content
     Row(
         modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(20.dp))
-            .background(notice.kind.background)
+            .background(notice.kind.tone.container)
             .padding(start = 16.dp, top = 12.dp, bottom = 12.dp, end = if (onDismiss != null) 4.dp else 16.dp),
         horizontalArrangement = Arrangement.spacedBy(12.dp),
         verticalAlignment = Alignment.Top,

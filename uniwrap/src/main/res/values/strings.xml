@@ -41,12 +41,12 @@
     <string name="home_not_installed">Not installed</string>
     <string name="home_update_available">Update available</string>
     <string name="home_empty_title">No web apps yet</string>
-    <string name="home_empty_text">Tap + and enter a website to turn it into an app.</string>
-    <string name="home_pick_app">Select a web app to edit it.</string>
+    <string name="home_empty_text">Tap + and enter a website to turn it into an app</string>
+    <string name="home_pick_app">Select a web app to edit it</string>
 
     <!-- Configuration page -->
     <string name="create_title">New web app</string>
-    <string name="create_url_intro">Enter a website. UniWrap looks it up and suggests settings you can change before the app is created.</string>
+    <string name="create_url_intro">Enter a website. UniWrap looks it up and suggests settings you can change before the app is created</string>
     <string name="create_fix_fields">Fix the highlighted fields first</string>
     <string name="discovery_fetching">Loading the page…</string>
     <string name="discovery_manifest">Reading the web manifest…</string>
@@ -54,7 +54,7 @@
     <string name="discovery_icon">Finding an icon…</string>
 
     <!-- Edit page -->
-    <string name="edit_missing">This web app is no longer in UniWrap.</string>
+    <string name="edit_missing">This web app is no longer in UniWrap</string>
     <string name="edit_not_installed">This web app isn\'t installed. Reinstall it from the menu, or remove it.</string>
     <string name="uninstall_title">Uninstall %1$s?</string>
     <string name="uninstall_text">The app and its data (sign-ins, settings) are removed from this device.</string>
@@ -109,10 +109,10 @@
     <string name="icon_use_site">Use the website\'s icon</string>
     <string name="icon_letter">Letter or digit</string>
     <string name="icon_choose_photo">Choose a photo</string>
-    <string name="icon_photo_crop_note">The photo is cropped to a centered square.</string>
+    <string name="icon_photo_crop_note">The photo is cropped to a centered square</string>
     <string name="icon_fills_shape">Fills the icon shape</string>
     <string name="icon_fills_shape_detail">Turn on for full-bleed images; off adds a margin on the background color.</string>
-    <string name="icon_no_packs">No icon packs installed.</string>
+    <string name="icon_no_packs">No icon packs installed</string>
     <string name="icon_other_packs">Other packs</string>
     <string name="icon_search_pack">Search icons</string>
     <string name="mask_circle">Circle</string>
@@ -127,7 +127,7 @@
     <string name="build_title_failed">Something went wrong</string>
     <string name="build_title_permission">Allow UniWrap to install apps</string>
     <string name="build_permission_detail">Android asks once: turn on \"Allow from this source\" for UniWrap, then come back.</string>
-    <string name="build_method_unavailable">The chosen install method stopped working. The system installer can install this one.</string>
+    <string name="build_method_unavailable">The chosen install method stopped working. The system installer can install this one</string>
     <string name="stage_rendering_icon">Drawing the icon</string>
     <string name="stage_building">Building</string>
     <string name="stage_signing">Signing</string>
@@ -179,8 +179,8 @@
     <string name="field_shortcut_key_detail">A letter, digit, F1 to F12, or a key name like SLASH</string>
     <string name="action_ok">OK</string>
     <string name="install_method">Method</string>
-    <string name="install_shizuku_detail">All installations will silently proceed through ADB.</string>
-    <string name="install_root_detail">All installations will silently proceed through superuser.</string>
+    <string name="install_shizuku_detail">All installations will silently proceed through ADB</string>
+    <string name="install_root_detail">All installations will silently proceed through superuser</string>
     <string name="theme_mode">Theme</string>
     <string name="theme_system_detail">Colors adapt based on wallpaper</string>
     <string name="theme_dark_detail">Colors follow system dark theme</string>
@@ -204,5 +204,6 @@
     <string name="request_root_failed">Failed to acquire root</string>
     <string name="request_shizuku_failed">Failed to acquire Shizuku</string>
     <string name="access_success">Success</string>
-    <string name="action_request_access">Request Access</string>
+    <string name="action_request_access">Request</string>
+    <string name="request_access_detail">Click to request</string>
 </resources>

@@ -39,7 +39,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
@@ -55,9 +54,9 @@ import com.valghora.uniwrap.data.InstallMethod
 import com.valghora.uniwrap.data.ThemeSetting
 import com.valghora.uniwrap.ui.common.DropdownItem
 import com.valghora.uniwrap.ui.common.NavigationItem
-import com.valghora.uniwrap.ui.common.Notice
 import com.valghora.uniwrap.ui.common.SettingsItem
 import com.valghora.uniwrap.ui.common.SettingsSection
+import com.valghora.uniwrap.ui.common.Tone
 
 /** UniWrap's settings page (docs/UNIWRAP_SPEC.md R2.5). */
 @OptIn(ExperimentalMaterial3Api::class)
@@ -209,20 +208,24 @@ fun SettingsScreen(onBack: () -> Unit) {
 }
 
 /**
- * "Request Root" or "Request Shizuku": a Request Access button that turns into a green Success, or a red
- * Retry with the failure in dark red below the title.
+ * "Request Root" or "Request Shizuku": a Request button that turns into Success (success tone), or
+ * Retry (error tone) with the failure described below the title.
  */
 @Composable
 private fun AccessItem(title: Int, failed: Int, access: SettingsViewModel.Access, onRequest: () -> Unit) {
     val (background, content) = when (access) {
-        SettingsViewModel.Access.GRANTED -> SUCCESS_BACKGROUND to SUCCESS_CONTENT
-        SettingsViewModel.Access.FAILED -> Notice.Kind.ERROR.background to Notice.Kind.ERROR.content
+        SettingsViewModel.Access.GRANTED -> Tone.SUCCESS.container to Tone.SUCCESS.content
+        SettingsViewModel.Access.FAILED -> Tone.ERROR.container to Tone.ERROR.content
         else -> MaterialTheme.colorScheme.secondaryContainer to MaterialTheme.colorScheme.onSecondaryContainer
     }
     SettingsItem(
         stringResource(title),
+        summary = if (access == SettingsViewModel.Access.NOT_REQUESTED || access == SettingsViewModel.Access.REQUESTING) {
+            stringResource(R.string.request_access_detail)
+        } else {
+            null
+        },
         error = if (access == SettingsViewModel.Access.FAILED) stringResource(failed) else null,
-        errorColor = Notice.Kind.ERROR.content,
         trailing = {
             Button(
                 onClick = onRequest,
@@ -246,9 +249,6 @@ private fun AccessItem(title: Int, failed: Int, access: SettingsViewModel.Access
         },
     )
 }
-
-private val SUCCESS_BACKGROUND = Color(0xFFD4F5DC)
-private val SUCCESS_CONTENT = Color(0xFF0F5223)
 
 private fun methodDetail(method: InstallMethod) = when (method) {
     InstallMethod.SESSION -> R.string.install_session_detail
