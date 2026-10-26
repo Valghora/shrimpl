@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
@@ -15,6 +16,9 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -35,6 +39,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
@@ -51,7 +56,6 @@ import com.valghora.uniwrap.data.ThemeSetting
 import com.valghora.uniwrap.ui.common.DropdownItem
 import com.valghora.uniwrap.ui.common.NavigationItem
 import com.valghora.uniwrap.ui.common.Notice
-import com.valghora.uniwrap.ui.common.NoticeCard
 import com.valghora.uniwrap.ui.common.SettingsItem
 import com.valghora.uniwrap.ui.common.SettingsSection
 
@@ -63,8 +67,8 @@ fun SettingsScreen(onBack: () -> Unit) {
     val model = viewModel { SettingsViewModel(context.container) }
     val method by model.installMethod.collectAsStateWithLifecycle()
     val theme by model.theme.collectAsStateWithLifecycle()
-    val methodError by model.methodError.collectAsStateWithLifecycle()
-    val checking by model.checking.collectAsStateWithLifecycle()
+    val rootAccess by model.rootAccess.collectAsStateWithLifecycle()
+    val shizukuAccess by model.shizukuAccess.collectAsStateWithLifecycle()
     val fingerprint by model.fingerprint.collectAsStateWithLifecycle()
     val message by model.message.collectAsStateWithLifecycle()
     val pendingRestore by model.pendingRestore.collectAsStateWithLifecycle()
@@ -130,14 +134,15 @@ fun SettingsScreen(onBack: () -> Unit) {
                         ),
                         model::selectMethod,
                         summary = stringResource(methodDetail(method)),
-                        enabled = !checking,
                     )
-                    methodError?.let { error ->
-                        NoticeCard(
-                            Notice(Notice.Kind.ERROR, error.message),
-                            onDismiss = model::dismissMethodError,
-                            action = stringResource(R.string.action_retry) to { model.selectMethod(error.method) },
-                        )
+                    when (method) {
+                        InstallMethod.SESSION -> Unit
+                        InstallMethod.SHIZUKU -> AccessItem(R.string.request_shizuku, R.string.request_shizuku_failed, shizukuAccess) {
+                            model.requestAccess(InstallMethod.SHIZUKU)
+                        }
+                        InstallMethod.ROOT -> AccessItem(R.string.request_root, R.string.request_root_failed, rootAccess) {
+                            model.requestAccess(InstallMethod.ROOT)
+                        }
                     }
                 }
 
@@ -196,6 +201,48 @@ fun SettingsScreen(onBack: () -> Unit) {
         )
     }
 }
+
+/**
+ * "Request Root" or "Request Shizuku": a Request Access button that turns into a green Success, or a red
+ * Retry with the failure in dark red below the title.
+ */
+@Composable
+private fun AccessItem(title: Int, failed: Int, access: SettingsViewModel.Access, onRequest: () -> Unit) {
+    val (background, content) = when (access) {
+        SettingsViewModel.Access.GRANTED -> SUCCESS_BACKGROUND to SUCCESS_CONTENT
+        SettingsViewModel.Access.FAILED -> Notice.Kind.ERROR.background to Notice.Kind.ERROR.content
+        else -> MaterialTheme.colorScheme.secondaryContainer to MaterialTheme.colorScheme.onSecondaryContainer
+    }
+    SettingsItem(
+        stringResource(title),
+        error = if (access == SettingsViewModel.Access.FAILED) stringResource(failed) else null,
+        errorColor = Notice.Kind.ERROR.content,
+        trailing = {
+            Button(
+                onClick = onRequest,
+                enabled = access != SettingsViewModel.Access.REQUESTING,
+                colors = ButtonDefaults.buttonColors(containerColor = background, contentColor = content),
+            ) {
+                if (access == SettingsViewModel.Access.REQUESTING) {
+                    CircularProgressIndicator(Modifier.size(18.dp), strokeWidth = 2.dp)
+                } else {
+                    Text(
+                        stringResource(
+                            when (access) {
+                                SettingsViewModel.Access.GRANTED -> R.string.access_success
+                                SettingsViewModel.Access.FAILED -> R.string.action_retry
+                                else -> R.string.action_request_access
+                            },
+                        ),
+                    )
+                }
+            }
+        },
+    )
+}
+
+private val SUCCESS_BACKGROUND = Color(0xFFD4F5DC)
+private val SUCCESS_CONTENT = Color(0xFF0F5223)
 
 private fun methodDetail(method: InstallMethod) = when (method) {
     InstallMethod.SESSION -> R.string.install_session_detail

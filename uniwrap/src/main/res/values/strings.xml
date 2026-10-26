@@ -197,4 +197,10 @@
     <string name="notice_caution">Caution</string>
     <string name="notice_error">Error</string>
     <string name="field_pause_power_save_detail">Pauses the page while battery saver is on, even with the screen on. Saves battery; messages and notifications arrive once the app resumes.</string>
+    <string name="request_root">Request Root</string>
+    <string name="request_shizuku">Request Shizuku</string>
+    <string name="request_root_failed">Failed to acquire root</string>
+    <string name="request_shizuku_failed">Failed to acquire Shizuku</string>
+    <string name="access_success">Success</string>
+    <string name="action_request_access">Request Access</string>
 </resources>

@@ -76,6 +76,7 @@ fun SettingsItem(
     modifier: Modifier = Modifier,
     summary: String? = null,
     error: String? = null,
+    errorColor: Color = MaterialTheme.colorScheme.error,
     hint: String? = null,
     enabled: Boolean = true,
     role: Role? = null,
@@ -102,7 +103,7 @@ fun SettingsItem(
                 Text(it, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
             when {
-                error != null -> Text(error, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.error)
+                error != null -> Text(error, style = MaterialTheme.typography.bodyMedium, color = errorColor)
                 hint != null -> Text(
                     stringResource(R.string.hint_discovered, hint),
                     style = MaterialTheme.typography.bodySmall,

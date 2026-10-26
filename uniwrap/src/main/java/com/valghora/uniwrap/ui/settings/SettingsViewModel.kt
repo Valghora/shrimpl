@@ -24,19 +24,17 @@ class SettingsViewModel(private val container: AppContainer) : ViewModel() {
     val installMethod: StateFlow<InstallMethod> = container.settings.installMethod
     val theme: StateFlow<ThemeSetting> = container.settings.theme
 
-    /** Why the last method picked couldn't be used; shown under the Installation items with Retry. */
-    data class MethodError(val method: InstallMethod, val message: String)
+    /** Where a root or Shizuku access request stands (the Request Access button's states). */
+    enum class Access { NOT_REQUESTED, REQUESTING, GRANTED, FAILED }
 
-    private val _methodError = MutableStateFlow<MethodError?>(null)
-    val methodError: StateFlow<MethodError?> = _methodError.asStateFlow()
+    private val _rootAccess = MutableStateFlow(Access.NOT_REQUESTED)
+    val rootAccess: StateFlow<Access> = _rootAccess.asStateFlow()
 
-    private val _checking = MutableStateFlow(false)
-
-    /** True while root or Shizuku access is being requested. */
-    val checking: StateFlow<Boolean> = _checking.asStateFlow()
-
-    /** A Shizuku permission request is open; its answer decides whether Shizuku is selected. */
-    private var awaitingShizuku = false
+    // Shizuku can be checked without a prompt, so a permission granted earlier shows as Success.
+    private val _shizukuAccess = MutableStateFlow(
+        if (container.installers.shizuku.state.value == Availability.AVAILABLE) Access.GRANTED else Access.NOT_REQUESTED,
+    )
+    val shizukuAccess: StateFlow<Access> = _shizukuAccess.asStateFlow()
 
     private val _fingerprint = MutableStateFlow<String?>(null)
 
@@ -56,50 +54,35 @@ class SettingsViewModel(private val container: AppContainer) : ViewModel() {
         loadFingerprint()
         viewModelScope.launch {
             container.installers.shizuku.permissionResults.collect { granted ->
-                if (!awaitingShizuku) return@collect
-                awaitingShizuku = false
-                _checking.value = false
-                if (granted) use(InstallMethod.SHIZUKU) else _methodError.value = MethodError(InstallMethod.SHIZUKU, SHIZUKU_DENIED)
+                if (_shizukuAccess.value == Access.REQUESTING) _shizukuAccess.value = if (granted) Access.GRANTED else Access.FAILED
             }
         }
     }
 
-    /**
-     * Picks how web apps are installed. Root and Shizuku are asked for access first (the root manager's
-     * or Shizuku's prompt); the method changes only when access is granted.
-     */
-    fun selectMethod(method: InstallMethod) {
-        _methodError.value = null
+    /** Picks how web apps are installed; root and Shizuku access are requested with [requestAccess]. */
+    fun selectMethod(method: InstallMethod) = container.settings.setInstallMethod(method)
+
+    /** Asks for root (the root manager's prompt) or Shizuku (its permission dialog). */
+    fun requestAccess(method: InstallMethod) {
         when (method) {
-            InstallMethod.SESSION -> use(method)
+            InstallMethod.SESSION -> Unit
             InstallMethod.ROOT -> viewModelScope.launch {
-                _checking.value = true
-                val availability = container.installers.root.availability()
-                _checking.value = false
-                if (availability == Availability.AVAILABLE) use(method) else _methodError.value = MethodError(method, ROOT_FAILED)
+                _rootAccess.value = Access.REQUESTING
+                val granted = container.installers.root.availability() == Availability.AVAILABLE
+                _rootAccess.value = if (granted) Access.GRANTED else Access.FAILED
             }
             InstallMethod.SHIZUKU -> viewModelScope.launch {
                 val shizuku = container.installers.shizuku
                 when (shizuku.availability()) {
-                    Availability.AVAILABLE -> use(method)
+                    Availability.AVAILABLE -> _shizukuAccess.value = Access.GRANTED
                     Availability.NEEDS_PERMISSION -> {
-                        awaitingShizuku = true
-                        _checking.value = true
+                        _shizukuAccess.value = Access.REQUESTING
                         shizuku.requestPermission()
                     }
-                    Availability.UNAVAILABLE -> _methodError.value = MethodError(method, SHIZUKU_MISSING)
+                    Availability.UNAVAILABLE -> _shizukuAccess.value = Access.FAILED
                 }
             }
         }
-    }
-
-    fun dismissMethodError() {
-        _methodError.value = null
-    }
-
-    private fun use(method: InstallMethod) {
-        container.settings.setInstallMethod(method)
-        _methodError.value = null
     }
 
     fun setTheme(theme: ThemeSetting) = container.settings.setTheme(theme)
@@ -199,8 +182,5 @@ class SettingsViewModel(private val container: AppContainer) : ViewModel() {
 
     companion object {
         const val MIN_PASSWORD = SigningKeyStore.MIN_PASSWORD
-        const val ROOT_FAILED = "Unable to achieve root access"
-        const val SHIZUKU_MISSING = "Shizuku isn't running. Start it in the Shizuku app, then try again."
-        const val SHIZUKU_DENIED = "Shizuku didn't grant UniWrap permission"
     }
 }
