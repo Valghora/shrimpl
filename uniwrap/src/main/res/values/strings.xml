@@ -91,7 +91,7 @@
     <string name="ua_mobile">Mobile</string>
     <string name="field_keep_alive">Keep running in the background</string>
     <string name="field_pause_power_save">Pause in battery saver</string>
-    <string name="field_multi_window">Allow several windows</string>
+    <string name="field_multi_window">Allow multiple windows</string>
     <string name="field_context_menu">Long-press menu for links and images</string>
     <string name="field_window_default">Default window size</string>
     <string name="field_window_min">Minimum window size</string>
