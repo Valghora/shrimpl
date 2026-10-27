@@ -81,7 +81,7 @@
     <string name="header_system_detail">Matches system theme</string>
     <string name="header_dynamic_detail">Detects site-specific color</string>
     <string name="header_custom_detail">Uses user-defined color</string>
-    <string name="field_custom_header">Custom header</string>
+    <string name="field_custom_header">Custom header color</string>
     <string name="field_icon_background">Icon background color</string>
     <string name="field_icon_foreground">Icon glyph color</string>
     <string name="field_auto">Automatic</string>

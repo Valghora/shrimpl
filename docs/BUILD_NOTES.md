@@ -408,5 +408,5 @@ Changes after the first device test on Googlebook OS:
   at most every 200 ms and only on change. `BarsBackground` paints the status-bar strip and the rest
   of the window separately. With a caption bar (desktop windows) the system color is used.
 - `uniwrap.templateVersion` is 2, so web apps built with template 1 show "Update available".
-- Form: Header color is a three-option menu with per-option descriptions. Custom header is a color
+- Form: Header color is a three-option menu with per-option descriptions. Custom header color is a color
   item enabled only for Custom. "Icon background" is now "Icon background color".

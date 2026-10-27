@@ -107,7 +107,7 @@ Do not implement: Play Store distribution, analytics, crash reporting, cloud syn
     - **Identity**: icon with its preview (opens R10), name, and the fixed app ID on the edit page.
     - **Website**: start URL, internal domains.
     - **Permissions**: microphone, camera, notifications.
-    - **Appearance**: Header color, one of System (the default: the system's surface color for the light or dark theme), Dynamic (the site's own colors, see R7.7) or Custom; Custom header (a color, greyed out unless Custom is chosen); Icon background color (the site's brand color); Icon glyph color (`#FFFFFF` by default).
+    - **Appearance**: Header color, one of System (the default: the system's surface color for the light or dark theme), Dynamic (the site's own colors, see R7.7) or Custom; Custom header color (greyed out unless Custom is chosen); Icon background color (the site's brand color); Icon glyph color (`#FFFFFF` by default).
     - **Browser**: user agent mode, keep alive when hidden, pause on power save, context menu.
     - **Window**: multi-window, default and minimum window size.
     - **Keyboard shortcuts**: one item per shortcut, and Add.
