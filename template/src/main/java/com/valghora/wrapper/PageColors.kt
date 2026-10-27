@@ -12,6 +12,7 @@ import androidx.webkit.WebViewCompat
 import androidx.webkit.WebViewFeature
 import com.valghora.wrapper.core.DesktopSessionController
 import com.valghora.wrapper.core.UrlClass
+import com.valghora.wrapper.core.profile.allowedOriginRules
 
 /**
  * The page's colors along its top and bottom edges, for the Dynamic header (docs/UNIWRAP_SPEC.md R7):
@@ -27,15 +28,15 @@ class PageColors(private val controller: DesktopSessionController, private val o
 
     /** False when the WebView can't run the script; the header then keeps the system color. */
     fun install(webView: WebView): Boolean {
-        if (!WebViewFeature.isFeatureSupported(WebViewFeature.WEB_MESSAGE_LISTENER) ||
-            !WebViewFeature.isFeatureSupported(WebViewFeature.DOCUMENT_START_SCRIPT)
-        ) {
-            Log.w(WebApp.profile.appId, "Dynamic header disabled: WebView lacks WEB_MESSAGE_LISTENER or DOCUMENT_START_SCRIPT")
-            return false
+        if (WebViewFeature.isFeatureSupported(WebViewFeature.WEB_MESSAGE_LISTENER)) {
+            if (WebViewFeature.isFeatureSupported(WebViewFeature.DOCUMENT_START_SCRIPT)) {
+                WebViewCompat.addWebMessageListener(webView, "AndroidPageColors", WebApp.profile.allowedOriginRules, listener)
+                WebViewCompat.addDocumentStartJavaScript(webView, SCRIPT, WebApp.profile.allowedOriginRules)
+                return true
+            }
         }
-        WebViewCompat.addWebMessageListener(webView, "AndroidPageColors", WebApp.profile.allowedOriginRules, listener)
-        WebViewCompat.addDocumentStartJavaScript(webView, SCRIPT, WebApp.profile.allowedOriginRules)
-        return true
+        Log.w(WebApp.profile.appId, "Dynamic header disabled: WebView lacks WEB_MESSAGE_LISTENER or DOCUMENT_START_SCRIPT")
+        return false
     }
 
     private companion object {

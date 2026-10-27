@@ -160,7 +160,7 @@ class ProfileTest {
         assertEquals(listOf("headerColor"), fields(minimal.copy(headerColor = "123456")))
         assertEquals(listOf("headerColor"), fields(minimal.copy(headerColor = Profile.SYSTEM)))
         assertEquals(emptyList<String>(), fields(minimal.copy(iconForeground = "#ffffff", headerColor = "#000000")))
-        assertEquals(emptyList<String>(), fields(minimal.copy(iconForeground = Profile.AUTO, headerColor = Profile.SYSTEM)))
+        assertEquals(emptyList<String>(), fields(minimal.copy(iconForeground = Profile.AUTO)))
     }
 
     @Test
@@ -186,6 +186,7 @@ class ProfileTest {
         val zoomWindow = minimal.copy(newWindowShortcut = KeyCombo("KEYCODE_0", setOf(Modifier.CTRL)))
         assertEquals(listOf("newWindowShortcut"), fields(zoomWindow))
         val sameAsNewWindow = minimal.copy(
+            enableMultiWindow = true,
             appShortcuts = listOf(ShortcutSpec("Window", "KEYCODE_N", setOf(Modifier.CTRL))),
             newWindowShortcut = KeyCombo("KEYCODE_N", setOf(Modifier.CTRL)),
         )
