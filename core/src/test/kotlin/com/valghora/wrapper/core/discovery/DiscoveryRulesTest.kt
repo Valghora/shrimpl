@@ -1,6 +1,7 @@
 package com.valghora.wrapper.core.discovery
 
 import com.valghora.wrapper.core.icons.IconException
+import com.valghora.wrapper.core.profile.HeaderMode
 import com.valghora.wrapper.core.profile.Profile
 import com.valghora.wrapper.core.profile.ProfileValidator
 import java.io.ByteArrayOutputStream
@@ -275,7 +276,7 @@ class DiscoveryRulesTest {
         assertEquals(IconChoice.Letter('E', "no usable brand icon found", Confidence.LOW), draft.icon)
         assertEquals("examplemail", draft.appId)
         assertEquals(emptyList<Any>(), ProfileValidator.validate(draft.toProfile()))
-        assertEquals(Profile.SYSTEM, draft.toProfile().headerColor)
+        assertEquals(HeaderMode.SYSTEM, draft.toProfile().headerMode)
         assertEquals("#FFFFFF", draft.toProfile().iconForeground)
     }
 

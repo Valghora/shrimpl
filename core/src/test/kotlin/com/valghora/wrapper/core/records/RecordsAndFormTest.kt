@@ -7,6 +7,7 @@ import com.valghora.wrapper.core.discovery.Confidence
 import com.valghora.wrapper.core.discovery.IconChoice
 import com.valghora.wrapper.core.icons.IconSource
 import com.valghora.wrapper.core.icons.SvgGlyph
+import com.valghora.wrapper.core.profile.HeaderMode
 import com.valghora.wrapper.core.profile.Profile
 import com.valghora.wrapper.core.profile.ProfileForm
 import com.valghora.wrapper.core.profile.ShortcutRow
@@ -47,6 +48,12 @@ class RecordsAndFormTest {
         assertTrue(record.updateAvailable(bundledTemplateVersion = 2))
         assertFalse(updated.updateAvailable(bundledTemplateVersion = 2))
         assertThrows(IllegalArgumentException::class.java) { WebAppRecord.decode("""{"profile":1}""") }
+        assertThrows(IllegalArgumentException::class.java) { WebAppRecord.decode("not json") }
+        // A record saved before header modes keeps the system color.
+        val systemHeader = record.copy(profile = profile.copy(headerColor = Profile.DEFAULT_HEADER_COLOR))
+        val legacy = WebAppRecord.encode(systemHeader).replace("\"headerMode\": \"system\",", "").replace(Profile.DEFAULT_HEADER_COLOR, Profile.SYSTEM)
+        assertTrue("headerMode" !in legacy)
+        assertEquals(systemHeader, WebAppRecord.decode(legacy))
     }
 
     @Test
@@ -96,8 +103,8 @@ class RecordsAndFormTest {
         assertEquals("Example", p.name)
         assertEquals(listOf("example.com", "cdn.example.net"), p.internalDomains)
         assertEquals("#FFFFFF", p.headerColor)
-        assertEquals(Profile.SYSTEM, form.copy(headerColor = " ").result().profile!!.headerColor)
-        assertEquals("", ProfileForm.from(p.copy(headerColor = Profile.SYSTEM)).headerColor)
+        assertEquals(Profile.DEFAULT_HEADER_COLOR, form.copy(headerColor = " ").result().profile!!.headerColor)
+        assertEquals(HeaderMode.DYNAMIC, form.copy(headerMode = HeaderMode.DYNAMIC).result().profile!!.headerMode)
         assertEquals("#000000", p.iconForeground)
         assertEquals(UaMode.DESKTOP, p.userAgentMode)
         assertEquals(WindowSize(1000, 700), p.defaultWindowDp)
@@ -110,7 +117,7 @@ class RecordsAndFormTest {
         val result = bad.result()
         assertNull(result.profile)
         assertEquals("must not be empty", result.errorFor("name"))
-        assertEquals("must be #RRGGBB or \"system\"", result.errorFor("headerColor"))
+        assertEquals("must be #RRGGBB", result.errorFor("headerColor"))
         assertEquals("must be an https:// URL", result.errorFor("startUrl"))
         assertNull(result.errorFor("iconBackground"))
 

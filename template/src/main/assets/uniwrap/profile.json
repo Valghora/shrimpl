@@ -8,5 +8,5 @@
   ],
   "iconBackground": "#607D8B",
   "iconForeground": "#FFFFFF",
-  "headerColor": "system"
+  "headerMode": "system"
 }

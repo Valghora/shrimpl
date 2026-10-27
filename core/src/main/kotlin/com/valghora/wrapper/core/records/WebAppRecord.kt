@@ -5,10 +5,12 @@ import com.valghora.wrapper.core.discovery.IconChoice
 import com.valghora.wrapper.core.icons.IconSource
 import com.valghora.wrapper.core.icons.SvgGlyph
 import com.valghora.wrapper.core.profile.Profile
+import com.valghora.wrapper.core.profile.ProfileCodec
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonObject
 
 /**
  * How a web app's icon is made (docs/UNIWRAP_SPEC.md R10.1, R11.1). Image bytes live next to the
@@ -111,7 +113,10 @@ data class WebAppRecord(
         fun encode(record: WebAppRecord): String = json.encodeToString(serializer(), record)
 
         fun decode(text: String): WebAppRecord = try {
-            json.decodeFromString(serializer(), text)
+            val element = json.parseToJsonElement(text)
+            val profile = (element as? JsonObject)?.get("profile")
+            val upgraded = if (element is JsonObject && profile != null) JsonObject(element + ("profile" to ProfileCodec.upgrade(profile))) else element
+            json.decodeFromJsonElement(serializer(), upgraded)
         } catch (e: SerializationException) {
             throw IllegalArgumentException("Invalid web app record: ${e.message}", e)
         }

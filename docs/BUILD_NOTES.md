@@ -397,3 +397,16 @@ Changes after the first device test on Googlebook OS:
   Retry appears under the Installation items. Shizuku asks for its permission the same way. The
   "backed up" status line is gone; the one-time backup prompt after the first web app remains.
 - The template version is an integer (`uniwrap.templateVersion`), so About shows "Template: 1".
+
+## Dynamic header (2026-10-27)
+
+- `Profile.headerMode` (System, Dynamic, Custom) replaces the `"system"` value of `headerColor`, which
+  is now always a color (used by Custom, kept when another mode is picked). Older profiles and
+  records are upgraded when read.
+- Dynamic (R7.7): `PageColors` adds a document-start script and a `WebMessageListener`
+  (`AndroidPageColors`) limited to internal domains. The page reports `#RRGGBB,#RRGGBB` (top, bottom)
+  at most every 200 ms and only on change. `BarsBackground` paints the status-bar strip and the rest
+  of the window separately. With a caption bar (desktop windows) the system color is used.
+- `uniwrap.templateVersion` is 2, so web apps built with template 1 show "Update available".
+- Form: Header color is a three-option menu with per-option descriptions. Custom header is a color
+  item enabled only for Custom. "Icon background" is now "Icon background color".

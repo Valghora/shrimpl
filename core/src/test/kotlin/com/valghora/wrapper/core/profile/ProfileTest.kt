@@ -21,6 +21,7 @@ class ProfileTest {
         startUrl = "https://example.com/",
         internalDomains = listOf("example.com"),
         iconBackground = "#5865F2",
+        headerMode = HeaderMode.CUSTOM,
         headerColor = "#1E1F22",
     )
 
@@ -39,6 +40,7 @@ class ProfileTest {
         assertTrue(discord.allowMicrophone && discord.allowCamera)
         assertEquals(ShortcutSpec("Toggle Mute", "KEYCODE_M", setOf(Modifier.CTRL, Modifier.SHIFT)), discord.appShortcuts[1])
         assertEquals("#1E1F22", discord.headerColor)
+        assertEquals(HeaderMode.CUSTOM, discord.headerMode) // upgraded: a color without a mode was always used
     }
 
     @Test
@@ -50,10 +52,10 @@ class ProfileTest {
 
     @Test
     fun encodesDefaultsAndOmitsNulls() {
-        val json = ProfileCodec.encode(minimal.copy(headerColor = Profile.SYSTEM))
+        val json = ProfileCodec.encode(minimal.copy(headerMode = HeaderMode.DYNAMIC))
         assertTrue(json.contains("\"allowNotifications\": true"))
         assertTrue(json.contains("\"userAgentMode\": \"auto\""))
-        assertTrue(json.contains("\"headerColor\": \"system\""))
+        assertTrue(json.contains("\"headerMode\": \"dynamic\""))
         assertFalse(json.contains("newWindowShortcut"))
     }
 
@@ -156,6 +158,7 @@ class ProfileTest {
         assertEquals(listOf("iconBackground"), fields(minimal.copy(iconBackground = "#12345")))
         assertEquals(listOf("iconForeground"), fields(minimal.copy(iconForeground = "white")))
         assertEquals(listOf("headerColor"), fields(minimal.copy(headerColor = "123456")))
+        assertEquals(listOf("headerColor"), fields(minimal.copy(headerColor = Profile.SYSTEM)))
         assertEquals(emptyList<String>(), fields(minimal.copy(iconForeground = "#ffffff", headerColor = "#000000")))
         assertEquals(emptyList<String>(), fields(minimal.copy(iconForeground = Profile.AUTO, headerColor = Profile.SYSTEM)))
     }
@@ -193,7 +196,6 @@ class ProfileTest {
 
     @Test
     fun derivedValuesForDiscord() {
-        assertFalse(discord.headerFollowsSystem)
         assertEquals("#FFFFFF", discord.resolvedIconForeground)
         assertEquals("discord_notifications", discord.notificationChannelId)
         assertTrue(discord.uaFeaturesActive)
@@ -212,9 +214,21 @@ class ProfileTest {
     @Test
     fun headerAndGlyphDefaults() {
         val plain = Profile(name = "A", appId = "a", startUrl = "https://a.com/", internalDomains = listOf("a.com"), iconBackground = "#123456")
-        assertTrue(plain.headerFollowsSystem)
+        assertEquals(HeaderMode.SYSTEM, plain.headerMode)
+        assertEquals(Profile.DEFAULT_HEADER_COLOR, plain.headerColor)
         assertEquals("#FFFFFF", plain.iconForeground)
-        assertFalse(plain.copy(headerColor = "#FFFFFF").headerFollowsSystem)
+    }
+
+    @Test
+    fun upgradesProfilesWithoutHeaderMode() {
+        val base = """"name":"A","appId":"a","startUrl":"https://a.com/","internalDomains":["a.com"],"iconBackground":"#123456""""
+        val system = ProfileCodec.decode("{$base,\"headerColor\":\"system\"}")
+        assertEquals(HeaderMode.SYSTEM, system.headerMode)
+        assertEquals(Profile.DEFAULT_HEADER_COLOR, system.headerColor)
+        assertEquals(HeaderMode.CUSTOM, ProfileCodec.decode("{$base,\"headerColor\":\"#336699\"}").headerMode)
+        assertEquals(HeaderMode.DYNAMIC, ProfileCodec.decode("{$base,\"headerMode\":\"dynamic\",\"headerColor\":\"#336699\"}").headerMode)
+        assertEquals(HeaderMode.SYSTEM, ProfileCodec.decode("{$base}").headerMode)
+        assertEquals(kotlinx.serialization.json.JsonPrimitive(1), ProfileCodec.upgrade(kotlinx.serialization.json.JsonPrimitive(1)))
     }
 
     @Test

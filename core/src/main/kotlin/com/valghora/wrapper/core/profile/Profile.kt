@@ -3,6 +3,7 @@ package com.valghora.wrapper.core.profile
 import com.valghora.wrapper.core.Modifier
 import com.valghora.wrapper.core.ShortcutSpec
 import com.valghora.wrapper.core.UaMode
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 /**
@@ -31,11 +32,10 @@ data class Profile(
     val iconBackground: String,
     /** The glyph color: `#RRGGBB`, or [AUTO] for white or black, whichever contrasts better with [iconBackground]. */
     val iconForeground: String = DEFAULT_ICON_FOREGROUND,
-    /**
-     * Window and caption bar color: [SYSTEM] for the system's surface color in the current light or
-     * dark theme, or `#RRGGBB` for one color in both themes.
-     */
-    val headerColor: String = SYSTEM,
+    /** Where the window, caption bar and system bar colors come from. */
+    val headerMode: HeaderMode = HeaderMode.SYSTEM,
+    /** The header color for [HeaderMode.CUSTOM], `#RRGGBB`; kept when another mode is chosen. */
+    val headerColor: String = DEFAULT_HEADER_COLOR,
     val allowMicrophone: Boolean = false,
     val allowCamera: Boolean = false,
     val allowNotifications: Boolean = true,
@@ -54,7 +54,9 @@ data class Profile(
     companion object {
         const val SCHEMA_VERSION = 1
         const val AUTO = "auto"
+        /** The `headerColor` value that meant [HeaderMode.SYSTEM] before header modes existed. */
         const val SYSTEM = "system"
+        const val DEFAULT_HEADER_COLOR = "#202124"
         const val DEFAULT_ICON_FOREGROUND = "#FFFFFF"
         val DEFAULT_OAUTH_DOMAINS = listOf(
             "accounts.google.com",
@@ -64,6 +66,23 @@ data class Profile(
             "login.live.com",
         )
     }
+}
+
+/** How the web app colors its header (window background, caption bar and system bars). */
+@Serializable
+enum class HeaderMode {
+    /** The system's surface color for the current light or dark theme. */
+    @SerialName("system") SYSTEM,
+
+    /**
+     * The site's own colors: on phones and other windows without a caption bar, the status bar takes
+     * the color at the top of the page and the navigation bar the color at the bottom. Desktop
+     * windows (with a caption bar) use the system color.
+     */
+    @SerialName("dynamic") DYNAMIC,
+
+    /** [Profile.headerColor]. */
+    @SerialName("custom") CUSTOM,
 }
 
 @Serializable

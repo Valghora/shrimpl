@@ -66,7 +66,7 @@ import com.valghora.wrapper.core.Modifier
 import com.valghora.wrapper.core.UaMode
 import com.valghora.wrapper.core.UrlClass
 import com.valghora.wrapper.core.WakeEvent
-import com.valghora.wrapper.core.profile.headerFollowsSystem
+import com.valghora.wrapper.core.profile.HeaderMode
 import com.valghora.wrapper.core.profile.newWindowShortcutSpec
 import com.valghora.wrapper.core.profile.sessionConfig
 import com.valghora.wrapper.core.profile.uaFeaturesActive
@@ -87,6 +87,13 @@ class MainActivity : AppCompatActivity() {
     private var isLargeOrPc = false
     private var webViewAlive = false
     private var nightMode = Configuration.UI_MODE_NIGHT_UNDEFINED
+    private val barsBackground = BarsBackground()
+
+    /** The window has a caption bar (a desktop window); the Dynamic header applies only without one. */
+    private var hasCaptionBar = false
+
+    /** The page's top and bottom edge colors, once the Dynamic header's script reported them. */
+    private var pageColors: Pair<Int, Int>? = null
     private val popups = mutableListOf<Popup>()
 
     private var originalUaMetadata: UserAgentMetadata? = null
@@ -149,6 +156,7 @@ class MainActivity : AppCompatActivity() {
         webViewAlive = true
 
         nightMode = resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK
+        root.background = barsBackground
         applyHeaderColors()
         ViewCompat.setOnApplyWindowInsetsListener(root) { view, insets ->
             val bars = insets.getInsets(
@@ -156,6 +164,14 @@ class MainActivity : AppCompatActivity() {
                     WindowInsetsCompat.Type.displayCutout() or WindowInsetsCompat.Type.ime(),
             )
             view.setPadding(bars.left, bars.top, bars.right, bars.bottom)
+            barsBackground.topHeight = bars.top
+            val caption = insets.getInsets(WindowInsetsCompat.Type.captionBar()).top > 0
+            if (caption != hasCaptionBar) {
+                hasCaptionBar = caption
+                applyHeaderColors()
+            } else {
+                barsBackground.invalidateSelf()
+            }
             WindowInsetsCompat.CONSUMED
         }
 
@@ -237,25 +253,41 @@ class MainActivity : AppCompatActivity() {
 
     // ---------- Window, insets and theme (R3) ----------
 
-    /** The profile's header color, or the system surface color for the current light or dark theme. */
+    /**
+     * The window and caption bar color: the custom color, else the system surface color for the
+     * current light or dark theme (also for Dynamic, whose page colors only reach the system bars).
+     */
     private fun currentHeaderColor(): Int = when {
-        !WebApp.profile.headerFollowsSystem -> WebApp.profile.headerColor.toColorInt()
+        WebApp.profile.headerMode == HeaderMode.CUSTOM -> WebApp.profile.headerColor.toColorInt()
         nightMode == Configuration.UI_MODE_NIGHT_YES -> getColor(android.R.color.system_surface_container_dark)
         else -> getColor(android.R.color.system_surface_container_light)
     }
 
+    private fun isDark(color: Int) = DesktopSessionController.isDarkColor("#%06X".format(color and 0xFFFFFF))
+
+    private fun barStyle(color: Int) = if (isDark(color)) SystemBarStyle.dark(TRANSPARENT) else SystemBarStyle.light(TRANSPARENT, TRANSPARENT)
+
+    /** Dynamic header: the page's edge colors arrived or changed. */
+    private fun onPageColors(top: Int, bottom: Int) {
+        if (pageColors == top to bottom) return
+        pageColors = top to bottom
+        if (!hasCaptionBar) applyHeaderColors()
+    }
+
     private fun applyHeaderColors() {
         val color = currentHeaderColor()
-        val dark = DesktopSessionController.isDarkColor("#%06X".format(color and 0xFFFFFF))
+        val dark = isDark(color)
+        // Dynamic, without a caption bar (phones, full-screen tablets): the status bar takes the page's
+        // top color and the navigation bar its bottom color, each with readable icons.
+        val page = pageColors?.takeIf { WebApp.profile.headerMode == HeaderMode.DYNAMIC && !hasCaptionBar }
+        val top = page?.first ?: color
+        val bottom = page?.second ?: color
 
-        val barStyle = if (dark) {
-            SystemBarStyle.dark(TRANSPARENT)
-        } else {
-            SystemBarStyle.light(TRANSPARENT, TRANSPARENT)
-        }
-        enableEdgeToEdge(statusBarStyle = barStyle, navigationBarStyle = barStyle)
+        enableEdgeToEdge(statusBarStyle = barStyle(top), navigationBarStyle = barStyle(bottom))
 
-        root.setBackgroundColor(color)
+        barsBackground.top = top
+        barsBackground.bottom = bottom
+        barsBackground.invalidateSelf()
         webView.setBackgroundColor(color)
 
         val mask = WindowInsetsController.APPEARANCE_TRANSPARENT_CAPTION_BAR_BACKGROUND or
@@ -264,8 +296,8 @@ class MainActivity : AppCompatActivity() {
             if (dark) 0 else WindowInsetsController.APPEARANCE_LIGHT_CAPTION_BARS
         window.insetsController?.setSystemBarsAppearance(appearance, mask)
         WindowInsetsControllerCompat(window, root).apply {
-            isAppearanceLightStatusBars = !dark
-            isAppearanceLightNavigationBars = !dark
+            isAppearanceLightStatusBars = !isDark(top)
+            isAppearanceLightNavigationBars = !isDark(bottom)
         }
 
         setTaskDescription(
@@ -298,6 +330,7 @@ class MainActivity : AppCompatActivity() {
         if (WebApp.profile.nativeContextMenu) registerForContextMenu(webView)
         onBackPressedDispatcher.addCallback(this, backCallback)
         if (WebApp.profile.allowNotifications) NotificationBridge(this, controller).install(webView)
+        if (WebApp.profile.headerMode == HeaderMode.DYNAMIC) PageColors(controller, ::onPageColors).install(webView)
     }
 
     /** The only place WebView settings and the user agent are configured (R6.1). */

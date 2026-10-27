@@ -107,7 +107,7 @@ Do not implement: Play Store distribution, analytics, crash reporting, cloud syn
     - **Identity**: icon with its preview (opens R10), name, and the fixed app ID on the edit page.
     - **Website**: start URL, internal domains.
     - **Permissions**: microphone, camera, notifications.
-    - **Appearance**: header color (one value: "System" by default, which follows the system's light or dark surface color, or one fixed color), icon background (the site's brand color), icon glyph color (`#FFFFFF` by default).
+    - **Appearance**: Header color, one of System (the default: the system's surface color for the light or dark theme), Dynamic (the site's own colors, see R7.7) or Custom; Custom header (a color, greyed out unless Custom is chosen); Icon background color (the site's brand color); Icon glyph color (`#FFFFFF` by default).
     - **Browser**: user agent mode, keep alive when hidden, pause on power save, context menu.
     - **Window**: multi-window, default and minimum window size.
     - **Keyboard shortcuts**: one item per shortcut, and Add.
@@ -179,6 +179,7 @@ The template keeps every behavior of `docs/PROMPT.md` R2 to R8 (window, insets, 
   - The template build MUST keep these resource paths stable: disable resource path shortening, and verify it in a test (R8.5).
 - R7.5 Window and launch mode. The `<layout>` default and minimum sizes and the activity launch mode are manifest values the patcher rewrites (R8.2). The multi-instance property is present and its value patched.
 - R7.6 The template's package name is the placeholder `com.valghora.uniwrap.template`. Its namespace is `com.valghora.wrapper` (unchanged), so its classes keep their names in every web app.
+- R7.7 Header modes (`headerMode`). System: the window, caption bar and system bars use the system surface color for the current theme. Custom: they use `headerColor`. Dynamic: in windows without a caption bar (phones, full-screen tablets), a document-start script on the app's own domains samples the page background along its top and bottom edges after loading, scrolling, resizing and theme changes; the status bar takes the top color and the navigation bar the bottom color, each with readable icons. Desktop windows, and pages that haven't reported yet, use the system color. Profiles saved before header modes are upgraded on read (`"headerColor": "system"` becomes System, any other color Custom).
 
 ## R8 Building a web app (on the device)
 

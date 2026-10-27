@@ -52,7 +52,7 @@ class WebAppBuilderTest {
         ZipFile(template).use { zip ->
             WebAppBuilder.Paths.REQUIRED.forEach { assertTrue("$it missing from the template", zip.getEntry(it) != null) }
         }
-        assertEquals(1, WebAppBuilder.templateVersion(template))
+        assertEquals(2, WebAppBuilder.templateVersion(template))
     }
 
     @Test
@@ -62,7 +62,7 @@ class WebAppBuilderTest {
         assertEquals(WebAppBuilder.Stage.entries, stages)
         assertEquals("com.valghora.uniwrap.app.example", built.packageName)
         assertEquals(7, built.versionCode)
-        assertEquals("1.7", built.versionName)
+        assertEquals("2.7", built.versionName)
         assertEquals(key.fingerprint, built.signerFingerprint)
 
         val result = ApkVerifier.Builder(built.apk).build().verify()
@@ -71,7 +71,7 @@ class WebAppBuilderTest {
 
         val info = ManifestPatcher.read(TemplateFixture.entry(built.apk, WebAppBuilder.Paths.MANIFEST))
         assertEquals("Example", info.literalLabel)
-        assertEquals("1.7", info.versionName)
+        assertEquals("2.7", info.versionName)
         assertEquals(WindowLayout(1000, 700, 360, 480), info.window)
         assertEquals(LaunchMode.SINGLE_INSTANCE_PER_TASK.value, info.launchMode)
         assertEquals(true, info.multiInstance)
@@ -135,7 +135,7 @@ class WebAppBuilderTest {
     @Test
     fun aapt2BadgingShowsTheWebApp() {
         val badging = TemplateFixture.aapt2("dump", "badging", build().apk.path) ?: return
-        assertTrue(badging, badging.contains("package: name='com.valghora.uniwrap.app.example' versionCode='7' versionName='1.7'"))
+        assertTrue(badging, badging.contains("package: name='com.valghora.uniwrap.app.example' versionCode='7' versionName='2.7'"))
         assertTrue(badging, badging.contains("application-label:'Example'"))
         assertFalse(badging, badging.contains("android.permission.CAMERA"))
         assertTrue(badging, badging.contains("icon='res/mipmap-anydpi-v21/ic_launcher.xml'"))

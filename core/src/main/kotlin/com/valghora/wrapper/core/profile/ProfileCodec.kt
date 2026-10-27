@@ -2,6 +2,9 @@ package com.valghora.wrapper.core.profile
 
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonElement
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.JsonPrimitive
 
 class ProfileException(message: String, val errors: List<FieldError> = emptyList()) : Exception(message)
 
@@ -18,7 +21,7 @@ object ProfileCodec {
     /** Parses and validates; throws [ProfileException] describing every problem. */
     fun decode(text: String): Profile {
         val profile = try {
-            json.decodeFromString(Profile.serializer(), text)
+            json.decodeFromJsonElement(Profile.serializer(), upgrade(json.parseToJsonElement(text)))
         } catch (e: SerializationException) {
             throw ProfileException("invalid profile JSON: ${e.message}")
         } catch (e: IllegalArgumentException) {
@@ -35,4 +38,21 @@ object ProfileCodec {
     }
 
     fun encode(profile: Profile): String = json.encodeToString(Profile.serializer(), profile)
+
+    /**
+     * Profiles written before header modes had only `headerColor`: `"system"`, or a color that was
+     * always used. They get the matching `headerMode`; anything else is returned unchanged.
+     */
+    fun upgrade(element: JsonElement): JsonElement {
+        if (element !is JsonObject || "headerMode" in element) return element
+        val header = (element["headerColor"] as? JsonPrimitive)?.takeIf { it.isString }?.content ?: return element
+        val upgraded = element.toMutableMap()
+        if (header == Profile.SYSTEM) {
+            upgraded["headerMode"] = JsonPrimitive("system")
+            upgraded["headerColor"] = JsonPrimitive(Profile.DEFAULT_HEADER_COLOR)
+        } else {
+            upgraded["headerMode"] = JsonPrimitive("custom")
+        }
+        return JsonObject(upgraded)
+    }
 }

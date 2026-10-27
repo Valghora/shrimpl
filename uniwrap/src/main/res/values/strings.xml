@@ -75,7 +75,14 @@
     <string name="field_camera">Camera</string>
     <string name="field_notifications">Notifications</string>
     <string name="field_header_color">Header color</string>
-    <string name="field_icon_background">Icon background</string>
+    <string name="header_system">System</string>
+    <string name="header_dynamic">Dynamic</string>
+    <string name="header_custom">Custom</string>
+    <string name="header_system_detail">Matches system theme</string>
+    <string name="header_dynamic_detail">Detects site-specific color</string>
+    <string name="header_custom_detail">Uses user-defined color</string>
+    <string name="field_custom_header">Custom header</string>
+    <string name="field_icon_background">Icon background color</string>
     <string name="field_icon_foreground">Icon glyph color</string>
     <string name="field_auto">Automatic</string>
     <string name="field_user_agent">Browser identity</string>
@@ -165,7 +172,6 @@
     <!-- Settings items -->
     <string name="field_icon">App icon</string>
     <string name="field_app_id">App ID</string>
-    <string name="field_header_system">System (follows light and dark theme)</string>
     <string name="field_auto_contrast">Automatic (black or white)</string>
     <string name="section_browser">Browser</string>
     <string name="field_user_agent_detail">Which version of the site to ask for</string>

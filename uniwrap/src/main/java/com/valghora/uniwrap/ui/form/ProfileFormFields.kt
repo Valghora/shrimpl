@@ -56,6 +56,7 @@ import com.valghora.uniwrap.ui.common.TextValueItem
 import com.valghora.uniwrap.ui.icons.AdaptiveIcon
 import com.valghora.wrapper.core.Modifier as KeyModifier
 import com.valghora.wrapper.core.UaMode
+import com.valghora.wrapper.core.profile.HeaderMode
 import com.valghora.wrapper.core.profile.ProfileForm
 import com.valghora.wrapper.core.profile.ShortcutRow
 
@@ -175,9 +176,26 @@ private class Fields(
     @Composable
     fun Appearance() {
         SettingsSection(stringResource(R.string.section_appearance)) {
+            DropdownItem(
+                stringResource(R.string.field_header_color),
+                form.headerMode,
+                listOf(
+                    HeaderMode.SYSTEM to stringResource(R.string.header_system),
+                    HeaderMode.DYNAMIC to stringResource(R.string.header_dynamic),
+                    HeaderMode.CUSTOM to stringResource(R.string.header_custom),
+                ),
+                { onChange(form.copy(headerMode = it)) },
+                summary = stringResource(
+                    when (form.headerMode) {
+                        HeaderMode.SYSTEM -> R.string.header_system_detail
+                        HeaderMode.DYNAMIC -> R.string.header_dynamic_detail
+                        HeaderMode.CUSTOM -> R.string.header_custom_detail
+                    },
+                ),
+            )
             ColorItem(
-                stringResource(R.string.field_header_color), form.headerColor, { onChange(form.copy(headerColor = it)) }, error("headerColor"),
-                emptyLabel = stringResource(R.string.field_header_system),
+                stringResource(R.string.field_custom_header), form.headerColor, { onChange(form.copy(headerColor = it)) }, error("headerColor"),
+                enabled = form.headerMode == HeaderMode.CUSTOM,
             )
             ColorItem(
                 stringResource(R.string.field_icon_background), form.iconBackground, { onChange(form.copy(iconBackground = it)) },
@@ -290,13 +308,22 @@ private fun swatch(hex: String): Color? = runCatching { Color(ProfileForm.color(
 
 /** A color shown as a swatch; tapping edits it. [emptyLabel] names what an empty value means. */
 @Composable
-private fun ColorItem(title: String, value: String, onChange: (String) -> Unit, error: String?, hint: String? = null, emptyLabel: String? = null) {
+private fun ColorItem(
+    title: String,
+    value: String,
+    onChange: (String) -> Unit,
+    error: String?,
+    hint: String? = null,
+    emptyLabel: String? = null,
+    enabled: Boolean = true,
+) {
     var editing by remember { mutableStateOf(false) }
     SettingsItem(
         title = title,
         summary = if (value.isEmpty()) emptyLabel else ProfileForm.color(value),
         error = error,
         hint = hint,
+        enabled = enabled,
         onClick = { editing = true },
         trailing = { if (value.isNotEmpty()) ColorSwatch(swatch(value)) },
     )
