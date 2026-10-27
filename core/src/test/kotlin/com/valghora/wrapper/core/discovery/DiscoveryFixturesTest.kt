@@ -68,7 +68,7 @@ class DiscoveryFixturesTest {
         mapOf(
             "APP_NAME" to draft.name, "START_URL" to draft.startUrl, "INTERNAL_DOMAINS" to draft.internalDomains,
             "ICON_BACKGROUND_HEX" to draft.iconBackground, "ALLOW_MICROPHONE" to draft.allowMicrophone,
-            "ALLOW_CAMERA" to draft.allowCamera, "ALLOW_NOTIFICATIONS" to draft.allowNotifications,
+            "ALLOW_CAMERA" to draft.allowCamera, "ALLOW_NOTIFICATIONS" to draft.allowNotifications, "ALLOW_LOCATION" to draft.allowLocation,
         ).forEach { (key, field) ->
             val want = fields.getValue(key).jsonObject
             assertEquals("$name $key value", plain(want.getValue("value")), field.value)

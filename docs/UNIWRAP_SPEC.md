@@ -106,7 +106,7 @@ Do not implement: Play Store distribution, analytics, crash reporting, cloud syn
   - Laid out like the system settings: titled sections of rounded tonal items, each showing its value (a summary, a switch, a menu value or a color swatch); text, color, domain, window-size and shortcut values open a dialog. Nothing is collapsed.
     - **Identity**: icon with its preview (opens R10), name, and the fixed app ID on the edit page.
     - **Website**: start URL, internal domains.
-    - **Permissions**: microphone, camera, notifications.
+    - **Permissions**: microphone, camera, notifications, location (off by default; suggested when page scripts call `navigator.geolocation` or the Permissions-Policy allows it).
     - **Appearance**: Header color, one of System (the default: the system's surface color for the light or dark theme), Dynamic (the site's own colors, see R7.7) or Custom; Custom header color (greyed out unless Custom is chosen); Icon background color (the site's brand color); Icon glyph color (`#FFFFFF` by default).
     - **Behavior**: user agent mode, keep alive when hidden, pause on power save, context menu.
     - **Window**: Allow multiple windows (off by default), default and minimum window size.

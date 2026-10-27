@@ -21,6 +21,7 @@ data class Draft(
     val allowMicrophone: Field<Boolean>,
     val allowCamera: Field<Boolean>,
     val allowNotifications: Field<Boolean>,
+    val allowLocation: Field<Boolean>,
     val icon: IconChoice,
     val notes: List<Note>,
 ) {
@@ -34,6 +35,7 @@ data class Draft(
         allowMicrophone = allowMicrophone.value,
         allowCamera = allowCamera.value,
         allowNotifications = allowNotifications.value,
+        allowLocation = allowLocation.value,
     )
 }
 
@@ -225,6 +227,11 @@ object Discovery {
         )
         val notifies = signals["notificationPermission"] == true || signals["showNotification"] == true || signals["pushManager"] == true
         val notifications = Field(notifies, "Notification/showNotification/Push in page scripts", Confidence.MEDIUM)
+        val location = Field(
+            signals["geolocation"] == true || policyAllows("geolocation"),
+            "navigator.geolocation in page scripts or Permissions-Policy",
+            Confidence.LOW,
+        )
 
         // ----- WebView compatibility -----
         val webview = evidence.webview
@@ -255,6 +262,7 @@ object Discovery {
             allowMicrophone = microphone,
             allowCamera = camera,
             allowNotifications = notifications,
+            allowLocation = location,
             icon = icon,
             notes = notes,
         )

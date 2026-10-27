@@ -74,6 +74,7 @@
     <string name="field_microphone">Microphone</string>
     <string name="field_camera">Camera</string>
     <string name="field_notifications">Notifications</string>
+    <string name="field_location">Location</string>
     <string name="field_header_color">Header color</string>
     <string name="header_system">System</string>
     <string name="header_dynamic">Dynamic</string>

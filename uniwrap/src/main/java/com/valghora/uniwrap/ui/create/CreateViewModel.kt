@@ -139,6 +139,7 @@ class CreateViewModel(private val container: AppContainer) : ViewModel() {
             hint("allowMicrophone", found.allowMicrophone)
             hint("allowCamera", found.allowCamera)
             hint("allowNotifications", found.allowNotifications)
+            hint("allowLocation", found.allowLocation)
         }
         notes = found.notes.map(Notice::of)
         val (icon, image) = IconRecord.from(found.icon)

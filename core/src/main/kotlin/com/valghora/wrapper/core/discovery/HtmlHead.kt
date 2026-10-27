@@ -88,6 +88,7 @@ object ScriptSignals {
         "pushManager" to Regex("pushManager\\.subscribe"),
         "serviceWorker" to Regex("serviceWorker\\.register\\s*\\("),
         "webRtc" to Regex("RTCPeerConnection"),
+        "geolocation" to Regex("geolocation\\.(getCurrentPosition|watchPosition)"),
     )
 
     /** Names of the signals [script] contains. */

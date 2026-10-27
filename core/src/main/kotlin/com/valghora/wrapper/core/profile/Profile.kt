@@ -39,6 +39,8 @@ data class Profile(
     val allowMicrophone: Boolean = false,
     val allowCamera: Boolean = false,
     val allowNotifications: Boolean = true,
+    /** The page may ask for the device's location (precise or approximate, as the user allows). */
+    val allowLocation: Boolean = false,
     val allowProtectedMedia: Boolean = false,
     val enableMultiWindow: Boolean = false,
     val keepAliveWhenHidden: Boolean = true,

@@ -80,6 +80,10 @@ object WebAppBuilder {
             features += setOf("android.hardware.camera", "android.hardware.camera.autofocus")
         }
         if (!profile.allowNotifications) permissions += "android.permission.POST_NOTIFICATIONS"
+        if (!profile.allowLocation) {
+            permissions += setOf("android.permission.ACCESS_FINE_LOCATION", "android.permission.ACCESS_COARSE_LOCATION")
+            features += setOf("android.hardware.location", "android.hardware.location.gps")
+        }
         return permissions to features
     }
 

@@ -264,7 +264,7 @@ class DiscoveryRulesTest {
             themeColors = listOf(ThemeColor("#ffffff"), ThemeColor("#000000", "(prefers-color-scheme: dark)")),
         )
         val evidence = Evidence(visit(page) {
-            copy(signals = mapOf("webRtc" to true, "pushManager" to true), headers = mapOf("permissions-policy" to "camera=(self), microphone=()"))
+            copy(signals = mapOf("webRtc" to true, "pushManager" to true, "geolocation" to true), headers = mapOf("permissions-policy" to "camera=(self), microphone=()"))
         })
         val draft = draft(evidence)
         assertEquals(Field("Example Mail", "og:site_name meta", Confidence.MEDIUM), draft.name)
@@ -273,6 +273,8 @@ class DiscoveryRulesTest {
         assertTrue(draft.allowMicrophone.value)
         assertTrue(draft.allowCamera.value)
         assertTrue(draft.allowNotifications.value)
+        assertTrue(draft.allowLocation.value)
+        assertTrue(draft.toProfile().allowLocation)
         assertEquals(IconChoice.Letter('E', "no usable brand icon found", Confidence.LOW), draft.icon)
         assertEquals("examplemail", draft.appId)
         assertEquals(emptyList<Any>(), ProfileValidator.validate(draft.toProfile()))
@@ -399,6 +401,7 @@ class DiscoveryRulesTest {
     fun scriptSignals() {
         assertEquals(setOf("getUserMedia", "webRtc"), ScriptSignals.scan("navigator.mediaDevices.getUserMedia ({}); new RTCPeerConnection()"))
         assertEquals(setOf("notificationPermission", "pushManager"), ScriptSignals.scan("Notification.permission; reg.pushManager.subscribe()"))
+        assertEquals(setOf("geolocation"), ScriptSignals.scan("navigator.geolocation.watchPosition(onMove)"))
         assertEquals(emptySet<String>(), ScriptSignals.scan("console.log(1)"))
     }
 }

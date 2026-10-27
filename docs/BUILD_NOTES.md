@@ -410,3 +410,9 @@ Changes after the first device test on Googlebook OS:
 - `uniwrap.templateVersion` is 2, so web apps built with template 1 show "Update available".
 - Form: Header color is a three-option menu with per-option descriptions. Custom header color is a color
   item enabled only for Custom. "Icon background" is now "Icon background color".
+- Location permission: `Profile.allowLocation` (off by default). The template declares
+  `ACCESS_FINE_LOCATION`/`ACCESS_COARSE_LOCATION` and the location features (not required), and the
+  builder strips them when location is off. With it on, a page's geolocation request from an internal
+  domain asks for Android's location permission (precise or approximate) and is answered with the
+  result. Discovery suggests it (low confidence) when page scripts call `geolocation.getCurrentPosition`
+  or `watchPosition`, or the Permissions-Policy allows geolocation.

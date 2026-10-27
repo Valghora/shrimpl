@@ -113,6 +113,14 @@ class WebAppBuilderTest {
     }
 
     @Test
+    fun keepsLocationWhenAllowed() {
+        val apk = build(WebAppSpec(profile.copy(allowLocation = true), 1)).apk
+        val info = ManifestPatcher.read(TemplateFixture.entry(apk, WebAppBuilder.Paths.MANIFEST))
+        assertTrue(info.permissions.containsAll(listOf("android.permission.ACCESS_FINE_LOCATION", "android.permission.ACCESS_COARSE_LOCATION")))
+        assertTrue("android.hardware.location.gps" in info.features)
+    }
+
+    @Test
     fun removesDisabledCapabilities() {
         val apk = build(WebAppSpec(profile.copy(allowNotifications = false, enableMultiWindow = false), 1)).apk
         val info = ManifestPatcher.read(TemplateFixture.entry(apk, WebAppBuilder.Paths.MANIFEST))

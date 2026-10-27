@@ -38,6 +38,11 @@
       "value": false,
       "source": "Notification/showNotification/Push in page scripts",
       "confidence": "medium"
+    },
+    "ALLOW_LOCATION": {
+      "value": false,
+      "source": "navigator.geolocation in page scripts or Permissions-Policy",
+      "confidence": "low"
     }
   },
   "icon": {

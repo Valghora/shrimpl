@@ -170,6 +170,7 @@ private class Fields(
             SwitchItem(stringResource(R.string.field_microphone), form.allowMicrophone, { onChange(form.copy(allowMicrophone = it)) }, hint = hints["allowMicrophone"])
             SwitchItem(stringResource(R.string.field_camera), form.allowCamera, { onChange(form.copy(allowCamera = it)) }, hint = hints["allowCamera"])
             SwitchItem(stringResource(R.string.field_notifications), form.allowNotifications, { onChange(form.copy(allowNotifications = it)) }, hint = hints["allowNotifications"])
+            SwitchItem(stringResource(R.string.field_location), form.allowLocation, { onChange(form.copy(allowLocation = it)) }, hint = hints["allowLocation"])
         }
     }
 

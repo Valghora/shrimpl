@@ -30,6 +30,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.view.WindowInsetsController
 import android.webkit.CookieManager
+import android.webkit.GeolocationPermissions
 import android.webkit.PermissionRequest
 import android.webkit.RenderProcessGoneDetail
 import android.webkit.URLUtil
@@ -126,6 +127,17 @@ class MainActivity : AppCompatActivity() {
             val request = pendingPermissionRequest ?: return@registerForActivityResult
             pendingPermissionRequest = null
             grantPermittedResources(request, pendingPermissionResources)
+        }
+
+    /** A page's location request waiting for Android's location permission prompt. */
+    private var pendingGeolocation: Pair<String, GeolocationPermissions.Callback>? = null
+
+    private val locationPermissionLauncher =
+        registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) {
+            val (origin, callback) = pendingGeolocation ?: return@registerForActivityResult
+            pendingGeolocation = null
+            // Precise or approximate, whichever the user allowed.
+            callback.invoke(origin, hasLocationPermission(), false)
         }
 
     private val notificationPermissionLauncher =
@@ -657,6 +669,24 @@ class MainActivity : AppCompatActivity() {
             if (pendingPermissionRequest == request) pendingPermissionRequest = null
         }
 
+        override fun onGeolocationPermissionsShowPrompt(origin: String, callback: GeolocationPermissions.Callback) {
+            if (!WebApp.profile.allowLocation || controller.classify(origin) != UrlClass.INTERNAL) {
+                callback.invoke(origin, false, false)
+                return
+            }
+            if (hasLocationPermission()) {
+                callback.invoke(origin, true, false)
+                return
+            }
+            pendingGeolocation?.let { (previous, previousCallback) -> previousCallback.invoke(previous, false, false) }
+            pendingGeolocation = origin to callback
+            locationPermissionLauncher.launch(arrayOf(Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION))
+        }
+
+        override fun onGeolocationPermissionsHidePrompt() {
+            pendingGeolocation = null
+        }
+
         override fun onShowFileChooser(
             webView: WebView,
             filePathCallback: ValueCallback<Array<Uri>>,
@@ -684,6 +714,9 @@ class MainActivity : AppCompatActivity() {
         PermissionRequest.RESOURCE_VIDEO_CAPTURE -> Manifest.permission.CAMERA
         else -> null
     }
+
+    private fun hasLocationPermission(): Boolean =
+        isGranted(Manifest.permission.ACCESS_FINE_LOCATION) || isGranted(Manifest.permission.ACCESS_COARSE_LOCATION)
 
     private fun isGranted(permission: String): Boolean =
         ContextCompat.checkSelfPermission(this, permission) == PackageManager.PERMISSION_GRANTED
