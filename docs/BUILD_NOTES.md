@@ -416,3 +416,9 @@ Changes after the first device test on Googlebook OS:
   domain asks for Android's location permission (precise or approximate) and is answered with the
   result. Discovery suggests it (low confidence) when page scripts call `geolocation.getCurrentPosition`
   or `watchPosition`, or the Permissions-Policy allows geolocation.
+- Dynamic header, after device testing: opening and closing a drawer made the bars flash. The script
+  now skips overlays (dialogs, `aria-modal`, fixed panels narrower than 90% of the window) and
+  colors below 94% opacity (scrims). It re-samples only on loads (plus 1 s and 3 s later), history
+  navigation, resizing, and class/style/theme changes on `<html>`/`<body>`, not on every DOM change or
+  scroll. The bars cross-fade over 250 ms. Checked in Chromium on a page with a drawer, a scrim and a
+  bottom sheet: the colors stay put, and a real theme change is still reported.

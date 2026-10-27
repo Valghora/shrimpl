@@ -2,6 +2,8 @@ package com.valghora.wrapper
 
 import android.Manifest
 import android.annotation.SuppressLint
+import android.animation.ArgbEvaluator
+import android.animation.ValueAnimator
 import android.app.ActivityManager
 import android.app.Dialog
 import android.app.DownloadManager
@@ -47,6 +49,7 @@ import androidx.activity.SystemBarStyle
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.animation.addListener
 import androidx.core.content.ContextCompat
 import androidx.core.content.pm.ShortcutInfoCompat
 import androidx.core.content.pm.ShortcutManagerCompat
@@ -95,6 +98,9 @@ class MainActivity : AppCompatActivity() {
 
     /** The page's top and bottom edge colors, once the Dynamic header's script reported them. */
     private var pageColors: Pair<Int, Int>? = null
+
+    /** Cross-fades the bars to new page colors. */
+    private var barsAnimator: ValueAnimator? = null
     private val popups = mutableListOf<Popup>()
 
     private var originalUaMetadata: UserAgentMetadata? = null
@@ -279,14 +285,44 @@ class MainActivity : AppCompatActivity() {
 
     private fun barStyle(color: Int) = if (isDark(color)) SystemBarStyle.dark(TRANSPARENT) else SystemBarStyle.light(TRANSPARENT, TRANSPARENT)
 
-    /** Dynamic header: the page's edge colors arrived or changed. */
+    /** Dynamic header: the page's edge colors arrived or changed; the bars fade to them. */
     private fun onPageColors(top: Int, bottom: Int) {
         if (pageColors == top to bottom) return
         pageColors = top to bottom
-        if (!hasCaptionBar) applyHeaderColors()
+        if (!hasCaptionBar) fadeBarsTo(top, bottom)
+    }
+
+    private fun fadeBarsTo(top: Int, bottom: Int) {
+        val fromTop = barsBackground.top
+        val fromBottom = barsBackground.bottom
+        barsAnimator?.let {
+            barsAnimator = null
+            it.cancel()
+        }
+        val evaluator = ArgbEvaluator()
+        barsAnimator = ValueAnimator.ofFloat(0f, 1f).apply {
+            duration = BAR_FADE_MS
+            addUpdateListener { animation ->
+                barsBackground.top = evaluator.evaluate(animation.animatedFraction, fromTop, top) as Int
+                barsBackground.bottom = evaluator.evaluate(animation.animatedFraction, fromBottom, bottom) as Int
+                barsBackground.invalidateSelf()
+            }
+            // At the end, the final colors and the bar icon styles are applied.
+            addListener(onEnd = { animation ->
+                if (barsAnimator === animation) {
+                    barsAnimator = null
+                    applyHeaderColors()
+                }
+            })
+            start()
+        }
     }
 
     private fun applyHeaderColors() {
+        barsAnimator?.let {
+            barsAnimator = null
+            it.cancel()
+        }
         val color = currentHeaderColor()
         val dark = isDark(color)
         // Dynamic, without a caption bar (phones, full-screen tablets): the status bar takes the page's
@@ -964,6 +1000,7 @@ class MainActivity : AppCompatActivity() {
     private companion object {
         const val MATCH_PARENT = ViewGroup.LayoutParams.MATCH_PARENT
         const val TRANSPARENT = android.graphics.Color.TRANSPARENT
+        const val BAR_FADE_MS = 250L
         const val STATE_WEBVIEW = "webview_state"
         const val SHORTCUT_TOGGLE_UA = "toggle_ua"
         const val EXTRA_TOGGLE_UA = "toggle_ua"

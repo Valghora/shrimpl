@@ -42,9 +42,12 @@ class PageColors(private val controller: DesktopSessionController, private val o
     private companion object {
         val MESSAGE = Regex("(#[0-9A-F]{6}),(#[0-9A-F]{6})")
 
-        // Samples three points along each edge and keeps the most common background, walking up to the
-        // first ancestor with an opaque one. Computed colors may be oklab() and the like; painting one
-        // pixel yields plain sRGB. Reports at most every 200 ms, and only changes.
+        // Samples three points along each edge and keeps the most common color: the topmost opaque
+        // background at each point that isn't part of an overlay (a dialog, or a fixed panel narrower
+        // than the window such as a drawer), so opening a drawer or its see-through scrim doesn't change
+        // the bars. Computed colors may be oklab() and the like; painting one pixel yields plain sRGB.
+        // Re-samples only on page loads (and twice after, for apps that render late), in-app
+        // navigation, resizing, and theme changes on <html> or <body>; reports only changes.
         val SCRIPT = """
             (() => {
               if (window.top !== window || window.__uniwrapPageColors || !window.AndroidPageColors) return;
@@ -52,26 +55,33 @@ class PageColors(private val controller: DesktopSessionController, private val o
               const canvas = document.createElement('canvas');
               canvas.width = canvas.height = 1;
               const ctx = canvas.getContext('2d', { willReadFrequently: true });
-              const hex = (color) => {
+              const opaque = (color) => {
                 ctx.clearRect(0, 0, 1, 1);
                 ctx.fillStyle = '#000';
                 ctx.fillStyle = color;
                 ctx.fillRect(0, 0, 1, 1);
                 const [r, g, b, a] = ctx.getImageData(0, 0, 1, 1).data;
-                return a < 128 ? null : '#' + [r, g, b].map((v) => v.toString(16).padStart(2, '0')).join('').toUpperCase();
+                return a < 240 ? null : '#' + [r, g, b].map((v) => v.toString(16).padStart(2, '0')).join('').toUpperCase();
               };
-              const background = (el) => {
-                for (; el; el = el.parentElement) {
-                  const color = hex(getComputedStyle(el).backgroundColor);
+              const overlay = (el) => {
+                for (; el && el !== document.body; el = el.parentElement) {
+                  if (el.matches('dialog[open], [role="dialog"], [role="alertdialog"], [aria-modal="true"]')) return true;
+                  if (getComputedStyle(el).position === 'fixed' && el.getBoundingClientRect().width < innerWidth * 0.9) return true;
+                }
+                return false;
+              };
+              const at = (x, y) => {
+                for (const el of document.elementsFromPoint(x, y)) {
+                  if (overlay(el)) continue;
+                  const color = opaque(getComputedStyle(el).backgroundColor);
                   if (color) return color;
                 }
-                return hex(getComputedStyle(document.body || document.documentElement).backgroundColor) ||
-                  hex(getComputedStyle(document.documentElement).backgroundColor) || '#FFFFFF';
+                return opaque(getComputedStyle(document.documentElement).backgroundColor) || '#FFFFFF';
               };
               const sample = (y) => {
                 const counts = {};
                 for (const fx of [0.1, 0.5, 0.9]) {
-                  const color = background(document.elementFromPoint(Math.floor(innerWidth * fx), y));
+                  const color = at(Math.floor(innerWidth * fx), y);
                   counts[color] = (counts[color] || 0) + 1;
                 }
                 return Object.entries(counts).sort((a, b) => b[1] - a[1])[0][0];
@@ -85,20 +95,34 @@ class PageColors(private val controller: DesktopSessionController, private val o
                   AndroidPageColors.postMessage(colors);
                 }
               };
-              let pending = false;
-              const schedule = () => {
-                if (pending) return;
-                pending = true;
-                setTimeout(() => { pending = false; requestAnimationFrame(report); }, 200);
+              let timer = 0;
+              const schedule = (delay = 300) => {
+                clearTimeout(timer);
+                timer = setTimeout(() => requestAnimationFrame(report), delay);
               };
-              addEventListener('DOMContentLoaded', schedule);
-              addEventListener('load', schedule);
-              addEventListener('resize', schedule);
-              addEventListener('scroll', schedule, { passive: true, capture: true });
-              matchMedia('(prefers-color-scheme: dark)').addEventListener('change', schedule);
-              new MutationObserver(schedule).observe(document, {
-                subtree: true, childList: true, attributes: true, attributeFilter: ['class', 'style'],
-              });
+              const settle = () => { schedule(); setTimeout(() => schedule(), 1000); setTimeout(() => schedule(), 3000); };
+              addEventListener('DOMContentLoaded', () => schedule());
+              addEventListener('load', settle);
+              addEventListener('pageshow', () => schedule());
+              addEventListener('resize', () => schedule());
+              addEventListener('popstate', settle);
+              addEventListener('hashchange', settle);
+              for (const name of ['pushState', 'replaceState']) {
+                const original = history[name];
+                history[name] = function (...args) {
+                  const result = original.apply(this, args);
+                  settle();
+                  return result;
+                };
+              }
+              matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => schedule());
+              const themeObserver = new MutationObserver(() => schedule());
+              const watch = () => {
+                const options = { attributes: true, attributeFilter: ['class', 'style', 'data-theme', 'data-color-mode'] };
+                themeObserver.observe(document.documentElement, options);
+                if (document.body) themeObserver.observe(document.body, options);
+              };
+              if (document.body) watch(); else addEventListener('DOMContentLoaded', watch);
             })();
         """.trimIndent()
     }
