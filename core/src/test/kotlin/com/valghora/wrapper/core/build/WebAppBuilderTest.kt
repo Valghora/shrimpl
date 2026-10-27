@@ -29,6 +29,7 @@ class WebAppBuilderTest {
         internalDomains = listOf("example.com"),
         iconBackground = "#3367D6",
         headerColor = "#FFFFFF",
+        enableMultiWindow = true,
         defaultWindowDp = WindowSize(1000, 700),
         minWindowDp = WindowSize(360, 480),
     )

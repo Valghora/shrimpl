@@ -40,7 +40,7 @@ data class Profile(
     val allowCamera: Boolean = false,
     val allowNotifications: Boolean = true,
     val allowProtectedMedia: Boolean = false,
-    val enableMultiWindow: Boolean = true,
+    val enableMultiWindow: Boolean = false,
     val keepAliveWhenHidden: Boolean = true,
     val pauseOnPowerSave: Boolean = false,
     val nativeContextMenu: Boolean = true,

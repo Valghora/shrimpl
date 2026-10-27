@@ -216,6 +216,7 @@ class ProfileTest {
         val plain = Profile(name = "A", appId = "a", startUrl = "https://a.com/", internalDomains = listOf("a.com"), iconBackground = "#123456")
         assertEquals(HeaderMode.SYSTEM, plain.headerMode)
         assertEquals(Profile.DEFAULT_HEADER_COLOR, plain.headerColor)
+        assertFalse(plain.enableMultiWindow)
         assertEquals("#FFFFFF", plain.iconForeground)
     }
 

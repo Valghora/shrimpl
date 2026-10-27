@@ -109,7 +109,7 @@ Do not implement: Play Store distribution, analytics, crash reporting, cloud syn
     - **Permissions**: microphone, camera, notifications.
     - **Appearance**: Header color, one of System (the default: the system's surface color for the light or dark theme), Dynamic (the site's own colors, see R7.7) or Custom; Custom header color (greyed out unless Custom is chosen); Icon background color (the site's brand color); Icon glyph color (`#FFFFFF` by default).
     - **Browser**: user agent mode, keep alive when hidden, pause on power save, context menu.
-    - **Window**: multi-window, default and minimum window size.
+    - **Window**: Allow multiple windows (off by default), default and minimum window size.
     - **Keyboard shortcuts**: one item per shortcut, and Add.
   - Fields discovered with low or medium confidence show where the value came from.
   - Every field is editable and validated as the user types, using the core validator (R4.2).
