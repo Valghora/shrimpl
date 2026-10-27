@@ -173,7 +173,7 @@
     <string name="field_icon">App icon</string>
     <string name="field_app_id">App ID</string>
     <string name="field_auto_contrast">Automatic (black or white)</string>
-    <string name="section_browser">Browser</string>
+    <string name="section_browser">Behavior</string>
     <string name="field_user_agent_detail">Which version of the site to ask for</string>
     <string name="field_keep_alive_detail">Keeps calls and timers alive when the window is hidden</string>
     <string name="section_window">Window</string>
