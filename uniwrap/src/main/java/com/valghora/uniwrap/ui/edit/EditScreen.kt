@@ -15,7 +15,6 @@ import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
@@ -39,11 +38,13 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.window.core.layout.WindowSizeClass
 import com.valghora.uniwrap.R
 import com.valghora.uniwrap.container
 import com.valghora.uniwrap.data.InstalledApps
 import com.valghora.uniwrap.ui.common.BuildSheet
 import com.valghora.uniwrap.ui.common.Notice
+import com.valghora.uniwrap.ui.common.TooltipIconButton
 import com.valghora.uniwrap.ui.form.ProfileFormFields
 import com.valghora.uniwrap.ui.icons.IconEditor
 import com.valghora.uniwrap.ui.icons.rememberIconLayers
@@ -62,9 +63,9 @@ fun EditScreen(appId: String, showBack: Boolean, onBack: () -> Unit) {
     val buildState by model.build.state.collectAsStateWithLifecycle()
     val message by model.message.collectAsStateWithLifecycle()
     val offerRemove by model.offerRemove.collectAsStateWithLifecycle()
-    var editingIcon by rememberSaveable { mutableStateOf(false) }
+    val iconDraft by model.iconDraft.collectAsStateWithLifecycle()
     var confirmUninstall by rememberSaveable { mutableStateOf(false) }
-    var menu by remember { mutableStateOf(false) }
+    var menu by rememberSaveable { mutableStateOf(false) }
     val snackbar = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
     val invalidMessage = stringResource(R.string.create_fix_fields)
@@ -96,7 +97,7 @@ fun EditScreen(appId: String, showBack: Boolean, onBack: () -> Unit) {
                 title = { Text(current.profile.name) },
                 navigationIcon = {
                     if (showBack) {
-                        IconButton(onClick = onBack) {
+                        TooltipIconButton(stringResource(R.string.action_back), onBack) {
                             Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.action_back))
                         }
                     }
@@ -105,7 +106,7 @@ fun EditScreen(appId: String, showBack: Boolean, onBack: () -> Unit) {
                     if (installed == true) {
                         TextButton(onClick = { InstalledApps.open(context, current.packageName) }) { Text(stringResource(R.string.action_open)) }
                     }
-                    IconButton(onClick = { menu = true }) {
+                    TooltipIconButton(stringResource(R.string.action_more), { menu = true }) {
                         Icon(Icons.Filled.MoreVert, contentDescription = stringResource(R.string.action_more))
                     }
                     DropdownMenu(expanded = menu, onDismissRequest = { menu = false }) {
@@ -157,24 +158,22 @@ fun EditScreen(appId: String, showBack: Boolean, onBack: () -> Unit) {
                 notes = if (installed == false) listOf(Notice(Notice.Kind.INFO, stringResource(R.string.edit_not_installed))) else emptyList(),
                 iconLayers = layers,
                 iconOrigin = form.icon.origin,
-                onEditIcon = { editingIcon = true },
-                wide = maxWidth >= 840.dp,
+                onEditIcon = model::openIconEditor,
+                wide = maxWidth >= WindowSizeClass.WIDTH_DP_EXPANDED_LOWER_BOUND.dp,
                 appIdEditable = false,
             )
         }
     }
 
-    if (editingIcon) {
+    iconDraft?.let { selection ->
         IconEditor(
-            initial = form.iconSelection,
+            selection = selection,
+            onChange = model::changeIcon,
             appName = form.form.name,
             siteIcon = null,
             storedImage = storedImage,
-            onDone = {
-                model.setIcon(it)
-                editingIcon = false
-            },
-            onDismiss = { editingIcon = false },
+            onDone = { model.closeIconEditor(apply = true) },
+            onDismiss = { model.closeIconEditor(apply = false) },
         )
     }
     if (confirmUninstall) {

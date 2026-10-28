@@ -2,6 +2,9 @@ package com.valghora.uniwrap.ui.settings
 
 import android.content.ContentResolver
 import android.net.Uri
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.valghora.uniwrap.AppContainer
@@ -49,6 +52,29 @@ class SettingsViewModel(private val container: AppContainer) : ViewModel() {
     val pendingRestore: StateFlow<SigningKey?> = _pendingRestore.asStateFlow()
 
     val templateVersion: Int get() = container.template.version
+
+    // The password dialog's text and the password waiting for the export file picker. Held here, not
+    // in saved state, so they survive configuration changes but never reach disk.
+    var password by mutableStateOf("")
+    var passwordRepeat by mutableStateOf("")
+    private var exportPassword: CharArray? = null
+
+    fun clearPasswordDrafts() {
+        password = ""
+        passwordRepeat = ""
+    }
+
+    fun holdExportPassword(value: CharArray) {
+        exportPassword?.fill('\u0000')
+        exportPassword = value
+    }
+
+    /** The held export password, handed over once. */
+    fun takeExportPassword(): CharArray? = exportPassword.also { exportPassword = null }
+
+    override fun onCleared() {
+        exportPassword?.fill('\u0000')
+    }
 
     init {
         loadFingerprint()

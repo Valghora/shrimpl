@@ -15,7 +15,7 @@ import com.valghora.wrapper.core.UrlClass
 import com.valghora.wrapper.core.profile.allowedOriginRules
 
 /**
- * The page's colors along its top and bottom edges, for the Dynamic header (docs/UNIWRAP_SPEC.md R7):
+ * The page's colors along its top and bottom edges, for the Dynamic header (docs/TEMPLATE_SPEC.md T3.3):
  * a document-start script samples them after loading, scrolling, resizing and theme changes, and
  * posts them here; [onColors] gets them on the main thread whenever they change.
  */

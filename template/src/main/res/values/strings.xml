@@ -11,6 +11,7 @@
     <string name="shortcut_zoom_in">Zoom in</string>
     <string name="shortcut_zoom_out">Zoom out</string>
     <string name="shortcut_zoom_reset">Reset zoom</string>
+    <string name="shortcut_print">Print</string>
     <string name="shortcut_new_window">New window</string>
 
     <string name="shortcut_request_desktop">Desktop site</string>

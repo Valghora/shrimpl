@@ -12,7 +12,7 @@ class IconException(message: String, cause: Throwable? = null) : Exception(messa
 data class ViewBox(val minX: Double, val minY: Double, val width: Double, val height: Double)
 
 /**
- * A single-color glyph from an SVG (docs/UNIWRAP_SPEC.md R10; ported from generate_icons.py):
+ * A single-color glyph from an SVG (docs/UNIWRAP_SPEC.md R10):
  * its viewBox, its path data normalized for Android's PathParser, and its fill rule.
  */
 data class SvgGlyph(val viewBox: ViewBox, val pathData: String, val evenOdd: Boolean) {
@@ -94,7 +94,7 @@ data class SvgGlyph(val viewBox: ViewBox, val pathData: String, val evenOdd: Boo
 }
 
 /**
- * SVG path data rewritten so Android's PathParser reads it correctly (ported from generate_icons.py).
+ * SVG path data rewritten so Android's PathParser reads it correctly.
  * Minified path data trips PathParser: arc flags written without separators ("00-4.88") and chained
  * decimals ("-1.51.074") make it miscount parameters and silently draw nothing.
  */

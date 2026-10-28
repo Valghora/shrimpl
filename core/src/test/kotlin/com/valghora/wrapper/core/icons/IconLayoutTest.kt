@@ -11,7 +11,7 @@ import org.junit.Test
 class IconLayoutTest {
     @Test
     fun glyphFitMatchesTheOldGeneratorSpec() {
-        // generate_icons.py: a 24x24 viewBox in the 108-unit canvas got scale 2.25 and translate 27.
+        // A 24x24 viewBox in the 108-unit canvas gets scale 2.25 and translate 27.
         val units = IconLayout.fit(0.0, 0.0, 24.0, 24.0, 108, IconLayout.GLYPH_FRACTION)
         assertEquals(IconLayout.Fit(2.25, 27.0, 27.0), units)
         // The same at 432 px: 4x.

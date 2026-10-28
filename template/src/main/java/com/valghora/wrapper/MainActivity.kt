@@ -21,6 +21,8 @@ import android.os.Handler
 import android.os.Looper
 import android.os.Message
 import android.os.SystemClock
+import android.print.PrintAttributes
+import android.print.PrintManager
 import android.util.Log
 import android.view.ContextMenu
 import android.view.DragEvent
@@ -28,6 +30,7 @@ import android.view.KeyEvent
 import android.view.KeyboardShortcutGroup
 import android.view.KeyboardShortcutInfo
 import android.view.Menu
+import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
 import android.view.WindowInsetsController
@@ -118,6 +121,22 @@ class MainActivity : AppCompatActivity() {
     private val backCallback = object : OnBackPressedCallback(false) {
         override fun handleOnBackPressed() {
             webView.goBack()
+        }
+    }
+
+    // ---------- Full-screen video (docs/ADAPTIVE.md: desktop Request_Fullscreen_Mode, Keyboard_Exit) ----------
+
+    /** The page's full-screen element (a video, usually) while it is shown over the window. */
+    private var fullscreenView: View? = null
+    private var fullscreenCallback: WebChromeClient.CustomViewCallback? = null
+
+    /** The window itself was made full screen (it was a desktop or split-screen window). */
+    private var requestedFullscreenMode = false
+
+    /** Back leaves full screen first; it is added after [backCallback], so it takes precedence. */
+    private val fullscreenBackCallback = object : OnBackPressedCallback(false) {
+        override fun handleOnBackPressed() {
+            leaveFullscreen(notifyPage = true)
         }
     }
 
@@ -222,7 +241,7 @@ class MainActivity : AppCompatActivity() {
 
     override fun onStart() {
         super.onStart()
-        // R8.5: only when the page should not keep running while hidden. Never pauseTimers() here.
+        // T8.4: only when the page should not keep running while hidden. Never pauseTimers() here.
         if (!WebApp.profile.keepAliveWhenHidden && webViewAlive) webView.onResume()
     }
 
@@ -269,7 +288,7 @@ class MainActivity : AppCompatActivity() {
         webView.destroy()
     }
 
-    // ---------- Window, insets and theme (R3) ----------
+    // ---------- Window, insets and theme (docs/TEMPLATE_SPEC.md T3) ----------
 
     /**
      * The window and caption bar color: the custom color, else the system surface color for the
@@ -357,7 +376,7 @@ class MainActivity : AppCompatActivity() {
         )
     }
 
-    // ---------- WebView setup (R5, R6) ----------
+    // ---------- WebView setup (T5, T6) ----------
 
     private fun configureMainWebView() {
         applyWebSettings(webView, resolvedMode)
@@ -377,11 +396,23 @@ class MainActivity : AppCompatActivity() {
         }
         if (WebApp.profile.nativeContextMenu) registerForContextMenu(webView)
         onBackPressedDispatcher.addCallback(this, backCallback)
+        onBackPressedDispatcher.addCallback(this, fullscreenBackCallback)
+        // Ctrl + mouse wheel (or trackpad scroll) zooms like Ctrl +/- (Tier 2 Content_Zoom); pinch zoom
+        // is WebView's own.
+        webView.setOnGenericMotionListener { _, event ->
+            if (event.actionMasked != MotionEvent.ACTION_SCROLL || event.metaState and KeyEvent.META_CTRL_ON == 0) return@setOnGenericMotionListener false
+            val scroll = event.getAxisValue(MotionEvent.AXIS_VSCROLL)
+            when {
+                scroll > 0 -> webView.settings.textZoom = controller.zoomIn()
+                scroll < 0 -> webView.settings.textZoom = controller.zoomOut()
+            }
+            true
+        }
         if (WebApp.profile.allowNotifications) NotificationBridge(this, controller).install(webView)
         if (WebApp.profile.headerMode == HeaderMode.DYNAMIC) PageColors(controller, ::onPageColors).install(webView)
     }
 
-    /** The only place WebView settings and the user agent are configured (R6.1). */
+    /** The only place WebView settings and the user agent are configured (T6.1). */
     @SuppressLint("SetJavaScriptEnabled")
     private fun applyWebSettings(webView: WebView, mode: UaMode) {
         val settings = webView.settings
@@ -447,7 +478,7 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    // ---------- Navigation routing (R6.6, R6.10) ----------
+    // ---------- Navigation routing (T6.6, T6.10) ----------
 
     /** Returns true when the main-frame navigation is handled here instead of loading in place. */
     private fun routeMainFrame(url: String): Boolean {
@@ -544,7 +575,7 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    // ---------- Popups (R6.6) ----------
+    // ---------- Popups (T6.6) ----------
 
     private inner class Popup(private val isDialog: Boolean) {
         val view = WebView(this@MainActivity)
@@ -609,7 +640,7 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
-        /** Called from the popup's own WebView callbacks, so the teardown is posted (R6.6). */
+        /** Called from the popup's own WebView callbacks, so the teardown is posted (T6.6). */
         fun dismiss() {
             root.post {
                 val shown = dialog
@@ -649,7 +680,7 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    // ---------- Chrome client: popups, permissions, file chooser (R6.4–R6.6) ----------
+    // ---------- Chrome client: popups, permissions, file chooser (T6.4–T6.6) ----------
 
     private inner class AppChromeClient(private val popup: Popup?) : WebChromeClient() {
 
@@ -699,6 +730,14 @@ class MainActivity : AppCompatActivity() {
             pendingPermissionRequest = request
             pendingPermissionResources = allowed
             mediaPermissionLauncher.launch(missing.toTypedArray())
+        }
+
+        override fun onShowCustomView(view: View, callback: CustomViewCallback) {
+            enterFullscreen(view, callback)
+        }
+
+        override fun onHideCustomView() {
+            leaveFullscreen(notifyPage = false)
         }
 
         override fun onPermissionRequestCanceled(request: PermissionRequest) {
@@ -778,7 +817,7 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    // ---------- Downloads (R6.3) ----------
+    // ---------- Downloads (T6.3) ----------
 
     private fun enqueueDownload(url: String, userAgent: String, contentDisposition: String?, mimeType: String?) {
         if (!isHttpUrl(url)) {
@@ -802,7 +841,7 @@ class MainActivity : AppCompatActivity() {
         return scheme == "http" || scheme == "https"
     }
 
-    // ---------- Context menu (R5.5) ----------
+    // ---------- Context menu (T5.5) ----------
 
     override fun onCreateContextMenu(menu: ContextMenu, v: View, menuInfo: ContextMenu.ContextMenuInfo?) {
         super.onCreateContextMenu(menu, v, menuInfo)
@@ -857,9 +896,14 @@ class MainActivity : AppCompatActivity() {
         webView.requestFocusNodeHref(handler.obtainMessage())
     }
 
-    // ---------- Keyboard (R5.3, R5.4) ----------
+    // ---------- Keyboard (T5.3, T5.4) ----------
 
     override fun dispatchKeyEvent(event: KeyEvent): Boolean {
+        // Esc leaves full-screen video (Tier 2 Keyboard_Exit).
+        if (fullscreenView != null && event.keyCode == KeyEvent.KEYCODE_ESCAPE) {
+            if (event.action == KeyEvent.ACTION_UP) leaveFullscreen(notifyPage = true)
+            return true
+        }
         if (event.action == KeyEvent.ACTION_DOWN) {
             val action = controller.resolveKey(KeyEvent.keyCodeToString(event.keyCode), modifiersOf(event), event.repeatCount)
             if (action != KeyAction.NONE) {
@@ -880,8 +924,57 @@ class MainActivity : AppCompatActivity() {
                 Intent(this, MainActivity::class.java)
                     .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_MULTIPLE_TASK),
             )
+            KeyAction.PRINT -> printPage()
             KeyAction.NONE -> Unit
         }
+    }
+
+    /** Ctrl+P: the system print dialog for the page, which can also save it as a PDF (desktop Printing_Support). */
+    private fun printPage() {
+        val name = webView.title?.takeIf(String::isNotBlank) ?: WebApp.profile.name
+        getSystemService(PrintManager::class.java).print(name, webView.createPrintDocumentAdapter(name), PrintAttributes.Builder().build())
+    }
+
+    /**
+     * Shows the page's full-screen element over the whole window with the system bars hidden. A
+     * desktop or split-screen window first asks to become full screen itself, so the video isn't
+     * confined to the window (desktop Request_Fullscreen_Mode).
+     */
+    private fun enterFullscreen(view: View, callback: WebChromeClient.CustomViewCallback) {
+        if (fullscreenView != null) {
+            callback.onCustomViewHidden()
+            return
+        }
+        fullscreenView = view
+        fullscreenCallback = callback
+        view.setBackgroundColor(android.graphics.Color.BLACK)
+        (window.decorView as ViewGroup).addView(view, FrameLayout.LayoutParams(MATCH_PARENT, MATCH_PARENT))
+        WindowInsetsControllerCompat(window, view).apply {
+            systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+            hide(WindowInsetsCompat.Type.systemBars())
+        }
+        if (isInMultiWindowMode) {
+            requestFullscreenMode(FULLSCREEN_MODE_REQUEST_ENTER, null)
+            requestedFullscreenMode = true
+        }
+        fullscreenBackCallback.isEnabled = true
+    }
+
+    /** Restores the window; [notifyPage] when the user (Back, Esc) rather than the page ended full screen. */
+    private fun leaveFullscreen(notifyPage: Boolean) {
+        val view = fullscreenView ?: return
+        val callback = fullscreenCallback
+        fullscreenView = null
+        fullscreenCallback = null
+        fullscreenBackCallback.isEnabled = false
+        (window.decorView as ViewGroup).removeView(view)
+        WindowInsetsControllerCompat(window, root).show(WindowInsetsCompat.Type.systemBars())
+        if (requestedFullscreenMode) {
+            requestedFullscreenMode = false
+            requestFullscreenMode(FULLSCREEN_MODE_REQUEST_EXIT, null)
+        }
+        if (notifyPage) callback?.onCustomViewHidden()
+        webView.requestFocus()
     }
 
     private fun modifiersOf(event: KeyEvent): Set<Modifier> = buildSet {
@@ -904,6 +997,7 @@ class MainActivity : AppCompatActivity() {
                 KeyboardShortcutInfo(getString(R.string.shortcut_zoom_in), KeyEvent.KEYCODE_EQUALS, KeyEvent.META_CTRL_ON),
                 KeyboardShortcutInfo(getString(R.string.shortcut_zoom_out), KeyEvent.KEYCODE_MINUS, KeyEvent.META_CTRL_ON),
                 KeyboardShortcutInfo(getString(R.string.shortcut_zoom_reset), KeyEvent.KEYCODE_0, KeyEvent.META_CTRL_ON),
+                KeyboardShortcutInfo(getString(R.string.shortcut_print), KeyEvent.KEYCODE_P, KeyEvent.META_CTRL_ON),
             ) + newWindowShortcutInfo(),
         )
     }
@@ -929,7 +1023,7 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    // ---------- Desktop/mobile toggle (R6.11) ----------
+    // ---------- Desktop/mobile toggle (T6.11) ----------
 
     private val uaToggleEnabled: Boolean
         get() = WebApp.profile.uaUserToggle && WebApp.profile.uaFeaturesActive
@@ -972,7 +1066,7 @@ class MainActivity : AppCompatActivity() {
         return true
     }
 
-    // ---------- Power and visibility (R8.4) ----------
+    // ---------- Power and visibility (T8.3) ----------
 
     private fun onWakeEvent(event: WakeEvent) {
         if (!webViewAlive) return

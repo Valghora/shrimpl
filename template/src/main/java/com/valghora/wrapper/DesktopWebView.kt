@@ -5,7 +5,7 @@ import android.util.AttributeSet
 import android.webkit.WebView
 
 /**
- * WebView whose visibility follows the workspace wake state instead of the window (R8.2):
+ * WebView whose visibility follows the workspace wake state instead of the window (docs/TEMPLATE_SPEC.md T8.2):
  * asleep reports GONE so rendering stops; awake with KEEP_ALIVE_WHEN_HIDDEN reports VISIBLE
  * so the page keeps running while minimized or covered.
  */

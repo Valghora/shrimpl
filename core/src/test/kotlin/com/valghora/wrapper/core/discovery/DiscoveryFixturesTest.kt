@@ -17,8 +17,8 @@ import org.junit.Assert.assertEquals
 import org.junit.Test
 
 /**
- * Whole drafts for four real sites. The fixtures were recorded from the retired Python discovery (the
- * Phase 4 parity gate): the evidence its collector saw, every response it fetched, and its draft. The
+ * Whole drafts for four real sites. The fixtures were recorded from the original Python discovery tool,
+ * before it was replaced by these rules: the evidence its collector saw, every response it fetched, and its draft. The
  * expectations have since moved with the rules: brand colors for the icon background, simple-icons
  * looked up by name, and no header color.
  */

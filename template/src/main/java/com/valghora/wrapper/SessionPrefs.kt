@@ -6,7 +6,7 @@ import com.valghora.wrapper.core.UaMode
 import com.valghora.wrapper.core.UaStore
 import com.valghora.wrapper.core.ZoomStore
 
-/** ZoomStore and UaStore backed by one private SharedPreferences file (R6.1). */
+/** ZoomStore and UaStore backed by one private SharedPreferences file (docs/TEMPLATE_SPEC.md T6.1). */
 class SessionPrefs(context: Context) : ZoomStore, UaStore {
 
     private val prefs = context.getSharedPreferences("${WebApp.profile.appId}_session", Context.MODE_PRIVATE)

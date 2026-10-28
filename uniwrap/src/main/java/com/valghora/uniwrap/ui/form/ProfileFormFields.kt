@@ -21,7 +21,6 @@ import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.InputChip
 import androidx.compose.material3.InputChipDefaults
 import androidx.compose.material3.MaterialTheme
@@ -31,7 +30,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -49,10 +48,14 @@ import com.valghora.uniwrap.ui.common.DropdownItem
 import com.valghora.uniwrap.ui.common.NavigationItem
 import com.valghora.uniwrap.ui.common.Notice
 import com.valghora.uniwrap.ui.common.NoticeCard
+import com.valghora.uniwrap.ui.common.NoticeSetSaver
 import com.valghora.uniwrap.ui.common.SettingsItem
 import com.valghora.uniwrap.ui.common.SettingsSection
+import com.valghora.uniwrap.ui.common.ShortcutRowSaver
+import com.valghora.uniwrap.ui.common.StringListSaver
 import com.valghora.uniwrap.ui.common.SwitchItem
 import com.valghora.uniwrap.ui.common.TextValueItem
+import com.valghora.uniwrap.ui.common.TooltipIconButton
 import com.valghora.uniwrap.ui.icons.AdaptiveIcon
 import com.valghora.wrapper.core.Modifier as KeyModifier
 import com.valghora.wrapper.core.UaMode
@@ -115,7 +118,7 @@ fun ProfileFormFields(
 /** Discovery's notes as dismissible notifications; a dismissed note stays hidden while the page is open. */
 @Composable
 private fun Notes(notes: List<Notice>) {
-    var dismissed by remember(notes) { mutableStateOf(emptySet<Notice>()) }
+    var dismissed by rememberSaveable(notes, stateSaver = NoticeSetSaver) { mutableStateOf(emptySet<Notice>()) }
     notes.filter { it !in dismissed }.forEach { note ->
         NoticeCard(note, Modifier.padding(top = 12.dp), onDismiss = { dismissed = dismissed + note })
     }
@@ -143,7 +146,7 @@ private class Fields(
 
     @Composable
     fun Website() {
-        var editingDomains by remember { mutableStateOf(false) }
+        var editingDomains by rememberSaveable { mutableStateOf(false) }
         SettingsSection(stringResource(R.string.section_website)) {
             TextValueItem(
                 stringResource(R.string.field_start_url), form.startUrl, { onChange(form.copy(startUrl = it.trim())) },
@@ -237,7 +240,7 @@ private class Fields(
 
     @Composable
     fun Window() {
-        var editing by remember { mutableStateOf<Int?>(null) }
+        var editing by rememberSaveable { mutableStateOf<Int?>(null) }
         SettingsSection(stringResource(R.string.section_window)) {
             SwitchItem(stringResource(R.string.field_multi_window), form.enableMultiWindow, { onChange(form.copy(enableMultiWindow = it)) })
             NavigationItem(
@@ -266,7 +269,7 @@ private class Fields(
 
     @Composable
     fun Shortcuts() {
-        var editing by remember { mutableStateOf<Int?>(null) }
+        var editing by rememberSaveable { mutableStateOf<Int?>(null) }
         SettingsSection(stringResource(R.string.field_shortcuts)) {
             form.shortcuts.forEachIndexed { index, row ->
                 NavigationItem(
@@ -318,7 +321,7 @@ private fun ColorItem(
     emptyLabel: String? = null,
     enabled: Boolean = true,
 ) {
-    var editing by remember { mutableStateOf(false) }
+    var editing by rememberSaveable { mutableStateOf(false) }
     SettingsItem(
         title = title,
         summary = if (value.isEmpty()) emptyLabel else ProfileForm.color(value),
@@ -345,7 +348,7 @@ private val PRESETS = listOf(
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun ColorDialog(title: String, initial: String, emptyLabel: String?, onDone: (String) -> Unit, onDismiss: () -> Unit) {
-    var text by remember { mutableStateOf(initial) }
+    var text by rememberSaveable { mutableStateOf(initial) }
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text(title) },
@@ -383,8 +386,8 @@ private fun ColorDialog(title: String, initial: String, emptyLabel: String?, onD
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun DomainsDialog(initial: List<String>, onDone: (List<String>) -> Unit, onDismiss: () -> Unit) {
-    var domains by remember { mutableStateOf(initial) }
-    var adding by remember { mutableStateOf("") }
+    var domains by rememberSaveable(stateSaver = StringListSaver) { mutableStateOf(initial) }
+    var adding by rememberSaveable { mutableStateOf("") }
     fun add() {
         val value = adding.trim().lowercase().removePrefix("https://").removePrefix("http://").substringBefore('/')
         if (value.isNotEmpty() && value !in domains) domains = domains + value
@@ -419,7 +422,7 @@ private fun DomainsDialog(initial: List<String>, onDone: (List<String>) -> Unit,
                     singleLine = true,
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Uri, imeAction = ImeAction.Done),
                     keyboardActions = KeyboardActions(onDone = { add() }),
-                    trailingIcon = { IconButton(onClick = ::add) { Icon(Icons.Filled.Add, contentDescription = stringResource(R.string.action_add)) } },
+                    trailingIcon = { TooltipIconButton(stringResource(R.string.action_add), ::add) { Icon(Icons.Filled.Add, contentDescription = stringResource(R.string.action_add)) } },
                     modifier = Modifier.fillMaxWidth(),
                 )
             }
@@ -436,8 +439,8 @@ private fun DomainsDialog(initial: List<String>, onDone: (List<String>) -> Unit,
 
 @Composable
 private fun SizeDialog(title: String, width: String, height: String, onDone: (String, String) -> Unit, onDismiss: () -> Unit) {
-    var w by remember { mutableStateOf(width) }
-    var h by remember { mutableStateOf(height) }
+    var w by rememberSaveable { mutableStateOf(width) }
+    var h by rememberSaveable { mutableStateOf(height) }
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text(title) },
@@ -461,7 +464,7 @@ private fun SizeDialog(title: String, width: String, height: String, onDone: (St
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun ShortcutDialog(initial: ShortcutRow, isNew: Boolean, onDone: (ShortcutRow) -> Unit, onDelete: () -> Unit, onDismiss: () -> Unit) {
-    var row by remember { mutableStateOf(initial) }
+    var row by rememberSaveable(stateSaver = ShortcutRowSaver) { mutableStateOf(initial) }
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text(stringResource(if (isNew) R.string.action_add_shortcut else R.string.shortcut_edit_title)) },

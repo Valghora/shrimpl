@@ -24,7 +24,6 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
@@ -35,10 +34,12 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -64,6 +65,7 @@ import com.valghora.uniwrap.ui.common.NavigationItem
 import com.valghora.uniwrap.ui.common.SettingsItem
 import com.valghora.uniwrap.ui.common.SettingsSection
 import com.valghora.uniwrap.ui.common.Tone
+import com.valghora.uniwrap.ui.common.TooltipIconButton
 
 /** UniWrap's settings page (docs/UNIWRAP_SPEC.md R2.5). */
 @OptIn(ExperimentalMaterial3Api::class)
@@ -81,12 +83,10 @@ fun SettingsScreen(onBack: () -> Unit) {
     val snackbar = remember { SnackbarHostState() }
 
     // Export: password first, then where to save. Restore: the file first, then its password.
-    var exportPassword by remember { mutableStateOf<CharArray?>(null) }
-    var askExportPassword by remember { mutableStateOf(false) }
-    var restoreUri by remember { mutableStateOf<Uri?>(null) }
+    var askExportPassword by rememberSaveable { mutableStateOf(false) }
+    var restoreUri by rememberSaveable { mutableStateOf<Uri?>(null) }
     val createFile = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument(PKCS12_TYPE)) { uri ->
-        val password = exportPassword
-        exportPassword = null
+        val password = model.takeExportPassword()
         if (uri != null && password != null) model.export(context.contentResolver, uri, password) else password?.fill('\u0000')
     }
     val openFile = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri -> restoreUri = uri }
@@ -103,7 +103,7 @@ fun SettingsScreen(onBack: () -> Unit) {
             TopAppBar(
                 title = { Text(stringResource(R.string.settings_title)) },
                 navigationIcon = {
-                    IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.action_back)) }
+                    TooltipIconButton(stringResource(R.string.action_back), onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.action_back)) }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
             )
@@ -164,7 +164,7 @@ fun SettingsScreen(onBack: () -> Unit) {
                         summary = if (fingerprint == null) stringResource(R.string.signing_none) else null,
                         trailing = fingerprint?.let { value ->
                             {
-                                IconButton(onClick = { copyFingerprint(context, value) }) {
+                                TooltipIconButton(stringResource(R.string.action_copy_certificate), { copyFingerprint(context, value) }) {
                                     Icon(CopyIcon, contentDescription = stringResource(R.string.action_copy_certificate))
                                 }
                             }
@@ -187,12 +187,13 @@ fun SettingsScreen(onBack: () -> Unit) {
 
     if (askExportPassword) {
         PasswordDialog(
+            model = model,
             title = R.string.export_title,
             text = R.string.export_text,
             confirm = true,
             onDone = { password ->
                 askExportPassword = false
-                exportPassword = password
+                model.holdExportPassword(password)
                 createFile.launch("uniwrap-signing-key.p12")
             },
             onDismiss = { askExportPassword = false },
@@ -200,6 +201,7 @@ fun SettingsScreen(onBack: () -> Unit) {
     }
     restoreUri?.let { uri ->
         PasswordDialog(
+            model = model,
             title = R.string.restore_title,
             text = R.string.restore_text,
             confirm = false,
@@ -286,11 +288,16 @@ private fun methodDetail(method: InstallMethod) = when (method) {
     InstallMethod.ROOT -> R.string.install_root_detail
 }
 
-/** Asks for a backup password; with [confirm], twice. The array is the caller's to clear. */
+/**
+ * Asks for a certificate password; with [confirm], twice. The typed text lives in [model], so it
+ * survives rotation and resizing without being written to saved state. The array is the caller's
+ * to clear.
+ */
 @Composable
-private fun PasswordDialog(title: Int, text: Int, confirm: Boolean, onDone: (CharArray) -> Unit, onDismiss: () -> Unit) {
-    var password by remember { mutableStateOf("") }
-    var repeat by remember { mutableStateOf("") }
+private fun PasswordDialog(model: SettingsViewModel, title: Int, text: Int, confirm: Boolean, onDone: (CharArray) -> Unit, onDismiss: () -> Unit) {
+    val password = model.password
+    val repeat = model.passwordRepeat
+    DisposableEffect(Unit) { onDispose(model::clearPasswordDrafts) }
     val tooShort = password.length < SettingsViewModel.MIN_PASSWORD
     val mismatch = confirm && repeat != password
     AlertDialog(
@@ -301,7 +308,7 @@ private fun PasswordDialog(title: Int, text: Int, confirm: Boolean, onDone: (Cha
                 Text(stringResource(text))
                 OutlinedTextField(
                     value = password,
-                    onValueChange = { password = it },
+                    onValueChange = { model.password = it },
                     label = { Text(stringResource(R.string.field_password)) },
                     supportingText = if (confirm) ({ Text(pluralStringResource(R.plurals.password_min, SettingsViewModel.MIN_PASSWORD, SettingsViewModel.MIN_PASSWORD)) }) else null,
                     singleLine = true,
@@ -311,7 +318,7 @@ private fun PasswordDialog(title: Int, text: Int, confirm: Boolean, onDone: (Cha
                 if (confirm) {
                     OutlinedTextField(
                         value = repeat,
-                        onValueChange = { repeat = it },
+                        onValueChange = { model.passwordRepeat = it },
                         label = { Text(stringResource(R.string.field_password_repeat)) },
                         isError = repeat.isNotEmpty() && mismatch,
                         singleLine = true,

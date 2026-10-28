@@ -10,7 +10,7 @@ import java.net.URISyntaxException
 /** A problem with one profile field; [field] is the JSON key, so a form can show it next to the input. */
 data class FieldError(val field: String, val message: String)
 
-/** Checks a profile against the rules of the retired site_config.py (docs/UNIWRAP_SPEC.md R4.2). */
+/** Checks a profile field by field (docs/UNIWRAP_SPEC.md R4.2). */
 object ProfileValidator {
     private val HEX = Regex("^#[0-9A-Fa-f]{6}$")
     private val HOST = Regex("^[a-z0-9]([a-z0-9-]*[a-z0-9])?(\\.[a-z0-9]([a-z0-9-]*[a-z0-9])?)+$")

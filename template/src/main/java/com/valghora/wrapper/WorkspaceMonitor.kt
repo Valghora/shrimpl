@@ -13,7 +13,7 @@ import androidx.core.content.ContextCompat
 import com.valghora.wrapper.core.DesktopSessionController
 import com.valghora.wrapper.core.WakeEvent
 
-/** Watches screen, display and power-save state and reports SLEEP/WAKE transitions (R8.1, R8.3). */
+/** Watches screen, display and power-save state and reports SLEEP/WAKE transitions (docs/TEMPLATE_SPEC.md T8.1). */
 class WorkspaceMonitor(
     private val context: Context,
     private val controller: DesktopSessionController,

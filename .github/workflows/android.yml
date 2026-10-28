@@ -50,10 +50,12 @@ jobs:
           :template:testDebugUnitTest :template:lintRelease :template:assembleRelease
           :uniwrap:testDebugUnitTest :uniwrap:lintDebug :uniwrap:assembleDebug :uniwrap:assembleRelease
 
-      - name: Template has no native code
+      # R0: no APK may need a translation layer on ARM or x86 devices. The template (and so every web
+      # app built from it) has no native code; UniWrap's third-party libraries must cover all four ABIs.
+      - name: Architecture-neutral APKs
         run: |
-          apk=template/build/outputs/apk/release/template-release.apk
-          if unzip -l "$apk" | grep -qE '(^|/)lib/|\.so$'; then echo "::error::native code in $apk"; exit 1; fi
+          scripts/check_native_code.sh --none template/build/outputs/apk/release/template-release.apk
+          scripts/check_native_code.sh --all-abis uniwrap/build/outputs/apk/debug/uniwrap-debug.apk uniwrap/build/outputs/apk/release/uniwrap-release.apk
 
       - name: Upload template and UniWrap APKs
         uses: actions/upload-artifact@v7

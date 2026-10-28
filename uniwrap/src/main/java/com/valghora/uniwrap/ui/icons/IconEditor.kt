@@ -14,8 +14,10 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
@@ -31,7 +33,6 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
@@ -51,6 +52,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalContext
@@ -64,6 +66,8 @@ import com.valghora.uniwrap.container
 import com.valghora.uniwrap.icons.IconImages
 import com.valghora.uniwrap.icons.IconPack
 import com.valghora.uniwrap.icons.IconPacks
+import com.valghora.uniwrap.ui.common.TooltipIconButton
+import com.valghora.uniwrap.ui.common.isMediumWidth
 import com.valghora.wrapper.core.discovery.SimpleIcon
 import com.valghora.wrapper.core.records.IconRecord
 import kotlinx.coroutines.Dispatchers
@@ -81,21 +85,24 @@ private enum class Source(val label: Int) {
 /**
  * Picks a web app's icon (docs/UNIWRAP_SPEC.md R10): the site's own icon, a simple-icons glyph, a
  * letter, a photo, or an icon from an installed icon pack, with colors and a live mask preview.
+ * The selection in progress is held by the caller's ViewModel ([selection], [onChange]) so it
+ * survives rotation and resizing. Full screen on compact windows; a sized dialog on wider ones, so it
+ * doesn't cover the page behind it (Tier 2 UI_Secondary_Elements).
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun IconEditor(
-    initial: IconSelection,
+    selection: IconSelection,
+    onChange: (IconSelection) -> Unit,
     appName: String,
     siteIcon: IconSelection?,
     storedImage: (() -> ByteArray)?,
-    onDone: (IconSelection) -> Unit,
+    onDone: () -> Unit,
     onDismiss: () -> Unit,
 ) {
-    var selection by remember { mutableStateOf(initial) }
-    var source by remember {
+    var source by rememberSaveable {
         mutableStateOf(
-            when (initial.icon.kind) {
+            when (selection.icon.kind) {
                 IconRecord.Kind.GLYPH -> Source.BRAND
                 IconRecord.Kind.LETTER -> Source.LETTER
                 IconRecord.Kind.IMAGE -> if (siteIcon != null) Source.SITE else Source.PHOTO
@@ -103,16 +110,23 @@ fun IconEditor(
         )
     }
     val layers by rememberIconLayers(selection, appName, storedImage)
+    val sized = isMediumWidth()
 
     Dialog(onDismissRequest = onDismiss, properties = DialogProperties(usePlatformDefaultWidth = false)) {
         Scaffold(
+            modifier = if (sized) {
+                Modifier.widthIn(max = DIALOG_MAX_WIDTH).heightIn(max = DIALOG_MAX_HEIGHT).clip(RoundedCornerShape(28.dp))
+            } else {
+                Modifier
+            },
             topBar = {
                 TopAppBar(
                     title = { Text(stringResource(R.string.icon_editor_title)) },
                     navigationIcon = {
-                        IconButton(onClick = onDismiss) { Icon(Icons.Filled.Close, contentDescription = stringResource(R.string.action_close)) }
+                        val close = stringResource(R.string.action_close)
+                        TooltipIconButton(close, onDismiss) { Icon(Icons.Filled.Close, contentDescription = close) }
                     },
-                    actions = { TextButton(onClick = { onDone(selection) }) { Text(stringResource(R.string.action_done)) } },
+                    actions = { TextButton(onClick = onDone) { Text(stringResource(R.string.action_done)) } },
                 )
             },
         ) { padding ->
@@ -126,29 +140,31 @@ fun IconEditor(
                         FilterChip(selected = source == it, onClick = { source = it }, label = { Text(stringResource(it.label)) })
                     }
                 }
-                ColorFields(selection) { selection = it }
+                ColorFields(selection, onChange)
                 Box(Modifier.weight(1f)) {
                     when (source) {
                         Source.SITE -> siteIcon?.let { site ->
                             ListItem(
                                 headlineContent = { Text(stringResource(R.string.icon_use_site)) },
                                 supportingContent = { Text(site.icon.origin) },
-                                modifier = Modifier.clickable { selection = selection.copy(icon = site.icon, image = site.image) },
+                                modifier = Modifier.clickable { onChange(selection.copy(icon = site.icon, image = site.image)) },
                             )
                         }
                         Source.BRAND -> BrandPicker(appName) { icon ->
-                            selection = selection.copy(
-                                icon = IconRecord.glyph(icon.svg, "simple-icons '${icon.slug}'"),
-                                image = null,
-                                background = icon.color,
+                            onChange(
+                                selection.copy(
+                                    icon = IconRecord.glyph(icon.svg, "simple-icons '${icon.slug}'"),
+                                    image = null,
+                                    background = icon.color,
+                                ),
                             )
                         }
                         Source.LETTER -> LetterPicker(selection.icon.letter ?: WebAppLetter.of(appName)) { letter ->
-                            selection = selection.copy(icon = IconRecord.letter(letter), image = null)
+                            onChange(selection.copy(icon = IconRecord.letter(letter), image = null))
                         }
-                        Source.PHOTO -> PhotoPicker(selection) { selection = it }
+                        Source.PHOTO -> PhotoPicker(selection, onChange)
                         Source.PACK -> PackPicker(appName) { bytes, origin ->
-                            selection = selection.copy(icon = IconRecord.image(maskable = false, origin = origin), image = bytes)
+                            onChange(selection.copy(icon = IconRecord.image(maskable = false, origin = origin), image = bytes))
                         }
                     }
                 }
@@ -219,7 +235,7 @@ private fun BrandPicker(appName: String, onPick: (SimpleIcon) -> Unit) {
                 if (searching) {
                     CircularProgressIndicator(Modifier.size(24.dp))
                 } else {
-                    IconButton(onClick = ::search) { Icon(Icons.Filled.Search, contentDescription = stringResource(R.string.action_search)) }
+                    TooltipIconButton(stringResource(R.string.action_search), ::search) { Icon(Icons.Filled.Search, contentDescription = stringResource(R.string.action_search)) }
                 }
             },
             modifier = Modifier.fillMaxWidth(),
@@ -229,7 +245,7 @@ private fun BrandPicker(appName: String, onPick: (SimpleIcon) -> Unit) {
 
 @Composable
 private fun LetterPicker(current: String, onPick: (Char) -> Unit) {
-    var text by remember { mutableStateOf(current) }
+    var text by rememberSaveable { mutableStateOf(current) }
     OutlinedTextField(
         value = text,
         onValueChange = { value ->
@@ -282,14 +298,16 @@ private fun PackPicker(appName: String, onPick: (ByteArray, String) -> Unit) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val packs by produceState<List<IconPack>?>(null) { value = withContext(Dispatchers.IO) { IconPacks.installed(context) } }
-    var pack by remember { mutableStateOf<IconPack?>(null) }
-    var query by remember { mutableStateOf("") }
+    // Saved by package name: the pack list is read again after a configuration change.
+    var packName by rememberSaveable { mutableStateOf<String?>(null) }
+    var query by rememberSaveable { mutableStateOf("") }
     val list = packs
+    val pack = list?.firstOrNull { it.packageName == packName }
     when {
         list == null -> CircularProgressIndicator()
         list.isEmpty() -> Text(stringResource(R.string.icon_no_packs))
         pack == null -> Column {
-            list.forEach { p -> ListItem(headlineContent = { Text(p.label) }, modifier = Modifier.clickable { pack = p }) }
+            list.forEach { p -> ListItem(headlineContent = { Text(p.label) }, modifier = Modifier.clickable { packName = p.packageName }) }
         }
         else -> {
             val chosen = requireNotNull(pack)
@@ -298,7 +316,7 @@ private fun PackPicker(appName: String, onPick: (ByteArray, String) -> Unit) {
             }
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    TextButton(onClick = { pack = null }) { Text(stringResource(R.string.icon_other_packs)) }
+                    TextButton(onClick = { packName = null }) { Text(stringResource(R.string.icon_other_packs)) }
                     Text(chosen.label, style = MaterialTheme.typography.titleSmall)
                 }
                 OutlinedTextField(
@@ -348,3 +366,5 @@ private fun PackCell(pack: IconPack, name: String, onClick: () -> Unit) {
 }
 
 private const val MAX_RESULTS = 240
+private val DIALOG_MAX_WIDTH = 720.dp
+private val DIALOG_MAX_HEIGHT = 880.dp

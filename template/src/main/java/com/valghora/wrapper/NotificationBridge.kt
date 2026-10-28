@@ -23,7 +23,7 @@ import java.util.concurrent.atomic.AtomicInteger
 import org.json.JSONException
 import org.json.JSONObject
 
-/** Web Notification API bridge: page polyfill -> WebMessageListener -> system notification (R7). */
+/** Web Notification API bridge: page polyfill -> WebMessageListener -> system notification (docs/TEMPLATE_SPEC.md T7). */
 class NotificationBridge(context: Context, private val controller: DesktopSessionController) {
 
     private val appContext = context.applicationContext

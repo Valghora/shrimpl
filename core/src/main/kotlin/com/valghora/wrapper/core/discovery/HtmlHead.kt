@@ -79,7 +79,7 @@ object HtmlHead {
     }
 }
 
-/** API use detected in a page's scripts (patterns from the retired collect.js). */
+/** API use detected in a page's scripts (R9.3). */
 object ScriptSignals {
     val PATTERNS: Map<String, Regex> = linkedMapOf(
         "getUserMedia" to Regex("getUserMedia\\s*\\("),

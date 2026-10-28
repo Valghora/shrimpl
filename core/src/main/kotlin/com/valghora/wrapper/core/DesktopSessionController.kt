@@ -6,7 +6,7 @@ import java.net.URLDecoder
 
 /**
  * Platform-independent session logic: URL routing, text zoom, key bindings, context menus,
- * the wake state machine, user-agent selection, shortcut validation and color rules (R2.3).
+ * the wake state machine, user-agent selection, shortcut validation and color rules (docs/TEMPLATE_SPEC.md T2).
  */
 class DesktopSessionController(
     private val zoomStore: ZoomStore,
@@ -50,7 +50,7 @@ class DesktopSessionController(
 
     fun resolveKey(keyName: String, modifiers: Set<Modifier>, repeatCount: Int): KeyAction {
         val action = builtInAction(keyName, modifiers, includeNewWindow = true)
-        val oncePerPress = action == KeyAction.RELOAD || action == KeyAction.NEW_WINDOW
+        val oncePerPress = action == KeyAction.RELOAD || action == KeyAction.NEW_WINDOW || action == KeyAction.PRINT
         return if (oncePerPress && repeatCount != 0) KeyAction.NONE else action
     }
 
@@ -62,6 +62,7 @@ class DesktopSessionController(
             ctrl && keyName in ZOOM_IN_KEYS -> KeyAction.ZOOM_IN
             ctrl && keyName in ZOOM_OUT_KEYS -> KeyAction.ZOOM_OUT
             ctrl && keyName in ZOOM_RESET_KEYS -> KeyAction.ZOOM_RESET
+            ctrl && keyName == "KEYCODE_P" -> KeyAction.PRINT
             includeNewWindow && isNewWindowShortcut(keyName, modifiers) -> KeyAction.NEW_WINDOW
             else -> KeyAction.NONE
         }

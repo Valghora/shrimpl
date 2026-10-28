@@ -8,8 +8,7 @@ import kotlinx.serialization.Serializable
 
 /**
  * One site's settings, stored by UniWrap and read by the web app at launch from
- * `assets/uniwrap/profile.json` (docs/UNIWRAP_SPEC.md R7.1, R11.1). Defaults match the retired
- * `sites/defaults.toml`. Check a profile with [ProfileValidator] before using it.
+ * `assets/uniwrap/profile.json` (docs/UNIWRAP_SPEC.md R7.1, R11.1). Check a profile with [ProfileValidator] before using it.
  */
 @Serializable
 data class Profile(

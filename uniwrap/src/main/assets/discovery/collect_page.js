@@ -1,6 +1,6 @@
-// Runs in the hidden discovery WebView after the page loads (docs/UNIWRAP_SPEC.md R9.3). Ported from the
-// retired scripts/discover/collect.js: metadata, links, the background color along the top edge,
-// the resources the page loaded, and its inline scripts (scanned for API use by the app).
+// Runs in the hidden discovery WebView after the page loads (docs/UNIWRAP_SPEC.md R9.3) and reports
+// metadata, links, the background color along the top edge, the resources the page loaded, and its
+// inline scripts (scanned for API use by the app).
 (() => {
   // Computed colors may be oklab()/color() etc.; painting one pixel yields plain sRGB.
   const canvas = document.createElement('canvas');

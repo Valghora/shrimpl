@@ -4,7 +4,7 @@ import com.valghora.wrapper.core.DesktopSessionController
 import com.valghora.wrapper.core.SessionConfig
 import com.valghora.wrapper.core.ShortcutSpec
 
-// Values computed from a profile, ported from the retired site_config.py (docs/PROMPT.md <derived_values>).
+// Values computed from a profile (docs/UNIWRAP_SPEC.md R4.2).
 // They assume a valid profile (ProfileValidator).
 
 

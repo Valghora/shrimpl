@@ -144,6 +144,9 @@ class DesktopSessionControllerTest {
         assertEquals(KeyAction.ZOOM_OUT, c.resolveKey("KEYCODE_MINUS", ctrl, 0))
         assertEquals(KeyAction.ZOOM_OUT, c.resolveKey("KEYCODE_NUMPAD_SUBTRACT", ctrl, 0))
         assertEquals(KeyAction.ZOOM_RESET, c.resolveKey("KEYCODE_0", ctrl, 0))
+        assertEquals(KeyAction.PRINT, c.resolveKey("KEYCODE_P", ctrl, 0))
+        assertEquals(KeyAction.NONE, c.resolveKey("KEYCODE_P", ctrl, 1)) // once per press
+        assertEquals(KeyAction.NONE, c.resolveKey("KEYCODE_P", emptySet(), 0))
         assertEquals(KeyAction.ZOOM_RESET, c.resolveKey("KEYCODE_NUMPAD_0", ctrl, 0))
     }
 

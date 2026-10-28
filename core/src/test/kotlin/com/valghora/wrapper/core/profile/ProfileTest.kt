@@ -10,7 +10,7 @@ import org.junit.Assert.assertThrows
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
-/** Ported from the retired scripts/tests/test_site_config.py, plus the JSON codec. */
+/** Profile validation, derived values and the JSON codec. */
 class ProfileTest {
     private val discordJson = javaClass.getResource("/profiles/discord.json")!!.readText()
     private val discord = ProfileCodec.decode(discordJson)

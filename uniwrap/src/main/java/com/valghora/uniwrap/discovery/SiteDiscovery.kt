@@ -24,8 +24,8 @@ import kotlinx.serialization.json.JsonObject
 
 /**
  * Turns a URL into a [Draft] on the device (docs/UNIWRAP_SPEC.md R9): a static fetch of the page and
- * its web manifest, a hidden-WebView pass for what only exists once rendered, then the rules ported
- * from the retired discover_site.py. Cancel the calling coroutine to stop it.
+ * its web manifest, a hidden-WebView pass for what only exists once rendered, then the core discovery
+ * rules. Cancel the calling coroutine to stop it.
  */
 class SiteDiscovery(private val context: Context) {
     /** Stages shown while discovery runs (R3.2). */
@@ -139,7 +139,7 @@ class SiteDiscovery(private val context: Context) {
         private const val DESKTOP_TIMEOUT_MS = 12_000L
         private const val SECONDARY_TIMEOUT_MS = 4_000L
         private const val MANIFEST_MAX_BYTES = 512 * 1024
-        /** collect.js scanned up to 20 MB of scripts; large web apps keep their API calls in big bundles. */
+        /** Scripts get their own 20 MB budget: large web apps keep their API calls in big bundles. */
         private const val SCRIPT_BUDGET_BYTES = 20 * 1024 * 1024
 
         /** "example.com" -> "https://example.com"; http is upgraded; null if it isn't a web address. */

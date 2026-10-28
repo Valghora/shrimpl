@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Idempotent Android SDK bootstrap + Phase 0 tool check.
+# Idempotent Android SDK bootstrap + tool check.
 # Used by the Claude cloud SessionStart hook, GitHub Actions, and local setup.
 #
 # Env:
@@ -53,7 +53,7 @@ fi
 
 echo "sdk.dir=$ANDROID_HOME" > "$REPO_ROOT/local.properties"
 
-# ---- Phase 0 tool check ----
+# ---- Tool check ----
 fail=0
 check() { if eval "$2" >/dev/null 2>&1; then printf '  %-28s ok\n' "$1"; else printf '  %-28s MISSING\n' "$1"; fail=1; fi; }
 java_major="$(java -XshowSettings:properties -version 2>&1 | grep -oE 'java.specification.version = [0-9]+' | grep -oE '[0-9]+$' || echo 0)"

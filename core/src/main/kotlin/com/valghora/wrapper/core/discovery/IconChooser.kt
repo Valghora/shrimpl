@@ -48,7 +48,7 @@ sealed interface IconChoice {
     ) : IconChoice
 }
 
-/** Width and height read from a PNG or WebP header (ported from generate_icons.raster_info). */
+/** Width and height read from a PNG or WebP header */
 data class RasterInfo(val format: String, val width: Int, val height: Int) {
     companion object {
         private val PNG = byteArrayOf(0x89.toByte(), 'P'.code.toByte(), 'N'.code.toByte(), 'G'.code.toByte(), 13, 10, 26, 10)
@@ -78,7 +78,7 @@ data class RasterInfo(val format: String, val width: Int, val height: Int) {
     }
 }
 
-/** Picks the best icon: simple-icons glyph > mask-icon glyph > raster > letter (ported from choose_icon). */
+/** Picks the best icon: simple-icons glyph > mask-icon glyph > raster > letter (R9.2). */
 object IconChooser {
     const val MIN_RASTER_PX = 192
 

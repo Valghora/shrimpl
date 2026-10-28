@@ -40,9 +40,8 @@ class RenderedVisit(
 )
 
 /**
- * Loads a page in an offscreen WebView, the closest thing on the device to the browser the retired
- * collect.js drove: a desktop-size viewport in light or dark theme, or a phone viewport with the plain
- * WebView user agent. Must be used from the main thread's coroutine context (WebView's rule).
+ * Loads a page in an offscreen WebView (docs/UNIWRAP_SPEC.md R9.3): a desktop-size viewport in light
+ * or dark theme, or a phone viewport with the plain WebView user agent. Must be used from the main thread's coroutine context (WebView's rule).
  */
 class RenderedPass(private val context: Context) {
     enum class Mode(val widthDp: Int, val heightDp: Int, val night: Boolean, val desktopAgent: Boolean) {

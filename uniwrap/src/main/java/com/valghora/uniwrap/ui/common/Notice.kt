@@ -13,7 +13,6 @@ import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -102,8 +101,10 @@ fun NoticeCard(
             }
         }
         if (onDismiss != null) {
-            IconButton(onClick = onDismiss, modifier = Modifier.size(32.dp)) {
-                Icon(Icons.Filled.Close, contentDescription = stringResource(R.string.action_dismiss), tint = color, modifier = Modifier.size(20.dp))
+            // A full 48 dp target (Tier 2 Touch_Targets), with a tooltip for mouse users.
+            val label = stringResource(R.string.action_dismiss)
+            TooltipIconButton(label, onDismiss) {
+                Icon(Icons.Filled.Close, contentDescription = label, tint = color, modifier = Modifier.size(20.dp))
             }
         }
     }

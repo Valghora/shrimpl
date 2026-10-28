@@ -20,8 +20,8 @@ class ManifestPatcherTest {
     fun readsTemplate() {
         assertEquals(WebAppBuilder.TEMPLATE_PACKAGE, original.packageName)
         assertNull("the template label is a resource reference", original.literalLabel)
-        assertEquals(2, original.versionCode)
-        assertEquals("2.0", original.versionName)
+        assertEquals(3, original.versionCode)
+        assertEquals("3.0", original.versionName)
         assertTrue(original.permissions.containsAll(listOf("android.permission.CAMERA", "android.permission.RECORD_AUDIO")))
         assertTrue("android.hardware.microphone" in original.features)
         assertEquals(LaunchMode.SINGLE_INSTANCE_PER_TASK.value, original.launchMode)

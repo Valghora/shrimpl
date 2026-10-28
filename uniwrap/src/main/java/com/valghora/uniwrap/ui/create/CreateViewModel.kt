@@ -160,6 +160,26 @@ class CreateViewModel(private val container: AppContainer) : ViewModel() {
         _draft.value = _draft.value?.withIcon(selection)
     }
 
+    private val _iconDraft = MutableStateFlow<IconSelection?>(null)
+
+    /** The icon editor's selection while it is open; kept here so it survives configuration changes. */
+    val iconDraft: StateFlow<IconSelection?> = _iconDraft.asStateFlow()
+
+    fun openIconEditor() {
+        _iconDraft.value = _draft.value?.iconSelection
+    }
+
+    fun changeIcon(selection: IconSelection) {
+        _iconDraft.value = selection
+    }
+
+    /** Closes the icon editor, keeping its selection when [apply]. */
+    fun closeIconEditor(apply: Boolean) {
+        val selection = _iconDraft.value
+        _iconDraft.value = null
+        if (apply && selection != null) setIcon(selection)
+    }
+
     /** Builds and installs; false if the form has errors (they are shown next to the fields). */
     fun create(): Boolean {
         val draft = _draft.value ?: return false

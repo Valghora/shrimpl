@@ -27,7 +27,7 @@ import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -128,7 +128,7 @@ private fun StageRow(stage: WebAppFactory.Stage, current: WebAppFactory.Stage) {
 @Composable
 private fun UnknownSources(onRetry: () -> Unit, onDone: () -> Unit) {
     val context = LocalContext.current
-    var opened by remember { mutableStateOf(false) }
+    var opened by rememberSaveable { mutableStateOf(false) }
     LifecycleResumeEffect(Unit) {
         if (opened && context.packageManager.canRequestPackageInstalls()) onRetry()
         onPauseOrDispose { }

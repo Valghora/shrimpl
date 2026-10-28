@@ -5,8 +5,7 @@ import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
 
 /**
- * What discovery observed about a site (docs/UNIWRAP_SPEC.md R9). The shape follows the retired
- * scripts/discover/collect.js, so the rules ported from discover_site.py read the same data:
+ * What discovery observed about a site (docs/UNIWRAP_SPEC.md R9), the input to the [Discovery] rules.
  * UniWrap fills it from a plain page fetch (static pass) and a hidden WebView (rendered pass).
  */
 @Serializable

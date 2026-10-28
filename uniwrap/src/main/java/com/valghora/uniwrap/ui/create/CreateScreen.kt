@@ -23,7 +23,6 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
@@ -35,10 +34,8 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -49,11 +46,13 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.window.core.layout.WindowSizeClass
 import com.valghora.uniwrap.R
 import com.valghora.uniwrap.container
 import com.valghora.uniwrap.data.InstalledApps
 import com.valghora.uniwrap.discovery.SiteDiscovery
 import com.valghora.uniwrap.ui.common.BuildSheet
+import com.valghora.uniwrap.ui.common.TooltipIconButton
 import com.valghora.uniwrap.ui.form.ProfileFormFields
 import com.valghora.uniwrap.ui.icons.IconEditor
 import com.valghora.uniwrap.ui.icons.rememberIconLayers
@@ -69,7 +68,7 @@ fun CreateScreen(onClose: () -> Unit, onBackUpKey: () -> Unit) {
     val draft by model.draft.collectAsStateWithLifecycle()
     val buildState by model.build.state.collectAsStateWithLifecycle()
     val backupPrompt by model.showBackupPrompt.collectAsStateWithLifecycle()
-    var editingIcon by rememberSaveable { mutableStateOf(false) }
+    val iconDraft by model.iconDraft.collectAsStateWithLifecycle()
     val snackbar = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
     val invalidMessage = stringResource(R.string.create_fix_fields)
@@ -83,11 +82,11 @@ fun CreateScreen(onClose: () -> Unit, onBackUpKey: () -> Unit) {
                 title = { Text(stringResource(R.string.create_title)) },
                 navigationIcon = {
                     if (reviewing) {
-                        IconButton(onClick = model::backToUrl) {
+                        TooltipIconButton(stringResource(R.string.action_back), model::backToUrl) {
                             Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.action_back))
                         }
                     } else {
-                        IconButton(onClick = onClose) { Icon(Icons.Filled.Close, contentDescription = stringResource(R.string.action_close)) }
+                        TooltipIconButton(stringResource(R.string.action_close), onClose) { Icon(Icons.Filled.Close, contentDescription = stringResource(R.string.action_close)) }
                     }
                 },
             )
@@ -114,22 +113,20 @@ fun CreateScreen(onClose: () -> Unit, onBackUpKey: () -> Unit) {
                     notes = model.notes,
                     iconLayers = layers,
                     iconOrigin = current.icon.origin,
-                    onEditIcon = { editingIcon = true },
-                    wide = maxWidth >= 840.dp,
+                    onEditIcon = model::openIconEditor,
+                    wide = maxWidth >= WindowSizeClass.WIDTH_DP_EXPANDED_LOWER_BOUND.dp,
                     appIdEditable = true,
                 )
             }
-            if (editingIcon) {
+            iconDraft?.let { selection ->
                 IconEditor(
-                    initial = current.iconSelection,
+                    selection = selection,
+                    onChange = model::changeIcon,
                     appName = current.form.name,
                     siteIcon = model.siteIcon,
                     storedImage = null,
-                    onDone = {
-                        model.setIcon(it)
-                        editingIcon = false
-                    },
-                    onDismiss = { editingIcon = false },
+                    onDone = { model.closeIconEditor(apply = true) },
+                    onDismiss = { model.closeIconEditor(apply = false) },
                 )
             }
         } else {

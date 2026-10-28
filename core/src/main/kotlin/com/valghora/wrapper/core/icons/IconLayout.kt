@@ -23,7 +23,7 @@ sealed interface IconSource {
 }
 
 /**
- * Geometry of the generated icons (R10.3), matching the retired generate_icons.py: adaptive layers are
+ * Geometry of the generated icons (docs/UNIWRAP_SPEC.md R10.3): adaptive layers are
  * 108dp drawn at 432 px; the launcher shows the central 72dp, and the safe zone is 66dp.
  */
 object IconLayout {

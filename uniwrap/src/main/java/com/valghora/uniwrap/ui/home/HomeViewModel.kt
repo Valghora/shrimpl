@@ -7,6 +7,7 @@ import com.valghora.uniwrap.AppContainer
 import com.valghora.uniwrap.build.BuildRequest
 import com.valghora.uniwrap.data.InstalledApp
 import com.valghora.uniwrap.data.InstalledApps
+import com.valghora.uniwrap.install.InstallResult
 import com.valghora.uniwrap.ui.common.BuildController
 import com.valghora.wrapper.core.records.WebAppRecord
 import kotlinx.coroutines.Dispatchers
@@ -44,5 +45,25 @@ class HomeViewModel(private val container: AppContainer) : ViewModel() {
 
     fun remove(record: WebAppRecord) {
         viewModelScope.launch { container.store.delete(record.appId) }
+    }
+
+    private val _message = MutableStateFlow<String?>(null)
+
+    /** The outcome of a failed uninstall, shown once. */
+    val message: StateFlow<String?> = _message.asStateFlow()
+
+    /** Uninstalls the web app with the chosen install method; the record stays (R2.3). */
+    fun uninstall(context: Context, record: WebAppRecord) {
+        viewModelScope.launch {
+            when (val result = container.installers.preferred().uninstall(record.packageName)) {
+                InstallResult.Success -> refresh(context)
+                InstallResult.NeedsUnknownSources -> Unit
+                is InstallResult.Failure -> _message.value = result.message
+            }
+        }
+    }
+
+    fun messageShown() {
+        _message.value = null
     }
 }

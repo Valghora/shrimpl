@@ -12,12 +12,13 @@ own launcher icon, task, window and sign-ins, and behaves like an installed PWA 
 2. Tap **+**, enter a website (`discord.com`, `squoosh.app`, ...) and tap **Search**.
 3. Check the suggested settings and tap **Create**. Android asks once to allow UniWrap to install
    apps.
-4. **My Web Apps** lists what you made. The edit button opens a web app's settings; saving builds the
-   next version (Build 2, 3, ...) and updates it in place, keeping its sign-ins.
+4. **My Web Apps** lists what you made. The edit button (or right-click) opens a web app's settings;
+   saving builds the next version (Build 2, 3, ...) and updates it in place, keeping its sign-ins.
+   With a keyboard, Ctrl+N starts a new web app and Ctrl+, opens Settings.
 
-Install methods (Settings): the system installer (asks for each first install), Shizuku, or root
-(no prompts). Back up the signing key in Settings: web apps can only be updated with the key that
-signed them.
+Install methods (Settings): System (asks for confirmation), Shizuku, or Root (no prompts). Export
+the certificate in Settings and keep it safe: web apps can only be updated with the key that signed
+them.
 
 ## How it works
 
@@ -28,13 +29,23 @@ signed them.
   agent and wake state for the web app; the profile model and validator; discovery rules; and the
   builder that patches the template's manifest (package, label, versions, permissions, window
   sizes), replaces the profile and icons, and signs with apksig.
-- `uniwrap/`: the Compose (Material 3) manager app: discovery (a page fetch plus a hidden WebView),
-  the icon renderer, the record store, the signing key in the Android Keystore, and the Session,
-  Shizuku and root installers.
-- [docs/UNIWRAP_SPEC.md](docs/UNIWRAP_SPEC.md): the specification.
-  [docs/BUILD_NOTES.md](docs/BUILD_NOTES.md): toolchain findings and deviations.
-  [docs/PROMPT.md](docs/PROMPT.md): the earlier per-site specification, kept as the baseline for the
-  web app's behavior.
+- `uniwrap/`: the manager app in Compose (Material 3, Navigation 3 with a list-detail layout on wide
+  windows): discovery (a page fetch plus a hidden WebView), the icon renderer, the record store, the
+  signing key in the Android Keystore, and the System, Shizuku and Root installers.
+
+Every APK runs natively on ARM and x86 devices, 32 and 64 bit, with no translation layer: the
+template and the web apps contain no native code, and building a web app on the device is pure
+Kotlin and Java. `scripts/check_native_code.sh` enforces this in CI.
+
+## Documentation
+
+- [docs/UNIWRAP_SPEC.md](docs/UNIWRAP_SPEC.md): the specification, starting with the architecture
+  rule (R0).
+- [docs/TEMPLATE_SPEC.md](docs/TEMPLATE_SPEC.md): what every web app does.
+- [docs/ADAPTIVE.md](docs/ADAPTIVE.md): how Google's adaptive skill (vendored in
+  `.claude/skills/adaptive/`) and app quality guidelines apply, and the deliberate deviations.
+- [docs/BUILD_NOTES.md](docs/BUILD_NOTES.md): toolchain versions, platform findings, deviations.
+- [CLAUDE.md](CLAUDE.md): the rules for every change. `docs/history/` keeps superseded documents.
 
 Brand icons come from [simple-icons](https://simpleicons.org), looked up by name when a web app is
 made; nothing from it is bundled.
@@ -48,8 +59,8 @@ scripts/setup_android_sdk.sh          # Android SDK (API 37) and tool check
 ```
 
 CI (`.github/workflows/android.yml`) runs the core, template and UniWrap tests, lint for both apps,
-the template release build (checked to contain no native code) and both UniWrap builds, and uploads
-the APKs.
+the template release build and both UniWrap builds, checks that every APK is architecture-neutral,
+and uploads the APKs.
 
 ## Limitations
 

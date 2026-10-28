@@ -1,19 +1,12 @@
 .gradle/
 .kotlin/
 build/
-dist/
-sites/*/apks/**/*-debug.apk
 local.properties
 .idea/
 *.iml
 .DS_Store
 captures/
-.externalNativeBuild/
-.cxx/
-__pycache__/
-sites/defaults.local.toml
 *.jks
 *.keystore
-sites/*/discovery.json
 # "build" is also a source package name (core/.../build/); keep sources tracked.
 !**/src/**/build/

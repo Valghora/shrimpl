@@ -46,7 +46,7 @@ data class Note(val level: Level, val text: String) {
 
 class DiscoveryException(message: String) : Exception(message)
 
-/** Color parsing as in discover_site.parse_color: hex, rgb()/rgba() and a few names; transparent is null. */
+/** Color parsing: hex, rgb()/rgba() and a few names; transparent is null. */
 object Colors {
     private val NAMED = mapOf(
         "white" to "#FFFFFF", "black" to "#000000", "red" to "#FF0000", "blue" to "#0000FF",
@@ -96,7 +96,7 @@ object Colors {
     private fun channels(hex: String) = hex.removePrefix("#").chunked(2).map { it.toInt(16) / 255.0 }
 }
 
-/** The discovery rules, ported from the retired scripts/discover_site.py. */
+/** The discovery rules (docs/UNIWRAP_SPEC.md R9.2): evidence in, a draft profile out. */
 object Discovery {
     private val WEBVIEW_BLOCK_PATTERNS = listOf(
         "disallowed_useragent",

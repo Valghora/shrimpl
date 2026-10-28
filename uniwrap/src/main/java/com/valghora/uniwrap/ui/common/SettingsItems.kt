@@ -34,7 +34,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -159,7 +159,7 @@ fun <T> DropdownItem(
     summary: String? = null,
     enabled: Boolean = true,
 ) {
-    var open by remember { mutableStateOf(false) }
+    var open by rememberSaveable { mutableStateOf(false) }
     SettingsItem(
         title = title,
         summary = summary,
@@ -218,7 +218,7 @@ fun TextValueItem(
     placeholder: String? = null,
     keyboardType: KeyboardType = KeyboardType.Text,
 ) {
-    var editing by remember { mutableStateOf(false) }
+    var editing by rememberSaveable { mutableStateOf(false) }
     SettingsItem(
         title = title,
         summary = value.ifEmpty { placeholder.orEmpty() },
@@ -244,7 +244,7 @@ fun TextDialog(
     onDone: (String) -> Unit,
     onDismiss: () -> Unit,
 ) {
-    var text by remember { mutableStateOf(initial) }
+    var text by rememberSaveable { mutableStateOf(initial) }
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text(title) },

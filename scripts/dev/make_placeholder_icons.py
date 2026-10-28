@@ -9,7 +9,7 @@ import struct
 import zlib
 from pathlib import Path
 
-OUT = Path("template/src/neutral/res/drawable-nodpi")
+OUT = Path("template/src/main/res/drawable-nodpi")
 BACKGROUND = (0x60, 0x7D, 0x8B)
 SAMPLES = 3  # supersampling per axis
 

@@ -2,7 +2,7 @@ package com.valghora.wrapper.core.discovery
 
 import java.net.URI
 
-/** Lenient URL helpers matching Python's urllib.parse, which the discovery rules were written against. */
+/** Lenient URL helpers: real pages carry URLs java.net.URI rejects, so these never throw. */
 internal object Urls {
     private val SPLIT = Regex(
         "^(?:([A-Za-z][A-Za-z0-9+.-]*):)?(?://([^/?#]*))?([^?#]*)(?:\\?([^#]*))?(?:#(.*))?$",
@@ -46,7 +46,7 @@ internal object Urls {
     }
 }
 
-/** Registrable domains ("eTLD+1") from the Public Suffix List, ported from discover_site.py. */
+/** Registrable domains ("eTLD+1") from the Public Suffix List. */
 class PublicSuffixList(text: String) {
     private val rules = HashSet<String>()
     private val wildcards = HashSet<String>()

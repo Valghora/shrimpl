@@ -6,7 +6,7 @@ import org.junit.Assert.assertThrows
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
-/** Ported from the retired scripts/tests/test_generate_icons.py. */
+/** Glyph extraction and PathParser-safe path data. */
 class SvgGlyphTest {
     private fun svg(body: String) = """<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">$body</svg>""".toByteArray()
 
