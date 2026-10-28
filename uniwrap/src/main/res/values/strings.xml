@@ -156,7 +156,7 @@
     <string name="settings_signing">Signing</string>
     <string name="signing_none">Add a site to generate your signing key, or import an existing one.</string>
     <string name="export_title">Certificate password</string>
-    <string name="export_text">The certificate file is protected with this password. You need it to import the certificate.</string>
+    <string name="export_text">Protect your certificate with a password. You\'ll need this password if you want to restore the certificate later.</string>
     <plurals name="password_min">
         <item quantity="one">At least %1$d character</item>
         <item quantity="other">At least %1$d characters</item>
