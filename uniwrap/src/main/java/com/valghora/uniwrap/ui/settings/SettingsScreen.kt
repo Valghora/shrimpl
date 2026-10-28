@@ -1,5 +1,8 @@
 package com.valghora.uniwrap.ui.settings
 
+import android.content.ClipData
+import android.content.ClipboardManager
+import android.content.Context
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -39,6 +42,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.graphics.vector.PathParser
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
@@ -154,7 +161,14 @@ fun SettingsScreen(onBack: () -> Unit) {
                 SettingsSection(stringResource(R.string.settings_signing)) {
                     SettingsItem(
                         stringResource(R.string.signing_certificate),
-                        summary = fingerprint ?: stringResource(R.string.signing_none),
+                        summary = if (fingerprint == null) stringResource(R.string.signing_none) else null,
+                        trailing = fingerprint?.let { value ->
+                            {
+                                IconButton(onClick = { copyFingerprint(context, value) }) {
+                                    Icon(CopyIcon, contentDescription = stringResource(R.string.action_copy_certificate))
+                                }
+                            }
+                        },
                     )
                     NavigationItem(stringResource(R.string.action_export_key), { askExportPassword = true }, enabled = fingerprint != null)
                     NavigationItem(stringResource(R.string.action_restore_key), { openFile.launch(arrayOf(PKCS12_TYPE, "application/octet-stream")) })
@@ -249,6 +263,22 @@ private fun AccessItem(title: Int, failed: Int, access: SettingsViewModel.Access
         },
     )
 }
+
+/** Copies the certificate's SHA-256 fingerprint; Android confirms the copy itself. */
+private fun copyFingerprint(context: Context, fingerprint: String) {
+    val clipboard = context.getSystemService(ClipboardManager::class.java)
+    clipboard.setPrimaryClip(ClipData.newPlainText(context.getString(R.string.signing_certificate), fingerprint))
+}
+
+/** Material's "content copy" symbol; material-icons-core doesn't include it. */
+private val CopyIcon: ImageVector = ImageVector.Builder("ContentCopy", 24.dp, 24.dp, 24f, 24f)
+    .addPath(
+        PathParser().parsePathString(
+            "M16,1L4,1c-1.1,0 -2,0.9 -2,2v14h2L4,3h12L16,1zM19,5L8,5c-1.1,0 -2,0.9 -2,2v14c0,1.1 0.9,2 2,2h11c1.1,0 2,-0.9 2,-2L21,7c0,-1.1 -0.9,-2 -2,-2zM19,21L8,21L8,7h11v14z",
+        ).toNodes(),
+        fill = SolidColor(Color.Black),
+    )
+    .build()
 
 private fun methodDetail(method: InstallMethod) = when (method) {
     InstallMethod.SESSION -> R.string.install_session_detail

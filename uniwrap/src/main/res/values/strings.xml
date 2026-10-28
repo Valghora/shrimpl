@@ -15,7 +15,7 @@
     <string name="action_discard">Discard changes</string>
     <string name="action_done">Done</string>
     <string name="action_edit_app">Edit %1$s</string>
-    <string name="action_export_key">Export backup…</string>
+    <string name="action_export_key">Export certificate</string>
     <string name="action_keep">Keep</string>
     <string name="action_later">Later</string>
     <string name="action_more">More options</string>
@@ -27,7 +27,7 @@
     <string name="action_remove">Remove</string>
     <string name="action_remove_domain">Remove %1$s</string>
     <string name="action_replace_key">Replace key</string>
-    <string name="action_restore_key">Restore backup…</string>
+    <string name="action_restore_key">Import certificate</string>
     <string name="action_save_update">Save as build %1$d</string>
     <string name="action_search">Search</string>
     <string name="action_try_again">Try again</string>
@@ -155,14 +155,14 @@
     <string name="install_root">Root</string>
     <string name="settings_signing">Signing</string>
     <string name="signing_none">Add a site to generate your signing key, or import an existing one.</string>
-    <string name="export_title">Backup password</string>
-    <string name="export_text">The backup file is protected with this password. You need it to restore the key.</string>
+    <string name="export_title">Certificate password</string>
+    <string name="export_text">The certificate file is protected with this password. You need it to import the certificate.</string>
     <plurals name="password_min">
         <item quantity="one">At least %1$d character</item>
         <item quantity="other">At least %1$d characters</item>
     </plurals>
-    <string name="restore_title">Restore signing key</string>
-    <string name="restore_text">Enter the backup\'s password.</string>
+    <string name="restore_title">Import certificate</string>
+    <string name="restore_text">Enter the certificate\'s password.</string>
     <string name="restore_replace_title">Replace the signing key?</string>
     <string name="restore_replace_text">Your web apps were signed with the current key. After replacing it they can\'t be updated until they are uninstalled and created again.</string>
     <string name="theme_system">System</string>
@@ -213,4 +213,5 @@
     <string name="access_success">Success</string>
     <string name="action_request_access">Request</string>
     <string name="request_access_detail">Click to request</string>
+    <string name="action_copy_certificate">Copy certificate fingerprint</string>
 </resources>
