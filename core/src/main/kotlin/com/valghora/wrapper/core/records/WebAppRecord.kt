@@ -118,7 +118,7 @@ data class WebAppRecord(
             val upgraded = if (element is JsonObject && profile != null) JsonObject(element + ("profile" to ProfileCodec.upgrade(profile))) else element
             json.decodeFromJsonElement(serializer(), upgraded)
         } catch (e: SerializationException) {
-            throw IllegalArgumentException("Invalid web app record: ${e.message}", e)
+            throw IllegalArgumentException("Invalid app record: ${e.message}", e)
         }
     }
 }

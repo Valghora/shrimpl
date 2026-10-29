@@ -23,7 +23,7 @@ import androidx.compose.ui.unit.dp
 import com.valghora.uniwrap.R
 
 /**
- * The one "New web app" button, wherever it appears: a fully rounded filled button in the theme's
+ * The one "New app" button, wherever it appears: a fully rounded filled button in the theme's
  * primary color, with its keyboard shortcut in the tooltip.
  */
 @Composable

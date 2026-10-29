@@ -41,12 +41,12 @@
     <string name="home_build">Build %1$d</string>
     <string name="home_not_installed">Not installed</string>
     <string name="home_update_available">Update available</string>
-    <string name="home_empty_title">No web apps yet</string>
+    <string name="home_empty_title">No apps yet</string>
     <string name="home_start_text">Provide a website, get a custom app. Shrimple as.</string>
-    <string name="home_pick_app">Select a web app to edit it</string>
+    <string name="home_pick_app">Select an app to edit it</string>
 
     <!-- Configuration page -->
-    <string name="create_title">New web app</string>
+    <string name="create_title">New app</string>
     <string name="create_url_intro">Enter a website. UniWrap looks it up and suggests settings you can change before the app is created</string>
     <string name="create_fix_fields">Fix the highlighted fields first</string>
     <string name="discovery_fetching">Loading the page…</string>
@@ -55,8 +55,8 @@
     <string name="discovery_icon">Finding an icon…</string>
 
     <!-- Edit page -->
-    <string name="edit_missing">This web app is no longer in UniWrap</string>
-    <string name="edit_not_installed">This web app isn\'t installed. Reinstall it from the menu, or remove it.</string>
+    <string name="edit_missing">This app is no longer in UniWrap</string>
+    <string name="edit_not_installed">This app isn\'t installed. Reinstall it from the menu, or remove it.</string>
     <string name="uninstall_title">Uninstall %1$s?</string>
     <string name="uninstall_text">The app and its data (sign-ins, settings) are removed from this device.</string>
     <string name="remove_title">Remove %1$s from UniWrap?</string>
@@ -145,7 +145,7 @@
 
     <!-- Backup prompt -->
     <string name="backup_prompt_title">Back up your signing key</string>
-    <string name="backup_prompt_text">Web apps can only be updated with the key that signed them. If UniWrap is uninstalled or this device is reset without a backup, your web apps must be uninstalled to be updated.</string>
+    <string name="backup_prompt_text">Apps can only be updated with the key that signed them. If UniWrap is uninstalled or this device is reset without a backup, your apps must be uninstalled to be updated.</string>
 
     <!-- Settings -->
     <string name="settings_title">Settings</string>
@@ -165,7 +165,7 @@
     <string name="restore_title">Import certificate</string>
     <string name="restore_text">Enter the certificate\'s password.</string>
     <string name="restore_replace_title">Replace the signing key?</string>
-    <string name="restore_replace_text">Your web apps were signed with the current key. After replacing it they can\'t be updated until they are uninstalled and created again.</string>
+    <string name="restore_replace_text">Your apps were signed with the current key. After replacing it they can\'t be updated until they are uninstalled and created again.</string>
     <string name="theme_system">System</string>
     <string name="theme_light">Light</string>
     <string name="theme_dark">Dark</string>

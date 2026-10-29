@@ -33,7 +33,7 @@ class SigningKeyException(message: String, cause: Throwable? = null) : Exception
  */
 object SigningKeys {
     const val ALIAS = "uniwrap"
-    const val COMMON_NAME = "UniWrap web apps"
+    const val COMMON_NAME = "UniWrap apps"
     private const val KEY_SIZE = 3072
     private const val VALIDITY_YEARS = 30L
     private const val SIGNATURE_ALGORITHM = "SHA256withRSA"

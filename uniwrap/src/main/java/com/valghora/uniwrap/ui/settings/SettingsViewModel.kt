@@ -181,7 +181,7 @@ class SettingsViewModel(private val container: AppContainer) : ViewModel() {
                 container.keys.replace(key)
                 container.settings.setKeyBackedUp(true)
             }
-            _message.value = "Signing key restored. Web apps signed with the old key must be uninstalled before they can be updated."
+            _message.value = "Signing key restored. Apps signed with the old key must be uninstalled before they can be updated."
             loadFingerprint()
         }
     }

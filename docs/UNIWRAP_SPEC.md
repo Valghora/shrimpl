@@ -92,7 +92,7 @@ binary translation) on any device.
   with Open, Edit, Reinstall / Update / Rebuild, and Uninstall or Remove.
 - R2.2 The list comes from UniWrap's records (R11) joined with the installed state, re-read on
   resume. A record whose app isn't installed shows "Not installed" with Reinstall and Remove. An app
-  built from an older template shows "Update available" (R11.4). An empty list says "No web apps yet".
+  built from an older template shows "Update available" (R11.4). An empty list says "No apps yet". User-facing text says "app", never "web app".
 - R2.3 The edit page offers every profile setting in the form of R3.3 (the app ID read-only), the icon
   editor (R10), Open, Rebuild, Discard changes, and Uninstall (confirmed; then offers to remove the
   record). "Save as build N" rebuilds with build number + 1 and installs it as an update (same
@@ -168,7 +168,7 @@ binary translation) on any device.
 ## R5 Signing key
 
 - R5.1 On first use UniWrap generates one RSA 3072 key with a self-signed certificate
-  (CN=UniWrap web apps), stored as PKCS12 in app-private storage; the file's random password is
+  (CN=UniWrap apps; keys made before 2026-10-29 keep CN=UniWrap web apps), stored as PKCS12 in app-private storage; the file's random password is
   encrypted with an AES key in the Android Keystore.
 - R5.2 Export certificate writes the PKCS12 through the Storage Access Framework, protected by a
   password the user types twice (at least 8 characters). Import certificate replaces the key after
