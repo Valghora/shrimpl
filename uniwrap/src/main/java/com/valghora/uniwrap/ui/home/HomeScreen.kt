@@ -66,6 +66,7 @@ import com.valghora.uniwrap.container
 import com.valghora.uniwrap.data.InstalledApp
 import com.valghora.uniwrap.data.InstalledApps
 import com.valghora.uniwrap.ui.common.BuildSheet
+import com.valghora.uniwrap.ui.common.LocalInPane
 import com.valghora.uniwrap.ui.common.TooltipIconButton
 import com.valghora.uniwrap.ui.common.WithTooltip
 import com.valghora.uniwrap.ui.common.isMediumWidth
@@ -92,6 +93,9 @@ fun HomeScreen(selected: String?, onCreate: () -> Unit, onSettings: () -> Unit, 
     var confirmUninstall by rememberSaveable { mutableStateOf<String?>(null) }
     val snackbar = remember { SnackbarHostState() }
     val wide = isMediumWidth()
+    // In a pane card the top bar takes the card's color; full screen it matches Settings.
+    val inPane = LocalInPane.current
+    val barColor = if (inPane) MaterialTheme.colorScheme.surface else MaterialTheme.colorScheme.surfaceContainer
     // The app bar slides away while scrolling down and returns on scroll up (adaptive skill step 5).
     val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
 
@@ -109,6 +113,7 @@ fun HomeScreen(selected: String?, onCreate: () -> Unit, onSettings: () -> Unit, 
 
     Scaffold(
         modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
+        containerColor = MaterialTheme.colorScheme.surface,
         topBar = {
             TopAppBar(
                 title = { Text(stringResource(R.string.home_title)) },
@@ -118,7 +123,7 @@ fun HomeScreen(selected: String?, onCreate: () -> Unit, onSettings: () -> Unit, 
                         Icon(Icons.Filled.Settings, contentDescription = stringResource(R.string.settings_title))
                     }
                 },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = barColor, scrolledContainerColor = barColor),
             )
         },
         floatingActionButton = {
@@ -146,12 +151,15 @@ fun HomeScreen(selected: String?, onCreate: () -> Unit, onSettings: () -> Unit, 
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
                 Text(stringResource(R.string.home_empty_title), style = MaterialTheme.typography.titleLarge)
-                Text(
-                    stringResource(R.string.home_empty_text),
-                    textAlign = TextAlign.Center,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.padding(top = 8.dp),
-                )
+                // Beside the detail pane, its getting-started text says this already.
+                if (!inPane) {
+                    Text(
+                        stringResource(R.string.home_empty_text),
+                        textAlign = TextAlign.Center,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(top = 8.dp),
+                    )
+                }
             }
         } else {
             LazyVerticalGrid(

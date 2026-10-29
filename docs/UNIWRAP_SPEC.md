@@ -67,7 +67,9 @@ binary translation) on any device.
     app-wide keyboard shortcuts (Ctrl+N new web app, Ctrl+, settings) listed in the Keyboard
     Shortcuts Helper.
   - When the window has room for two panes (expanded width, 840 dp and up), the home list and a web
-    app's edit page appear side by side.
+    app's edit page appear side by side as rounded cards on the window background, separated by a
+    gap with a drag handle that resizes them. Before a web app is selected, the detail pane says to
+    pick one; with no web apps yet, it explains how to start and offers New web app.
 - R1.2 Kotlin only. The single exception: discovery injects JavaScript into a hidden WebView to read
   what only exists in the rendered page (R9.3).
 - R1.3 Material 3 in Jetpack Compose (latest stable, Expressive components where stable), dynamic
@@ -86,7 +88,7 @@ binary translation) on any device.
   with Open, Edit, Reinstall / Update / Rebuild, and Uninstall or Remove.
 - R2.2 The list comes from UniWrap's records (R11) joined with the installed state, re-read on
   resume. A record whose app isn't installed shows "Not installed" with Reinstall and Remove. An app
-  built from an older template shows "Update available" (R11.4). An empty list explains the button.
+  built from an older template shows "Update available" (R11.4). An empty list explains the New web app button.
 - R2.3 The edit page offers every profile setting in the form of R3.3 (the app ID read-only), the icon
   editor (R10), Open, Rebuild, Discard changes, and Uninstall (confirmed; then offers to remove the
   record). "Save as build N" rebuilds with build number + 1 and installs it as an update (same

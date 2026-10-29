@@ -42,7 +42,9 @@
     <string name="home_not_installed">Not installed</string>
     <string name="home_update_available">Update available</string>
     <string name="home_empty_title">No web apps yet</string>
-    <string name="home_empty_text">Tap + and enter a website to turn it into an app</string>
+    <string name="home_empty_text">Choose New web app and enter a website to turn it into an app</string>
+    <string name="home_start_title">Turn a website into an app</string>
+    <string name="home_start_text">Enter a website and UniWrap suggests a name, icon, colors and permissions. Change anything you like, then it builds and installs the app</string>
     <string name="home_pick_app">Select a web app to edit it</string>
 
     <!-- Configuration page -->
