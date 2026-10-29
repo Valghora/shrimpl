@@ -36,7 +36,7 @@ fun NewWebAppButton(onClick: () -> Unit, modifier: Modifier = Modifier) {
     WithTooltip(stringResource(R.string.tooltip_new_web_app), modifier) {
         Button(
             onClick = onClick,
-            modifier = Modifier.heightIn(min = 56.dp),
+            modifier = Modifier.heightIn(min = NEW_APP_BUTTON_HEIGHT),
             contentPadding = PaddingValues(start = 20.dp, end = 24.dp),
             elevation = ButtonDefaults.buttonElevation(defaultElevation = 3.dp),
         ) {
@@ -46,6 +46,9 @@ fun NewWebAppButton(onClick: () -> Unit, modifier: Modifier = Modifier) {
         }
     }
 }
+
+/** The New app button's height. */
+val NEW_APP_BUTTON_HEIGHT = 56.dp
 
 /**
  * An empty state whose [center] content is exactly centered in the space it fills, with [below]

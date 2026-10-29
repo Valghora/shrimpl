@@ -37,7 +37,7 @@
     <string name="action_use_system_installer">Use the system installer</string>
 
     <!-- Home -->
-    <string name="home_title">My Shrimpl Apps</string>
+    <string name="home_title">Shrimpl</string>
     <string name="home_build">Build %1$d</string>
     <string name="home_not_installed">Not installed</string>
     <string name="home_update_available">Update available</string>

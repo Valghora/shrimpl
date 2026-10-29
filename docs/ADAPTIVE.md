@@ -54,7 +54,7 @@ deviation that isn't written down is a bug.
 | Skill step 6: never add `android:configChanges` | The template declares `configChanges` for size, orientation, density, keyboard, UI mode and font scale, and handles them in `onConfigurationChanged`. | Recreating the activity would reload the WebView and lose page state (scroll, forms, media, sign-in flows) that `saveState` can't restore. The window still resizes freely and re-applies colors and insets. Shrimpl itself never opts out. |
 | Skill prerequisites: Compose and Navigation 3 everywhere | The template stays on AndroidX Views. | Every web app is a copy of the template; Compose would add megabytes to each one, and the UI is one WebView. |
 | Skill step 1: screenshot tests per form factor | Not yet added. | The Compose Preview Screenshot Testing plugin needs reference images reviewed on a desktop; tracked as a gap. Layout logic is size-class driven and checked on devices. |
-| Skill step 2: `NavigationSuiteScaffold` | Not used. | Shrimpl has one top-level destination (My Shrimpl Apps); there is no navigation bar to adapt. |
+| Skill step 2: `NavigationSuiteScaffold` | Not used. | Shrimpl has one top-level destination (the home list); there is no navigation bar to adapt. |
 | Skill step 4.2: `Grid` for non-lazy lists | Settings and form sections stay `Column`s. | Their items are different kinds of settings, not repeated items; `Grid` is also still experimental. |
 | Skill step 8: tabletop posture | Not used. | No media, camera or video-call screens in Shrimpl; web apps get the page's own layout. |
 | Skill step 7: custom cursors | Default cursors. | Material components already show the right pointer; nothing is draggable or resizable in Shrimpl. |

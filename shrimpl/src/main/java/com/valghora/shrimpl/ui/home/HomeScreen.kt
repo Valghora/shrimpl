@@ -9,9 +9,11 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
@@ -50,6 +52,7 @@ import androidx.compose.ui.input.pointer.isSecondaryPressed
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
@@ -67,6 +70,7 @@ import com.valghora.shrimpl.ui.common.EmptyStateText
 import com.valghora.shrimpl.ui.common.PitchText
 import com.valghora.shrimpl.ui.common.NewWebAppButton
 import com.valghora.shrimpl.ui.common.LocalInPane
+import com.valghora.shrimpl.ui.common.NEW_APP_BUTTON_HEIGHT
 import com.valghora.shrimpl.ui.common.TooltipIconButton
 import com.valghora.shrimpl.ui.icons.AdaptiveIcon
 import com.valghora.shrimpl.ui.icons.IconSelection
@@ -119,7 +123,13 @@ fun HomeScreen(
         containerColor = MaterialTheme.colorScheme.surface,
         topBar = {
             TopAppBar(
-                title = { Text(stringResource(R.string.home_title)) },
+                title = {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(painterResource(R.drawable.ic_shrimpl_glyph), contentDescription = null, modifier = Modifier.size(28.dp))
+                        Spacer(Modifier.width(12.dp))
+                        Text(stringResource(R.string.home_title))
+                    }
+                },
                 scrollBehavior = scrollBehavior,
                 actions = {
                     TooltipIconButton(stringResource(R.string.settings_title), onSettings, tooltip = stringResource(R.string.tooltip_settings)) {
@@ -141,9 +151,11 @@ fun HomeScreen(
                 // Spans the whole card, so it lines up with the detail pane's text.
                 CenteredEmptyState { EmptyStateText(stringResource(R.string.home_empty_title), title = true) }
             } else {
-                // One pane: the title and pitch are centered together, as one block.
+                // One pane: the title and pitch are centered together, as one block, between the top
+                // bar and the top of the New app button.
                 Column(
-                    Modifier.padding(padding).fillMaxSize().padding(horizontal = 32.dp),
+                    Modifier.padding(padding).fillMaxSize()
+                        .padding(start = 32.dp, end = 32.dp, bottom = FAB_MARGIN + NEW_APP_BUTTON_HEIGHT),
                     verticalArrangement = Arrangement.spacedBy(24.dp, Alignment.CenterVertically),
                     horizontalAlignment = Alignment.CenterHorizontally,
                 ) {
@@ -302,3 +314,6 @@ private fun Context.storedImage(appId: String) = container.store.image(appId)
 
 /** The narrowest a web app item gets before the grid drops a column. */
 private val MIN_CELL_WIDTH = 360.dp
+
+/** The space Scaffold leaves between the floating action button and the bottom of the content. */
+private val FAB_MARGIN = 16.dp

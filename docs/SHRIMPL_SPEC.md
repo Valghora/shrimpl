@@ -74,7 +74,7 @@ binary translation) on any device.
     nothing open, the detail pane says to pick a web app (or, with none yet, "Provide a website, get
     a custom app." with *Shrimpl as that!* in italics on its own line) and offers New app. Empty-state text is exactly centered in
     each pane, so the two panes line up. With one pane, "No apps yet" and that line are centered
-    together as one block.
+    together as one block between the top bar and the top of the New app button.
 - R1.2 Kotlin only. The single exception: discovery injects JavaScript into a hidden WebView to read
   what only exists in the rendered page (R9.3).
 - R1.3 Material 3 in Jetpack Compose (latest stable, Expressive components where stable), dynamic
@@ -86,7 +86,7 @@ binary translation) on any device.
 
 ## R2 Home
 
-- R2.1 A "My Shrimpl Apps" top app bar (hides on scroll down, returns on scroll up) with a settings
+- R2.1 A top app bar titled with the shrimp glyph and "Shrimpl" (hides on scroll down, returns on scroll up) with a settings
   button, over an adaptive grid of the web apps Shrimpl created (one column on phones, more on wide
   windows). Each item, left to right: the installed icon (48 dp), the name, "Build N", and an edit
   button (`Edit <name>`). Tapping an item opens the web app; right-click or long press opens a menu
