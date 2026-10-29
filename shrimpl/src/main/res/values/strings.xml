@@ -49,7 +49,7 @@
 
     <!-- Configuration page -->
     <string name="create_title">New app</string>
-    <string name="create_url_intro">Enter a website. Shrimpl looks it up and suggests settings you can change before the app is created</string>
+    <string name="create_url_intro">Enter a website and hang tight while Shrimpl finds suggested settings.</string>
     <string name="create_fix_fields">Fix the highlighted fields first</string>
     <string name="discovery_fetching">Loading the page…</string>
     <string name="discovery_manifest">Reading the web manifest…</string>
