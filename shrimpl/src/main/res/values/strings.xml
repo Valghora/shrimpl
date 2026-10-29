@@ -44,7 +44,7 @@
     <string name="home_empty_title">No apps yet</string>
     <string name="home_start_text">Provide a website, get a custom app.</string>
     <!-- Shown in italics after home_start_text. -->
-    <string name="home_start_tagline">Shrimpl as that</string>
+    <string name="home_start_tagline">Shrimpl as that!</string>
     <string name="home_pick_app">Select an app to edit it</string>
 
     <!-- Configuration page -->
