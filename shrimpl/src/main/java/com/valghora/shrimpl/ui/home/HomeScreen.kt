@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -253,7 +254,10 @@ private fun AppItem(
                 },
                 trailingContent = {
                     val label = stringResource(R.string.action_edit_app, record.profile.name)
-                    TooltipIconButton(label, onEdit) { Icon(Icons.Filled.Edit, contentDescription = label) }
+                    // Shifted so it lines up with the top bar's settings button above it.
+                    TooltipIconButton(label, onEdit, Modifier.offset(x = TRAILING_ALIGNMENT_SHIFT)) {
+                        Icon(Icons.Filled.Edit, contentDescription = label)
+                    }
                 },
                 tonalElevation = if (selected) 4.dp else 0.dp,
             )
@@ -314,6 +318,12 @@ private fun Context.storedImage(appId: String) = container.store.image(appId)
 
 /** The narrowest a web app item gets before the grid drops a column. */
 private val MIN_CELL_WIDTH = 360.dp
+
+/**
+ * A list item's trailing button sits 16 dp from the end (ListItem's end padding); a top bar's action
+ * 4 dp (its horizontal padding). Moving the item's button 12 dp outward puts it under the action.
+ */
+private val TRAILING_ALIGNMENT_SHIFT = 12.dp
 
 /** The space Scaffold leaves between the floating action button and the bottom of the content. */
 private val FAB_MARGIN = 16.dp

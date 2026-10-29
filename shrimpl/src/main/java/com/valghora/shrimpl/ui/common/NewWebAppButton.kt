@@ -16,6 +16,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.Layout
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.AnnotatedString
@@ -28,26 +29,32 @@ import androidx.compose.ui.unit.dp
 import com.valghora.shrimpl.R
 
 /**
- * The one "New app" button, wherever it appears: a fully rounded filled button in the theme's
- * primary color, with its keyboard shortcut in the tooltip.
+ * The app's main-action button (New app, Create, Save as build N): fully rounded, filled in the
+ * theme's primary color, with an icon and a label.
  */
 @Composable
-fun NewWebAppButton(onClick: () -> Unit, modifier: Modifier = Modifier) {
-    WithTooltip(stringResource(R.string.tooltip_new_web_app), modifier) {
-        Button(
-            onClick = onClick,
-            modifier = Modifier.heightIn(min = NEW_APP_BUTTON_HEIGHT),
-            contentPadding = PaddingValues(start = 20.dp, end = 24.dp),
-            elevation = ButtonDefaults.buttonElevation(defaultElevation = 3.dp),
-        ) {
-            Icon(Icons.Filled.Add, contentDescription = null, modifier = Modifier.size(ButtonDefaults.IconSize))
-            Spacer(Modifier.width(ButtonDefaults.IconSpacing))
-            Text(stringResource(R.string.action_new_web_app))
-        }
+fun PillButton(text: String, icon: ImageVector, onClick: () -> Unit, modifier: Modifier = Modifier) {
+    Button(
+        onClick = onClick,
+        modifier = modifier.heightIn(min = NEW_APP_BUTTON_HEIGHT),
+        contentPadding = PaddingValues(start = 20.dp, end = 24.dp),
+        elevation = ButtonDefaults.buttonElevation(defaultElevation = 3.dp),
+    ) {
+        Icon(icon, contentDescription = null, modifier = Modifier.size(ButtonDefaults.IconSize))
+        Spacer(Modifier.width(ButtonDefaults.IconSpacing))
+        Text(text)
     }
 }
 
-/** The New app button's height. */
+/** The one "New app" button, wherever it appears, with its keyboard shortcut in the tooltip. */
+@Composable
+fun NewWebAppButton(onClick: () -> Unit, modifier: Modifier = Modifier) {
+    WithTooltip(stringResource(R.string.tooltip_new_web_app), modifier) {
+        PillButton(stringResource(R.string.action_new_web_app), Icons.Filled.Add, onClick)
+    }
+}
+
+/** The height of [PillButton]s, such as New app. */
 val NEW_APP_BUTTON_HEIGHT = 56.dp
 
 /**

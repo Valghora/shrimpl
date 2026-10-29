@@ -86,10 +86,10 @@ binary translation) on any device.
 
 ## R2 Home
 
-- R2.1 A top app bar titled with the shrimp glyph and "Shrimpl" (hides on scroll down, returns on scroll up) with a settings
-  button, over an adaptive grid of the web apps Shrimpl created (one column on phones, more on wide
+- R2.1 A top app bar titled with the shrimp glyph and "Shrimpl" (hides on scroll down, returns on
+  scroll up) with a settings button, over an adaptive grid of the web apps Shrimpl created (one column on phones, more on wide
   windows). Each item, left to right: the installed icon (48 dp), the name, "Build N", and an edit
-  button (`Edit <name>`). Tapping an item opens the web app; right-click or long press opens a menu
+  button (`Edit <name>`), lined up under the settings button. Tapping an item opens the web app; right-click or long press opens a menu
   with Open, Edit, Reinstall / Update / Rebuild, and Uninstall or Remove.
 - R2.2 The list comes from Shrimpl's records (R11) joined with the installed state, re-read on
   resume. A record whose app isn't installed shows "Not installed" with Reinstall and Remove. An app
@@ -98,8 +98,9 @@ binary translation) on any device.
   editor (R10), Open, Rebuild, Discard changes, and Uninstall (confirmed; then offers to remove the
   record). "Save as build N" rebuilds with build number + 1 and installs it as an update (same
   package and key, so the app keeps its data). In two panes the edit page has no back arrow.
-- R2.4 "New app" opens the configuration page (R3). It is one design everywhere: a fully
-  rounded filled button with a plus icon in the theme's primary color, its tooltip naming Ctrl+N.
+- R2.4 "New app" opens the configuration page (R3). It is one design everywhere, shared by the
+  other main-action buttons (Create, Save as build N): a fully rounded filled button with an icon
+  in the theme's primary color; New app's tooltip names Ctrl+N.
   With one pane it sits at the bottom right of the list. With two panes it appears in exactly one
   place: in the empty detail pane, or at the bottom right of the list while the detail pane shows a
   web app's settings or Shrimpl's settings (not while it shows the configuration page).

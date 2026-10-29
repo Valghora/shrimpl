@@ -13,7 +13,6 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -44,6 +43,7 @@ import com.valghora.shrimpl.container
 import com.valghora.shrimpl.data.InstalledApps
 import com.valghora.shrimpl.ui.common.BuildSheet
 import com.valghora.shrimpl.ui.common.Notice
+import com.valghora.shrimpl.ui.common.PillButton
 import com.valghora.shrimpl.ui.common.TooltipIconButton
 import com.valghora.shrimpl.ui.form.ProfileFormFields
 import com.valghora.shrimpl.ui.icons.IconEditor
@@ -140,10 +140,10 @@ fun EditScreen(appId: String, showBack: Boolean, onBack: () -> Unit) {
         },
         floatingActionButton = {
             if (model.dirty) {
-                ExtendedFloatingActionButton(
+                PillButton(
+                    text = stringResource(R.string.action_save_update, current.nextBuildNumber),
+                    icon = Icons.Filled.Check,
                     onClick = { if (!model.save()) scope.launch { snackbar.showSnackbar(invalidMessage) } },
-                    icon = { Icon(Icons.Filled.Check, contentDescription = null) },
-                    text = { Text(stringResource(R.string.action_save_update, current.nextBuildNumber)) },
                 )
             }
         },
