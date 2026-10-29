@@ -9,7 +9,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.grid.GridCells
@@ -17,15 +16,12 @@ import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExtendedFloatingActionButton
-import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
@@ -43,7 +39,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.asImageBitmap
@@ -66,10 +61,10 @@ import com.valghora.uniwrap.container
 import com.valghora.uniwrap.data.InstalledApp
 import com.valghora.uniwrap.data.InstalledApps
 import com.valghora.uniwrap.ui.common.BuildSheet
+import com.valghora.uniwrap.ui.common.CenteredEmptyState
+import com.valghora.uniwrap.ui.common.NewWebAppButton
 import com.valghora.uniwrap.ui.common.LocalInPane
 import com.valghora.uniwrap.ui.common.TooltipIconButton
-import com.valghora.uniwrap.ui.common.WithTooltip
-import com.valghora.uniwrap.ui.common.isMediumWidth
 import com.valghora.uniwrap.ui.icons.AdaptiveIcon
 import com.valghora.uniwrap.ui.icons.IconSelection
 import com.valghora.uniwrap.ui.icons.rememberIconLayers
@@ -83,7 +78,13 @@ import com.valghora.wrapper.core.records.WebAppRecord
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun HomeScreen(selected: String?, onCreate: () -> Unit, onSettings: () -> Unit, onEdit: (String) -> Unit) {
+fun HomeScreen(
+    selected: String?,
+    showCreateButton: Boolean,
+    onCreate: () -> Unit,
+    onSettings: () -> Unit,
+    onEdit: (String) -> Unit,
+) {
     val context = LocalContext.current
     val model = viewModel { HomeViewModel(context.container) }
     val records by model.records.collectAsStateWithLifecycle()
@@ -92,7 +93,6 @@ fun HomeScreen(selected: String?, onCreate: () -> Unit, onSettings: () -> Unit, 
     val message by model.message.collectAsStateWithLifecycle()
     var confirmUninstall by rememberSaveable { mutableStateOf<String?>(null) }
     val snackbar = remember { SnackbarHostState() }
-    val wide = isMediumWidth()
     // In a pane card the top bar takes the card's color; full screen it matches Settings.
     val inPane = LocalInPane.current
     val barColor = if (inPane) MaterialTheme.colorScheme.surface else MaterialTheme.colorScheme.surfaceContainer
@@ -127,37 +127,22 @@ fun HomeScreen(selected: String?, onCreate: () -> Unit, onSettings: () -> Unit, 
             )
         },
         floatingActionButton = {
-            // R2.3: the button that opens the configuration page.
-            if (wide) {
-                ExtendedFloatingActionButton(
-                    onClick = onCreate,
-                    icon = { Icon(Icons.Filled.Add, contentDescription = null) },
-                    text = { Text(stringResource(R.string.action_new_web_app)) },
-                )
-            } else {
-                WithTooltip(stringResource(R.string.tooltip_new_web_app)) {
-                    FloatingActionButton(onClick = onCreate) {
-                        Icon(Icons.Filled.Add, contentDescription = stringResource(R.string.action_new_web_app))
-                    }
-                }
-            }
+            // R2.4. Beside the detail pane it shows only while the detail holds something else; the
+            // empty detail pane has its own.
+            if (showCreateButton) NewWebAppButton(onCreate)
         },
         snackbarHost = { SnackbarHost(snackbar) },
     ) { padding ->
         if (records.isEmpty()) {
-            Column(
-                Modifier.padding(padding).fillMaxSize().padding(32.dp),
-                verticalArrangement = Arrangement.Center,
-                horizontalAlignment = Alignment.CenterHorizontally,
-            ) {
-                Text(stringResource(R.string.home_empty_title), style = MaterialTheme.typography.titleLarge)
-                // Beside the detail pane, its getting-started text says this already.
-                if (!inPane) {
+            if (inPane) {
+                // Spans the whole card, so the title lines up with the detail pane's.
+                CenteredEmptyState(stringResource(R.string.home_empty_title))
+            } else {
+                CenteredEmptyState(stringResource(R.string.home_empty_title), Modifier.padding(padding)) {
                     Text(
                         stringResource(R.string.home_empty_text),
                         textAlign = TextAlign.Center,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.padding(top = 8.dp),
                     )
                 }
             }

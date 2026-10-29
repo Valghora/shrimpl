@@ -66,10 +66,13 @@ binary translation) on any device.
     changes, 48 dp touch targets, tooltips on icon-only buttons, a right-click menu on web apps, and
     app-wide keyboard shortcuts (Ctrl+N new web app, Ctrl+, settings) listed in the Keyboard
     Shortcuts Helper.
-  - When the window has room for two panes (expanded width, 840 dp and up), the home list and a web
-    app's edit page appear side by side as rounded cards on the window background, separated by a
-    gap with a drag handle that resizes them. Before a web app is selected, the detail pane says to
-    pick one; with no web apps yet, it explains how to start and offers New web app.
+  - When the window has room for two panes (expanded width, 840 dp and up), the home list sits
+    beside a detail pane as rounded cards on the window background, separated by a gap with a drag
+    handle that resizes them. The detail pane shows a web app's edit page, the configuration page
+    (R3) or UniWrap's settings (R2.5), each replacing the previous one, so the list is always one
+    Back away. Settings has Close instead of a back arrow there; the edit page has neither. With
+    nothing open, the detail pane says to pick a web app (or, with none yet, explains how to start)
+    and offers New web app. Empty-state titles in the two panes line up on the window's center.
 - R1.2 Kotlin only. The single exception: discovery injects JavaScript into a hidden WebView to read
   what only exists in the rendered page (R9.3).
 - R1.3 Material 3 in Jetpack Compose (latest stable, Expressive components where stable), dynamic
@@ -93,8 +96,11 @@ binary translation) on any device.
   editor (R10), Open, Rebuild, Discard changes, and Uninstall (confirmed; then offers to remove the
   record). "Save as build N" rebuilds with build number + 1 and installs it as an update (same
   package and key, so the app keeps its data). In two panes the edit page has no back arrow.
-- R2.4 A bottom-right "New web app" button (extended on medium and wider windows) opens the
-  configuration page (R3).
+- R2.4 "New web app" opens the configuration page (R3). It is one design everywhere: a fully
+  rounded filled button with a plus icon in the theme's primary color, its tooltip naming Ctrl+N.
+  With one pane it sits at the bottom right of the list. With two panes it appears in exactly one
+  place: in the empty detail pane, or at the bottom right of the list while the detail pane shows a
+  web app's settings or UniWrap's settings (not while it shows the configuration page).
 - R2.5 Settings, from the top bar button or Ctrl+,:
   - **Appearance:** Theme: System (dynamic color from the wallpaper), Light or Dark.
   - **Installation:** Method (R6.2), and the Request Root / Request Shizuku item when one is chosen.

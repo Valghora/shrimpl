@@ -17,6 +17,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
@@ -70,7 +71,7 @@ import com.valghora.uniwrap.ui.common.TooltipIconButton
 /** UniWrap's settings page (docs/UNIWRAP_SPEC.md R2.5). */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SettingsScreen(onBack: () -> Unit) {
+fun SettingsScreen(inPane: Boolean, onBack: () -> Unit) {
     val context = LocalContext.current
     val model = viewModel { SettingsViewModel(context.container) }
     val method by model.installMethod.collectAsStateWithLifecycle()
@@ -103,9 +104,16 @@ fun SettingsScreen(onBack: () -> Unit) {
             TopAppBar(
                 title = { Text(stringResource(R.string.settings_title)) },
                 navigationIcon = {
-                    TooltipIconButton(stringResource(R.string.action_back), onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.action_back)) }
+                    // Beside the list there is nothing to go back to; Close returns the pane to its prompt.
+                    if (inPane) {
+                        TooltipIconButton(stringResource(R.string.action_close), onBack) { Icon(Icons.Filled.Close, contentDescription = stringResource(R.string.action_close)) }
+                    } else {
+                        TooltipIconButton(stringResource(R.string.action_back), onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.action_back)) }
+                    }
                 },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = if (inPane) MaterialTheme.colorScheme.surface else MaterialTheme.colorScheme.surfaceContainer,
+                ),
             )
         },
         snackbarHost = { SnackbarHost(snackbar) },
