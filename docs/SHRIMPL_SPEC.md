@@ -86,11 +86,12 @@ binary translation) on any device.
 
 ## R2 Home
 
-- R2.1 A top app bar titled with the shrimp glyph and "Shrimpl" (hides on scroll down, returns on
-  scroll up) with a settings button, over an adaptive grid of the web apps Shrimpl created (one column on phones, more on wide
-  windows). Each item, left to right: the installed icon (48 dp), the name, "Build N", and an edit
-  button (`Edit <name>`), lined up under the settings button. Tapping an item opens the web app; right-click or long press opens a menu
-  with Open, Edit, Reinstall / Update / Rebuild, and Uninstall or Remove.
+- R2.1 A top app bar titled with the shrimp glyph (in the theme's primary color) and "Shrimpl"
+  (hides on scroll down, returns on scroll up) with a settings button, over an adaptive grid of
+  the web apps Shrimpl created (one column on phones, more on wide windows). Each item, left to
+  right: the installed icon (48 dp), the name, "Build N", and an edit button (`Edit <name>`),
+  lined up under the settings button. Tapping an item opens the web app; right-click or long press
+  opens a menu with Open, Edit, Reinstall / Update / Rebuild, and Uninstall or Remove.
 - R2.2 The list comes from Shrimpl's records (R11) joined with the installed state, re-read on
   resume. A record whose app isn't installed shows "Not installed" with Reinstall and Remove. An app
   built from an older template shows "Update available" (R11.4). An empty list says "No apps yet". User-facing text says "app", never "web app".

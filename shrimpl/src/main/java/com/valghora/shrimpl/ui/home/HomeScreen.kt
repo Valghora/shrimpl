@@ -126,7 +126,13 @@ fun HomeScreen(
             TopAppBar(
                 title = {
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        Icon(painterResource(R.drawable.ic_shrimpl_glyph), contentDescription = null, modifier = Modifier.size(28.dp))
+                        // The theme's primary color, so it follows the user's Material You palette.
+                        Icon(
+                            painterResource(R.drawable.ic_shrimpl_glyph),
+                            contentDescription = null,
+                            modifier = Modifier.size(28.dp),
+                            tint = MaterialTheme.colorScheme.primary,
+                        )
                         Spacer(Modifier.width(12.dp))
                         Text(stringResource(R.string.home_title))
                     }
