@@ -76,7 +76,7 @@ fun EmptyStateText(text: String, title: Boolean = false) {
     StyledEmptyStateText(AnnotatedString(text), title)
 }
 
-/** The getting-started line: the pitch, then the tagline in italics. */
+/** The getting-started text: the pitch, then the tagline in italics on its own line. */
 @Composable
 fun PitchText() {
     val pitch = stringResource(R.string.home_start_text)
@@ -84,7 +84,8 @@ fun PitchText() {
     StyledEmptyStateText(
         buildAnnotatedString {
             append(pitch)
-            append(' ')
+            // The tagline always gets a line of its own.
+            append('\n')
             withStyle(SpanStyle(fontStyle = FontStyle.Italic)) { append(tagline) }
         },
         title = false,
