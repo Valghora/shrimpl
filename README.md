@@ -12,7 +12,7 @@ own launcher icon, task, window and sign-ins, and behaves like an installed PWA 
 2. Tap **+**, enter a website (`discord.com`, `squoosh.app`, ...) and tap **Search**.
 3. Check the suggested settings and tap **Create**. Android asks once to allow UniWrap to install
    apps.
-4. **My Web Apps** lists what you made. The edit button (or right-click) opens a web app's settings;
+4. **My Apps** lists what you made. The edit button (or right-click) opens a web app's settings;
    saving builds the next version (Build 2, 3, ...) and updates it in place, keeping its sign-ins.
    With a keyboard, Ctrl+N starts a new web app and Ctrl+, opens Settings.
 

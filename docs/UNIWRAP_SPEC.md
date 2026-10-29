@@ -71,8 +71,9 @@ binary translation) on any device.
     handle that resizes them. The detail pane shows a web app's edit page, the configuration page
     (R3) or UniWrap's settings (R2.5), each replacing the previous one, so the list is always one
     Back away. Settings has Close instead of a back arrow there; the edit page has neither. With
-    nothing open, the detail pane says to pick a web app (or, with none yet, explains how to start)
-    and offers New web app. Empty-state titles in the two panes line up on the window's center.
+    nothing open, the detail pane says to pick a web app (or, with none yet, "Provide a website, get
+    a custom app. Shrimple as.") and offers New app. Empty-state text is exactly centered in each
+    pane, so the two panes line up.
 - R1.2 Kotlin only. The single exception: discovery injects JavaScript into a hidden WebView to read
   what only exists in the rendered page (R9.3).
 - R1.3 Material 3 in Jetpack Compose (latest stable, Expressive components where stable), dynamic
@@ -84,19 +85,19 @@ binary translation) on any device.
 
 ## R2 Home
 
-- R2.1 A "My Web Apps" top app bar (hides on scroll down, returns on scroll up) with a settings
+- R2.1 A "My Apps" top app bar (hides on scroll down, returns on scroll up) with a settings
   button, over an adaptive grid of the web apps UniWrap created (one column on phones, more on wide
   windows). Each item, left to right: the installed icon (48 dp), the name, "Build N", and an edit
   button (`Edit <name>`). Tapping an item opens the web app; right-click or long press opens a menu
   with Open, Edit, Reinstall / Update / Rebuild, and Uninstall or Remove.
 - R2.2 The list comes from UniWrap's records (R11) joined with the installed state, re-read on
   resume. A record whose app isn't installed shows "Not installed" with Reinstall and Remove. An app
-  built from an older template shows "Update available" (R11.4). An empty list explains the New web app button.
+  built from an older template shows "Update available" (R11.4). An empty list says "No web apps yet".
 - R2.3 The edit page offers every profile setting in the form of R3.3 (the app ID read-only), the icon
   editor (R10), Open, Rebuild, Discard changes, and Uninstall (confirmed; then offers to remove the
   record). "Save as build N" rebuilds with build number + 1 and installs it as an update (same
   package and key, so the app keeps its data). In two panes the edit page has no back arrow.
-- R2.4 "New web app" opens the configuration page (R3). It is one design everywhere: a fully
+- R2.4 "New app" opens the configuration page (R3). It is one design everywhere: a fully
   rounded filled button with a plus icon in the theme's primary color, its tooltip naming Ctrl+N.
   With one pane it sits at the bottom right of the list. With two panes it appears in exactly one
   place: in the empty detail pane, or at the bottom right of the list while the detail pane shows a

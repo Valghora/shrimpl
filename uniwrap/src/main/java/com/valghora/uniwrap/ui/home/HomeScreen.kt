@@ -49,7 +49,6 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import androidx.core.graphics.drawable.toBitmap
@@ -62,6 +61,7 @@ import com.valghora.uniwrap.data.InstalledApp
 import com.valghora.uniwrap.data.InstalledApps
 import com.valghora.uniwrap.ui.common.BuildSheet
 import com.valghora.uniwrap.ui.common.CenteredEmptyState
+import com.valghora.uniwrap.ui.common.EmptyStateText
 import com.valghora.uniwrap.ui.common.NewWebAppButton
 import com.valghora.uniwrap.ui.common.LocalInPane
 import com.valghora.uniwrap.ui.common.TooltipIconButton
@@ -135,16 +135,13 @@ fun HomeScreen(
     ) { padding ->
         if (records.isEmpty()) {
             if (inPane) {
-                // Spans the whole card, so the title lines up with the detail pane's.
-                CenteredEmptyState(stringResource(R.string.home_empty_title))
+                // Spans the whole card, so it lines up with the detail pane's text.
+                CenteredEmptyState { EmptyStateText(stringResource(R.string.home_empty_title), title = true) }
             } else {
-                CenteredEmptyState(stringResource(R.string.home_empty_title), Modifier.padding(padding)) {
-                    Text(
-                        stringResource(R.string.home_empty_text),
-                        textAlign = TextAlign.Center,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                }
+                CenteredEmptyState(
+                    Modifier.padding(padding),
+                    below = { EmptyStateText(stringResource(R.string.home_start_text)) },
+                ) { EmptyStateText(stringResource(R.string.home_empty_title), title = true) }
             }
         } else {
             LazyVerticalGrid(

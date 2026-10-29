@@ -2,12 +2,7 @@ package com.valghora.uniwrap.ui
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.widthIn
 import androidx.compose.material3.LocalMinimumInteractiveComponentSize
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
 import androidx.compose.material3.VerticalDragHandle
 import androidx.compose.material3.adaptive.ExperimentalMaterial3AdaptiveApi
 import androidx.compose.material3.adaptive.currentWindowAdaptiveInfoV2
@@ -19,12 +14,9 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.navigation3.rememberViewModelStoreNavEntryDecorator
 import androidx.navigation3.runtime.NavBackStack
@@ -36,6 +28,7 @@ import androidx.navigation3.ui.NavDisplay
 import com.valghora.uniwrap.R
 import com.valghora.uniwrap.container
 import com.valghora.uniwrap.ui.common.CenteredEmptyState
+import com.valghora.uniwrap.ui.common.EmptyStateText
 import com.valghora.uniwrap.ui.common.NewWebAppButton
 import com.valghora.uniwrap.ui.common.PaneCard
 import com.valghora.uniwrap.ui.common.PaneSide
@@ -178,24 +171,14 @@ private fun NavBackStack<NavKey>.showDetail(key: NavKey, replace: Boolean) {
 }
 
 /**
- * The detail pane before anything is opened in it: how to start when there are no web apps yet,
- * else a prompt to pick one. Both offer New web app, the list's button being hidden meanwhile.
+ * The detail pane before anything is opened in it: a one-line pitch when there are no web apps
+ * yet, else a prompt to pick one. Both offer New app, the list's button being hidden meanwhile.
  */
 @Composable
 private fun DetailPlaceholder(onCreate: () -> Unit) {
     val records by LocalContext.current.container.store.records.collectAsStateWithLifecycle()
     val empty = records.isEmpty()
-    CenteredEmptyState(stringResource(if (empty) R.string.home_start_title else R.string.home_pick_app)) {
-        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            if (empty) {
-                Text(
-                    stringResource(R.string.home_start_text),
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    textAlign = TextAlign.Center,
-                    modifier = Modifier.widthIn(max = 480.dp),
-                )
-            }
-            NewWebAppButton(onCreate, Modifier.padding(top = 24.dp))
-        }
+    CenteredEmptyState(below = { NewWebAppButton(onCreate) }) {
+        EmptyStateText(stringResource(if (empty) R.string.home_start_text else R.string.home_pick_app))
     }
 }

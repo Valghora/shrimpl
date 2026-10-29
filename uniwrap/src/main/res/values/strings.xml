@@ -20,7 +20,7 @@
     <string name="action_keep">Keep</string>
     <string name="action_later">Later</string>
     <string name="action_more">More options</string>
-    <string name="action_new_web_app">New web app</string>
+    <string name="action_new_web_app">New app</string>
     <string name="action_open">Open</string>
     <string name="action_open_settings">Open settings</string>
     <string name="action_rebuild">Rebuild</string>
@@ -37,14 +37,12 @@
     <string name="action_use_system_installer">Use the system installer</string>
 
     <!-- Home -->
-    <string name="home_title">My Web Apps</string>
+    <string name="home_title">My Apps</string>
     <string name="home_build">Build %1$d</string>
     <string name="home_not_installed">Not installed</string>
     <string name="home_update_available">Update available</string>
     <string name="home_empty_title">No web apps yet</string>
-    <string name="home_empty_text">Choose New web app and enter a website to turn it into an app</string>
-    <string name="home_start_title">Turn a website into an app</string>
-    <string name="home_start_text">Enter a website and UniWrap suggests a name, icon, colors and permissions. Change anything you like, then it builds and installs the app</string>
+    <string name="home_start_text">Provide a website, get a custom app. Shrimple as.</string>
     <string name="home_pick_app">Select a web app to edit it</string>
 
     <!-- Configuration page -->
@@ -218,5 +216,5 @@
     <string name="request_access_detail">Click to request</string>
     <string name="action_copy_certificate">Copy certificate fingerprint</string>
     <string name="tooltip_settings">Settings (Ctrl+,)</string>
-    <string name="tooltip_new_web_app">New web app (Ctrl+N)</string>
+    <string name="tooltip_new_web_app">New app (Ctrl+N)</string>
 </resources>
