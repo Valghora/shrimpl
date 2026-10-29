@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
-# Enforces the architecture rule (docs/SHRIMPLE_SPEC.md R0): every APK runs natively on ARM and x86
+# Enforces the architecture rule (docs/SHRIMPL_SPEC.md R0): every APK runs natively on ARM and x86
 # devices with no translation layer (no NativeBridge / Houdini / Rosetta-style emulation).
 #
 #   scripts/check_native_code.sh --none APK...       the APK must contain no native code at all
 #                                                     (the template, and so every generated web app)
 #   scripts/check_native_code.sh --all-abis APK...   native libraries are allowed only when each one
-#                                                     ships for all four ABIs (Shrimple's third-party libs)
+#                                                     ships for all four ABIs (Shrimpl's third-party libs)
 #
 # The four ABIs: arm64-v8a, armeabi-v7a, x86_64, x86. A library present for only some of them would
 # force the others to run it translated (or not at all).

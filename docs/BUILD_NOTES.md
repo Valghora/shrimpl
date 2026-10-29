@@ -1,7 +1,7 @@
 # Build notes
 
 Baseline of 2026-10-28: the toolchain, platform findings that shape the code, and every deviation
-from docs/SHRIMPLE_SPEC.md and docs/TEMPLATE_SPEC.md. Deviations from Google's adaptive guidance are
+from docs/SHRIMPL_SPEC.md and docs/TEMPLATE_SPEC.md. Deviations from Google's adaptive guidance are
 in docs/ADAPTIVE.md. The log of how the project got here is in `docs/history/`.
 
 ## Versions
@@ -30,8 +30,8 @@ and services.gradle.org).
 ## Architecture neutrality (R0)
 
 - `scripts/check_native_code.sh` checks APKs: `--none` (template: no `.so` at all) and `--all-abis`
-  (Shrimple: each library present for arm64-v8a, armeabi-v7a, x86_64 and x86, nothing else).
-- Shrimple's only native library is `libandroidx.graphics.path.so` (androidx.graphics:graphics-path,
+  (Shrimpl: each library present for arm64-v8a, armeabi-v7a, x86_64 and x86, nothing else).
+- Shrimpl's only native library is `libandroidx.graphics.path.so` (androidx.graphics:graphics-path,
   pulled in by Compose UI). Its `PathIteratorImpl` loads it unconditionally on Android, also in
   older versions, so it can't be excluded; it ships for all four ABIs.
 - The Shizuku libraries, apksig, kotlinx-serialization and the AndroidX libraries the template uses
@@ -88,14 +88,16 @@ and services.gradle.org).
 | R9.3 | The rendered visit's HTTP status is known only when it is an error (>= 400). | WebView reports main-document errors, not successes. |
 | R10.3 | Letter icons use the system bold font. | Native rendering; no bundled font. |
 | R6.1 | Package visibility uses `<queries>` (launcher apps, icon packs, Shizuku), not `QUERY_ALL_PACKAGES`. | Narrower, and enough: every web app has a launcher entry. |
-| Rules (lint) | `:shrimple` lint keeps two warnings: `SetJavaScriptEnabled` (the hidden discovery WebView must run page scripts) and `DiscouragedApi` (`getIdentifier` for icon pack drawables, known only by name). | `@SuppressLint` is allowed only in the template. |
+| Rules (lint) | `:shrimpl` lint keeps two warnings: `SetJavaScriptEnabled` (the hidden discovery WebView must run page scripts) and `DiscouragedApi` (`getIdentifier` for icon pack drawables, known only by name). | `@SuppressLint` is allowed only in the template. |
 
-## Rename to Shrimple (2026-10-29)
+## Rename to Shrimpl (2026-10-29)
 
-UniWrap became Shrimple everywhere except `docs/history/`: the app (`com.valghora.shrimple`, module
-`:shrimple`), the core package (`com.valghora.shrimple.core`), the template's namespace
-(`com.valghora.shrimple.webapp`) and placeholder package (`com.valghora.shrimple.template`), the
-apps' package prefix (`com.valghora.shrimple.app`), the profile asset (`assets/shrimple/`), the
-signing key's alias and common name, the launcher icon (an "S") and the repository. Shrimple is a new
+UniWrap became Shrimpl everywhere except `docs/history/`: the app (`com.valghora.shrimpl`, module
+`:shrimpl`), the core package (`com.valghora.shrimpl.core`), the template's namespace
+(`com.valghora.shrimpl.webapp`) and placeholder package (`com.valghora.shrimpl.template`), the
+apps' package prefix (`com.valghora.shrimpl.app`), the profile asset (`assets/shrimpl/`), the
+signing key's alias and common name, the launcher icon (an "S") and the repository (`Valghora/shrimpl`; the cloud session's git
+access still uses the old URL, which GitHub redirects). An interim name, Shrimple, never shipped
+beyond test builds; only the pitch line "Shrimple as." keeps it, as a pun. Shrimpl is a new
 package, so it installs beside UniWrap rather than updating it, and can't update apps UniWrap made
 (their packages start `com.valghora.uniwrap.app`). Template version 4.

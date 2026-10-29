@@ -1,21 +1,21 @@
-// The web app template (docs/SHRIMPLE_SPEC.md R7): a site-neutral APK that Shrimple patches per web
-// app. It reads its site from assets/shrimple/profile.json and has placeholder name and icons at fixed
+// The web app template (docs/SHRIMPL_SPEC.md R7): a site-neutral APK that Shrimpl patches per web
+// app. It reads its site from assets/shrimpl/profile.json and has placeholder name and icons at fixed
 // paths and the superset manifest.
 plugins {
     alias(libs.plugins.android.application)
 }
 
-/** shrimple.templateVersion in gradle.properties; Shrimple reads it to offer updates (R11.4). */
-val templateVersion = providers.gradleProperty("shrimple.templateVersion").get().toInt()
+/** shrimpl.templateVersion in gradle.properties; Shrimpl reads it to offer updates (R11.4). */
+val templateVersion = providers.gradleProperty("shrimpl.templateVersion").get().toInt()
 
-// Release builds are signed with the local debug key; Shrimple re-signs every web app.
+// Release builds are signed with the local debug key; Shrimpl re-signs every web app.
 android {
-    // Fixed for every web app, so the classes keep their names when Shrimple renames the package (R7.6).
-    namespace = "com.valghora.shrimple.webapp"
+    // Fixed for every web app, so the classes keep their names when Shrimpl renames the package (R7.6).
+    namespace = "com.valghora.shrimpl.webapp"
     compileSdk = 37
 
     defaultConfig {
-        applicationId = "com.valghora.shrimple.template"
+        applicationId = "com.valghora.shrimpl.template"
         minSdk = 37
         targetSdk = 37
         versionCode = templateVersion
@@ -39,7 +39,7 @@ android {
 
 // Unit tests check the profile this build ships.
 tasks.withType<Test>().configureEach {
-    val profile = layout.projectDirectory.file("src/main/assets/shrimple/profile.json")
+    val profile = layout.projectDirectory.file("src/main/assets/shrimpl/profile.json")
     inputs.file(profile).withPropertyName("profileJson")
     jvmArgumentProviders.add(CommandLineArgumentProvider { listOf("-DprofileJson=${profile.asFile.path}") })
 }

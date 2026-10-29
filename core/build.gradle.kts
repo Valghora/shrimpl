@@ -1,6 +1,6 @@
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
-// Pure-JVM logic shared by the web app template and Shrimple (docs/SHRIMPLE_SPEC.md R4).
+// Pure-JVM logic shared by the web app template and Shrimpl (docs/SHRIMPL_SPEC.md R4).
 plugins {
     alias(libs.plugins.kotlin.jvm)
     alias(libs.plugins.kotlin.serialization)
@@ -26,7 +26,7 @@ dependencies {
     testImplementation(libs.junit)
 }
 
-// The builder tests patch the real template APK (docs/SHRIMPLE_SPEC.md R8.5), so it is built first.
+// The builder tests patch the real template APK (docs/SHRIMPL_SPEC.md R8.5), so it is built first.
 val templateApk = rootProject.layout.projectDirectory.file("template/build/outputs/apk/release/template-release.apk")
 
 tasks.test {

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Template manifest: the superset every web app starts from (docs/SHRIMPLE_SPEC.md R7.3, R7.5).
-     Shrimple's patcher removes the permissions and features a web app disables and sets its label,
+<!-- Template manifest: the superset every web app starts from (docs/SHRIMPL_SPEC.md R7.3, R7.5).
+     Shrimpl's patcher removes the permissions and features a web app disables and sets its label,
      launch mode and window sizes. -->
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 

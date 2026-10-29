@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Draws the template's placeholder icon layers (a white globe on blue-gray) as PNGs.
 
-Shrimple replaces these files in every web app it builds (docs/SHRIMPLE_SPEC.md R7.4, R10.3).
+Shrimpl replaces these files in every web app it builds (docs/SHRIMPL_SPEC.md R7.4, R10.3).
 Run from the repository root: python3 scripts/dev/make_placeholder_icons.py
 """
 import math

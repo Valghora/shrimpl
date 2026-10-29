@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- app_name is in values/site.xml; Shrimple sets each web app's label in its manifest. -->
+    <!-- app_name is in values/site.xml; Shrimpl sets each web app's label in its manifest. -->
 
     <string name="menu_copy_link">Copy link</string>
     <string name="menu_open_link">Open link in browser</string>

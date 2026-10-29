@@ -17,7 +17,7 @@ env:
 
 jobs:
   build:
-    name: Core, template and Shrimple
+    name: Core, template and Shrimpl
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
@@ -48,23 +48,23 @@ jobs:
         run: >-
           ./gradlew --console=plain :core:check :core:jacocoTestReport
           :template:testDebugUnitTest :template:lintRelease :template:assembleRelease
-          :shrimple:testDebugUnitTest :shrimple:lintDebug :shrimple:assembleDebug :shrimple:assembleRelease
+          :shrimpl:testDebugUnitTest :shrimpl:lintDebug :shrimpl:assembleDebug :shrimpl:assembleRelease
 
       # R0: no APK may need a translation layer on ARM or x86 devices. The template (and so every web
-      # app built from it) has no native code; Shrimple's third-party libraries must cover all four ABIs.
+      # app built from it) has no native code; Shrimpl's third-party libraries must cover all four ABIs.
       - name: Architecture-neutral APKs
         run: |
           scripts/check_native_code.sh --none template/build/outputs/apk/release/template-release.apk
-          scripts/check_native_code.sh --all-abis shrimple/build/outputs/apk/debug/shrimple-debug.apk shrimple/build/outputs/apk/release/shrimple-release.apk
+          scripts/check_native_code.sh --all-abis shrimpl/build/outputs/apk/debug/shrimpl-debug.apk shrimpl/build/outputs/apk/release/shrimpl-release.apk
 
-      - name: Upload template and Shrimple APKs
+      - name: Upload template and Shrimpl APKs
         uses: actions/upload-artifact@v7
         with:
           name: apks
           path: |
             template/build/outputs/apk/release/template-release.apk
-            shrimple/build/outputs/apk/debug/shrimple-debug.apk
-            shrimple/build/outputs/apk/release/shrimple-release.apk
+            shrimpl/build/outputs/apk/debug/shrimpl-debug.apk
+            shrimpl/build/outputs/apk/release/shrimpl-release.apk
 
       - name: Upload reports
         if: always()
@@ -76,5 +76,5 @@ jobs:
             core/build/test-results/
             template/build/reports/
             template/build/test-results/
-            shrimple/build/reports/
+            shrimpl/build/reports/
           if-no-files-found: ignore

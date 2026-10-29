@@ -18,7 +18,7 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "shrimple"
+rootProject.name = "shrimpl"
 include(":core")
 include(":template")
-include(":shrimple")
+include(":shrimpl")

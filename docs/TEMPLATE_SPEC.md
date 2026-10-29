@@ -1,19 +1,19 @@
 # Web app template: behavior baseline
 
-The behavior every web app has, implemented once in `:template` (package `com.valghora.shrimple.webapp`) and
-`:core`'s `DesktopSessionController`. Shrimple never changes this code per site; a web app differs
-only in its profile (`assets/shrimple/profile.json`, fields from `core/.../profile/Profile.kt`), its
-patched manifest and its icon files (docs/SHRIMPLE_SPEC.md R7, R8).
+The behavior every web app has, implemented once in `:template` (package `com.valghora.shrimpl.webapp`) and
+`:core`'s `DesktopSessionController`. Shrimpl never changes this code per site; a web app differs
+only in its profile (`assets/shrimpl/profile.json`, fields from `core/.../profile/Profile.kt`), its
+patched manifest and its icon files (docs/SHRIMPL_SPEC.md R7, R8).
 
 Requirement IDs are T1 to T8; code comments in the template cite them. MUST and SHOULD are used as in
-docs/SHRIMPLE_SPEC.md. Profile fields are written `profile.field`.
+docs/SHRIMPL_SPEC.md. Profile fields are written `profile.field`.
 
 ## T1 Build
 
 - T1.1 Kotlin with AndroidX Views. Runtime dependencies are exactly `:core`, androidx.core:core-ktx,
   androidx.appcompat, com.google.android.material, androidx.activity:activity-ktx and
   androidx.webkit; tests use junit 4. No Compose (every web app is a copy of the template, and Compose
-  would add megabytes to each), and no native code at all (docs/SHRIMPLE_SPEC.md R0).
+  would add megabytes to each), and no native code at all (docs/SHRIMPL_SPEC.md R0).
 - T1.2 Release builds use R8 (`isMinifyEnabled`, `isShrinkResources`, the optimize ProGuard file);
   keep rules only when code genuinely needs them.
 - T1.3 SDK checks: minSdk is 37, so no `SDK_INT` guards for APIs at or below 37. androidx.webkit
@@ -80,8 +80,8 @@ Unit tests cover every branch with a fixed fixture config, including look-alike 
   `setRequestedOrientation`.
 - T4.2 Features, all `required="false"`: type.pc, touchscreen, microphone, camera,
   camera.autofocus, location, location.gps. Permissions: INTERNET, POST_NOTIFICATIONS, RECORD_AUDIO,
-  MODIFY_AUDIO_SETTINGS, CAMERA, ACCESS_FINE_LOCATION, ACCESS_COARSE_LOCATION. Shrimple's patcher
-  removes those the profile doesn't enable (docs/SHRIMPLE_SPEC.md R8.2).
+  MODIFY_AUDIO_SETTINGS, CAMERA, ACCESS_FINE_LOCATION, ACCESS_COARSE_LOCATION. Shrimpl's patcher
+  removes those the profile doesn't enable (docs/SHRIMPL_SPEC.md R8.2).
 - T4.3 `<application>`: label, icon, round icon, theme, hardware acceleration, `allowBackup="false"`,
   data extraction rules that exclude everything from cloud backup and device transfer (sign-ins never
   leave the device), `enableOnBackInvokedCallback="true"`, no cleartext traffic.

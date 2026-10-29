@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Template placeholder. The layers are PNGs at fixed paths that Shrimple replaces per web app. -->
+<!-- Template placeholder. The layers are PNGs at fixed paths that Shrimpl replaces per web app. -->
 <adaptive-icon xmlns:android="http://schemas.android.com/apk/res/android">
     <background android:drawable="@drawable/ic_launcher_background" />
     <foreground android:drawable="@drawable/ic_launcher_foreground" />
