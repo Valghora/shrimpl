@@ -72,8 +72,9 @@ binary translation) on any device.
     (R3) or Shrimpl's settings (R2.5), each replacing the previous one, so the list is always one
     Back away. Settings has Close instead of a back arrow there; the edit page has neither. With
     nothing open, the detail pane says to pick a web app (or, with none yet, "Provide a website, get
-    a custom app. Shrimple as.") and offers New app. Empty-state text is exactly centered in each
-    pane, so the two panes line up.
+    a custom app. *Shrimpl as that*") and offers New app. Empty-state text is exactly centered in
+    each pane, so the two panes line up. With one pane, "No apps yet" and that line are centered
+    together as one block.
 - R1.2 Kotlin only. The single exception: discovery injects JavaScript into a hidden WebView to read
   what only exists in the rendered page (R9.3).
 - R1.3 Material 3 in Jetpack Compose (latest stable, Expressive components where stable), dynamic

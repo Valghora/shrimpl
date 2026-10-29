@@ -29,6 +29,7 @@ import com.valghora.shrimpl.R
 import com.valghora.shrimpl.container
 import com.valghora.shrimpl.ui.common.CenteredEmptyState
 import com.valghora.shrimpl.ui.common.EmptyStateText
+import com.valghora.shrimpl.ui.common.PitchText
 import com.valghora.shrimpl.ui.common.NewWebAppButton
 import com.valghora.shrimpl.ui.common.PaneCard
 import com.valghora.shrimpl.ui.common.PaneSide
@@ -179,6 +180,6 @@ private fun DetailPlaceholder(onCreate: () -> Unit) {
     val records by LocalContext.current.container.store.records.collectAsStateWithLifecycle()
     val empty = records.isEmpty()
     CenteredEmptyState(below = { NewWebAppButton(onCreate) }) {
-        EmptyStateText(stringResource(if (empty) R.string.home_start_text else R.string.home_pick_app))
+        if (empty) PitchText() else EmptyStateText(stringResource(R.string.home_pick_app))
     }
 }

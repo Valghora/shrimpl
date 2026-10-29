@@ -18,7 +18,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.Layout
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import com.valghora.shrimpl.R
 
@@ -68,6 +73,26 @@ fun CenteredEmptyState(modifier: Modifier = Modifier, below: @Composable () -> U
 /** The text of an empty state, centered. */
 @Composable
 fun EmptyStateText(text: String, title: Boolean = false) {
+    StyledEmptyStateText(AnnotatedString(text), title)
+}
+
+/** The getting-started line: the pitch, then the tagline in italics. */
+@Composable
+fun PitchText() {
+    val pitch = stringResource(R.string.home_start_text)
+    val tagline = stringResource(R.string.home_start_tagline)
+    StyledEmptyStateText(
+        buildAnnotatedString {
+            append(pitch)
+            append(' ')
+            withStyle(SpanStyle(fontStyle = FontStyle.Italic)) { append(tagline) }
+        },
+        title = false,
+    )
+}
+
+@Composable
+private fun StyledEmptyStateText(text: AnnotatedString, title: Boolean) {
     Text(
         text,
         style = if (title) MaterialTheme.typography.headlineSmall else MaterialTheme.typography.bodyLarge,

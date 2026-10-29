@@ -9,7 +9,9 @@
         android:pivotY="54"
         android:scaleX="0.94"
         android:scaleY="0.94">
-        <group android:translateY="-4">
+        <group
+            android:translateX="1.7"
+            android:translateY="-1.13">
             <path
                 android:fillColor="#FFFFFF"
                 android:pathData="M23,47 C33,40 47,36 58,37 C63,38 64,44 63,50 C62,56 56,58 50,58 C40,58 30,54 23,47 Z" />

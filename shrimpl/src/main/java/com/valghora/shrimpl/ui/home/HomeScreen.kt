@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.grid.GridCells
@@ -39,6 +40,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.asImageBitmap
@@ -62,6 +64,7 @@ import com.valghora.shrimpl.data.InstalledApps
 import com.valghora.shrimpl.ui.common.BuildSheet
 import com.valghora.shrimpl.ui.common.CenteredEmptyState
 import com.valghora.shrimpl.ui.common.EmptyStateText
+import com.valghora.shrimpl.ui.common.PitchText
 import com.valghora.shrimpl.ui.common.NewWebAppButton
 import com.valghora.shrimpl.ui.common.LocalInPane
 import com.valghora.shrimpl.ui.common.TooltipIconButton
@@ -138,10 +141,15 @@ fun HomeScreen(
                 // Spans the whole card, so it lines up with the detail pane's text.
                 CenteredEmptyState { EmptyStateText(stringResource(R.string.home_empty_title), title = true) }
             } else {
-                CenteredEmptyState(
-                    Modifier.padding(padding),
-                    below = { EmptyStateText(stringResource(R.string.home_start_text)) },
-                ) { EmptyStateText(stringResource(R.string.home_empty_title), title = true) }
+                // One pane: the title and pitch are centered together, as one block.
+                Column(
+                    Modifier.padding(padding).fillMaxSize().padding(horizontal = 32.dp),
+                    verticalArrangement = Arrangement.spacedBy(24.dp, Alignment.CenterVertically),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                ) {
+                    EmptyStateText(stringResource(R.string.home_empty_title), title = true)
+                    PitchText()
+                }
             }
         } else {
             LazyVerticalGrid(

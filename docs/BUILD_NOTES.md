@@ -98,6 +98,6 @@ UniWrap became Shrimpl everywhere except `docs/history/`: the app (`com.valghora
 apps' package prefix (`com.valghora.shrimpl.app`), the profile asset (`assets/shrimpl/`), the
 signing key's alias and common name, the launcher icon (a white shrimp on #CC5500, with a themed monochrome layer) and the repository (`Valghora/shrimpl`; the cloud session's git
 access still uses the old URL, which GitHub redirects). An interim name, Shrimple, never shipped
-beyond test builds; only the pitch line "Shrimple as." keeps it, as a pun. Shrimpl is a new
+beyond test builds. Shrimpl is a new
 package, so it installs beside UniWrap rather than updating it, and can't update apps UniWrap made
 (their packages start `com.valghora.uniwrap.app`). Template version 4.
