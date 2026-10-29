@@ -1,6 +1,6 @@
 # Adaptive apps: how this project applies Google's guidance
 
-Every UI change to UniWrap or the template MUST be checked against two sources, and this file
+Every UI change to Shrimple or the template MUST be checked against two sources, and this file
 records how each applies here:
 
 1. **The adaptive skill**, vendored at [`.claude/skills/adaptive/`](../.claude/skills/adaptive/SKILL.md)
@@ -15,12 +15,12 @@ records how each applies here:
 When a change can't follow them, add a row to **Deliberate deviations** below with the reason. A
 deviation that isn't written down is a bug.
 
-## UniWrap (Compose)
+## Shrimple (Compose)
 
-| Guideline | How UniWrap meets it | Where |
+| Guideline | How Shrimple meets it | Where |
 |---|---|---|
-| Skill step 3, list-detail | Navigation 3 `NavDisplay` with `ListDetailSceneStrategy`. Home is the list pane (with a placeholder), an app's edit page the detail pane. In two panes the detail has no back arrow and the selected row is highlighted. Not `ListDetailPaneScaffold`, as the skill requires. | `ui/UniWrapNavigation.kt` |
-| Two-pane presentation | Each pane is a rounded `surface` card (24 dp corners) on the `surfaceContainer` window background, 16 dp from the window edges, with the scaffold's 24 dp spacer between them. A drag handle in the spacer resizes the panes (`paneExpansionDraggable`). The cards take the window insets, so the screens inside don't pad twice. Edit, Create and Settings all open in the detail pane, replacing each other. With nothing open the detail pane prompts (or, with no web apps yet, explains how to start) and holds the only New app button; empty-state text is exactly centered in each card, so both panes line up. With one pane, screens stay edge to edge. | `ui/common/PaneCard.kt`, `UniWrapNavigation.kt` |
+| Skill step 3, list-detail | Navigation 3 `NavDisplay` with `ListDetailSceneStrategy`. Home is the list pane (with a placeholder), an app's edit page the detail pane. In two panes the detail has no back arrow and the selected row is highlighted. Not `ListDetailPaneScaffold`, as the skill requires. | `ui/ShrimpleNavigation.kt` |
+| Two-pane presentation | Each pane is a rounded `surface` card (24 dp corners) on the `surfaceContainer` window background, 16 dp from the window edges, with the scaffold's 24 dp spacer between them. A drag handle in the spacer resizes the panes (`paneExpansionDraggable`). The cards take the window insets, so the screens inside don't pad twice. Edit, Create and Settings all open in the detail pane, replacing each other. With nothing open the detail pane prompts (or, with no web apps yet, explains how to start) and holds the only New app button; empty-state text is exactly centered in each card, so both panes line up. With one pane, screens stay edge to edge. | `ui/common/PaneCard.kt`, `ShrimpleNavigation.kt` |
 | Skill step 4, adaptive lists | Home is a `LazyVerticalGrid(GridCells.Adaptive(360.dp))`: one column on phones, more on wide windows. | `ui/home/HomeScreen.kt` |
 | Skill step 5, app bars | Home's top bar uses `enterAlwaysScrollBehavior`. | `HomeScreen.kt` |
 | Skill step 6 / Tier 3 Config_Changes | No `android:configChanges` or orientation locks. Dialog flags, field drafts, menus, picker queries and the icon editor's draft survive rotation, folding and resizing (`rememberSaveable` with the savers in `ui/common/Savers.kt`, or the ViewModel). Navigation state is `rememberNavBackStack` with `@Serializable` keys; entries get saved-state and ViewModel decorators. | `MainActivity.kt`, `Savers.kt`, ViewModels |
@@ -31,7 +31,7 @@ deviation that isn't written down is a bug.
 | Tier 2 Context_Menus | Right-click (and long press) on a web app opens Open / Edit / Reinstall-Update-Rebuild / Uninstall-Remove at the pointer. | `HomeScreen.kt` `AppItem` |
 | Tier 2 Keyboard_Shortcuts | Ctrl+N (new web app) and Ctrl+, (settings) from anywhere, Ctrl alone, ignoring key repeat; both listed in the Keyboard Shortcuts Helper. | `MainActivity.kt` |
 | Tier 2 Keyboard_Navigation | Material components are focusable and Tab-traversable. Esc closes dialogs and menus (platform behavior); it is not used as a general back key. | — |
-| Multi-window | `resizeableActivity` default, no orientation or aspect-ratio limits; UniWrap is single-instance by design (one manager). | `AndroidManifest.xml` |
+| Multi-window | `resizeableActivity` default, no orientation or aspect-ratio limits; Shrimple is single-instance by design (one manager). | `AndroidManifest.xml` |
 
 ## Template (the web app, Views)
 
@@ -51,11 +51,11 @@ deviation that isn't written down is a bug.
 
 | Guidance | What we do instead | Why |
 |---|---|---|
-| Skill step 6: never add `android:configChanges` | The template declares `configChanges` for size, orientation, density, keyboard, UI mode and font scale, and handles them in `onConfigurationChanged`. | Recreating the activity would reload the WebView and lose page state (scroll, forms, media, sign-in flows) that `saveState` can't restore. The window still resizes freely and re-applies colors and insets. UniWrap itself never opts out. |
+| Skill step 6: never add `android:configChanges` | The template declares `configChanges` for size, orientation, density, keyboard, UI mode and font scale, and handles them in `onConfigurationChanged`. | Recreating the activity would reload the WebView and lose page state (scroll, forms, media, sign-in flows) that `saveState` can't restore. The window still resizes freely and re-applies colors and insets. Shrimple itself never opts out. |
 | Skill prerequisites: Compose and Navigation 3 everywhere | The template stays on AndroidX Views. | Every web app is a copy of the template; Compose would add megabytes to each one, and the UI is one WebView. |
 | Skill step 1: screenshot tests per form factor | Not yet added. | The Compose Preview Screenshot Testing plugin needs reference images reviewed on a desktop; tracked as a gap. Layout logic is size-class driven and checked on devices. |
-| Skill step 2: `NavigationSuiteScaffold` | Not used. | UniWrap has one top-level destination (My Apps); there is no navigation bar to adapt. |
+| Skill step 2: `NavigationSuiteScaffold` | Not used. | Shrimple has one top-level destination (My Apps); there is no navigation bar to adapt. |
 | Skill step 4.2: `Grid` for non-lazy lists | Settings and form sections stay `Column`s. | Their items are different kinds of settings, not repeated items; `Grid` is also still experimental. |
-| Skill step 8: tabletop posture | Not used. | No media, camera or video-call screens in UniWrap; web apps get the page's own layout. |
-| Skill step 7: custom cursors | Default cursors. | Material components already show the right pointer; nothing is draggable or resizable in UniWrap. |
+| Skill step 8: tabletop posture | Not used. | No media, camera or video-call screens in Shrimple; web apps get the page's own layout. |
+| Skill step 7: custom cursors | Default cursors. | Material components already show the right pointer; nothing is draggable or resizable in Shrimple. |
 | Transient `remember` state | Snackbar hosts, in-flight search status, a context menu's pointer position and derived bitmaps use plain `remember`. | They are not user input; losing them on a configuration change is correct. |

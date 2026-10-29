@@ -18,7 +18,7 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "universal-android-wrapper"
+rootProject.name = "shrimple"
 include(":core")
 include(":template")
-include(":uniwrap")
+include(":shrimple")

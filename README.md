@@ -1,6 +1,6 @@
-# UniWrap
+# Shrimple
 
-UniWrap turns websites into installable Android apps, on the device. Enter a web address; UniWrap
+Shrimple turns websites into installable Android apps, on the device. Enter a web address; Shrimple
 looks the site up, suggests a name, icon, colors, domains and permissions, lets you change any of
 them, then builds, signs and installs a small web app for it. Each web app is a real app with its
 own launcher icon, task, window and sign-ins, and behaves like an installed PWA on Android desktops
@@ -8,9 +8,9 @@ own launcher icon, task, window and sign-ins, and behaves like an installed PWA 
 
 ## Using it
 
-1. Install `uniwrap-release.apk` (from CI, or `./gradlew :uniwrap:assembleRelease`).
+1. Install `shrimple-release.apk` (from CI, or `./gradlew :shrimple:assembleRelease`).
 2. Tap **+**, enter a website (`discord.com`, `squoosh.app`, ...) and tap **Search**.
-3. Check the suggested settings and tap **Create**. Android asks once to allow UniWrap to install
+3. Check the suggested settings and tap **Create**. Android asks once to allow Shrimple to install
    apps.
 4. **My Apps** lists what you made. The edit button (or right-click) opens a web app's settings;
    saving builds the next version (Build 2, 3, ...) and updates it in place, keeping its sign-ins.
@@ -23,13 +23,13 @@ them.
 ## How it works
 
 - `template/`: the web app (Kotlin, AndroidX Views, WebView). It reads its site from
-  `assets/uniwrap/profile.json` and declares every capability any site may need. Its release APK is
-  bundled inside UniWrap.
+  `assets/shrimple/profile.json` and declares every capability any site may need. Its release APK is
+  bundled inside Shrimple.
 - `core/`: pure-JVM logic, unit tested with an 85% line-coverage rule: URL routing, zoom, keys, user
   agent and wake state for the web app; the profile model and validator; discovery rules; and the
   builder that patches the template's manifest (package, label, versions, permissions, window
   sizes), replaces the profile and icons, and signs with apksig.
-- `uniwrap/`: the manager app in Compose (Material 3, Navigation 3 with a list-detail layout on wide
+- `shrimple/`: the manager app in Compose (Material 3, Navigation 3 with a list-detail layout on wide
   windows): discovery (a page fetch plus a hidden WebView), the icon renderer, the record store, the
   signing key in the Android Keystore, and the System, Shizuku and Root installers.
 
@@ -39,7 +39,7 @@ Kotlin and Java. `scripts/check_native_code.sh` enforces this in CI.
 
 ## Documentation
 
-- [docs/UNIWRAP_SPEC.md](docs/UNIWRAP_SPEC.md): the specification, starting with the architecture
+- [docs/SHRIMPLE_SPEC.md](docs/SHRIMPLE_SPEC.md): the specification, starting with the architecture
   rule (R0).
 - [docs/TEMPLATE_SPEC.md](docs/TEMPLATE_SPEC.md): what every web app does.
 - [docs/ADAPTIVE.md](docs/ADAPTIVE.md): how Google's adaptive skill (vendored in
@@ -55,11 +55,11 @@ made; nothing from it is bundled.
 ```bash
 scripts/setup_android_sdk.sh          # Android SDK (API 37) and tool check
 ./gradlew :core:check                 # core tests, including real builds from the template
-./gradlew :uniwrap:assembleDebug      # also builds the template and bundles it
+./gradlew :shrimple:assembleDebug      # also builds the template and bundles it
 ```
 
-CI (`.github/workflows/android.yml`) runs the core, template and UniWrap tests, lint for both apps,
-the template release build and both UniWrap builds, checks that every APK is architecture-neutral,
+CI (`.github/workflows/android.yml`) runs the core, template and Shrimple tests, lint for both apps,
+the template release build and both Shrimple builds, checks that every APK is architecture-neutral,
 and uploads the APKs.
 
 ## Limitations
