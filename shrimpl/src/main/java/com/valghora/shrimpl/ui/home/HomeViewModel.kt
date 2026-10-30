@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.valghora.shrimpl.AppContainer
 import com.valghora.shrimpl.build.BuildRequest
+import com.valghora.shrimpl.data.ClickAction
 import com.valghora.shrimpl.data.InstalledApp
 import com.valghora.shrimpl.data.InstalledApps
 import com.valghora.shrimpl.install.InstallResult
@@ -27,6 +28,9 @@ class HomeViewModel(private val container: AppContainer) : ViewModel() {
     val installed: StateFlow<Map<String, InstalledApp>> = _installed.asStateFlow()
 
     val templateVersion: Int get() = container.template.version
+
+    /** What tapping an app does (R2.5). */
+    val clickAction: StateFlow<ClickAction> = container.settings.clickAction
 
     val build = BuildController(container, viewModelScope)
 

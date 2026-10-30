@@ -89,9 +89,12 @@ binary translation) on any device.
 - R2.1 A top app bar titled with the shrimp glyph (in the theme's primary color) and "Shrimpl"
   (hides on scroll down, returns on scroll up) with a settings button, over an adaptive grid of
   the web apps Shrimpl created (one column on phones, more on wide windows). Each item, left to
-  right: the installed icon (48 dp), the name, "Build N", and an edit button (`Edit <name>`),
-  lined up under the settings button. Tapping an item opens the web app; right-click or long press
-  opens a menu with Open, Edit, Reinstall / Update / Rebuild, and Uninstall or Remove.
+  right: the installed icon (48 dp), the name, "Build N", and a menu (hamburger) button
+  (`Options for <name>`), lined up under the settings button, offering Open (when installed), Edit,
+  and Uninstall (or Remove when not installed). Tapping an item edits it, or opens the app, as the
+  Default click action setting says (R2.5); one that isn't installed is always edited.
+  Right-click or long press opens a menu with Open, Edit, Reinstall / Update / Rebuild, and
+  Uninstall or Remove.
 - R2.2 The list comes from Shrimpl's records (R11) joined with the installed state, re-read on
   resume. A record whose app isn't installed shows "Not installed" with Reinstall and Remove. An app
   built from an older template shows "Update available" (R11.4). An empty list says "No apps yet". User-facing text says "app", never "web app".
@@ -108,6 +111,8 @@ binary translation) on any device.
 - R2.5 Settings, from the top bar button or Ctrl+,:
   - **Appearance:** Theme: System (dynamic color from the wallpaper), Light or Dark.
   - **Installation:** Method (R6.2), and the Request Root / Request Shizuku item when one is chosen.
+  - **Behavior:** Default click action: Edit (the default; "Edit the application on click") or Open
+    ("Launch the application on click").
   - **Signing:** the certificate's SHA-256 fingerprint with a copy button, Export certificate and
     Import certificate (R5).
   - **About:** "App Version: x.y" and "Template Version: N.0".

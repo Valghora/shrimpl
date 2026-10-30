@@ -59,6 +59,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.valghora.shrimpl.BuildConfig
 import com.valghora.shrimpl.R
 import com.valghora.shrimpl.container
+import com.valghora.shrimpl.data.ClickAction
 import com.valghora.shrimpl.data.InstallMethod
 import com.valghora.shrimpl.data.ThemeSetting
 import com.valghora.shrimpl.ui.common.DropdownItem
@@ -76,6 +77,7 @@ fun SettingsScreen(inPane: Boolean, onBack: () -> Unit) {
     val model = viewModel { SettingsViewModel(context.container) }
     val method by model.installMethod.collectAsStateWithLifecycle()
     val theme by model.theme.collectAsStateWithLifecycle()
+    val clickAction by model.clickAction.collectAsStateWithLifecycle()
     val rootAccess by model.rootAccess.collectAsStateWithLifecycle()
     val shizukuAccess by model.shizukuAccess.collectAsStateWithLifecycle()
     val fingerprint by model.fingerprint.collectAsStateWithLifecycle()
@@ -164,6 +166,24 @@ fun SettingsScreen(inPane: Boolean, onBack: () -> Unit) {
                             model.requestAccess(InstallMethod.ROOT)
                         }
                     }
+                }
+
+                SettingsSection(stringResource(R.string.section_browser)) {
+                    DropdownItem(
+                        stringResource(R.string.click_action),
+                        clickAction,
+                        listOf(
+                            ClickAction.OPEN to stringResource(R.string.action_open),
+                            ClickAction.EDIT to stringResource(R.string.action_edit),
+                        ),
+                        model::setClickAction,
+                        summary = stringResource(
+                            when (clickAction) {
+                                ClickAction.OPEN -> R.string.click_action_open_detail
+                                ClickAction.EDIT -> R.string.click_action_edit_detail
+                            },
+                        ),
+                    )
                 }
 
                 SettingsSection(stringResource(R.string.settings_signing)) {

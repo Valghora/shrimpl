@@ -20,7 +20,7 @@ import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.DropdownMenu
@@ -62,6 +62,7 @@ import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.valghora.shrimpl.R
+import com.valghora.shrimpl.data.ClickAction
 import com.valghora.shrimpl.container
 import com.valghora.shrimpl.data.InstalledApp
 import com.valghora.shrimpl.data.InstalledApps
@@ -99,6 +100,7 @@ fun HomeScreen(
     val installed by model.installed.collectAsStateWithLifecycle()
     val buildState by model.build.state.collectAsStateWithLifecycle()
     val message by model.message.collectAsStateWithLifecycle()
+    val clickAction by model.clickAction.collectAsStateWithLifecycle()
     var confirmUninstall by rememberSaveable { mutableStateOf<String?>(null) }
     val snackbar = remember { SnackbarHostState() }
     // In a pane card the top bar takes the card's color; full screen it matches Settings.
@@ -182,6 +184,7 @@ fun HomeScreen(
                         installed = app,
                         updateAvailable = record.updateAvailable(model.templateVersion),
                         selected = record.appId == selected,
+                        clickAction = clickAction,
                         onOpen = { if (app != null) InstalledApps.open(context, record.packageName) else onEdit(record.appId) },
                         onEdit = { onEdit(record.appId) },
                         onRebuild = { model.rebuild(record) },
@@ -217,6 +220,7 @@ private fun AppItem(
     installed: InstalledApp?,
     updateAvailable: Boolean,
     selected: Boolean,
+    clickAction: ClickAction,
     onOpen: () -> Unit,
     onEdit: () -> Unit,
     onRebuild: () -> Unit,
@@ -244,7 +248,8 @@ private fun AppItem(
                     }
                 }
             }
-            .combinedClickable(onClick = onOpen, onLongClick = { menuAt = DpOffset(24.dp, 48.dp) }),
+            // A tap opens or edits the app, as chosen in Settings (R2.5).
+            .combinedClickable(onClick = if (clickAction == ClickAction.EDIT) onEdit else onOpen, onLongClick = { menuAt = DpOffset(24.dp, 48.dp) }),
     ) {
         Column {
             ListItem(
@@ -259,10 +264,24 @@ private fun AppItem(
                     Text(listOfNotNull(stringResource(R.string.home_build, record.buildNumber), status).joinToString(" · "))
                 },
                 trailingContent = {
-                    val label = stringResource(R.string.action_edit_app, record.profile.name)
+                    val label = stringResource(R.string.action_app_options, record.profile.name)
+                    var optionsOpen by rememberSaveable { mutableStateOf(false) }
                     // Shifted so it lines up with the top bar's settings button above it.
-                    TooltipIconButton(label, onEdit, Modifier.offset(x = TRAILING_ALIGNMENT_SHIFT)) {
-                        Icon(Icons.Filled.Edit, contentDescription = label)
+                    Box(Modifier.offset(x = TRAILING_ALIGNMENT_SHIFT)) {
+                        TooltipIconButton(label, { optionsOpen = true }) { Icon(Icons.Filled.Menu, contentDescription = label) }
+                        DropdownMenu(expanded = optionsOpen, onDismissRequest = { optionsOpen = false }) {
+                            val options = buildList {
+                                if (installed != null) add(R.string.action_open to onOpen)
+                                add(R.string.action_edit to onEdit)
+                                add(if (installed != null) R.string.action_uninstall to onUninstall else R.string.action_remove to onRemove)
+                            }
+                            options.forEach { (option, action) ->
+                                DropdownMenuItem(text = { Text(stringResource(option)) }, onClick = {
+                                    optionsOpen = false
+                                    action()
+                                })
+                            }
+                        }
                     }
                 },
                 tonalElevation = if (selected) 4.dp else 0.dp,

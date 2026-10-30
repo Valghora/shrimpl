@@ -11,6 +11,9 @@ enum class InstallMethod { SESSION, SHIZUKU, ROOT }
 
 enum class ThemeSetting { SYSTEM, LIGHT, DARK }
 
+/** What tapping an app in the home list does (R2.5). */
+enum class ClickAction { OPEN, EDIT }
+
 /** Shrimpl's own settings (R2.5), in private SharedPreferences. */
 class AppSettings(context: Context) {
     private val prefs = context.getSharedPreferences("shrimpl_settings", Context.MODE_PRIVATE)
@@ -24,6 +27,13 @@ class AppSettings(context: Context) {
 
     private val _theme = MutableStateFlow(prefs.getString(KEY_THEME, null)?.let { runCatching { ThemeSetting.valueOf(it) }.getOrNull() } ?: ThemeSetting.SYSTEM)
     val theme: StateFlow<ThemeSetting> = _theme.asStateFlow()
+
+    private val _clickAction = MutableStateFlow(
+        prefs.getString(KEY_CLICK_ACTION, null)?.let { runCatching { ClickAction.valueOf(it) }.getOrNull() } ?: ClickAction.EDIT,
+    )
+
+    /** What tapping an app in the home list does; Edit unless the user picked Open. */
+    val clickAction: StateFlow<ClickAction> = _clickAction.asStateFlow()
 
     private val _keyBackedUp = MutableStateFlow(prefs.getBoolean(KEY_BACKED_UP, false))
     val keyBackedUp: StateFlow<Boolean> = _keyBackedUp.asStateFlow()
@@ -43,6 +53,11 @@ class AppSettings(context: Context) {
         _theme.value = theme
     }
 
+    fun setClickAction(action: ClickAction) {
+        prefs.edit { putString(KEY_CLICK_ACTION, action.name) }
+        _clickAction.value = action
+    }
+
     fun setKeyBackedUp(backedUp: Boolean) {
         prefs.edit { putBoolean(KEY_BACKED_UP, backedUp) }
         _keyBackedUp.value = backedUp
@@ -51,6 +66,7 @@ class AppSettings(context: Context) {
     private companion object {
         const val KEY_INSTALL_METHOD = "install_method"
         const val KEY_THEME = "theme"
+        const val KEY_CLICK_ACTION = "click_action"
         const val KEY_BACKED_UP = "key_backed_up"
         const val KEY_PROMPT_SHOWN = "backup_prompt_shown"
     }

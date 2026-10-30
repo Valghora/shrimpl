@@ -8,6 +8,7 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.valghora.shrimpl.AppContainer
+import com.valghora.shrimpl.data.ClickAction
 import com.valghora.shrimpl.data.InstallMethod
 import com.valghora.shrimpl.data.SigningKeyStore
 import com.valghora.shrimpl.data.ThemeSetting
@@ -26,6 +27,7 @@ import kotlinx.coroutines.withContext
 class SettingsViewModel(private val container: AppContainer) : ViewModel() {
     val installMethod: StateFlow<InstallMethod> = container.settings.installMethod
     val theme: StateFlow<ThemeSetting> = container.settings.theme
+    val clickAction: StateFlow<ClickAction> = container.settings.clickAction
 
     /** Where a root or Shizuku access request stands (the Request Access button's states). */
     enum class Access { NOT_REQUESTED, REQUESTING, GRANTED, FAILED }
@@ -112,6 +114,8 @@ class SettingsViewModel(private val container: AppContainer) : ViewModel() {
     }
 
     fun setTheme(theme: ThemeSetting) = container.settings.setTheme(theme)
+
+    fun setClickAction(action: ClickAction) = container.settings.setClickAction(action)
 
     fun export(resolver: ContentResolver, uri: Uri, password: CharArray) {
         viewModelScope.launch {

@@ -15,7 +15,6 @@
     <string name="action_discard">Discard changes</string>
     <string name="action_done">Done</string>
     <string name="action_edit">Edit</string>
-    <string name="action_edit_app">Edit %1$s</string>
     <string name="action_export_key">Export certificate</string>
     <string name="action_keep">Keep</string>
     <string name="action_later">Later</string>
@@ -218,5 +217,9 @@
     <string name="request_access_detail">Click to request</string>
     <string name="action_copy_certificate">Copy certificate fingerprint</string>
     <string name="tooltip_settings">Settings (Ctrl+,)</string>
+    <string name="click_action">Default click action</string>
+    <string name="click_action_open_detail">Launch the application on click</string>
+    <string name="click_action_edit_detail">Edit the application on click</string>
+    <string name="action_app_options">Options for %1$s</string>
     <string name="tooltip_new_web_app">New app (Ctrl+N)</string>
 </resources>
