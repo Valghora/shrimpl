@@ -113,6 +113,7 @@ fun CreateScreen(onClose: () -> Unit, onBackUpKey: () -> Unit) {
                     loadImage = { file -> requireNotNull(current.newImages[file]) { "no image $file" } },
                     onSelectIcon = model::selectIcon,
                     onCustomIcon = model::setCustomIcon,
+                    onFillWebsiteIcon = model::setWebsiteFill,
                     wide = maxWidth >= WindowSizeClass.WIDTH_DP_EXPANDED_LOWER_BOUND.dp,
                     appIdEditable = true,
                 )

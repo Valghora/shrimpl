@@ -128,9 +128,9 @@ binary translation) on any device.
   rounded tonal items, each showing its value (summary, switch, menu value or color swatch); text,
   color, domain and window size values open dialogs. Nothing is collapsed. The sections, in order:
   - **Identity:** the name, on the edit page the app ID, the start address and internal domains.
-  - **Icon:** the icon options as preview tiles, and the brand glyph's Glyph color (`#FFFFFF` by
-    default) and Background color (the site's brand color by default) while Brand is selected
-    (R10.1).
+  - **Icon:** the icon options as preview tiles, then the selected option's settings (R10.1):
+    Glyph color (`#FFFFFF` by default) and Background color (the site's brand color by default) for
+    Brand, Fill icon canvas for a Website image, Background color for Custom.
   - **Appearance:** Header color (System, matching the system theme, the default; Dynamic, the
     site's own colors, T3.3; Custom) and Custom header color (disabled unless Custom).
   - **Behavior:** browser identity (user agent mode), keep running in the background, pause in
@@ -284,8 +284,10 @@ The template's behavior is docs/TEMPLATE_SPEC.md. What Shrimpl relies on:
     selected) opens a sheet of sources: Photos (the Photo Picker) and Files (any image), cropped to
     a centered square and filling the icon shape, and every installed icon pack (R10.2).
 
-  Glyph color and Background color appear only while Brand is selected; the website's and custom
-  icons keep their own colors. Changing the name updates a letter Website icon.
+  Under the tiles, the selected option's settings: Glyph color and Background color for Brand;
+  Fill icon canvas for a Website image (a switch, on for maskable manifest icons, that enlarges the
+  image to fill the whole icon shape instead of keeping it inside the safe zone); Background color
+  for Custom (behind and around the picked image). Changing the name updates a letter Website icon.
 - R10.2 Icon packs: installed apps answering the launchers' `org.adw.launcher.icons.ACTION_PICK_ICON`
   request, shown with their own app icon and name. Choosing one opens the pack's own icon picker,
   which hands back a bitmap (or an image URI); the icon keeps its own shape. Packs that don't answer

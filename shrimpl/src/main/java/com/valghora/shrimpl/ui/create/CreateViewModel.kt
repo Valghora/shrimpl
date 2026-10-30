@@ -165,6 +165,10 @@ class CreateViewModel(private val container: AppContainer) : ViewModel() {
         _draft.value = _draft.value?.select(option)
     }
 
+    fun setWebsiteFill(fill: Boolean) {
+        _draft.value = _draft.value?.withWebsiteFill(fill)
+    }
+
     /** A custom icon was picked (a photo, a file or an icon pack's icon). */
     fun setCustomIcon(image: ByteArray, maskable: Boolean, origin: String) {
         _draft.value = _draft.value?.withCustomIcon(image, maskable, origin)

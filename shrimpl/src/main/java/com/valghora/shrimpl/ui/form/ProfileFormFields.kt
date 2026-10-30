@@ -59,6 +59,7 @@ import com.valghora.shrimpl.core.UaMode
 import com.valghora.shrimpl.core.profile.HeaderMode
 import com.valghora.shrimpl.core.profile.ProfileForm
 import com.valghora.shrimpl.core.records.IconOptions
+import com.valghora.shrimpl.core.records.IconRecord
 
 /**
  * A web app's settings (docs/SHRIMPL_SPEC.md R3.3), shared by the configuration and edit pages, as
@@ -76,6 +77,7 @@ fun ProfileFormFields(
     loadImage: (String) -> ByteArray,
     onSelectIcon: (IconOptions.Option) -> Unit,
     onCustomIcon: (bytes: ByteArray, maskable: Boolean, origin: String) -> Unit,
+    onFillWebsiteIcon: (Boolean) -> Unit,
     wide: Boolean,
     appIdEditable: Boolean,
     modifier: Modifier = Modifier,
@@ -89,7 +91,7 @@ fun ProfileFormFields(
             Row(horizontalArrangement = Arrangement.spacedBy(COLUMN_GAP)) {
                 Column(Modifier.weight(1f)) {
                     fields.Identity(appIdEditable)
-                    fields.Icon(icons, newImages, loadImage, onSelectIcon, onCustomIcon)
+                    fields.Icon(icons, newImages, loadImage, onSelectIcon, onCustomIcon, onFillWebsiteIcon)
                     fields.Appearance()
                 }
                 Column(Modifier.weight(1f)) {
@@ -103,7 +105,7 @@ fun ProfileFormFields(
         Column(modifier.verticalScroll(rememberScrollState()).padding(horizontal = 16.dp).padding(bottom = 96.dp)) {
             Notes(notes)
             fields.Identity(appIdEditable)
-            fields.Icon(icons, newImages, loadImage, onSelectIcon, onCustomIcon)
+            fields.Icon(icons, newImages, loadImage, onSelectIcon, onCustomIcon, onFillWebsiteIcon)
             fields.Appearance()
             fields.Browser()
             fields.Window()
@@ -157,8 +159,8 @@ private class Fields(
     }
 
     /**
-     * R10.1: one tile per icon option; the brand glyph's colors follow it while Brand is selected
-     * (the website's and custom icons keep their own).
+     * R10.1: one tile per icon option, then that option's settings: Glyph and Background color for
+     * Brand, Fill icon canvas for a website image, Background color for Custom.
      */
     @Composable
     fun Icon(
@@ -167,6 +169,7 @@ private class Fields(
         loadImage: (String) -> ByteArray,
         onSelect: (IconOptions.Option) -> Unit,
         onCustom: (ByteArray, Boolean, String) -> Unit,
+        onFillWebsite: (Boolean) -> Unit,
     ) {
         var picking by rememberSaveable { mutableStateOf(false) }
         SettingsSection(stringResource(R.string.section_icon)) {
@@ -180,11 +183,26 @@ private class Fields(
                 onSelect = onSelect,
                 onCustom = { picking = true },
             )
-            if (icons.selected == IconOptions.Option.BRAND && icons.brand != null) {
-                ColorItem(
-                    stringResource(R.string.field_icon_foreground), form.iconForeground, { onChange(form.copy(iconForeground = it)) },
-                    error("iconForeground"), emptyLabel = stringResource(R.string.field_auto_contrast),
-                )
+            val shown = icons.icon
+            when (icons.selected) {
+                IconOptions.Option.BRAND -> if (icons.brand != null) {
+                    ColorItem(
+                        stringResource(R.string.field_icon_foreground), form.iconForeground, { onChange(form.copy(iconForeground = it)) },
+                        error("iconForeground"), emptyLabel = stringResource(R.string.field_auto_contrast),
+                    )
+                }
+                IconOptions.Option.WEBSITE -> if (shown.kind == IconRecord.Kind.IMAGE) {
+                    SwitchItem(
+                        stringResource(R.string.field_fill_canvas),
+                        shown.maskable,
+                        onFillWebsite,
+                        summary = stringResource(R.string.field_fill_canvas_detail),
+                    )
+                }
+                IconOptions.Option.CUSTOM -> Unit
+            }
+            // The background shows behind the brand glyph and around a custom image.
+            if (icons.selected == IconOptions.Option.BRAND && icons.brand != null || icons.selected == IconOptions.Option.CUSTOM && icons.custom != null) {
                 ColorItem(
                     stringResource(R.string.field_icon_background), form.iconBackground, { onChange(form.copy(iconBackground = it)) },
                     error("iconBackground"), hints["iconBackground"],

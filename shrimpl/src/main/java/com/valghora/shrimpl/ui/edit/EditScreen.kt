@@ -155,6 +155,7 @@ fun EditScreen(appId: String, showBack: Boolean, onBack: () -> Unit) {
                 loadImage = { file -> form.newImages[file] ?: model.storedImage(file) },
                 onSelectIcon = model::selectIcon,
                 onCustomIcon = model::setCustomIcon,
+                onFillWebsiteIcon = model::setWebsiteFill,
                 wide = maxWidth >= WindowSizeClass.WIDTH_DP_EXPANDED_LOWER_BOUND.dp,
                 appIdEditable = false,
             )

@@ -21,6 +21,9 @@ data class WebAppDraft(val form: ProfileForm, val icons: IconOptions, val newIma
         newImages = newImages + (IconOptions.CUSTOM_IMAGE to image),
     )
 
+    /** Fill icon canvas: the website's image fills the icon shape instead of sitting inside the safe zone. */
+    fun withWebsiteFill(fill: Boolean) = copy(icons = icons.copy(website = icons.website.copy(maskable = fill)))
+
     /** The form with a new name; a letter website icon follows the name's first letter. */
     fun withForm(newForm: ProfileForm): WebAppDraft {
         val website = icons.website
