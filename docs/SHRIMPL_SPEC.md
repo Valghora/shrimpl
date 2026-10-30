@@ -139,7 +139,8 @@ binary translation) on any device.
   validator (R4.2).
 - R3.4 Create builds, signs and installs (R8, R6). A bottom sheet shows each stage (drawing the icon,
   building, signing, checking, installing) or the failure; on success, Open and Done.
-- R3.5 When the pane is expanded width (840 dp and up), the form uses two columns.
+- R3.5 When the pane is expanded width (840 dp and up), the form uses two columns 40 dp apart,
+  with notices across both above them so the first sections (Identity, Behavior) line up.
 
 ## R4 Modules and core
 

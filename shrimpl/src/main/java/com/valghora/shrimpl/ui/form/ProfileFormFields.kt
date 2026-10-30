@@ -84,21 +84,21 @@ fun ProfileFormFields(
     val result = form.result()
     val fields = Fields(form, onChange, result::errorFor, hints)
     if (wide) {
-        Row(
-            modifier.verticalScroll(rememberScrollState()).padding(horizontal = 24.dp).padding(bottom = 96.dp),
-            horizontalArrangement = Arrangement.spacedBy(24.dp),
-        ) {
-            Column(Modifier.weight(1f)) {
-                Notes(notes)
-                fields.Identity(iconLayers, iconOrigin, onEditIcon, appIdEditable)
-                fields.Website()
-                fields.Permissions()
-                fields.Appearance()
-            }
-            Column(Modifier.weight(1f)) {
-                fields.Browser()
-                fields.Window()
-                fields.Shortcuts()
+        // Notices span both columns, so the columns' first sections (Identity, Behavior) line up.
+        Column(modifier.verticalScroll(rememberScrollState()).padding(horizontal = 24.dp).padding(bottom = 96.dp)) {
+            Notes(notes)
+            Row(horizontalArrangement = Arrangement.spacedBy(COLUMN_GAP)) {
+                Column(Modifier.weight(1f)) {
+                    fields.Identity(iconLayers, iconOrigin, onEditIcon, appIdEditable)
+                    fields.Website()
+                    fields.Permissions()
+                    fields.Appearance()
+                }
+                Column(Modifier.weight(1f)) {
+                    fields.Browser()
+                    fields.Window()
+                    fields.Shortcuts()
+                }
             }
         }
     } else {
@@ -114,6 +114,9 @@ fun ProfileFormFields(
         }
     }
 }
+
+/** The gutter between the two columns: wider than the 24 dp side margins, so the columns read apart. */
+private val COLUMN_GAP = 40.dp
 
 /** Discovery's notes as dismissible notifications; a dismissed note stays hidden while the page is open. */
 @Composable
