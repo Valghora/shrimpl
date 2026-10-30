@@ -7,6 +7,8 @@ import com.valghora.shrimpl.core.discovery.DiscoveryException
 import com.valghora.shrimpl.core.discovery.Draft
 import com.valghora.shrimpl.core.discovery.Evidence
 import com.valghora.shrimpl.core.discovery.HtmlHead
+import com.valghora.shrimpl.core.discovery.IconChoice
+import com.valghora.shrimpl.core.discovery.IconChooser
 import com.valghora.shrimpl.core.discovery.IconSources
 import com.valghora.shrimpl.core.discovery.PublicSuffixList
 import com.valghora.shrimpl.core.discovery.Request
@@ -102,7 +104,24 @@ class SiteDiscovery(private val context: Context) {
         }
     }
 
-    /** The simple-icons brand named [name] ("Discord" -> `discord`), or null (R10.1). */
+    /**
+     * The site's own icon for the Website option (R10.1): discovery's pick when that is already an
+     * image, else the first usable one of the site's icons. Null when it has none.
+     */
+    suspend fun websiteIcon(draft: Draft): IconChoice.Raster? {
+        (draft.icon as? IconChoice.Raster)?.let { return it }
+        return withContext(Dispatchers.IO) {
+            runInterruptible {
+                val network = Network(WebSettings.getDefaultUserAgent(context))
+                val sources = object : IconSources {
+                    override fun fetch(url: String) = network.bodyOrNull(url)
+                }
+                IconChooser.firstRaster(draft.websiteIcons, sources)
+            }
+        }
+    }
+
+    /** The simple-icons brand named [name] ("Discord" -> `discord`), or null; for "Continue without discovery" (R3.2). */
     suspend fun simpleIcon(name: String): SimpleIcon? = withContext(Dispatchers.IO) {
         runInterruptible {
             val network = Network(WebSettings.getDefaultUserAgent(context))

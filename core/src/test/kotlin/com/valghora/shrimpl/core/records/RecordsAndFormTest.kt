@@ -36,12 +36,13 @@ class RecordsAndFormTest {
 
     @Test
     fun recordRoundTripAndBuildNumbers() {
-        val record = WebAppRecord.create(profile, IconRecord.letter('e'), templateVersion = 1, signerFingerprint = "AA", now = 100)
+        val record = WebAppRecord.create(profile, IconOptions.of(null, IconRecord.letter('e')), templateVersion = 1, signerFingerprint = "AA", now = 100)
         assertEquals(1, record.buildNumber)
         assertEquals(2, record.nextBuildNumber)
         assertEquals("com.valghora.shrimpl.app.example", record.packageName)
         assertEquals(record, WebAppRecord.decode(WebAppRecord.encode(record)))
-        val updated = record.installed(profile.copy(name = "Ex"), IconRecord.letter('x'), built = 2, templateVersion = 2, signerFingerprint = "AA", now = 200)
+        val updated = record.installed(profile.copy(name = "Ex"), IconOptions.of(null, IconRecord.letter('x')), built = 2, templateVersion = 2, signerFingerprint = "AA", now = 200)
+        assertEquals(IconRecord.letter('x'), updated.icon)
         assertEquals(2, updated.buildNumber)
         assertEquals(100, updated.createdAt)
         assertEquals(200, updated.updatedAt)
@@ -54,6 +55,47 @@ class RecordsAndFormTest {
         val legacy = WebAppRecord.encode(systemHeader).replace("\"headerMode\": \"system\",", "").replace(Profile.DEFAULT_HEADER_COLOR, Profile.SYSTEM)
         assertTrue("headerMode" !in legacy)
         assertEquals(systemHeader, WebAppRecord.decode(legacy))
+    }
+
+    @Test
+    fun iconSetOptionsAndSelection() {
+        val brand = IconRecord.glyph(svg, "simple-icons 'example'")
+        val website = IconRecord.image(maskable = true, origin = "web manifest icon", file = IconOptions.WEBSITE_IMAGE)
+        val custom = IconRecord.image(maskable = false, origin = "Photo", file = IconOptions.CUSTOM_IMAGE)
+
+        val withBrand = IconOptions.of(brand, website)
+        assertEquals(IconOptions.Option.BRAND, withBrand.selected)
+        assertEquals(brand, withBrand.icon)
+        assertEquals(listOf(IconOptions.Option.BRAND, IconOptions.Option.WEBSITE, IconOptions.Option.CUSTOM), withBrand.available)
+
+        val noBrand = IconOptions.of(null, website)
+        assertEquals(IconOptions.Option.WEBSITE, noBrand.selected)
+        assertEquals(listOf(IconOptions.Option.WEBSITE, IconOptions.Option.CUSTOM), noBrand.available)
+        // Options without an icon fall back to the website's.
+        assertEquals(website, noBrand.copy(selected = IconOptions.Option.BRAND).icon)
+        assertEquals(website, noBrand.copy(selected = IconOptions.Option.CUSTOM).icon)
+        assertEquals(custom, noBrand.copy(selected = IconOptions.Option.CUSTOM, custom = custom).icon)
+
+        assertEquals('E', IconOptions.letterFor("example"))
+        assertEquals('A', IconOptions.letterFor("ñ!"))
+    }
+
+    @Test
+    fun recordsWithoutIconSetsAreUpgraded() {
+        val glyph = IconRecord.glyph(svg, "simple-icons 'example'")
+        val image = IconRecord.image(maskable = false, origin = "Photo")
+        val letter = IconRecord.letter('x')
+        val letterE = IconRecord.letter('E')
+        assertEquals(IconOptions(IconOptions.Option.BRAND, brand = glyph, website = letterE), IconOptions.legacy(glyph, "Example"))
+        assertEquals(IconOptions(IconOptions.Option.CUSTOM, website = letterE, custom = image), IconOptions.legacy(image, "Example"))
+        assertEquals(IconOptions(IconOptions.Option.WEBSITE, website = letter), IconOptions.legacy(letter, "Example"))
+
+        val record = WebAppRecord.create(profile, IconOptions.of(glyph, letterE), templateVersion = 1, signerFingerprint = "AA", now = 100)
+        assertEquals(record.icons, record.iconOptions)
+        // Saved before icon sets: no "icons" key, just the one icon.
+        val old = WebAppRecord.decode(WebAppRecord.encode(record.copy(icons = null)))
+        assertEquals(null, old.icons)
+        assertEquals(IconOptions.legacy(glyph, profile.name), old.iconOptions)
     }
 
     @Test

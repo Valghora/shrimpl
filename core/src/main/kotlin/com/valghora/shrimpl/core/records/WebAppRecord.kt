@@ -27,7 +27,7 @@ data class IconRecord(
     val maskable: Boolean = false,
     /** For [Kind.LETTER]: the letter or digit. */
     val letter: String? = null,
-    /** Where the icon came from, shown in the icon editor ("simple-icons 'discord'", "Photo", ...). */
+    /** Where the icon came from ("simple-icons 'discord'", "web manifest icon", "Photo", ...). */
     val origin: String = "",
 ) {
     @Serializable
@@ -51,7 +51,8 @@ data class IconRecord(
 
         fun glyph(svg: ByteArray, origin: String) = IconRecord(Kind.GLYPH, svg = svg.decodeToString(), origin = origin)
 
-        fun image(maskable: Boolean, origin: String) = IconRecord(Kind.IMAGE, image = IMAGE_FILE, maskable = maskable, origin = origin)
+        /** An image icon stored as [file] next to the record. */
+        fun image(maskable: Boolean, origin: String, file: String = IMAGE_FILE) = IconRecord(Kind.IMAGE, image = file, maskable = maskable, origin = origin)
 
         /** The record for discovery's icon; for an image, also the bytes to store as [IMAGE_FILE]. */
         fun from(choice: IconChoice): Pair<IconRecord, ByteArray?> = when (choice) {
@@ -62,12 +63,67 @@ data class IconRecord(
     }
 }
 
+/**
+ * A web app's icon options (docs/SHRIMPL_SPEC.md R10.1): the brand glyph (when one was found), the
+ * website's own icon (an image, or a letter when the site has none) and a custom image (once the user
+ * picked one). [selected] says which one the app uses.
+ */
+@Serializable
+data class IconOptions(
+    val selected: Option,
+    val brand: IconRecord? = null,
+    val website: IconRecord,
+    val custom: IconRecord? = null,
+) {
+    @Serializable
+    enum class Option {
+        @SerialName("brand") BRAND,
+        @SerialName("website") WEBSITE,
+        @SerialName("custom") CUSTOM,
+    }
+
+    /** The icon the app uses; an option without an icon falls back to the website's. */
+    val icon: IconRecord
+        get() = when (selected) {
+            Option.BRAND -> brand ?: website
+            Option.WEBSITE -> website
+            Option.CUSTOM -> custom ?: website
+        }
+
+    /** The options that have an icon, in display order. */
+    val available: List<Option>
+        get() = listOfNotNull(Option.BRAND.takeIf { brand != null }, Option.WEBSITE, Option.CUSTOM)
+
+    companion object {
+        /** Image file names next to the record. */
+        const val WEBSITE_IMAGE = "icon-website"
+        const val CUSTOM_IMAGE = "icon-custom"
+
+        /** The letter for letter icons, and the themed icon of image icons: the name's first ASCII letter or digit. */
+        fun letterFor(name: String): Char = name.uppercase().firstOrNull { it.code < 128 && it.isLetterOrDigit() } ?: 'A'
+
+        /** Brand when there is a brand glyph, else website. */
+        fun of(brand: IconRecord?, website: IconRecord) =
+            IconOptions(if (brand != null) Option.BRAND else Option.WEBSITE, brand = brand, website = website)
+
+        /** A record saved before icon sets: its one icon becomes the matching option. */
+        fun legacy(icon: IconRecord, name: String): IconOptions = when (icon.kind) {
+            IconRecord.Kind.GLYPH -> IconOptions(Option.BRAND, brand = icon, website = IconRecord.letter(letterFor(name)))
+            IconRecord.Kind.IMAGE -> IconOptions(Option.CUSTOM, website = IconRecord.letter(letterFor(name)), custom = icon)
+            IconRecord.Kind.LETTER -> IconOptions(Option.WEBSITE, website = icon)
+        }
+    }
+}
+
 /** Shrimpl's record of one web app it built (docs/SHRIMPL_SPEC.md R11.1). */
 @Serializable
 data class WebAppRecord(
     val schemaVersion: Int = SCHEMA_VERSION,
     val profile: Profile,
+    /** The icon the last build used. */
     val icon: IconRecord,
+    /** Every icon option; null in records saved before options existed (see [iconOptions]). */
+    val icons: IconOptions? = null,
     /** The build installed last; the next build is [nextBuildNumber]. */
     val buildNumber: Int,
     /** The template version that build used (R11.4). */
@@ -81,12 +137,17 @@ data class WebAppRecord(
     val packageName: String get() = WebAppBuilder.packageNameFor(profile.appId)
     val nextBuildNumber: Int get() = buildNumber + 1
 
+    /** The icon options, upgraded from [icon] for older records. */
+    val iconOptions: IconOptions get() = icons ?: IconOptions.legacy(icon, profile.name)
+
     /** True when [bundledTemplateVersion] is newer than the template this app was built with. */
     fun updateAvailable(bundledTemplateVersion: Int) = templateVersion < bundledTemplateVersion
 
     /** The record after a successful install of build [built] (R11.3: failed installs never get here). */
-    fun installed(profile: Profile, icon: IconRecord, built: Int, templateVersion: Int, signerFingerprint: String, now: Long) =
-        copy(profile = profile, icon = icon, buildNumber = built, templateVersion = templateVersion, signerFingerprint = signerFingerprint, updatedAt = now)
+    fun installed(profile: Profile, icons: IconOptions, built: Int, templateVersion: Int, signerFingerprint: String, now: Long) = copy(
+        profile = profile, icon = icons.icon, icons = icons, buildNumber = built, templateVersion = templateVersion,
+        signerFingerprint = signerFingerprint, updatedAt = now,
+    )
 
     companion object {
         const val SCHEMA_VERSION = 1
@@ -100,9 +161,10 @@ data class WebAppRecord(
             ignoreUnknownKeys = true
         }
 
-        fun create(profile: Profile, icon: IconRecord, templateVersion: Int, signerFingerprint: String, now: Long) = WebAppRecord(
+        fun create(profile: Profile, icons: IconOptions, templateVersion: Int, signerFingerprint: String, now: Long) = WebAppRecord(
             profile = profile,
-            icon = icon,
+            icon = icons.icon,
+            icons = icons,
             buildNumber = FIRST_BUILD,
             templateVersion = templateVersion,
             signerFingerprint = signerFingerprint,

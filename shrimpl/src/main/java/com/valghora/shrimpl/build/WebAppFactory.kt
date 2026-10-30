@@ -15,7 +15,7 @@ import com.valghora.shrimpl.core.build.WebAppSpec
 import com.valghora.shrimpl.core.icons.IconException
 import com.valghora.shrimpl.core.profile.Profile
 import com.valghora.shrimpl.core.profile.resolvedIconForeground
-import com.valghora.shrimpl.core.records.IconRecord
+import com.valghora.shrimpl.core.records.IconOptions
 import com.valghora.shrimpl.core.records.WebAppRecord
 import java.io.File
 import kotlin.coroutines.coroutineContext
@@ -23,12 +23,11 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.withContext
 
-/** What to build: settings, icon, the icon's image (when new or changed), and the existing record. */
+/** What to build: settings, icon options, images that are new or changed (by file name), and the existing record. */
 class BuildRequest(
     val profile: Profile,
-    val icon: IconRecord,
-    /** New image bytes for an image icon; null keeps the stored image. */
-    val newImage: ByteArray?,
+    val icons: IconOptions,
+    val newImages: Map<String, ByteArray>,
     val existing: WebAppRecord?,
 )
 
@@ -60,7 +59,7 @@ class WebAppFactory(
         try {
             onStage(Stage.RENDERING_ICON)
             val icons = withContext(Dispatchers.Default) {
-                val source = request.icon.toSource { request.newImage ?: store.image(profile.appId) }
+                val source = request.icons.icon.toSource { file -> request.newImages[file] ?: store.image(profile.appId, file) }
                 IconRenderer.render(source, profile.iconBackground.toColorInt(), profile.resolvedIconForeground.toColorInt(), letterOf(profile.name))
             }
 
@@ -89,9 +88,9 @@ class WebAppFactory(
             return when (val result = installer.install(built.apk)) {
                 InstallResult.Success -> {
                     val now = System.currentTimeMillis()
-                    val record = request.existing?.installed(profile, request.icon, buildNumber, template.version, built.signerFingerprint, now)
-                        ?: WebAppRecord.create(profile, request.icon, template.version, built.signerFingerprint, now)
-                    store.save(record, request.newImage)
+                    val record = request.existing?.installed(profile, request.icons, buildNumber, template.version, built.signerFingerprint, now)
+                        ?: WebAppRecord.create(profile, request.icons, template.version, built.signerFingerprint, now)
+                    store.save(record, request.newImages)
                     BuildOutcome.Installed(record)
                 }
                 InstallResult.NeedsUnknownSources -> BuildOutcome.NeedsUnknownSources
@@ -116,6 +115,6 @@ class WebAppFactory(
 
     companion object {
         /** The letter used for themed and notification icons of image icons. */
-        fun letterOf(name: String): Char = name.uppercase().firstOrNull { it.code < 128 && it.isLetterOrDigit() } ?: 'A'
+        fun letterOf(name: String): Char = IconOptions.letterFor(name)
     }
 }

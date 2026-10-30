@@ -15,7 +15,7 @@ import kotlinx.coroutines.withContext
 
 /**
  * The web apps Shrimpl built (docs/SHRIMPL_SPEC.md R11.1): one directory per app under
- * `files/webapps/<appId>/` with `record.json` (written atomically) and, for image icons, the image.
+ * `files/webapps/<appId>/` with `record.json` (written atomically) and the images of image icons.
  */
 class WebAppStore(context: Context) {
     private val root = File(context.filesDir, "webapps")
@@ -28,13 +28,19 @@ class WebAppStore(context: Context) {
 
     fun takenIds(): Set<String> = _records.value.mapTo(mutableSetOf()) { it.appId }
 
-    /** The record's icon image, for image icons. */
-    fun image(appId: String): ByteArray = File(directory(appId), IconRecord.IMAGE_FILE).readBytes()
+    /** An image icon's stored image, by its file name (`IconRecord.image`). */
+    fun image(appId: String, file: String): ByteArray {
+        require(IMAGE_NAME.matches(file)) { "invalid image name $file" }
+        return File(directory(appId), file).readBytes()
+    }
 
-    /** Saves [record], and [image] as its icon image when given. */
-    suspend fun save(record: WebAppRecord, image: ByteArray?) = withContext(Dispatchers.IO) {
+    /** Saves [record], and [images] (file name to bytes) next to it. */
+    suspend fun save(record: WebAppRecord, images: Map<String, ByteArray>) = withContext(Dispatchers.IO) {
         val dir = directory(record.appId).apply { mkdirs() }
-        if (image != null) write(File(dir, IconRecord.IMAGE_FILE), image)
+        images.forEach { (file, bytes) ->
+            require(IMAGE_NAME.matches(file)) { "invalid image name $file" }
+            write(File(dir, file), bytes)
+        }
         write(File(dir, RECORD), WebAppRecord.encode(record).toByteArray())
         _records.value = (_records.value.filter { it.appId != record.appId } + record).sortedBy { it.profile.name.lowercase() }
     }
@@ -80,5 +86,6 @@ class WebAppStore(context: Context) {
         const val TAG = "Shrimpl"
         const val RECORD = "record.json"
         val APP_ID = Regex("[a-z][a-z0-9]*")
+        val IMAGE_NAME = Regex("icon-[a-z]+")
     }
 }

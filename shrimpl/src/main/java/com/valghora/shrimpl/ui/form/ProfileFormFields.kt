@@ -10,7 +10,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
@@ -42,7 +41,6 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.core.graphics.toColorInt
 import com.valghora.shrimpl.R
-import com.valghora.shrimpl.icons.IconLayers
 import com.valghora.shrimpl.ui.common.ColorSwatch
 import com.valghora.shrimpl.ui.common.DropdownItem
 import com.valghora.shrimpl.ui.common.NavigationItem
@@ -55,10 +53,12 @@ import com.valghora.shrimpl.ui.common.StringListSaver
 import com.valghora.shrimpl.ui.common.SwitchItem
 import com.valghora.shrimpl.ui.common.TextValueItem
 import com.valghora.shrimpl.ui.common.TooltipIconButton
-import com.valghora.shrimpl.ui.icons.AdaptiveIcon
+import com.valghora.shrimpl.ui.icons.CustomIconSheet
+import com.valghora.shrimpl.ui.icons.IconTiles
 import com.valghora.shrimpl.core.UaMode
 import com.valghora.shrimpl.core.profile.HeaderMode
 import com.valghora.shrimpl.core.profile.ProfileForm
+import com.valghora.shrimpl.core.records.IconOptions
 
 /**
  * A web app's settings (docs/SHRIMPL_SPEC.md R3.3), shared by the configuration and edit pages, as
@@ -71,9 +71,10 @@ fun ProfileFormFields(
     onChange: (ProfileForm) -> Unit,
     hints: Map<String, String>,
     notes: List<Notice>,
-    iconLayers: IconLayers?,
-    iconOrigin: String,
-    onEditIcon: () -> Unit,
+    icons: IconOptions,
+    loadImage: (String) -> ByteArray,
+    onSelectIcon: (IconOptions.Option) -> Unit,
+    onCustomIcon: (bytes: ByteArray, maskable: Boolean, origin: String) -> Unit,
     wide: Boolean,
     appIdEditable: Boolean,
     modifier: Modifier = Modifier,
@@ -87,7 +88,7 @@ fun ProfileFormFields(
             Row(horizontalArrangement = Arrangement.spacedBy(COLUMN_GAP)) {
                 Column(Modifier.weight(1f)) {
                     fields.Identity(appIdEditable)
-                    fields.Icon(iconLayers, iconOrigin, onEditIcon)
+                    fields.Icon(icons, loadImage, onSelectIcon, onCustomIcon)
                     fields.Appearance()
                 }
                 Column(Modifier.weight(1f)) {
@@ -101,7 +102,7 @@ fun ProfileFormFields(
         Column(modifier.verticalScroll(rememberScrollState()).padding(horizontal = 16.dp).padding(bottom = 96.dp)) {
             Notes(notes)
             fields.Identity(appIdEditable)
-            fields.Icon(iconLayers, iconOrigin, onEditIcon)
+            fields.Icon(icons, loadImage, onSelectIcon, onCustomIcon)
             fields.Appearance()
             fields.Browser()
             fields.Window()
@@ -154,16 +155,40 @@ private class Fields(
         }
     }
 
+    /**
+     * R10.1: one tile per icon option; the brand glyph's colors follow it while Brand is selected
+     * (the website's and custom icons keep their own).
+     */
     @Composable
-    fun Icon(layers: IconLayers?, origin: String, onEditIcon: () -> Unit) {
+    fun Icon(
+        icons: IconOptions,
+        loadImage: (String) -> ByteArray,
+        onSelect: (IconOptions.Option) -> Unit,
+        onCustom: (ByteArray, Boolean, String) -> Unit,
+    ) {
+        var picking by rememberSaveable { mutableStateOf(false) }
         SettingsSection(stringResource(R.string.section_icon)) {
-            SettingsItem(
-                title = stringResource(R.string.field_icon),
-                summary = origin,
-                onClick = onEditIcon,
-                trailing = { if (layers != null) AdaptiveIcon(layers, CircleShape, 48.dp) },
+            IconTiles(
+                icons = icons,
+                background = form.iconBackground,
+                foreground = form.iconForeground,
+                name = form.name,
+                loadImage = loadImage,
+                onSelect = onSelect,
+                onCustom = { picking = true },
             )
+            if (icons.selected == IconOptions.Option.BRAND && icons.brand != null) {
+                ColorItem(
+                    stringResource(R.string.field_icon_foreground), form.iconForeground, { onChange(form.copy(iconForeground = it)) },
+                    error("iconForeground"), emptyLabel = stringResource(R.string.field_auto_contrast),
+                )
+                ColorItem(
+                    stringResource(R.string.field_icon_background), form.iconBackground, { onChange(form.copy(iconBackground = it)) },
+                    error("iconBackground"), hints["iconBackground"],
+                )
+            }
         }
+        if (picking) CustomIconSheet(onPicked = onCustom, onDismiss = { picking = false })
     }
 
     @Composable
@@ -199,14 +224,6 @@ private class Fields(
             ColorItem(
                 stringResource(R.string.field_custom_header), form.headerColor, { onChange(form.copy(headerColor = it)) }, error("headerColor"),
                 enabled = form.headerMode == HeaderMode.CUSTOM,
-            )
-            ColorItem(
-                stringResource(R.string.field_icon_background), form.iconBackground, { onChange(form.copy(iconBackground = it)) },
-                error("iconBackground"), hints["iconBackground"],
-            )
-            ColorItem(
-                stringResource(R.string.field_icon_foreground), form.iconForeground, { onChange(form.copy(iconForeground = it)) },
-                error("iconForeground"), emptyLabel = stringResource(R.string.field_auto_contrast),
             )
         }
     }

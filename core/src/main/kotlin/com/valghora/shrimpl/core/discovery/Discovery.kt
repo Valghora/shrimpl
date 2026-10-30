@@ -22,7 +22,10 @@ data class Draft(
     val allowCamera: Field<Boolean>,
     val allowNotifications: Field<Boolean>,
     val allowLocation: Field<Boolean>,
+    /** The best icon: the brand glyph when there is one, else the site's own icon, else a letter. */
     val icon: IconChoice,
+    /** The site's own icons, best first, for the Website icon when [icon] is a brand glyph (R10.1). */
+    val websiteIcons: List<WebsiteIcon>,
     val notes: List<Note>,
 ) {
     /** The draft as a profile; every other setting (header color, glyph color, ...) keeps its default. */
@@ -264,6 +267,7 @@ object Discovery {
             allowNotifications = notifications,
             allowLocation = location,
             icon = icon,
+            websiteIcons = IconChooser.websiteIcons(page.links, manifest, manifestUrl, finalUrl),
             notes = notes,
         )
     }

@@ -44,7 +44,7 @@ class HomeViewModel(private val container: AppContainer) : ViewModel() {
 
     /** Reinstall or update: the same settings as the next build (R11.3, R11.4). */
     fun rebuild(record: WebAppRecord) {
-        build.start(BuildRequest(record.profile, record.icon, newImage = null, existing = record))
+        build.start(BuildRequest(record.profile, record.iconOptions, newImages = emptyMap(), existing = record))
     }
 
     fun remove(record: WebAppRecord) {

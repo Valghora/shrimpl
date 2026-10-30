@@ -46,9 +46,6 @@ import com.valghora.shrimpl.ui.common.Notice
 import com.valghora.shrimpl.ui.common.PillButton
 import com.valghora.shrimpl.ui.common.TooltipIconButton
 import com.valghora.shrimpl.ui.form.ProfileFormFields
-import com.valghora.shrimpl.ui.icons.IconEditor
-import com.valghora.shrimpl.ui.icons.rememberIconLayers
-import com.valghora.shrimpl.core.records.IconRecord
 import kotlinx.coroutines.launch
 
 /** A web app's settings (docs/SHRIMPL_SPEC.md R2.3): change, save as the next build, uninstall. */
@@ -63,7 +60,6 @@ fun EditScreen(appId: String, showBack: Boolean, onBack: () -> Unit) {
     val buildState by model.build.state.collectAsStateWithLifecycle()
     val message by model.message.collectAsStateWithLifecycle()
     val offerRemove by model.offerRemove.collectAsStateWithLifecycle()
-    val iconDraft by model.iconDraft.collectAsStateWithLifecycle()
     var confirmUninstall by rememberSaveable { mutableStateOf(false) }
     var menu by rememberSaveable { mutableStateOf(false) }
     val snackbar = remember { SnackbarHostState() }
@@ -89,7 +85,6 @@ fun EditScreen(appId: String, showBack: Boolean, onBack: () -> Unit) {
         }
         return
     }
-    val storedImage: (() -> ByteArray)? = if (current.icon.kind == IconRecord.Kind.IMAGE) model::storedImage else null
 
     Scaffold(
         topBar = {
@@ -149,33 +144,22 @@ fun EditScreen(appId: String, showBack: Boolean, onBack: () -> Unit) {
         },
         snackbarHost = { SnackbarHost(snackbar) },
     ) { padding ->
-        val layers by rememberIconLayers(form.iconSelection, form.form.name, storedImage)
         BoxWithConstraints(Modifier.padding(padding).fillMaxSize()) {
             ProfileFormFields(
                 form = form.form,
                 onChange = model::update,
                 hints = emptyMap(),
                 notes = if (installed == false) listOf(Notice(Notice.Kind.INFO, stringResource(R.string.edit_not_installed))) else emptyList(),
-                iconLayers = layers,
-                iconOrigin = form.icon.origin,
-                onEditIcon = model::openIconEditor,
+                icons = form.icons,
+                loadImage = { file -> form.newImages[file] ?: model.storedImage(file) },
+                onSelectIcon = model::selectIcon,
+                onCustomIcon = model::setCustomIcon,
                 wide = maxWidth >= WindowSizeClass.WIDTH_DP_EXPANDED_LOWER_BOUND.dp,
                 appIdEditable = false,
             )
         }
     }
 
-    iconDraft?.let { selection ->
-        IconEditor(
-            selection = selection,
-            onChange = model::changeIcon,
-            appName = form.form.name,
-            siteIcon = null,
-            storedImage = storedImage,
-            onDone = { model.closeIconEditor(apply = true) },
-            onDismiss = { model.closeIconEditor(apply = false) },
-        )
-    }
     if (confirmUninstall) {
         AlertDialog(
             onDismissRequest = { confirmUninstall = false },

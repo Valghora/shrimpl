@@ -84,9 +84,8 @@
     <string name="header_dynamic_detail">Detects site-specific color</string>
     <string name="header_custom_detail">Uses user-defined color</string>
     <string name="field_custom_header">Custom header color</string>
-    <string name="field_icon_background">Icon background color</string>
-    <string name="field_icon_foreground">Icon glyph color</string>
-    <string name="field_auto">Automatic</string>
+    <string name="field_icon_background">Background color</string>
+    <string name="field_icon_foreground">Glyph color</string>
     <string name="field_user_agent">Browser identity</string>
     <string name="ua_auto">Automatic</string>
     <string name="ua_desktop">Desktop</string>
@@ -102,28 +101,6 @@
     <string name="field_password">Password</string>
     <string name="field_password_repeat">Repeat password</string>
     <string name="hint_discovered">Suggested from %1$s</string>
-
-    <!-- Icon editor -->
-    <string name="icon_editor_title">Icon</string>
-    <string name="icon_origin">From %1$s</string>
-    <string name="icon_source_site">Website</string>
-    <string name="icon_source_brand">Brand</string>
-    <string name="icon_source_letter">Letter</string>
-    <string name="icon_source_photo">Photo</string>
-    <string name="icon_source_pack">Icon pack</string>
-    <string name="icon_use_site">Use the website\'s icon</string>
-    <string name="icon_letter">Letter or digit</string>
-    <string name="icon_choose_photo">Choose a photo</string>
-    <string name="icon_photo_crop_note">The photo is cropped to a centered square</string>
-    <string name="icon_fills_shape">Fills the icon shape</string>
-    <string name="icon_fills_shape_detail">Turn on for full-bleed images; off adds a margin on the background color.</string>
-    <string name="icon_no_packs">No icon packs installed</string>
-    <string name="icon_other_packs">Other packs</string>
-    <string name="icon_search_pack">Search icons</string>
-    <string name="mask_circle">Circle</string>
-    <string name="mask_squircle">Squircle</string>
-    <string name="mask_rounded_square">Rounded</string>
-    <string name="mask_themed">Themed</string>
 
     <!-- Build sheet -->
     <string name="build_title_running">Creating the app…</string>
@@ -168,7 +145,6 @@
     <string name="settings_about">About</string>
 
     <!-- Settings items -->
-    <string name="field_icon">App icon</string>
     <string name="field_app_id">App ID</string>
     <string name="field_auto_contrast">Automatic (black or white)</string>
     <string name="section_browser">Behavior</string>
@@ -186,10 +162,6 @@
     <string name="theme_system_detail">Colors adapt based on wallpaper</string>
     <string name="theme_dark_detail">Colors follow system dark theme</string>
     <string name="theme_light_detail">Colors follow system light theme</string>
-    <string name="icon_brand_not_found">No simple-icons brand named “%1$s”</string>
-    <string name="icon_brand_found">Using the %1$s brand icon</string>
-    <string name="icon_brand_name">Brand name</string>
-    <string name="icon_brand_detail">Looks the name up on simple-icons.org</string>
     <string name="settings_appearance">Appearance</string>
     <string name="signing_certificate">Certificate</string>
     <string name="about_app">App Version: %1$s</string>
@@ -213,5 +185,12 @@
     <string name="click_action_open_detail">Launch the application on click</string>
     <string name="click_action_edit_detail">Edit the application on click</string>
     <string name="action_app_options">Options for %1$s</string>
+    <string name="icon_option_brand">Brand</string>
+    <string name="icon_option_website">Website</string>
+    <string name="icon_option_custom">Custom</string>
+    <string name="icon_choose_from">Choose an icon from</string>
+    <string name="icon_source_photos">Photos</string>
+    <string name="icon_source_files">Files</string>
+    <string name="icon_unreadable">This image can\'t be used as an icon</string>
     <string name="tooltip_new_web_app">New app (Ctrl+N)</string>
 </resources>

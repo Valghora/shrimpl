@@ -2,18 +2,11 @@ package com.valghora.shrimpl.ui.icons
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.requiredSize
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.State
 import androidx.compose.runtime.produceState
@@ -22,38 +15,29 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.Shape
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.unit.dp
 import androidx.core.graphics.toColorInt
-import com.valghora.shrimpl.R
-import com.valghora.shrimpl.build.WebAppFactory
 import com.valghora.shrimpl.icons.IconImages
 import com.valghora.shrimpl.icons.IconLayers
 import com.valghora.shrimpl.icons.IconRenderer
 import com.valghora.shrimpl.core.profile.ProfileForm
+import com.valghora.shrimpl.core.records.IconOptions
 import com.valghora.shrimpl.core.records.IconRecord
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
-/** An icon choice with its colors; [image] holds new image bytes (null: use the stored image). */
-data class IconSelection(
-    val icon: IconRecord,
-    val image: ByteArray?,
-    val background: String,
-    val foreground: String,
-)
-
-/** Rendered layers for [selection], or null while rendering or when it can't be drawn. */
+/**
+ * Rendered layers for [icon] with the brand colors [background] and [foreground] (empty: automatic),
+ * or null while rendering or when it can't be drawn. [loadImage] reads an image icon's bytes by file name.
+ */
 @Composable
-fun rememberIconLayers(selection: IconSelection, name: String, storedImage: (() -> ByteArray)?): State<IconLayers?> =
-    produceState<IconLayers?>(null, selection, name) {
+fun rememberIconLayers(icon: IconRecord, background: String, foreground: String, name: String, loadImage: (String) -> ByteArray): State<IconLayers?> =
+    produceState<IconLayers?>(null, icon, background, foreground, name) {
         value = withContext(Dispatchers.Default) {
             runCatching {
-                val background = ProfileForm.color(selection.background).toColorInt()
-                val foreground = ProfileForm.color(selection.foreground).ifEmpty { autoForeground(selection.background) }.toColorInt()
-                val source = selection.icon.toSource { selection.image ?: requireNotNull(storedImage).invoke() }
-                IconImages.layers(IconRenderer.render(source, background, foreground, WebAppFactory.letterOf(name)))
+                val back = ProfileForm.color(background).toColorInt()
+                val fore = ProfileForm.color(foreground).ifEmpty { autoForeground(background) }.toColorInt()
+                IconImages.layers(IconRenderer.render(icon.toSource(loadImage), back, fore, IconOptions.letterFor(name)))
             }.getOrNull()
         }
     }
@@ -82,36 +66,5 @@ fun AdaptiveIcon(layers: IconLayers, shape: Shape, size: Dp, modifier: Modifier 
             Image(layers.background, contentDescription = null, modifier = Modifier.requiredSize(layerSize))
             Image(layers.foreground, contentDescription = null, modifier = Modifier.requiredSize(layerSize))
         }
-    }
-}
-
-/** R10.4: the icon in the circle, squircle and rounded-square masks, and themed. */
-@Composable
-fun MaskPreviews(layers: IconLayers?, modifier: Modifier = Modifier) {
-    val shapes = listOf(
-        R.string.mask_circle to CircleShape,
-        R.string.mask_squircle to RoundedCornerShape(percent = 35),
-        R.string.mask_rounded_square to RoundedCornerShape(percent = 18),
-    )
-    Row(modifier, horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-        shapes.forEach { (label, shape) -> Labeled(label) { Slot(layers) { AdaptiveIcon(it, shape, 56.dp) } } }
-        Labeled(R.string.mask_themed) { Slot(layers) { AdaptiveIcon(it, CircleShape, 56.dp, themed = true) } }
-    }
-}
-
-@Composable
-private fun Slot(layers: IconLayers?, content: @Composable (IconLayers) -> Unit) {
-    if (layers == null) {
-        Box(Modifier.size(56.dp), contentAlignment = Alignment.Center) { CircularProgressIndicator(Modifier.size(24.dp)) }
-    } else {
-        content(layers)
-    }
-}
-
-@Composable
-private fun Labeled(label: Int, content: @Composable () -> Unit) {
-    Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(4.dp)) {
-        content()
-        Text(stringResource(label), style = MaterialTheme.typography.labelSmall)
     }
 }

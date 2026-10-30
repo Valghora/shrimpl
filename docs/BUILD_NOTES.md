@@ -88,7 +88,7 @@ and services.gradle.org).
 | R9.3 | The rendered visit's HTTP status is known only when it is an error (>= 400). | WebView reports main-document errors, not successes. |
 | R10.3 | Letter icons use the system bold font. | Native rendering; no bundled font. |
 | R6.1 | Package visibility uses `<queries>` (launcher apps, icon packs, Shizuku), not `QUERY_ALL_PACKAGES`. | Narrower, and enough: every web app has a launcher entry. |
-| Rules (lint) | `:shrimpl` lint keeps two warnings: `SetJavaScriptEnabled` (the hidden discovery WebView must run page scripts) and `DiscouragedApi` (`getIdentifier` for icon pack drawables, known only by name). | `@SuppressLint` is allowed only in the template. |
+| Rules (lint) | `:shrimpl` lint keeps one warning: `SetJavaScriptEnabled` (the hidden discovery WebView must run page scripts). | `@SuppressLint` is allowed only in the template. |
 
 ## Rename to Shrimpl (2026-10-29)
 
@@ -101,3 +101,15 @@ access still uses the old URL, which GitHub redirects). An interim name, Shrimpl
 beyond test builds. Shrimpl is a new
 package, so it installs beside UniWrap rather than updating it, and can't update apps UniWrap made
 (their packages start `com.valghora.uniwrap.app`). Template version 4.
+
+## Icon options (2026-10-30)
+
+- Records keep every icon option (`IconOptions`: brand glyph, website icon, custom icon, selected),
+  next to `icon`, the one the last build used. Records saved before keep working: a glyph becomes
+  Brand, an image Custom (its file stays `icon-image`) and a letter Website; for them the Website
+  option is a letter until the site is looked up again.
+- The website icon is fetched separately from discovery (`SiteDiscovery.websiteIcon`) when the best
+  icon was a brand glyph, so the recorded discovery fixtures keep their fetch order.
+- Custom icons come from Photos, Files or an icon pack's own picker
+  (`org.adw.launcher.icons.ACTION_PICK_ICON`, result in the `icon` extra). Shrimpl no longer reads
+  icon packs' `appfilter.xml` or drawables, so the `DiscouragedApi` lint warning is gone.

@@ -1,6 +1,5 @@
 package com.valghora.shrimpl.ui.home
 
-import android.content.Context
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.combinedClickable
@@ -75,7 +74,6 @@ import com.valghora.shrimpl.ui.common.LocalInPane
 import com.valghora.shrimpl.ui.common.NEW_APP_BUTTON_HEIGHT
 import com.valghora.shrimpl.ui.common.TooltipIconButton
 import com.valghora.shrimpl.ui.icons.AdaptiveIcon
-import com.valghora.shrimpl.ui.icons.IconSelection
 import com.valghora.shrimpl.ui.icons.rememberIconLayers
 import com.valghora.shrimpl.core.profile.Profile
 import com.valghora.shrimpl.core.records.WebAppRecord
@@ -334,12 +332,12 @@ private fun ItemIcon(record: WebAppRecord, installed: InstalledApp?) {
         return
     }
     val context = LocalContext.current
-    val selection = IconSelection(record.icon, null, record.profile.iconBackground, record.profile.iconForeground.takeUnless { it == Profile.AUTO }.orEmpty())
-    val layers by rememberIconLayers(selection, record.profile.name) { context.storedImage(record.appId) }
+    val foreground = record.profile.iconForeground.takeUnless { it == Profile.AUTO }.orEmpty()
+    val layers by rememberIconLayers(record.icon, record.profile.iconBackground, foreground, record.profile.name) { file ->
+        context.container.store.image(record.appId, file)
+    }
     layers?.let { AdaptiveIcon(it, CircleShape, 48.dp) }
 }
-
-private fun Context.storedImage(appId: String) = container.store.image(appId)
 
 /** The narrowest a web app item gets before the grid drops a column. */
 private val MIN_CELL_WIDTH = 360.dp

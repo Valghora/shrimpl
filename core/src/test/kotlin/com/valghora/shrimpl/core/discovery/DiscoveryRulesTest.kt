@@ -2,7 +2,6 @@ package com.valghora.shrimpl.core.discovery
 
 import com.valghora.shrimpl.core.icons.IconException
 import com.valghora.shrimpl.core.profile.HeaderMode
-import com.valghora.shrimpl.core.profile.Profile
 import com.valghora.shrimpl.core.profile.ProfileValidator
 import java.io.ByteArrayOutputStream
 import java.util.zip.CRC32
@@ -182,6 +181,26 @@ class DiscoveryRulesTest {
     }
 
     @Test
+    fun websiteIconsAreListedWithoutFetching() {
+        val sources = Map(mapOf("https://a.com/mask.png" to png(256, 256)))
+        val icons = IconChooser.websiteIcons(
+            listOf(Link("icon", "https://a.com/fav.png", sizes = "32x32")),
+            manifest("""{"icons":[{"src":"big.png","sizes":"512x512"},{"src":"mask.png","sizes":"256x256","purpose":"maskable"}]}"""),
+            "https://a.com/manifest.json",
+            "https://a.com/",
+        )
+        assertEquals(
+            listOf("https://a.com/mask.png", "https://a.com/big.png", "https://a.com/apple-touch-icon.png", "https://a.com/fav.png"),
+            icons.map { it.url },
+        )
+        assertEquals(emptyList<String>(), sources.fetched)
+        // big.png is missing, so the maskable one wins; nothing after it is fetched.
+        assertEquals("web manifest icon (maskable 256px png)", IconChooser.firstRaster(icons, sources)?.source)
+        assertEquals(listOf("https://a.com/mask.png"), sources.fetched)
+        assertNull(IconChooser.firstRaster(emptyList(), sources))
+    }
+
+    @Test
     fun maskIconGlyphWithColor() {
         val sources = Map(mapOf("https://a.com/mask.svg" to glyphSvg))
         val choice = IconChooser.choose(
@@ -291,6 +310,8 @@ class DiscoveryRulesTest {
         assertEquals(Field("#12AB9F", "simple-icons brand color (Acme & Co)", Confidence.HIGH), draft.iconBackground)
         assertEquals(Confidence.HIGH, draft.icon.confidence)
         assertTrue(draft.notes.none { it.text == Discovery.NO_GLYPH })
+        // The site's own icons are still listed for the Website option.
+        assertEquals("https://app.example.com/apple-touch-icon.png", draft.websiteIcons.single().url)
 
         // Matched only through the domain word: likely, not certain.
         val byDomain = Map(mapOf(SimpleIcons.url("example") to acmeSvg))

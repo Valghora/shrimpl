@@ -54,8 +54,6 @@ import com.valghora.shrimpl.ui.common.BuildSheet
 import com.valghora.shrimpl.ui.common.PillButton
 import com.valghora.shrimpl.ui.common.TooltipIconButton
 import com.valghora.shrimpl.ui.form.ProfileFormFields
-import com.valghora.shrimpl.ui.icons.IconEditor
-import com.valghora.shrimpl.ui.icons.rememberIconLayers
 import kotlinx.coroutines.launch
 
 /** The configuration page (docs/SHRIMPL_SPEC.md R3), opened from the home screen's button. */
@@ -68,7 +66,6 @@ fun CreateScreen(onClose: () -> Unit, onBackUpKey: () -> Unit) {
     val draft by model.draft.collectAsStateWithLifecycle()
     val buildState by model.build.state.collectAsStateWithLifecycle()
     val backupPrompt by model.showBackupPrompt.collectAsStateWithLifecycle()
-    val iconDraft by model.iconDraft.collectAsStateWithLifecycle()
     val snackbar = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
     val invalidMessage = stringResource(R.string.create_fix_fields)
@@ -104,29 +101,19 @@ fun CreateScreen(onClose: () -> Unit, onBackUpKey: () -> Unit) {
     ) { padding ->
         val current = draft
         if (reviewing && current != null) {
-            val layers by rememberIconLayers(current.iconSelection, current.form.name, null)
             BoxWithConstraints(Modifier.padding(padding).fillMaxSize()) {
                 ProfileFormFields(
                     form = current.form,
                     onChange = model::update,
                     hints = model.hints,
                     notes = model.notes,
-                    iconLayers = layers,
-                    iconOrigin = current.icon.origin,
-                    onEditIcon = model::openIconEditor,
+                    icons = current.icons,
+                    // Nothing is stored yet: every image is in the draft.
+                    loadImage = { file -> requireNotNull(current.newImages[file]) { "no image $file" } },
+                    onSelectIcon = model::selectIcon,
+                    onCustomIcon = model::setCustomIcon,
                     wide = maxWidth >= WindowSizeClass.WIDTH_DP_EXPANDED_LOWER_BOUND.dp,
                     appIdEditable = true,
-                )
-            }
-            iconDraft?.let { selection ->
-                IconEditor(
-                    selection = selection,
-                    onChange = model::changeIcon,
-                    appName = current.form.name,
-                    siteIcon = model.siteIcon,
-                    storedImage = null,
-                    onDone = { model.closeIconEditor(apply = true) },
-                    onDismiss = { model.closeIconEditor(apply = false) },
                 )
             }
         } else {

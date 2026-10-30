@@ -9,8 +9,8 @@ import com.valghora.shrimpl.data.InstalledApps
 import com.valghora.shrimpl.install.InstallResult
 import com.valghora.shrimpl.ui.common.BuildController
 import com.valghora.shrimpl.ui.form.WebAppDraft
-import com.valghora.shrimpl.ui.icons.IconSelection
 import com.valghora.shrimpl.core.profile.ProfileForm
+import com.valghora.shrimpl.core.records.IconOptions
 import com.valghora.shrimpl.core.records.WebAppRecord
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -50,7 +50,8 @@ class EditViewModel(private val container: AppContainer, val appId: String) : Vi
 
     val dirty: Boolean get() = _record.value?.let { _draft.value != draftOf(it) } ?: false
 
-    fun storedImage(): ByteArray = container.store.image(appId)
+    /** A stored icon image, by file name. */
+    fun storedImage(file: String): ByteArray = container.store.image(appId, file)
 
     fun refresh(context: Context) {
         val record = _record.value ?: return
@@ -60,31 +61,16 @@ class EditViewModel(private val container: AppContainer, val appId: String) : Vi
     }
 
     fun update(form: ProfileForm) {
-        _draft.value = _draft.value?.copy(form = form.copy(appId = appId))
+        _draft.value = _draft.value?.withForm(form.copy(appId = appId))
     }
 
-    fun setIcon(selection: IconSelection) {
-        _draft.value = _draft.value?.withIcon(selection)
+    fun selectIcon(option: IconOptions.Option) {
+        _draft.value = _draft.value?.select(option)
     }
 
-    private val _iconDraft = MutableStateFlow<IconSelection?>(null)
-
-    /** The icon editor's selection while it is open; kept here so it survives configuration changes. */
-    val iconDraft: StateFlow<IconSelection?> = _iconDraft.asStateFlow()
-
-    fun openIconEditor() {
-        _iconDraft.value = _draft.value?.iconSelection
-    }
-
-    fun changeIcon(selection: IconSelection) {
-        _iconDraft.value = selection
-    }
-
-    /** Closes the icon editor, keeping its selection when [apply]. */
-    fun closeIconEditor(apply: Boolean) {
-        val selection = _iconDraft.value
-        _iconDraft.value = null
-        if (apply && selection != null) setIcon(selection)
+    /** A custom icon was picked (a photo, a file or an icon pack's icon). */
+    fun setCustomIcon(image: ByteArray, maskable: Boolean, origin: String) {
+        _draft.value = _draft.value?.withCustomIcon(image, maskable, origin)
     }
 
     fun reset() {
@@ -96,14 +82,14 @@ class EditViewModel(private val container: AppContainer, val appId: String) : Vi
         val record = _record.value ?: return false
         val draft = _draft.value ?: return false
         val profile = draft.form.result().profile ?: return false
-        build.start(BuildRequest(profile, draft.icon, draft.newImage, existing = record))
+        build.start(BuildRequest(profile, draft.icons, draft.newImages, existing = record))
         return true
     }
 
     /** Builds the stored settings again, e.g. after an uninstall or with a newer template. */
     fun rebuild() {
         val record = _record.value ?: return
-        build.start(BuildRequest(record.profile, record.icon, newImage = null, existing = record))
+        build.start(BuildRequest(record.profile, record.iconOptions, newImages = emptyMap(), existing = record))
     }
 
     fun uninstall() {
@@ -137,5 +123,5 @@ class EditViewModel(private val container: AppContainer, val appId: String) : Vi
         _message.value = null
     }
 
-    private fun draftOf(record: WebAppRecord) = WebAppDraft(ProfileForm.from(record.profile), record.icon, null)
+    private fun draftOf(record: WebAppRecord) = WebAppDraft(ProfileForm.from(record.profile), record.iconOptions)
 }

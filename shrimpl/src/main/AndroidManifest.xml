@@ -8,12 +8,9 @@
     <uses-permission android:name="android.permission.REQUEST_DELETE_PACKAGES" />
 
     <queries>
-        <!-- Icon packs (R10.2). -->
+        <!-- Icon packs that hand back one icon for a custom app icon (R10.2). -->
         <intent>
-            <action android:name="org.adw.launcher.THEMES" />
-        </intent>
-        <intent>
-            <action android:name="com.novalauncher.THEME" />
+            <action android:name="org.adw.launcher.icons.ACTION_PICK_ICON" />
         </intent>
         <!-- The web apps Shrimpl built: their install state, icon and launcher entry (R2.2). -->
         <intent>

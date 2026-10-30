@@ -78,11 +78,12 @@ data class RasterInfo(val format: String, val width: Int, val height: Int) {
     }
 }
 
+/** One of the site's own icons, not yet fetched: a web manifest icon, an icon link or apple-touch-icon. */
+data class WebsiteIcon(val url: String, val size: Int, val maskable: Boolean, val source: String)
+
 /** Picks the best icon: simple-icons glyph > mask-icon glyph > raster > letter (R9.2). */
 object IconChooser {
     const val MIN_RASTER_PX = 192
-
-    private data class Candidate(val url: String, val size: Int, val maskable: Boolean, val source: String)
 
     /** [simple] is the brand found by name; [simpleConfidence] says how sure that match is. */
     fun choose(
@@ -121,7 +122,13 @@ object IconChooser {
             )
         }
 
-        val candidates = mutableListOf<Candidate>()
+        return firstRaster(websiteIcons(links, manifest, manifestUrl, pageUrl), sources)
+            // null: the caller falls back to a letter, which needs the app name
+    }
+
+    /** The site's own icons, best first (maskable, then larger); nothing is fetched. */
+    fun websiteIcons(links: List<Link>, manifest: JsonObject, manifestUrl: String, pageUrl: String): List<WebsiteIcon> {
+        val candidates = mutableListOf<WebsiteIcon>()
         for (icon in (manifest["icons"] as? JsonArray).orEmpty()) {
             val obj = icon as? JsonObject ?: continue
             val src = obj.string("src")?.takeIf(String::isNotEmpty) ?: continue
@@ -129,7 +136,7 @@ object IconChooser {
                 Regex("(\\d+)x(\\d+)").matchEntire(s)?.takeIf { it.groupValues[1] == it.groupValues[2] }?.groupValues?.get(1)?.toIntOrNull()
             }
             val purpose = (obj.string("purpose") ?: "any").split(Regex("\\s+"))
-            candidates += Candidate(Urls.join(manifestUrl, src), sizes.maxOrNull() ?: 0, "maskable" in purpose, "web manifest icon")
+            candidates += WebsiteIcon(Urls.join(manifestUrl, src), sizes.maxOrNull() ?: 0, "maskable" in purpose, "web manifest icon")
         }
         for (link in links) {
             val rels = link.rel.split(Regex("\\s+"))
@@ -138,11 +145,15 @@ object IconChooser {
                 Regex("(\\d+)x\\1").matchEntire(s)?.groupValues?.get(1)?.toIntOrNull()
             }
             val source = if ("apple-touch-icon" in rels) "apple-touch-icon" else "page icon link"
-            candidates += Candidate(link.href, sizes.maxOrNull() ?: 0, false, source)
+            candidates += WebsiteIcon(link.href, sizes.maxOrNull() ?: 0, false, source)
         }
-        candidates += Candidate(Urls.join(pageUrl, "/apple-touch-icon.png"), 180, false, "/apple-touch-icon.png")
+        candidates += WebsiteIcon(Urls.join(pageUrl, "/apple-touch-icon.png"), 180, false, "/apple-touch-icon.png")
+        return candidates.sortedWith(compareByDescending<WebsiteIcon> { it.maskable }.thenByDescending { it.size })
+    }
 
-        for (candidate in candidates.sortedWith(compareByDescending<Candidate> { it.maskable }.thenByDescending { it.size })) {
+    /** The first of [candidates] that loads as a square PNG or WebP of at least [MIN_RASTER_PX]. */
+    fun firstRaster(candidates: List<WebsiteIcon>, sources: IconSources): IconChoice.Raster? {
+        for (candidate in candidates) {
             val data = load(candidate.url, sources) ?: continue
             val info = try {
                 RasterInfo.of(data)
@@ -161,7 +172,7 @@ object IconChooser {
                 )
             }
         }
-        return null // the caller falls back to a letter, which needs the app name
+        return null
     }
 
     private fun tryGlyph(svg: ByteArray): SvgGlyph? = try {

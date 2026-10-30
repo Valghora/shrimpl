@@ -99,7 +99,7 @@ binary translation) on any device.
   resume. A record whose app isn't installed shows "Not installed" with Reinstall and Remove. An app
   built from an older template shows "Update available" (R11.4). An empty list says "No apps yet". User-facing text says "app", never "web app".
 - R2.3 The edit page offers every profile setting in the form of R3.3 (the app ID read-only), the icon
-  editor (R10), Open, Rebuild, Discard changes, and Uninstall (confirmed; then offers to remove the
+  options (R10), Open, Rebuild, Discard changes, and Uninstall (confirmed; then offers to remove the
   record). "Save as build N" rebuilds with build number + 1 and installs it as an update (same
   package and key, so the app keeps its data). In two panes the edit page has no back arrow.
 - R2.4 "New app" opens the configuration page (R3). It is one design everywhere, shared by the
@@ -128,11 +128,11 @@ binary translation) on any device.
   rounded tonal items, each showing its value (summary, switch, menu value or color swatch); text,
   color, domain and window size values open dialogs. Nothing is collapsed. The sections, in order:
   - **Identity:** the name, on the edit page the app ID, the start address and internal domains.
-  - **Icon:** the app icon with its preview (opens R10).
+  - **Icon:** the icon options as preview tiles, and the brand glyph's Glyph color (`#FFFFFF` by
+    default) and Background color (the site's brand color by default) while Brand is selected
+    (R10.1).
   - **Appearance:** Header color (System, matching the system theme, the default; Dynamic, the
-    site's own colors, T3.3; Custom), Custom header color (disabled unless Custom), Icon background
-    color (the site's brand color by default), Icon glyph color (`#FFFFFF` by default; a Caution
-    notice appears when no brand glyph was found).
+    site's own colors, T3.3; Custom) and Custom header color (disabled unless Custom).
   - **Behavior:** browser identity (user agent mode), keep running in the background, pause in
     battery saver, long-press menu for links and images.
   - **Window:** Allow multiple windows (off by default), default and minimum window size.
@@ -273,22 +273,32 @@ The template's behavior is docs/TEMPLATE_SPEC.md. What Shrimpl relies on:
 
 ## R10 Icons
 
-- R10.1 Sources: the site's icon, a simple-icons glyph looked up by brand name (prefilled with the
-  app name), a letter, a photo (Photo Picker, centered square crop, "fills the icon shape" switch),
-  or an icon pack (R10.2). Glyphs and letters have editable background and glyph colors.
-- R10.2 Icon packs: installed packs answering the ADW (`org.adw.launcher.THEMES`) or Nova
-  (`com.novalauncher.THEME`) intents, shown as a searchable grid from `appfilter.xml`, best match for
-  the app's name first.
+- R10.1 Options, shown as a row of preview tiles labeled Brand, Website and Custom; tapping one
+  selects it and rings it (no other mark):
+  - **Brand** (the default when found): the simple-icons glyph (or the site's mask-icon glyph) drawn
+    in the Glyph color on the Background color. Not shown when the site has no brand glyph.
+  - **Website:** the site's own icon, the best square web manifest icon, apple-touch-icon or icon
+    link of at least 192 px (R9.2); a letter on the background color when the site has none.
+    Selected when there is no brand glyph.
+  - **Custom:** a dashed tile with a plus until an icon is picked. Tapping it (empty, or again once
+    selected) opens a sheet of sources: Photos (the Photo Picker) and Files (any image), cropped to
+    a centered square and filling the icon shape, and every installed icon pack (R10.2).
+
+  Glyph color and Background color appear only while Brand is selected; the website's and custom
+  icons keep their own colors. Changing the name updates a letter Website icon.
+- R10.2 Icon packs: installed apps answering the launchers' `org.adw.launcher.icons.ACTION_PICK_ICON`
+  request, shown with their own app icon and name. Choosing one opens the pack's own icon picker,
+  which hands back a bitmap (or an image URI); the icon keeps its own shape. Packs that don't answer
+  that request aren't listed.
 - R10.3 Rendering: adaptive background and foreground layers at 432x432 px (foreground inside the
   66 % safe zone, or 80 % for maskable images), a monochrome layer (the glyph or letter; a letter for
-  images and packs), and a 96x96 px white notification icon.
-- R10.4 The preview shows circle, squircle and rounded masks, and the themed (monochrome) icon. On
-  medium and wider windows the editor is a sized sheet rather than full screen.
+  images), and a 96x96 px white notification icon.
 
 ## R11 Data and versions
 
 - R11.1 A record per web app (JSON in app-private storage, written atomically): the profile, the
-  icon choice and its data, the package name, the build number, the template version it was built
+  icon options (brand glyph, website icon, custom icon, which is selected; images as files next to
+  the record) and the icon the last build used, the package name, the build number, the template version it was built
   with, and created and updated times. Older profiles and records are upgraded when read.
 - R11.2 The app ID comes from the name (lowercase letters and digits, starting with a letter),
   deduplicated with a numeric suffix, and is fixed at creation.
