@@ -333,7 +333,7 @@ private fun ItemIcon(record: WebAppRecord, installed: InstalledApp?) {
     }
     val context = LocalContext.current
     val foreground = record.profile.iconForeground.takeUnless { it == Profile.AUTO }.orEmpty()
-    val layers by rememberIconLayers(record.icon, record.profile.iconBackground, foreground, record.profile.name) { file ->
+    val layers by rememberIconLayers(record.icon, record.profile.iconBackground, foreground, record.profile.name, record.updatedAt) { file ->
         context.container.store.image(record.appId, file)
     }
     layers?.let { AdaptiveIcon(it, CircleShape, 48.dp) }

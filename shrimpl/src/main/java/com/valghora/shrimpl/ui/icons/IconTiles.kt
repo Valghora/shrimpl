@@ -49,6 +49,7 @@ fun IconTiles(
     background: String,
     foreground: String,
     name: String,
+    newImages: Map<String, ByteArray>,
     loadImage: (String) -> ByteArray,
     onSelect: (IconOptions.Option) -> Unit,
     onCustom: () -> Unit,
@@ -76,7 +77,7 @@ fun IconTiles(
                     if (icon == null) {
                         EmptyCustom()
                     } else {
-                        TilePreview(icon, background, foreground, name, loadImage)
+                        TilePreview(icon, background, foreground, name, icon.image?.let(newImages::get), loadImage)
                     }
                 }
             }
@@ -118,8 +119,15 @@ private fun Tile(label: String, selected: Boolean, onClick: () -> Unit, preview:
 }
 
 @Composable
-private fun TilePreview(icon: IconRecord, background: String, foreground: String, name: String, loadImage: (String) -> ByteArray) {
-    val layers by rememberIconLayers(icon, background, foreground, name, loadImage)
+private fun TilePreview(
+    icon: IconRecord,
+    background: String,
+    foreground: String,
+    name: String,
+    image: ByteArray?,
+    loadImage: (String) -> ByteArray,
+) {
+    val layers by rememberIconLayers(icon, background, foreground, name, image, loadImage)
     val current = layers
     if (current == null) {
         CircularProgressIndicator(Modifier.size(24.dp))

@@ -108,6 +108,7 @@ fun CreateScreen(onClose: () -> Unit, onBackUpKey: () -> Unit) {
                     hints = model.hints,
                     notes = model.notes,
                     icons = current.icons,
+                    newImages = current.newImages,
                     // Nothing is stored yet: every image is in the draft.
                     loadImage = { file -> requireNotNull(current.newImages[file]) { "no image $file" } },
                     onSelectIcon = model::selectIcon,

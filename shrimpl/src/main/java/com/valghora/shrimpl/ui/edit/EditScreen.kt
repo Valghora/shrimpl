@@ -151,6 +151,7 @@ fun EditScreen(appId: String, showBack: Boolean, onBack: () -> Unit) {
                 hints = emptyMap(),
                 notes = if (installed == false) listOf(Notice(Notice.Kind.INFO, stringResource(R.string.edit_not_installed))) else emptyList(),
                 icons = form.icons,
+                newImages = form.newImages,
                 loadImage = { file -> form.newImages[file] ?: model.storedImage(file) },
                 onSelectIcon = model::selectIcon,
                 onCustomIcon = model::setCustomIcon,

@@ -72,6 +72,7 @@ fun ProfileFormFields(
     hints: Map<String, String>,
     notes: List<Notice>,
     icons: IconOptions,
+    newImages: Map<String, ByteArray>,
     loadImage: (String) -> ByteArray,
     onSelectIcon: (IconOptions.Option) -> Unit,
     onCustomIcon: (bytes: ByteArray, maskable: Boolean, origin: String) -> Unit,
@@ -88,7 +89,7 @@ fun ProfileFormFields(
             Row(horizontalArrangement = Arrangement.spacedBy(COLUMN_GAP)) {
                 Column(Modifier.weight(1f)) {
                     fields.Identity(appIdEditable)
-                    fields.Icon(icons, loadImage, onSelectIcon, onCustomIcon)
+                    fields.Icon(icons, newImages, loadImage, onSelectIcon, onCustomIcon)
                     fields.Appearance()
                 }
                 Column(Modifier.weight(1f)) {
@@ -102,7 +103,7 @@ fun ProfileFormFields(
         Column(modifier.verticalScroll(rememberScrollState()).padding(horizontal = 16.dp).padding(bottom = 96.dp)) {
             Notes(notes)
             fields.Identity(appIdEditable)
-            fields.Icon(icons, loadImage, onSelectIcon, onCustomIcon)
+            fields.Icon(icons, newImages, loadImage, onSelectIcon, onCustomIcon)
             fields.Appearance()
             fields.Browser()
             fields.Window()
@@ -162,6 +163,7 @@ private class Fields(
     @Composable
     fun Icon(
         icons: IconOptions,
+        newImages: Map<String, ByteArray>,
         loadImage: (String) -> ByteArray,
         onSelect: (IconOptions.Option) -> Unit,
         onCustom: (ByteArray, Boolean, String) -> Unit,
@@ -173,6 +175,7 @@ private class Fields(
                 background = form.iconBackground,
                 foreground = form.iconForeground,
                 name = form.name,
+                newImages = newImages,
                 loadImage = loadImage,
                 onSelect = onSelect,
                 onCustom = { picking = true },

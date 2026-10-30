@@ -28,11 +28,20 @@ import kotlinx.coroutines.withContext
 
 /**
  * Rendered layers for [icon] with the brand colors [background] and [foreground] (empty: automatic),
- * or null while rendering or when it can't be drawn. [loadImage] reads an image icon's bytes by file name.
+ * or null while rendering or when it can't be drawn. [loadImage] reads an image icon's bytes by file
+ * name. [version] changes when the image behind [icon] changes while [icon] itself (file name,
+ * origin) stays the same, such as a newly picked image's bytes or a record's save time; it redraws.
  */
 @Composable
-fun rememberIconLayers(icon: IconRecord, background: String, foreground: String, name: String, loadImage: (String) -> ByteArray): State<IconLayers?> =
-    produceState<IconLayers?>(null, icon, background, foreground, name) {
+fun rememberIconLayers(
+    icon: IconRecord,
+    background: String,
+    foreground: String,
+    name: String,
+    version: Any? = null,
+    loadImage: (String) -> ByteArray,
+): State<IconLayers?> =
+    produceState<IconLayers?>(null, icon, background, foreground, name, version) {
         value = withContext(Dispatchers.Default) {
             runCatching {
                 val back = ProfileForm.color(background).toColorInt()
