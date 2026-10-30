@@ -4,7 +4,6 @@
 
     <!-- Actions -->
     <string name="action_add">Add</string>
-    <string name="action_add_shortcut">Add shortcut</string>
     <string name="action_back">Back</string>
     <string name="action_back_up_now">Back up now</string>
     <string name="action_cancel">Cancel</string>
@@ -65,7 +64,7 @@
 
     <!-- Form -->
     <string name="section_identity">Identity</string>
-    <string name="section_website">Website</string>
+    <string name="section_icon">Icon</string>
     <string name="section_permissions">Permissions</string>
     <string name="section_appearance">Appearance</string>
     <string name="field_name">Name</string>
@@ -100,10 +99,6 @@
     <string name="field_window_min">Minimum window size</string>
     <string name="field_width_dp">Width (dp)</string>
     <string name="field_height_dp">Height (dp)</string>
-    <string name="field_shortcuts">Keyboard shortcuts</string>
-    <string name="field_shortcuts_detail">The site\'s own shortcuts, listed in Android\'s keyboard shortcuts helper.</string>
-    <string name="field_shortcut_label">Label</string>
-    <string name="field_shortcut_key">Key</string>
     <string name="field_password">Password</string>
     <string name="field_password_repeat">Repeat password</string>
     <string name="hint_discovered">Suggested from %1$s</string>
@@ -181,11 +176,8 @@
     <string name="field_keep_alive_detail">Keeps calls and timers alive when the window is hidden</string>
     <string name="section_window">Window</string>
     <string name="window_size">%1$s × %2$s dp</string>
-    <string name="field_shortcut_unnamed">Unnamed shortcut</string>
     <string name="field_hex_color">Hex color</string>
     <string name="field_domains_detail">Links to these domains and their subdomains open inside the app; others open in the browser. Tap a domain to remove it.</string>
-    <string name="shortcut_edit_title">Edit shortcut</string>
-    <string name="field_shortcut_key_detail">A letter, digit, F1 to F12, or a key name like SLASH</string>
     <string name="action_ok">OK</string>
     <string name="install_method">Method</string>
     <string name="install_shizuku_detail">All installations will silently proceed through ADB</string>

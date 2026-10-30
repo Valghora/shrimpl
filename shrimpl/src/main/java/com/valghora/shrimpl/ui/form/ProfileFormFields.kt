@@ -51,17 +51,14 @@ import com.valghora.shrimpl.ui.common.NoticeCard
 import com.valghora.shrimpl.ui.common.NoticeSetSaver
 import com.valghora.shrimpl.ui.common.SettingsItem
 import com.valghora.shrimpl.ui.common.SettingsSection
-import com.valghora.shrimpl.ui.common.ShortcutRowSaver
 import com.valghora.shrimpl.ui.common.StringListSaver
 import com.valghora.shrimpl.ui.common.SwitchItem
 import com.valghora.shrimpl.ui.common.TextValueItem
 import com.valghora.shrimpl.ui.common.TooltipIconButton
 import com.valghora.shrimpl.ui.icons.AdaptiveIcon
-import com.valghora.shrimpl.core.Modifier as KeyModifier
 import com.valghora.shrimpl.core.UaMode
 import com.valghora.shrimpl.core.profile.HeaderMode
 import com.valghora.shrimpl.core.profile.ProfileForm
-import com.valghora.shrimpl.core.profile.ShortcutRow
 
 /**
  * A web app's settings (docs/SHRIMPL_SPEC.md R3.3), shared by the configuration and edit pages, as
@@ -89,28 +86,26 @@ fun ProfileFormFields(
             Notes(notes)
             Row(horizontalArrangement = Arrangement.spacedBy(COLUMN_GAP)) {
                 Column(Modifier.weight(1f)) {
-                    fields.Identity(iconLayers, iconOrigin, onEditIcon, appIdEditable)
-                    fields.Website()
-                    fields.Permissions()
+                    fields.Identity(appIdEditable)
+                    fields.Icon(iconLayers, iconOrigin, onEditIcon)
                     fields.Appearance()
                 }
                 Column(Modifier.weight(1f)) {
                     fields.Browser()
                     fields.Window()
-                    fields.Shortcuts()
+                    fields.Permissions()
                 }
             }
         }
     } else {
         Column(modifier.verticalScroll(rememberScrollState()).padding(horizontal = 16.dp).padding(bottom = 96.dp)) {
             Notes(notes)
-            fields.Identity(iconLayers, iconOrigin, onEditIcon, appIdEditable)
-            fields.Website()
-            fields.Permissions()
+            fields.Identity(appIdEditable)
+            fields.Icon(iconLayers, iconOrigin, onEditIcon)
             fields.Appearance()
             fields.Browser()
             fields.Window()
-            fields.Shortcuts()
+            fields.Permissions()
         }
     }
 }
@@ -133,24 +128,13 @@ private class Fields(
     val error: (String) -> String?,
     val hints: Map<String, String>,
 ) {
+    /** The app's name and where it lives: start address and internal domains. */
     @Composable
-    fun Identity(layers: IconLayers?, origin: String, onEditIcon: () -> Unit, appIdEditable: Boolean) {
+    fun Identity(appIdEditable: Boolean) {
+        var editingDomains by rememberSaveable { mutableStateOf(false) }
         SettingsSection(stringResource(R.string.section_identity)) {
-            SettingsItem(
-                title = stringResource(R.string.field_icon),
-                summary = origin,
-                onClick = onEditIcon,
-                trailing = { if (layers != null) AdaptiveIcon(layers, CircleShape, 48.dp) },
-            )
             TextValueItem(stringResource(R.string.field_name), form.name, { onChange(form.copy(name = it)) }, error("name"), hints["name"])
             if (!appIdEditable) SettingsItem(stringResource(R.string.field_app_id), summary = form.appId)
-        }
-    }
-
-    @Composable
-    fun Website() {
-        var editingDomains by rememberSaveable { mutableStateOf(false) }
-        SettingsSection(stringResource(R.string.section_website)) {
             TextValueItem(
                 stringResource(R.string.field_start_url), form.startUrl, { onChange(form.copy(startUrl = it.trim())) },
                 error("startUrl"), hints["startUrl"], keyboardType = KeyboardType.Uri,
@@ -167,6 +151,18 @@ private class Fields(
                 editingDomains = false
                 onChange(form.copy(internalDomains = it))
             }, onDismiss = { editingDomains = false })
+        }
+    }
+
+    @Composable
+    fun Icon(layers: IconLayers?, origin: String, onEditIcon: () -> Unit) {
+        SettingsSection(stringResource(R.string.section_icon)) {
+            SettingsItem(
+                title = stringResource(R.string.field_icon),
+                summary = origin,
+                onClick = onEditIcon,
+                trailing = { if (layers != null) AdaptiveIcon(layers, CircleShape, 48.dp) },
+            )
         }
     }
 
@@ -269,47 +265,7 @@ private class Fields(
             )
         }
     }
-
-    @Composable
-    fun Shortcuts() {
-        var editing by rememberSaveable { mutableStateOf<Int?>(null) }
-        SettingsSection(stringResource(R.string.field_shortcuts)) {
-            form.shortcuts.forEachIndexed { index, row ->
-                NavigationItem(
-                    row.label.ifBlank { stringResource(R.string.field_shortcut_unnamed) },
-                    { editing = index },
-                    summary = (row.modifiers.sortedBy { it.ordinal }.map { it.label() } + row.key.uppercase()).joinToString("+"),
-                )
-            }
-            error("appShortcuts")?.let { Text(it, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall) }
-            SettingsItem(
-                stringResource(R.string.action_add_shortcut),
-                summary = stringResource(R.string.field_shortcuts_detail),
-                onClick = { editing = form.shortcuts.size },
-                trailing = { Icon(Icons.Filled.Add, contentDescription = null) },
-            )
-        }
-        editing?.let { index ->
-            ShortcutDialog(
-                initial = form.shortcuts.getOrNull(index) ?: ShortcutRow(),
-                isNew = index >= form.shortcuts.size,
-                onDone = { row ->
-                    editing = null
-                    val rows = form.shortcuts.toMutableList()
-                    if (index < rows.size) rows[index] = row else rows += row
-                    onChange(form.copy(shortcuts = rows))
-                },
-                onDelete = {
-                    editing = null
-                    onChange(form.copy(shortcuts = form.shortcuts.filterIndexed { i, _ -> i != index }))
-                },
-                onDismiss = { editing = null },
-            )
-        }
-    }
 }
-
-private fun KeyModifier.label() = name.lowercase().replaceFirstChar(Char::uppercaseChar)
 
 private fun swatch(hex: String): Color? = runCatching { Color(ProfileForm.color(hex).toColorInt()) }.getOrNull()
 
@@ -461,44 +417,5 @@ private fun SizeDialog(title: String, width: String, height: String, onDone: (St
         },
         confirmButton = { TextButton(onClick = { onDone(w.trim(), h.trim()) }) { Text(stringResource(R.string.action_ok)) } },
         dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.action_cancel)) } },
-    )
-}
-
-@OptIn(ExperimentalLayoutApi::class)
-@Composable
-private fun ShortcutDialog(initial: ShortcutRow, isNew: Boolean, onDone: (ShortcutRow) -> Unit, onDelete: () -> Unit, onDismiss: () -> Unit) {
-    var row by rememberSaveable(stateSaver = ShortcutRowSaver) { mutableStateOf(initial) }
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text(stringResource(if (isNew) R.string.action_add_shortcut else R.string.shortcut_edit_title)) },
-        text = {
-            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                OutlinedTextField(
-                    row.label, { row = row.copy(label = it) }, label = { Text(stringResource(R.string.field_shortcut_label)) },
-                    singleLine = true, modifier = Modifier.fillMaxWidth(),
-                )
-                OutlinedTextField(
-                    row.key, { row = row.copy(key = it) }, label = { Text(stringResource(R.string.field_shortcut_key)) },
-                    supportingText = { Text(stringResource(R.string.field_shortcut_key_detail)) },
-                    singleLine = true, modifier = Modifier.fillMaxWidth(),
-                )
-                FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    KeyModifier.entries.forEach { mod ->
-                        FilterChip(
-                            selected = mod in row.modifiers,
-                            onClick = { row = row.copy(modifiers = if (mod in row.modifiers) row.modifiers - mod else row.modifiers + mod) },
-                            label = { Text(mod.label()) },
-                        )
-                    }
-                }
-            }
-        },
-        confirmButton = { TextButton(onClick = { onDone(row) }) { Text(stringResource(R.string.action_ok)) } },
-        dismissButton = {
-            Row {
-                if (!isNew) TextButton(onClick = onDelete) { Text(stringResource(R.string.action_remove)) }
-                TextButton(onClick = onDismiss) { Text(stringResource(R.string.action_cancel)) }
-            }
-        },
     )
 }

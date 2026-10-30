@@ -126,10 +126,9 @@ binary translation) on any device.
   discovery" with defaults.
 - R3.3 Review: a form prefilled from discovery, laid out like the system settings: titled sections of
   rounded tonal items, each showing its value (summary, switch, menu value or color swatch); text,
-  color, domain, window size and shortcut values open dialogs. Nothing is collapsed.
-  - **Identity:** the icon with its preview (opens R10), the name, and on the edit page the app ID.
-  - **Website:** start address, internal domains.
-  - **Permissions:** microphone, camera, notifications, location (off by default).
+  color, domain and window size values open dialogs. Nothing is collapsed. The sections, in order:
+  - **Identity:** the name, on the edit page the app ID, the start address and internal domains.
+  - **Icon:** the app icon with its preview (opens R10).
   - **Appearance:** Header color (System, matching the system theme, the default; Dynamic, the
     site's own colors, T3.3; Custom), Custom header color (disabled unless Custom), Icon background
     color (the site's brand color by default), Icon glyph color (`#FFFFFF` by default; a Caution
@@ -137,7 +136,11 @@ binary translation) on any device.
   - **Behavior:** browser identity (user agent mode), keep running in the background, pause in
     battery saver, long-press menu for links and images.
   - **Window:** Allow multiple windows (off by default), default and minimum window size.
-  - **Keyboard shortcuts:** one item per site shortcut, and Add.
+  - **Permissions:** microphone, camera, notifications, location (off by default).
+
+  On two columns (R3.5), Identity, Icon and Appearance are on the left; Behavior, Window and
+  Permissions on the right. Site keyboard shortcuts (`appShortcuts`) are not editable in the form;
+  a profile keeps any it already has.
 
   Values discovered with low or medium confidence say where they came from; discovery's notes appear
   as Info, Caution or Error notices. Every field is validated as the user types, by the core
