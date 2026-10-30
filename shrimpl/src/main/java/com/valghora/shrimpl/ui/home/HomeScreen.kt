@@ -20,7 +20,7 @@ import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Menu
+import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.DropdownMenu
@@ -268,7 +268,7 @@ private fun AppItem(
                     var optionsOpen by rememberSaveable { mutableStateOf(false) }
                     // Shifted so it lines up with the top bar's settings button above it.
                     Box(Modifier.offset(x = TRAILING_ALIGNMENT_SHIFT)) {
-                        TooltipIconButton(label, { optionsOpen = true }) { Icon(Icons.Filled.Menu, contentDescription = label) }
+                        TooltipIconButton(label, { optionsOpen = true }) { Icon(Icons.Filled.MoreVert, contentDescription = label) }
                         DropdownMenu(expanded = optionsOpen, onDismissRequest = { optionsOpen = false }) {
                             val options = buildList {
                                 if (installed != null) add(R.string.action_open to onOpen)
