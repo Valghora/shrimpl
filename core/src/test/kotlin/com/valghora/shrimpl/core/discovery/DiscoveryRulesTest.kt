@@ -10,6 +10,7 @@ import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.jsonObject
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertThrows
 import org.junit.Assert.assertTrue
@@ -312,6 +313,11 @@ class DiscoveryRulesTest {
         assertTrue(draft.notes.none { it.text == Discovery.NO_GLYPH })
         // The site's own icons are still listed for the Website option.
         assertEquals("https://app.example.com/apple-touch-icon.png", draft.websiteIcons.single().url)
+        // ...and fetched only on request.
+        val touch = Map(mapOf("https://app.example.com/apple-touch-icon.png" to png(192, 192)))
+        assertEquals("/apple-touch-icon.png (192px png)", Discovery.websiteIcon(draft, touch)?.source)
+        assertTrue(IconChooser.isWebsiteSource(Discovery.websiteIcon(draft, touch)!!.source))
+        assertFalse(IconChooser.isWebsiteSource(draft.icon.source))
 
         // Matched only through the domain word: likely, not certain.
         val byDomain = Map(mapOf(SimpleIcons.url("example") to acmeSvg))

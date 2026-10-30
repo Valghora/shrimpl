@@ -8,9 +8,8 @@ import com.valghora.shrimpl.build.BuildRequest
 import com.valghora.shrimpl.data.InstalledApps
 import com.valghora.shrimpl.install.InstallResult
 import com.valghora.shrimpl.ui.common.BuildController
-import com.valghora.shrimpl.ui.form.WebAppDraft
+import com.valghora.shrimpl.core.records.WebAppDraft
 import com.valghora.shrimpl.core.profile.ProfileForm
-import com.valghora.shrimpl.core.records.IconOptions
 import com.valghora.shrimpl.core.records.WebAppRecord
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -60,21 +59,9 @@ class EditViewModel(private val container: AppContainer, val appId: String) : Vi
         }
     }
 
-    fun update(form: ProfileForm) {
-        _draft.value = _draft.value?.withForm(form.copy(appId = appId))
-    }
-
-    fun selectIcon(option: IconOptions.Option) {
-        _draft.value = _draft.value?.select(option)
-    }
-
-    fun setWebsiteFill(fill: Boolean) {
-        _draft.value = _draft.value?.withWebsiteFill(fill)
-    }
-
-    /** A custom icon was picked (a photo, a file or an icon pack's icon). */
-    fun setCustomIcon(image: ByteArray, maskable: Boolean, origin: String) {
-        _draft.value = _draft.value?.withCustomIcon(image, maskable, origin)
+    fun update(draft: WebAppDraft) {
+        // The app id is fixed once the web app exists (R11.2).
+        _draft.value = draft.copy(form = draft.form.copy(appId = appId))
     }
 
     fun reset() {

@@ -83,11 +83,15 @@ class RecordsAndFormTest {
     @Test
     fun recordsWithoutIconSetsAreUpgraded() {
         val glyph = IconRecord.glyph(svg, "simple-icons 'example'")
-        val image = IconRecord.image(maskable = false, origin = "Photo")
+        val image = IconRecord.image(maskable = false, origin = "Photo", file = "icon-image")
+        val siteImage = IconRecord.image(maskable = true, origin = "web manifest icon (maskable 512px png)", file = "icon-image")
         val letter = IconRecord.letter('x')
         val letterE = IconRecord.letter('E')
         assertEquals(IconOptions(IconOptions.Option.BRAND, brand = glyph, website = letterE), IconOptions.legacy(glyph, "Example"))
         assertEquals(IconOptions(IconOptions.Option.CUSTOM, website = letterE, custom = image), IconOptions.legacy(image, "Example"))
+        // An image that came from the site is its Website icon.
+        assertEquals(IconOptions(IconOptions.Option.WEBSITE, website = siteImage), IconOptions.legacy(siteImage, "Example"))
+        assertEquals(setOf("icon-image"), IconOptions.legacy(siteImage, "Example").imageFiles)
         assertEquals(IconOptions(IconOptions.Option.WEBSITE, website = letter), IconOptions.legacy(letter, "Example"))
 
         val record = WebAppRecord.create(profile, IconOptions.of(glyph, letterE), templateVersion = 1, signerFingerprint = "AA", now = 100)
@@ -99,22 +103,74 @@ class RecordsAndFormTest {
     }
 
     @Test
-    fun iconRecordsFromDiscoveryAndToSources() {
+    fun iconRecordsToSources() {
         val glyph = SvgGlyph.parse(svg)
-        val (glyphRecord, noBytes) = IconRecord.from(IconChoice.Glyph(svg, glyph, "#000000", "", "simple-icons 'x'", Confidence.HIGH))
-        assertNull(noBytes)
-        assertEquals(IconSource.Glyph(glyph), glyphRecord.toSource { error("no image") })
+        assertEquals(IconSource.Glyph(glyph), IconRecord.glyph(svg, "simple-icons 'x'").toSource { error("no image") })
 
         val bytes = byteArrayOf(1, 2, 3)
-        val (imageRecord, imageBytes) = IconRecord.from(IconChoice.Raster(bytes, "png", 512, true, "web manifest icon", Confidence.MEDIUM))
-        assertArrayEquals(bytes, imageBytes)
-        val source = imageRecord.toSource { name -> assertEquals(IconRecord.IMAGE_FILE, name); bytes } as IconSource.Raster
+        val image = IconRecord.image(maskable = true, origin = "web manifest icon", file = IconOptions.WEBSITE_IMAGE)
+        val source = image.toSource { name -> assertEquals(IconOptions.WEBSITE_IMAGE, name); bytes } as IconSource.Raster
         assertTrue(source.maskable)
+        assertArrayEquals(bytes, source.bytes)
 
-        val (letterRecord, _) = IconRecord.from(IconChoice.Letter('q', "no usable brand icon found", Confidence.LOW))
-        assertEquals("Q", letterRecord.letter)
-        assertEquals(IconSource.Letter('Q'), letterRecord.toSource { error("no image") })
+        val letter = IconRecord.letter('q')
+        assertEquals("Q", letter.letter)
+        assertEquals(IconSource.Letter('Q'), letter.toSource { error("no image") })
         assertThrows(IllegalArgumentException::class.java) { IconRecord(IconRecord.Kind.LETTER).toSource { ByteArray(0) } }
+    }
+
+    // ---------- Drafts ----------
+
+    private val raster = IconChoice.Raster(byteArrayOf(9, 9), "png", 512, true, "web manifest icon (maskable 512px png)", Confidence.MEDIUM)
+
+    @Test
+    fun draftsFromDiscovery() {
+        val form = ProfileForm.from(profile)
+        val brand = WebAppDraft.brandOf(IconChoice.Glyph(svg, SvgGlyph.parse(svg), "#000000", "", "simple-icons 'x'", Confidence.HIGH))
+        assertEquals(IconRecord.Kind.GLYPH, brand?.kind)
+        assertNull(WebAppDraft.brandOf(raster))
+
+        val withBrand = WebAppDraft.create(form, brand, raster)
+        assertEquals(IconOptions.Option.BRAND, withBrand.icons.selected)
+        assertEquals(IconRecord.image(true, raster.source, IconOptions.WEBSITE_IMAGE), withBrand.icons.website)
+        assertArrayEquals(raster.bytes, withBrand.newImages.getValue(IconOptions.WEBSITE_IMAGE))
+        assertEquals(setOf(IconOptions.WEBSITE_IMAGE), withBrand.icons.imageFiles)
+
+        // No brand glyph and no image: a letter of the name, selected.
+        val bare = WebAppDraft.create(form, null, null)
+        assertEquals(IconOptions.Option.WEBSITE, bare.icons.selected)
+        assertEquals(IconRecord.letter('E'), bare.icons.website)
+        assertEquals(emptyMap<String, ByteArray>(), bare.newImages)
+        assertEquals(emptySet<String>(), bare.icons.imageFiles)
+    }
+
+    @Test
+    fun draftEdits() {
+        val form = ProfileForm.from(profile)
+        val draft = WebAppDraft.create(form, null, null)
+
+        // The letter follows a new name, and only then.
+        assertEquals(IconRecord.letter('Z'), draft.withForm(form.copy(name = "Zed")).icons.website)
+        assertEquals(draft.icons, draft.withForm(form.copy(startUrl = "https://example.com/x")).icons)
+        val picked = draft.copy(icons = draft.icons.copy(website = IconRecord.letter('Q')))
+        assertEquals(IconRecord.letter('Q'), picked.withForm(form.copy(startUrl = "https://example.com/x")).icons.website)
+        // An image website icon doesn't follow the name.
+        val withImage = WebAppDraft.create(form, null, raster)
+        assertEquals(withImage.icons, withImage.withForm(form.copy(name = "Zed")).icons)
+
+        val filled = withImage.withWebsiteFill(false)
+        assertFalse(filled.icons.website.maskable)
+
+        val custom = draft.withCustomIcon(byteArrayOf(1), maskable = false, origin = "Photos")
+        assertEquals(IconOptions.Option.CUSTOM, custom.icons.selected)
+        assertEquals(IconRecord.image(false, "Photos", IconOptions.CUSTOM_IMAGE), custom.icons.icon)
+        assertEquals(IconOptions.Option.WEBSITE, custom.select(IconOptions.Option.WEBSITE).icons.selected)
+
+        // Equality looks at image contents, so an identical pick is no change but a new image is.
+        assertEquals(custom, draft.withCustomIcon(byteArrayOf(1), maskable = false, origin = "Photos"))
+        assertEquals(custom.hashCode(), draft.withCustomIcon(byteArrayOf(1), maskable = false, origin = "Photos").hashCode())
+        assertFalse(custom == draft.withCustomIcon(byteArrayOf(2), maskable = false, origin = "Photos"))
+        assertFalse(custom.equals(form))
     }
 
     // ---------- Form ----------

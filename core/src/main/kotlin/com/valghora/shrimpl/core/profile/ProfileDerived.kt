@@ -10,11 +10,10 @@ import com.valghora.shrimpl.core.ShortcutSpec
 
 /** The icon foreground, with [Profile.AUTO] resolved by contrast against the background. */
 val Profile.resolvedIconForeground: String
-    get() = when {
-        iconForeground != Profile.AUTO -> iconForeground
-        DesktopSessionController.isDarkColor(iconBackground) -> "#FFFFFF"
-        else -> "#000000"
-    }
+    get() = if (iconForeground != Profile.AUTO) iconForeground else autoIconForeground(iconBackground)
+
+/** White or black, whichever contrasts better with [background] (`#RRGGBB`). */
+fun autoIconForeground(background: String): String = if (DesktopSessionController.isDarkColor(background)) "#FFFFFF" else "#000000"
 
 /** Origin rules for the notification bridge: each internal domain, and any subdomain of it, over https. */
 val Profile.allowedOriginRules: Set<String>

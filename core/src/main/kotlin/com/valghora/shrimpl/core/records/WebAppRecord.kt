@@ -1,7 +1,7 @@
 package com.valghora.shrimpl.core.records
 
 import com.valghora.shrimpl.core.build.WebAppBuilder
-import com.valghora.shrimpl.core.discovery.IconChoice
+import com.valghora.shrimpl.core.discovery.IconChooser
 import com.valghora.shrimpl.core.icons.IconSource
 import com.valghora.shrimpl.core.icons.SvgGlyph
 import com.valghora.shrimpl.core.profile.Profile
@@ -45,21 +45,12 @@ data class IconRecord(
     }
 
     companion object {
-        const val IMAGE_FILE = "icon-image"
-
         fun letter(letter: Char, origin: String = "Letter") = IconRecord(Kind.LETTER, letter = letter.uppercaseChar().toString(), origin = origin)
 
         fun glyph(svg: ByteArray, origin: String) = IconRecord(Kind.GLYPH, svg = svg.decodeToString(), origin = origin)
 
         /** An image icon stored as [file] next to the record. */
-        fun image(maskable: Boolean, origin: String, file: String = IMAGE_FILE) = IconRecord(Kind.IMAGE, image = file, maskable = maskable, origin = origin)
-
-        /** The record for discovery's icon; for an image, also the bytes to store as [IMAGE_FILE]. */
-        fun from(choice: IconChoice): Pair<IconRecord, ByteArray?> = when (choice) {
-            is IconChoice.Glyph -> glyph(choice.svg, choice.source) to null
-            is IconChoice.Raster -> image(choice.maskable, choice.source) to choice.bytes
-            is IconChoice.Letter -> letter(choice.letter, choice.source) to null
-        }
+        fun image(maskable: Boolean, origin: String, file: String) = IconRecord(Kind.IMAGE, image = file, maskable = maskable, origin = origin)
     }
 }
 
@@ -90,9 +81,13 @@ data class IconOptions(
             Option.CUSTOM -> custom ?: website
         }
 
-    /** The options that have an icon, in display order. */
+    /** The options shown, in display order: Brand only when there is a brand glyph. */
     val available: List<Option>
         get() = listOfNotNull(Option.BRAND.takeIf { brand != null }, Option.WEBSITE, Option.CUSTOM)
+
+    /** The image files the options use; any other icon image next to the record is unused. */
+    val imageFiles: Set<String>
+        get() = listOfNotNull(brand, website, custom).mapNotNullTo(mutableSetOf()) { it.image }
 
     companion object {
         /** Image file names next to the record. */
@@ -106,11 +101,23 @@ data class IconOptions(
         fun of(brand: IconRecord?, website: IconRecord) =
             IconOptions(if (brand != null) Option.BRAND else Option.WEBSITE, brand = brand, website = website)
 
-        /** A record saved before icon sets: its one icon becomes the matching option. */
-        fun legacy(icon: IconRecord, name: String): IconOptions = when (icon.kind) {
-            IconRecord.Kind.GLYPH -> IconOptions(Option.BRAND, brand = icon, website = IconRecord.letter(letterFor(name)))
-            IconRecord.Kind.IMAGE -> IconOptions(Option.CUSTOM, website = IconRecord.letter(letterFor(name)), custom = icon)
-            IconRecord.Kind.LETTER -> IconOptions(Option.WEBSITE, website = icon)
+        /**
+         * A record saved before icon options: its one icon becomes the matching option. An image is
+         * the Website icon when it came from the site (its origin names one of the site's icons),
+         * else Custom.
+         */
+        fun legacy(icon: IconRecord, name: String): IconOptions {
+            val letter = IconRecord.letter(letterFor(name))
+            return when (icon.kind) {
+                IconRecord.Kind.GLYPH -> IconOptions(Option.BRAND, brand = icon, website = letter)
+                IconRecord.Kind.IMAGE ->
+                    if (IconChooser.isWebsiteSource(icon.origin)) {
+                        IconOptions(Option.WEBSITE, website = icon)
+                    } else {
+                        IconOptions(Option.CUSTOM, website = letter, custom = icon)
+                    }
+                IconRecord.Kind.LETTER -> IconOptions(Option.WEBSITE, website = icon)
+            }
         }
     }
 }

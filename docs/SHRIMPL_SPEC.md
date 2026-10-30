@@ -299,9 +299,10 @@ The template's behavior is docs/TEMPLATE_SPEC.md. What Shrimpl relies on:
 ## R11 Data and versions
 
 - R11.1 A record per web app (JSON in app-private storage, written atomically): the profile, the
-  icon options (brand glyph, website icon, custom icon, which is selected; images as files next to
-  the record) and the icon the last build used, the package name, the build number, the template version it was built
-  with, and created and updated times. Older profiles and records are upgraded when read.
+  icon options (brand glyph, website icon, custom icon, which is selected; images as centered
+  square PNGs of at most 512 px next to the record, unused ones deleted on save) and the icon the
+  last build used, the package name, the build number, the template version it was built with, and
+  created and updated times. Older profiles and records are upgraded when read.
 - R11.2 The app ID comes from the name (lowercase letters and digits, starting with a letter),
   deduplicated with a numeric suffix, and is fixed at creation.
 - R11.3 Rebuilds increment the build number; a failed install doesn't use one up.

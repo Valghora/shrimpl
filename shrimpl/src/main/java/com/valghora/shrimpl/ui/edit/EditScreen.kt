@@ -146,16 +146,11 @@ fun EditScreen(appId: String, showBack: Boolean, onBack: () -> Unit) {
     ) { padding ->
         BoxWithConstraints(Modifier.padding(padding).fillMaxSize()) {
             ProfileFormFields(
-                form = form.form,
+                draft = form,
                 onChange = model::update,
                 hints = emptyMap(),
                 notes = if (installed == false) listOf(Notice(Notice.Kind.INFO, stringResource(R.string.edit_not_installed))) else emptyList(),
-                icons = form.icons,
-                newImages = form.newImages,
-                loadImage = { file -> form.newImages[file] ?: model.storedImage(file) },
-                onSelectIcon = model::selectIcon,
-                onCustomIcon = model::setCustomIcon,
-                onFillWebsiteIcon = model::setWebsiteFill,
+                storedImage = model::storedImage,
                 wide = maxWidth >= WindowSizeClass.WIDTH_DP_EXPANDED_LOWER_BOUND.dp,
                 appIdEditable = false,
             )

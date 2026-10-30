@@ -4,20 +4,18 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.valghora.shrimpl.AppContainer
 import com.valghora.shrimpl.build.BuildRequest
+import com.valghora.shrimpl.discovery.Discovered
 import com.valghora.shrimpl.discovery.SiteDiscovery
 import com.valghora.shrimpl.ui.common.BuildController
 import com.valghora.shrimpl.ui.common.Notice
-import com.valghora.shrimpl.ui.form.WebAppDraft
+import com.valghora.shrimpl.core.records.WebAppDraft
 import com.valghora.shrimpl.core.discovery.Confidence
 import com.valghora.shrimpl.core.discovery.Discovery
 import com.valghora.shrimpl.core.discovery.DiscoveryException
-import com.valghora.shrimpl.core.discovery.Draft
 import com.valghora.shrimpl.core.discovery.Field
-import com.valghora.shrimpl.core.discovery.IconChoice
 import com.valghora.shrimpl.core.profile.AppIds
 import com.valghora.shrimpl.core.profile.Profile
 import com.valghora.shrimpl.core.profile.ProfileForm
-import com.valghora.shrimpl.core.records.IconOptions
 import com.valghora.shrimpl.core.records.IconRecord
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -116,16 +114,14 @@ class CreateViewModel(private val container: AppContainer) : ViewModel() {
             )
             hints = emptyMap()
             notes = listOf(Notice(Notice.Kind.CAUTION, "Discovery didn't finish, so these are defaults. Check the icon color and the domains."))
-            val icons = IconOptions.of(
-                brand = brand?.let { IconRecord.glyph(it.svg, "simple-icons '${it.slug}'") },
-                website = IconRecord.letter(IconOptions.letterFor(profile.name)),
-            )
-            _draft.value = WebAppDraft(ProfileForm.from(profile), icons)
+            val brandIcon = brand?.let { IconRecord.glyph(it.svg, "simple-icons '${it.slug}'") }
+            _draft.value = WebAppDraft.create(ProfileForm.from(profile), brandIcon, website = null)
             _step.value = Step.Review
         }
     }
 
-    private suspend fun apply(found: Draft) {
+    private fun apply(discovered: Discovered) {
+        val found = discovered.draft
         val profile = found.toProfile().copy(appId = AppIds.unique(found.name.value, container.store.takenIds()))
         hints = buildMap {
             fun hint(key: String, field: Field<*>) {
@@ -142,36 +138,16 @@ class CreateViewModel(private val container: AppContainer) : ViewModel() {
         }
         notes = found.notes.map(Notice::of)
         // R10.1: the brand glyph (when found) and the site's own icon (else a letter) are both offered.
-        val brand = (found.icon as? IconChoice.Glyph)?.let { IconRecord.glyph(it.svg, it.source) }
-        val website = container.discovery.websiteIcon(found)
-        val images = website?.let { mapOf(IconOptions.WEBSITE_IMAGE to it.bytes) }.orEmpty()
-        val icons = IconOptions.of(
-            brand = brand,
-            website = website?.let { IconRecord.image(it.maskable, it.source, IconOptions.WEBSITE_IMAGE) }
-                ?: IconRecord.letter(IconOptions.letterFor(profile.name)),
-        )
-        _draft.value = WebAppDraft(ProfileForm.from(profile), icons, images)
+        _draft.value = WebAppDraft.create(ProfileForm.from(profile), WebAppDraft.brandOf(found.icon), discovered.websiteIcon)
         _step.value = Step.Review
     }
 
-    fun update(form: ProfileForm) {
+    fun update(draft: WebAppDraft) {
         val current = _draft.value ?: return
+        val form = draft.form
         // The app id follows the name until the web app is created (R3.3).
         val appId = if (form.name != current.form.name) AppIds.unique(form.name, container.store.takenIds()) else form.appId
-        _draft.value = current.withForm(form.copy(appId = appId))
-    }
-
-    fun selectIcon(option: IconOptions.Option) {
-        _draft.value = _draft.value?.select(option)
-    }
-
-    fun setWebsiteFill(fill: Boolean) {
-        _draft.value = _draft.value?.withWebsiteFill(fill)
-    }
-
-    /** A custom icon was picked (a photo, a file or an icon pack's icon). */
-    fun setCustomIcon(image: ByteArray, maskable: Boolean, origin: String) {
-        _draft.value = _draft.value?.withCustomIcon(image, maskable, origin)
+        _draft.value = draft.copy(form = form.copy(appId = appId))
     }
 
     /** Builds and installs; false if the form has errors (they are shown next to the fields). */

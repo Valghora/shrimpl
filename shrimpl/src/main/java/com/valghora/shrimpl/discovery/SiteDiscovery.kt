@@ -8,7 +8,6 @@ import com.valghora.shrimpl.core.discovery.Draft
 import com.valghora.shrimpl.core.discovery.Evidence
 import com.valghora.shrimpl.core.discovery.HtmlHead
 import com.valghora.shrimpl.core.discovery.IconChoice
-import com.valghora.shrimpl.core.discovery.IconChooser
 import com.valghora.shrimpl.core.discovery.IconSources
 import com.valghora.shrimpl.core.discovery.PublicSuffixList
 import com.valghora.shrimpl.core.discovery.Request
@@ -17,6 +16,7 @@ import com.valghora.shrimpl.core.discovery.SimpleIcon
 import com.valghora.shrimpl.core.discovery.SimpleIcons
 import com.valghora.shrimpl.core.discovery.SlimVisit
 import com.valghora.shrimpl.core.discovery.Visit
+import com.valghora.shrimpl.icons.IconImages
 import java.io.IOException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runInterruptible
@@ -29,13 +29,16 @@ import kotlinx.serialization.json.JsonObject
  * its web manifest, a hidden-WebView pass for what only exists once rendered, then the core discovery
  * rules. Cancel the calling coroutine to stop it.
  */
+/** Discovery's draft, and the site's own icon for the Website option (a PNG of at most 512 px), if it has one. */
+class Discovered(val draft: Draft, val websiteIcon: IconChoice.Raster?)
+
 class SiteDiscovery(private val context: Context) {
     /** Stages shown while discovery runs (R3.2). */
     enum class Stage { FETCHING_PAGE, READING_MANIFEST, CHECKING_PAGE, FINDING_ICON }
 
     private val data by lazy { DiscoveryData.get(context) }
 
-    suspend fun discover(input: String, onStage: (Stage) -> Unit = {}): Draft {
+    suspend fun discover(input: String, onStage: (Stage) -> Unit = {}): Discovered {
         val url = normalizeUrl(input) ?: throw DiscoveryException("Enter a web address, like example.com")
         val desktopAgent = RenderedPass.desktopUserAgent(WebSettings.getDefaultUserAgent(context))
         val network = Network(desktopAgent)
@@ -100,23 +103,14 @@ class SiteDiscovery(private val context: Context) {
             override fun fetch(url: String) = network.bodyOrNull(url)
         }
         return withContext(Dispatchers.IO) {
-            runInterruptible { Discovery.draft(evidence, url, data.psl, sources) }
-        }
-    }
-
-    /**
-     * The site's own icon for the Website option (R10.1): discovery's pick when that is already an
-     * image, else the first usable one of the site's icons. Null when it has none.
-     */
-    suspend fun websiteIcon(draft: Draft): IconChoice.Raster? {
-        (draft.icon as? IconChoice.Raster)?.let { return it }
-        return withContext(Dispatchers.IO) {
             runInterruptible {
-                val network = Network(WebSettings.getDefaultUserAgent(context))
-                val sources = object : IconSources {
-                    override fun fetch(url: String) = network.bodyOrNull(url)
+                val draft = Discovery.draft(evidence, url, data.psl, sources)
+                // R10.1: the Website option, also when the best icon was a brand glyph. Stored small.
+                val website = Discovery.websiteIcon(draft, sources)?.let { icon ->
+                    runCatching { IconImages.squarePng(icon.bytes) }.getOrNull()
+                        ?.let { png -> icon.copy(bytes = png, format = "png", size = minOf(icon.size, IconImages.MAX_PX)) }
                 }
-                IconChooser.firstRaster(draft.websiteIcons, sources)
+                Discovered(draft, website)
             }
         }
     }

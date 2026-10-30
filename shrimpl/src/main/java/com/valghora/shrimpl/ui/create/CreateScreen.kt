@@ -103,17 +103,12 @@ fun CreateScreen(onClose: () -> Unit, onBackUpKey: () -> Unit) {
         if (reviewing && current != null) {
             BoxWithConstraints(Modifier.padding(padding).fillMaxSize()) {
                 ProfileFormFields(
-                    form = current.form,
+                    draft = current,
                     onChange = model::update,
                     hints = model.hints,
                     notes = model.notes,
-                    icons = current.icons,
-                    newImages = current.newImages,
                     // Nothing is stored yet: every image is in the draft.
-                    loadImage = { file -> requireNotNull(current.newImages[file]) { "no image $file" } },
-                    onSelectIcon = model::selectIcon,
-                    onCustomIcon = model::setCustomIcon,
-                    onFillWebsiteIcon = model::setWebsiteFill,
+                    storedImage = null,
                     wide = maxWidth >= WindowSizeClass.WIDTH_DP_EXPANDED_LOWER_BOUND.dp,
                     appIdEditable = true,
                 )

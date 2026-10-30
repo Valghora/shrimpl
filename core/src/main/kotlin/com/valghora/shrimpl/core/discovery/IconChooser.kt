@@ -85,6 +85,16 @@ data class WebsiteIcon(val url: String, val size: Int, val maskable: Boolean, va
 object IconChooser {
     const val MIN_RASTER_PX = 192
 
+    // Where the site's own icons come from; an icon's source starts with one of these.
+    private const val MANIFEST_ICON = "web manifest icon"
+    private const val APPLE_TOUCH_ICON = "apple-touch-icon"
+    private const val ICON_LINK = "page icon link"
+    private const val DEFAULT_TOUCH_ICON = "/apple-touch-icon.png"
+
+    /** True for an icon [source] (or record origin) that names one of the site's own icons. */
+    fun isWebsiteSource(source: String): Boolean =
+        listOf(MANIFEST_ICON, APPLE_TOUCH_ICON, ICON_LINK, DEFAULT_TOUCH_ICON).any(source::startsWith)
+
     /** [simple] is the brand found by name; [simpleConfidence] says how sure that match is. */
     fun choose(
         simple: SimpleIcon?,
@@ -136,7 +146,7 @@ object IconChooser {
                 Regex("(\\d+)x(\\d+)").matchEntire(s)?.takeIf { it.groupValues[1] == it.groupValues[2] }?.groupValues?.get(1)?.toIntOrNull()
             }
             val purpose = (obj.string("purpose") ?: "any").split(Regex("\\s+"))
-            candidates += WebsiteIcon(Urls.join(manifestUrl, src), sizes.maxOrNull() ?: 0, "maskable" in purpose, "web manifest icon")
+            candidates += WebsiteIcon(Urls.join(manifestUrl, src), sizes.maxOrNull() ?: 0, "maskable" in purpose, MANIFEST_ICON)
         }
         for (link in links) {
             val rels = link.rel.split(Regex("\\s+"))
@@ -144,10 +154,10 @@ object IconChooser {
             val sizes = link.sizes.split(Regex("\\s+")).mapNotNull { s ->
                 Regex("(\\d+)x\\1").matchEntire(s)?.groupValues?.get(1)?.toIntOrNull()
             }
-            val source = if ("apple-touch-icon" in rels) "apple-touch-icon" else "page icon link"
+            val source = if ("apple-touch-icon" in rels) APPLE_TOUCH_ICON else ICON_LINK
             candidates += WebsiteIcon(link.href, sizes.maxOrNull() ?: 0, false, source)
         }
-        candidates += WebsiteIcon(Urls.join(pageUrl, "/apple-touch-icon.png"), 180, false, "/apple-touch-icon.png")
+        candidates += WebsiteIcon(Urls.join(pageUrl, DEFAULT_TOUCH_ICON), 180, false, DEFAULT_TOUCH_ICON)
         return candidates.sortedWith(compareByDescending<WebsiteIcon> { it.maskable }.thenByDescending { it.size })
     }
 

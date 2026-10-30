@@ -2,6 +2,7 @@ package com.valghora.shrimpl.ui.icons
 
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.drawable.Drawable
 import android.net.Uri
@@ -26,6 +27,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -51,7 +53,6 @@ import androidx.core.graphics.drawable.toBitmap
 import com.valghora.shrimpl.R
 import com.valghora.shrimpl.core.icons.IconException
 import com.valghora.shrimpl.icons.IconImages
-import java.io.ByteArrayOutputStream
 import java.io.IOException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -71,6 +72,11 @@ private data class IconPackApp(val packageName: String, val label: String, val i
 fun CustomIconSheet(onPicked: (bytes: ByteArray, maskable: Boolean, origin: String) -> Unit, onDismiss: () -> Unit) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
+    val sheetState = rememberModalBottomSheetState()
+    // Slides the sheet away before it leaves the composition.
+    fun close() {
+        scope.launch { sheetState.hide() }.invokeOnCompletion { onDismiss() }
+    }
     val packs by produceState(emptyList<IconPackApp>()) { value = withContext(Dispatchers.IO) { iconPacks(context) } }
 
     // Photos and files fill the icon shape; they are cropped to a centered square first.
@@ -82,7 +88,7 @@ fun CustomIconSheet(onPicked: (bytes: ByteArray, maskable: Boolean, origin: Stri
                 Toast.makeText(context, R.string.icon_unreadable, Toast.LENGTH_SHORT).show()
             } else {
                 onPicked(png, true, origin)
-                onDismiss()
+                close()
             }
         }
     }
@@ -103,12 +109,12 @@ fun CustomIconSheet(onPicked: (bytes: ByteArray, maskable: Boolean, origin: Stri
                 Toast.makeText(context, R.string.icon_unreadable, Toast.LENGTH_SHORT).show()
             } else {
                 onPicked(png, false, from)
-                onDismiss()
+                close()
             }
         }
     }
 
-    ModalBottomSheet(onDismissRequest = onDismiss) {
+    ModalBottomSheet(onDismissRequest = onDismiss, sheetState = sheetState) {
         Column(Modifier.padding(start = 24.dp, end = 24.dp, bottom = 32.dp)) {
             Text(stringResource(R.string.icon_choose_from), style = MaterialTheme.typography.titleMedium)
             FlowRow(
@@ -164,7 +170,7 @@ private val SOURCE_SIZE = 56.dp
 
 private fun iconPacks(context: Context): List<IconPackApp> {
     val pm = context.packageManager
-    return pm.queryIntentActivities(Intent(ACTION_PICK_ICON), 0)
+    return pm.queryIntentActivities(Intent(ACTION_PICK_ICON), PackageManager.ResolveInfoFlags.of(0))
         .distinctBy { it.activityInfo.packageName }
         .map { IconPackApp(it.activityInfo.packageName, it.loadLabel(pm).toString(), it.loadIcon(pm)) }
         .sortedBy { it.label.lowercase() }
@@ -181,13 +187,8 @@ private fun readSquare(context: Context, uri: Uri): ByteArray? = try {
     null
 }
 
-/** The icon an icon pack handed back: a bitmap in the "icon" extra, or an image URI. */
+/** The icon an icon pack handed back, as a square PNG: a bitmap in the "icon" extra, or an image URI. */
 private fun packIcon(context: Context, data: Intent): ByteArray? {
-    IntentCompat.getParcelableExtra(data, "icon", Bitmap::class.java)?.let { bitmap ->
-        return ByteArrayOutputStream().use { out ->
-            bitmap.compress(Bitmap.CompressFormat.PNG, 100, out)
-            out.toByteArray()
-        }.let { runCatching { IconImages.squarePng(it) }.getOrNull() }
-    }
+    IntentCompat.getParcelableExtra(data, "icon", Bitmap::class.java)?.let { return IconImages.squarePng(it) }
     return data.data?.let { readSquare(context, it) }
 }

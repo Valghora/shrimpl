@@ -60,7 +60,7 @@ class WebAppFactory(
             onStage(Stage.RENDERING_ICON)
             val icons = withContext(Dispatchers.Default) {
                 val source = request.icons.icon.toSource { file -> request.newImages[file] ?: store.image(profile.appId, file) }
-                IconRenderer.render(source, profile.iconBackground.toColorInt(), profile.resolvedIconForeground.toColorInt(), letterOf(profile.name))
+                IconRenderer.render(source, profile.iconBackground.toColorInt(), profile.resolvedIconForeground.toColorInt(), IconOptions.letterFor(profile.name))
             }
 
             onStage(Stage.BUILDING)
@@ -111,10 +111,5 @@ class WebAppFactory(
         } finally {
             output.delete()
         }
-    }
-
-    companion object {
-        /** The letter used for themed and notification icons of image icons. */
-        fun letterOf(name: String): Char = IconOptions.letterFor(name)
     }
 }

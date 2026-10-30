@@ -106,10 +106,16 @@ package, so it installs beside UniWrap rather than updating it, and can't update
 
 - Records keep every icon option (`IconOptions`: brand glyph, website icon, custom icon, selected),
   next to `icon`, the one the last build used. Records saved before keep working: a glyph becomes
-  Brand, an image Custom (its file stays `icon-image`) and a letter Website; for them the Website
-  option is a letter until the site is looked up again.
-- The website icon is fetched separately from discovery (`SiteDiscovery.websiteIcon`) when the best
-  icon was a brand glyph, so the recorded discovery fixtures keep their fetch order.
+  Brand, a letter Website, and an image Website when its origin names one of the site's icons, else
+  Custom (its file stays `icon-image`). Without a stored site image, their Website option is a letter.
+- `:core` holds the editing model (`WebAppDraft`: form, options and unsaved images, with the edits the
+  form makes), so the form takes one draft and one change callback.
+- Discovery's core rules only list the site's icons; `Discovery.websiteIcon` fetches one, after the
+  draft, when the best icon was a brand glyph, so the recorded fixtures keep their fetch order.
+- Images are stored as centered square PNGs of at most 512 px (never enlarged); saving a record
+  deletes icon images no option uses any more.
+- Previews draw only the foreground layer straight to a bitmap over the background color; the full
+  renderer (four PNG layers) runs only for builds.
 - Custom icons come from Photos, Files or an icon pack's own picker
   (`org.adw.launcher.icons.ACTION_PICK_ICON`, result in the `icon` extra). Shrimpl no longer reads
   icon packs' `appfilter.xml` or drawables, so the `DiscouragedApi` lint warning is gone.

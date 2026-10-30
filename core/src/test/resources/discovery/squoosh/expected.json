@@ -56,7 +56,7 @@
   "notes": [
     {
       "level": "caution",
-      "text": "Could not locate a glyph for this service; defaulting to manifest. Consider installing an icon pack."
+      "text": "No brand icon was found for this site, so the app uses the site's own icon. You can choose another one under Custom."
     }
   ]
 }

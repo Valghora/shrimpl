@@ -60,6 +60,7 @@ import com.valghora.shrimpl.core.profile.HeaderMode
 import com.valghora.shrimpl.core.profile.ProfileForm
 import com.valghora.shrimpl.core.records.IconOptions
 import com.valghora.shrimpl.core.records.IconRecord
+import com.valghora.shrimpl.core.records.WebAppDraft
 
 /**
  * A web app's settings (docs/SHRIMPL_SPEC.md R3.3), shared by the configuration and edit pages, as
@@ -68,22 +69,20 @@ import com.valghora.shrimpl.core.records.IconRecord
  */
 @Composable
 fun ProfileFormFields(
-    form: ProfileForm,
-    onChange: (ProfileForm) -> Unit,
+    draft: WebAppDraft,
+    onChange: (WebAppDraft) -> Unit,
     hints: Map<String, String>,
     notes: List<Notice>,
-    icons: IconOptions,
-    newImages: Map<String, ByteArray>,
-    loadImage: (String) -> ByteArray,
-    onSelectIcon: (IconOptions.Option) -> Unit,
-    onCustomIcon: (bytes: ByteArray, maskable: Boolean, origin: String) -> Unit,
-    onFillWebsiteIcon: (Boolean) -> Unit,
+    storedImage: ((String) -> ByteArray)?,
     wide: Boolean,
     appIdEditable: Boolean,
     modifier: Modifier = Modifier,
 ) {
-    val result = form.result()
-    val fields = Fields(form, onChange, result::errorFor, hints)
+    val result = draft.form.result()
+    val fields = Fields(draft.form, { onChange(draft.withForm(it)) }, result::errorFor, hints)
+    // Images not yet saved are in the draft; the rest are read from the stored record.
+    val loadImage: (String) -> ByteArray = { file -> draft.newImages[file] ?: requireNotNull(storedImage) { "no image $file" }(file) }
+    val icon: @Composable () -> Unit = { IconSection(draft, onChange, loadImage, result::errorFor, hints) }
     if (wide) {
         // Notices span both columns, so the columns' first sections (Identity, Behavior) line up.
         Column(modifier.verticalScroll(rememberScrollState()).padding(horizontal = 24.dp).padding(bottom = 96.dp)) {
@@ -91,7 +90,7 @@ fun ProfileFormFields(
             Row(horizontalArrangement = Arrangement.spacedBy(COLUMN_GAP)) {
                 Column(Modifier.weight(1f)) {
                     fields.Identity(appIdEditable)
-                    fields.Icon(icons, newImages, loadImage, onSelectIcon, onCustomIcon, onFillWebsiteIcon)
+                    icon()
                     fields.Appearance()
                 }
                 Column(Modifier.weight(1f)) {
@@ -105,7 +104,7 @@ fun ProfileFormFields(
         Column(modifier.verticalScroll(rememberScrollState()).padding(horizontal = 16.dp).padding(bottom = 96.dp)) {
             Notes(notes)
             fields.Identity(appIdEditable)
-            fields.Icon(icons, newImages, loadImage, onSelectIcon, onCustomIcon, onFillWebsiteIcon)
+            icon()
             fields.Appearance()
             fields.Browser()
             fields.Window()
@@ -123,6 +122,61 @@ private fun Notes(notes: List<Notice>) {
     var dismissed by rememberSaveable(notes, stateSaver = NoticeSetSaver) { mutableStateOf(emptySet<Notice>()) }
     notes.filter { it !in dismissed }.forEach { note ->
         NoticeCard(note, Modifier.padding(top = 12.dp), onDismiss = { dismissed = dismissed + note })
+    }
+}
+
+/**
+ * R10.1: one tile per icon option, then the selected option's settings: Glyph and Background color for
+ * Brand, Fill icon canvas for a website image, Background color for Custom.
+ */
+@Composable
+private fun IconSection(
+    draft: WebAppDraft,
+    onChange: (WebAppDraft) -> Unit,
+    loadImage: (String) -> ByteArray,
+    error: (String) -> String?,
+    hints: Map<String, String>,
+) {
+    val form = draft.form
+    val icons = draft.icons
+    fun changeForm(newForm: ProfileForm) = onChange(draft.withForm(newForm))
+    var picking by rememberSaveable { mutableStateOf(false) }
+    SettingsSection(stringResource(R.string.section_icon)) {
+        IconTiles(
+            icons = icons,
+            background = form.iconBackground,
+            foreground = form.iconForeground,
+            newImages = draft.newImages,
+            loadImage = loadImage,
+            onSelect = { onChange(draft.select(it)) },
+            onCustom = { picking = true },
+        )
+        val brand = icons.selected == IconOptions.Option.BRAND && icons.brand != null
+        val custom = icons.selected == IconOptions.Option.CUSTOM && icons.custom != null
+        if (brand) {
+            ColorItem(
+                stringResource(R.string.field_icon_foreground), form.iconForeground, { changeForm(form.copy(iconForeground = it)) },
+                error("iconForeground"), emptyLabel = stringResource(R.string.field_auto_contrast),
+            )
+        }
+        if (icons.selected == IconOptions.Option.WEBSITE && icons.website.kind == IconRecord.Kind.IMAGE) {
+            SwitchItem(
+                stringResource(R.string.field_fill_canvas),
+                icons.website.maskable,
+                { onChange(draft.withWebsiteFill(it)) },
+                summary = stringResource(R.string.field_fill_canvas_detail),
+            )
+        }
+        // The background shows behind the brand glyph and around a custom image.
+        if (brand || custom) {
+            ColorItem(
+                stringResource(R.string.field_icon_background), form.iconBackground, { changeForm(form.copy(iconBackground = it)) },
+                error("iconBackground"), hints["iconBackground"],
+            )
+        }
+    }
+    if (picking) {
+        CustomIconSheet(onPicked = { bytes, maskable, origin -> onChange(draft.withCustomIcon(bytes, maskable, origin)) }, onDismiss = { picking = false })
     }
 }
 
@@ -156,60 +210,6 @@ private class Fields(
                 onChange(form.copy(internalDomains = it))
             }, onDismiss = { editingDomains = false })
         }
-    }
-
-    /**
-     * R10.1: one tile per icon option, then that option's settings: Glyph and Background color for
-     * Brand, Fill icon canvas for a website image, Background color for Custom.
-     */
-    @Composable
-    fun Icon(
-        icons: IconOptions,
-        newImages: Map<String, ByteArray>,
-        loadImage: (String) -> ByteArray,
-        onSelect: (IconOptions.Option) -> Unit,
-        onCustom: (ByteArray, Boolean, String) -> Unit,
-        onFillWebsite: (Boolean) -> Unit,
-    ) {
-        var picking by rememberSaveable { mutableStateOf(false) }
-        SettingsSection(stringResource(R.string.section_icon)) {
-            IconTiles(
-                icons = icons,
-                background = form.iconBackground,
-                foreground = form.iconForeground,
-                name = form.name,
-                newImages = newImages,
-                loadImage = loadImage,
-                onSelect = onSelect,
-                onCustom = { picking = true },
-            )
-            val shown = icons.icon
-            when (icons.selected) {
-                IconOptions.Option.BRAND -> if (icons.brand != null) {
-                    ColorItem(
-                        stringResource(R.string.field_icon_foreground), form.iconForeground, { onChange(form.copy(iconForeground = it)) },
-                        error("iconForeground"), emptyLabel = stringResource(R.string.field_auto_contrast),
-                    )
-                }
-                IconOptions.Option.WEBSITE -> if (shown.kind == IconRecord.Kind.IMAGE) {
-                    SwitchItem(
-                        stringResource(R.string.field_fill_canvas),
-                        shown.maskable,
-                        onFillWebsite,
-                        summary = stringResource(R.string.field_fill_canvas_detail),
-                    )
-                }
-                IconOptions.Option.CUSTOM -> Unit
-            }
-            // The background shows behind the brand glyph and around a custom image.
-            if (icons.selected == IconOptions.Option.BRAND && icons.brand != null || icons.selected == IconOptions.Option.CUSTOM && icons.custom != null) {
-                ColorItem(
-                    stringResource(R.string.field_icon_background), form.iconBackground, { onChange(form.copy(iconBackground = it)) },
-                    error("iconBackground"), hints["iconBackground"],
-                )
-            }
-        }
-        if (picking) CustomIconSheet(onPicked = onCustom, onDismiss = { picking = false })
     }
 
     @Composable

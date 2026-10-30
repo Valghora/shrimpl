@@ -75,7 +75,7 @@ import com.valghora.shrimpl.ui.common.NEW_APP_BUTTON_HEIGHT
 import com.valghora.shrimpl.ui.common.TooltipIconButton
 import com.valghora.shrimpl.ui.icons.AdaptiveIcon
 import com.valghora.shrimpl.ui.icons.rememberIconLayers
-import com.valghora.shrimpl.core.profile.Profile
+import com.valghora.shrimpl.core.profile.resolvedIconForeground
 import com.valghora.shrimpl.core.records.WebAppRecord
 
 /**
@@ -332,8 +332,7 @@ private fun ItemIcon(record: WebAppRecord, installed: InstalledApp?) {
         return
     }
     val context = LocalContext.current
-    val foreground = record.profile.iconForeground.takeUnless { it == Profile.AUTO }.orEmpty()
-    val layers by rememberIconLayers(record.icon, record.profile.iconBackground, foreground, record.profile.name, record.updatedAt) { file ->
+    val layers by rememberIconLayers(record.icon, record.profile.iconBackground, record.profile.resolvedIconForeground, record.updatedAt) { file ->
         context.container.store.image(record.appId, file)
     }
     layers?.let { AdaptiveIcon(it, CircleShape, 48.dp) }

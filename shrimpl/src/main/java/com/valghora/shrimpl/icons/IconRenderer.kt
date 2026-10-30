@@ -33,7 +33,6 @@ object IconRenderer {
     fun render(source: IconSource, background: Int, foreground: Int, letter: Char): IconSet {
         val size = IconLayout.LAYER_PX
         val backgroundLayer = createBitmap(size, size).apply { eraseColor(background) }
-        val foregroundLayer = createBitmap(size, size)
         val monochromeLayer = createBitmap(size, size)
         val notification = createBitmap(IconLayout.NOTIFICATION_PX, IconLayout.NOTIFICATION_PX)
 
@@ -41,27 +40,40 @@ object IconRenderer {
             is IconSource.Glyph -> {
                 val path = glyphPath(source)
                 val box = viewBoxRect(source)
-                drawPath(foregroundLayer, path, box, IconLayout.GLYPH_FRACTION, foreground)
                 drawPath(monochromeLayer, path, box, IconLayout.GLYPH_FRACTION, WHITE)
                 drawPath(notification, path, box, IconLayout.NOTIFICATION_GLYPH_FRACTION, WHITE)
             }
             is IconSource.Raster -> {
-                drawImage(foregroundLayer, source.bytes, if (source.maskable) IconLayout.RASTER_MASKABLE_FRACTION else IconLayout.RASTER_ANY_FRACTION)
                 drawLetter(monochromeLayer, letter, IconLayout.LETTER_FRACTION, WHITE)
                 drawLetter(notification, letter, IconLayout.NOTIFICATION_LETTER_FRACTION, WHITE)
             }
             is IconSource.Letter -> {
-                drawLetter(foregroundLayer, source.letter, IconLayout.LETTER_FRACTION, foreground)
                 drawLetter(monochromeLayer, source.letter, IconLayout.LETTER_FRACTION, WHITE)
                 drawLetter(notification, source.letter, IconLayout.NOTIFICATION_LETTER_FRACTION, WHITE)
             }
         }
         return IconSet(
             background = png(backgroundLayer),
-            foreground = png(foregroundLayer),
+            foreground = png(foreground(source, foreground)),
             monochrome = png(monochromeLayer),
             notification = png(notification),
         )
+    }
+
+    /**
+     * Just the adaptive foreground layer ([IconLayout.LAYER_PX] square, transparent around the icon),
+     * as previews draw it over the background color; no PNGs are made.
+     */
+    fun foreground(source: IconSource, foreground: Int): Bitmap {
+        val size = IconLayout.LAYER_PX
+        val layer = createBitmap(size, size)
+        when (source) {
+            is IconSource.Glyph -> drawPath(layer, glyphPath(source), viewBoxRect(source), IconLayout.GLYPH_FRACTION, foreground)
+            is IconSource.Raster ->
+                drawImage(layer, source.bytes, if (source.maskable) IconLayout.RASTER_MASKABLE_FRACTION else IconLayout.RASTER_ANY_FRACTION)
+            is IconSource.Letter -> drawLetter(layer, source.letter, IconLayout.LETTER_FRACTION, foreground)
+        }
+        return layer
     }
 
     private val Double.f get() = toFloat()

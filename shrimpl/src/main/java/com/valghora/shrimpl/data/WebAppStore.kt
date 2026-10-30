@@ -34,13 +34,18 @@ class WebAppStore(context: Context) {
         return File(directory(appId), file).readBytes()
     }
 
-    /** Saves [record], and [images] (file name to bytes) next to it. */
+    /**
+     * Saves [record], and [images] (file name to bytes) next to it. Icon images no option uses any more
+     * (a replaced older image, say) are deleted.
+     */
     suspend fun save(record: WebAppRecord, images: Map<String, ByteArray>) = withContext(Dispatchers.IO) {
         val dir = directory(record.appId).apply { mkdirs() }
         images.forEach { (file, bytes) ->
             require(IMAGE_NAME.matches(file)) { "invalid image name $file" }
             write(File(dir, file), bytes)
         }
+        val used = record.iconOptions.imageFiles
+        dir.listFiles { file -> IMAGE_NAME.matches(file.name) && file.name !in used }?.forEach(File::delete)
         write(File(dir, RECORD), WebAppRecord.encode(record).toByteArray())
         _records.value = (_records.value.filter { it.appId != record.appId } + record).sortedBy { it.profile.name.lowercase() }
     }

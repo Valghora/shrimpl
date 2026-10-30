@@ -329,7 +329,14 @@ object Discovery {
         return variables.maxByOrNull(::score)
     }
 
-    const val NO_GLYPH = "Could not locate a glyph for this service; defaulting to manifest. Consider installing an icon pack."
+    const val NO_GLYPH = "No brand icon was found for this site, so the app uses the site's own icon. You can choose another one under Custom."
+
+    /**
+     * The site's own icon for the Website option (R10.1): [draft]'s best icon when that is already an
+     * image, else the first usable one of its [Draft.websiteIcons]; null when the site has none.
+     */
+    fun websiteIcon(draft: Draft, sources: IconSources): IconChoice.Raster? =
+        draft.icon as? IconChoice.Raster ?: IconChooser.firstRaster(draft.websiteIcons, sources)
 
     /** Blue gray, for sites without a brand color. */
     const val DEFAULT_BRAND = "#607D8B"
