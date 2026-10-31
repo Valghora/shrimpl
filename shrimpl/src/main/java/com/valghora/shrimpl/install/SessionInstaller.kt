@@ -13,6 +13,10 @@ import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicInteger
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.withContext
 
 /**
@@ -45,12 +49,41 @@ class SessionInstaller(private val context: Context) : Installer {
         return result.second.await()
     }
 
+    /** The install or uninstall waiting for the user to confirm it in the system's screen, if any. */
+    val confirmation: StateFlow<Confirmation?> get() = InstallStatusReceiver.waiting
+
+    /** Brings the system's confirmation screen back, for when the user left it unfinished (R6.5). */
+    fun showConfirmation() {
+        InstallStatusReceiver.waiting.value?.let { context.startActivity(Intent(it.screen).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)) }
+    }
+
+    /**
+     * Stops waiting for the confirmation (R6.5): abandons the install session, so it can't finish
+     * later without a record, and reports the install as cancelled.
+     */
+    fun cancelConfirmation() {
+        val waiting = InstallStatusReceiver.waiting.value ?: return
+        if (waiting.sessionId != NO_SESSION) {
+            try {
+                context.packageManager.packageInstaller.abandonSession(waiting.sessionId)
+            } catch (_: SecurityException) {
+                // Already finished or abandoned by the system; nothing is left to stop.
+            }
+        }
+        InstallStatusReceiver.finish(waiting.id, InstallResult.Cancelled)
+    }
+
     override suspend fun uninstall(packageName: String): InstallResult {
         val result = InstallStatusReceiver.register()
         context.packageManager.packageInstaller.uninstall(packageName, InstallStatusReceiver.sender(context, result.first))
         return result.second.await()
     }
 }
+
+/** A system confirmation screen ([screen]) waiting for the user; [sessionId] is the install session, if any. */
+data class Confirmation(val id: Int, val sessionId: Int, val screen: Intent)
+
+internal const val NO_SESSION = -1
 
 /**
  * Receives PackageInstaller results (not exported). A confirmation request starts the system dialog;
@@ -63,16 +96,18 @@ class InstallStatusReceiver : BroadcastReceiver() {
             PackageInstaller.STATUS_PENDING_USER_ACTION -> {
                 val confirm = intent.getParcelableExtra(Intent.EXTRA_INTENT, Intent::class.java)
                 if (confirm == null) {
-                    pending.remove(id)?.complete(InstallResult.Failure("The installer asked for confirmation but gave no screen"))
-                } else {
+                    finish(id, InstallResult.Failure("The installer asked for confirmation but gave no screen"))
+                } else if (pending.containsKey(id)) {
+                    val sessionId = intent.getIntExtra(PackageInstaller.EXTRA_SESSION_ID, NO_SESSION)
+                    _waiting.value = Confirmation(id, sessionId, Intent(confirm))
                     context.startActivity(confirm.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
                 }
             }
-            PackageInstaller.STATUS_SUCCESS -> pending.remove(id)?.complete(InstallResult.Success)
+            PackageInstaller.STATUS_SUCCESS -> finish(id, InstallResult.Success)
+            PackageInstaller.STATUS_FAILURE_ABORTED -> finish(id, InstallResult.Cancelled)
             else -> {
-                val message = intent.getStringExtra(PackageInstaller.EXTRA_STATUS_MESSAGE)
-                    ?: if (status == PackageInstaller.STATUS_FAILURE_ABORTED) "Cancelled" else "Installer status $status"
-                pending.remove(id)?.complete(InstallResult.Failure(message))
+                val message = intent.getStringExtra(PackageInstaller.EXTRA_STATUS_MESSAGE) ?: "Installer status $status"
+                finish(id, InstallResult.Failure(message))
             }
         }
     }
@@ -81,6 +116,14 @@ class InstallStatusReceiver : BroadcastReceiver() {
         private const val EXTRA_ID = "com.valghora.shrimpl.INSTALL_ID"
         private val ids = AtomicInteger()
         private val pending = ConcurrentHashMap<Int, CompletableDeferred<InstallResult>>()
+        private val _waiting = MutableStateFlow<Confirmation?>(null)
+        val waiting: StateFlow<Confirmation?> = _waiting.asStateFlow()
+
+        /** Completes the waiting install or uninstall [id] once; later statuses for it are ignored. */
+        fun finish(id: Int, result: InstallResult) {
+            _waiting.update { if (it?.id == id) null else it }
+            pending.remove(id)?.complete(result)
+        }
 
         fun register(): Pair<Int, CompletableDeferred<InstallResult>> {
             val id = ids.incrementAndGet()

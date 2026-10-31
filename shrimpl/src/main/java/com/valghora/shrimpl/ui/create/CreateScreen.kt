@@ -122,6 +122,7 @@ fun CreateScreen(onClose: () -> Unit, onBackUpKey: () -> Unit) {
         BuildSheet(
             state = state,
             onCancel = model.build::cancel,
+            onShowInstaller = model.build::showInstaller,
             onRetry = model.build::retry,
             onOpen = { InstalledApps.open(context, it) },
             onDone = {

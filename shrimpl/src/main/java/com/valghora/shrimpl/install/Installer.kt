@@ -20,6 +20,9 @@ sealed interface InstallResult {
     /** Session installs need "Install unknown apps" for Shrimpl first (R6.3). */
     data object NeedsUnknownSources : InstallResult
 
+    /** The user turned down the system installer's confirmation, or stopped waiting for it (R6.5). */
+    data object Cancelled : InstallResult
+
     /** [methodUnavailable]: Shizuku stopped or root was denied, so the system installer is worth offering (R6.2). */
     data class Failure(val message: String, val methodUnavailable: Boolean = false) : InstallResult
 }

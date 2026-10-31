@@ -221,6 +221,11 @@ binary translation) on any device.
 - R6.3 The Session method needs "Install unknown apps"; if it's missing, the build sheet explains it,
   opens the setting and continues when the user returns.
 - R6.4 Uninstall uses the selected method (Session: the system's uninstall dialog).
+- R6.5 With the Session method, the install waits for the system's confirmation. Turning it down
+  ends the build quietly: the sheet closes and nothing is saved (Update all stops, listing what was
+  updated). If the user leaves the confirmation unfinished and comes back to Shrimpl, the sheet says
+  Android is waiting and offers Show installer (opens the confirmation again) and Cancel (abandons
+  the install session, so it can't finish later without a record).
 
 ## R7 The template in Shrimpl
 

@@ -9,17 +9,26 @@ import com.valghora.shrimpl.core.records.WebAppRecord
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
 /** What the build sheet shows (docs/SHRIMPL_SPEC.md R3.4). */
 sealed interface BuildState {
     /**
      * Building [name]: a new app, or an update of an existing one ([update]). [batch]: which app of
-     * an Update all it is; null for a single build.
+     * an Update all it is; null for a single build. [waitingForUser]: installing, and the system
+     * installer is waiting for the user to confirm (R6.5).
      */
-    data class Running(val stage: WebAppFactory.Stage, val name: String, val update: Boolean, val batch: BatchProgress? = null) : BuildState
+    data class Running(
+        val stage: WebAppFactory.Stage,
+        val name: String,
+        val update: Boolean,
+        val batch: BatchProgress? = null,
+        val waitingForUser: Boolean = false,
+    ) : BuildState
 
     data class Done(val record: WebAppRecord) : BuildState
 
@@ -39,7 +48,13 @@ data class BatchProgress(val index: Int, val total: Int)
 /** Runs builds for a screen's ViewModel and exposes their progress. */
 class BuildController(private val container: AppContainer, private val scope: CoroutineScope) {
     private val _state = MutableStateFlow<BuildState?>(null)
-    val state: StateFlow<BuildState?> = _state.asStateFlow()
+    val state: StateFlow<BuildState?> = combine(_state, container.installers.session.confirmation) { state, confirmation ->
+        if (state is BuildState.Running && state.stage == WebAppFactory.Stage.INSTALLING && confirmation != null) {
+            state.copy(waitingForUser = true)
+        } else {
+            state
+        }
+    }.stateIn(scope, SharingStarted.Eagerly, null)
 
     private var job: Job? = null
     private var lastRequest: BuildRequest? = null
@@ -65,6 +80,7 @@ class BuildController(private val container: AppContainer, private val scope: Co
             _state.value = when (outcome) {
                 is BuildOutcome.Installed -> BuildState.Done(outcome.record).also { onInstalled(outcome.record) }
                 BuildOutcome.NeedsUnknownSources -> BuildState.NeedsUnknownSources
+                BuildOutcome.Cancelled -> null
                 is BuildOutcome.Failed -> BuildState.Failed(outcome.message, outcome.installMethodUnavailable)
             }
         }
@@ -102,6 +118,8 @@ class BuildController(private val container: AppContainer, private val scope: Co
                         _state.value = BuildState.NeedsUnknownSources
                         return@launch
                     }
+                    // Cancelling one install stops Update all; the rest keep their Update buttons.
+                    BuildOutcome.Cancelled -> break
                     is BuildOutcome.Failed -> batchFailed = batchFailed + (request.profile.name to outcome.message)
                 }
             }
@@ -120,8 +138,19 @@ class BuildController(private val container: AppContainer, private val scope: Co
         start(request, if (withSystemInstaller) container.installers.session else null)
     }
 
-    /** Stops a build before it is handed to the installer. */
+    /** Brings back the system installer's confirmation screen the user left unfinished (R6.5). */
+    fun showInstaller() = container.installers.session.showConfirmation()
+
+    /**
+     * Stops a build before it is handed to the installer, or, while the system installer waits for
+     * the user, cancels that install (R6.5); the build then ends as cancelled.
+     */
     fun cancel() {
+        val session = container.installers.session
+        if (session.confirmation.value != null && job?.isActive == true) {
+            session.cancelConfirmation()
+            return
+        }
         job?.cancel()
         pendingBatch = null
         _state.value = null

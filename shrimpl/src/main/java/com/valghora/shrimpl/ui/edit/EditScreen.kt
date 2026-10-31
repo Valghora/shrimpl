@@ -184,6 +184,7 @@ fun EditScreen(appId: String, showBack: Boolean, onBack: () -> Unit) {
         BuildSheet(
             state = state,
             onCancel = model.build::cancel,
+            onShowInstaller = model.build::showInstaller,
             onRetry = model.build::retry,
             onOpen = { InstalledApps.open(context, it) },
             onDone = model.build::dismiss,

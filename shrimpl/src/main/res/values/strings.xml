@@ -124,6 +124,8 @@
     <string name="build_title_permission">Allow Shrimpl to install apps</string>
     <string name="build_permission_detail">Android asks once: turn on \"Allow from this source\" for Shrimpl, then come back.</string>
     <string name="build_method_unavailable">The chosen install method stopped working. The system installer can install this one</string>
+    <string name="build_waiting_for_user">Android is waiting for you to confirm the install</string>
+    <string name="action_show_installer">Show installer</string>
     <string name="stage_rendering_icon">Drawing</string>
     <string name="stage_building">Building</string>
     <string name="stage_signing">Signing</string>

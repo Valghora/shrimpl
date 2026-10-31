@@ -91,7 +91,7 @@ class EditViewModel(private val container: AppContainer, val appId: String) : Vi
                     _installed.value = false
                     _offerRemove.value = true
                 }
-                InstallResult.NeedsUnknownSources -> Unit
+                InstallResult.NeedsUnknownSources, InstallResult.Cancelled -> Unit
                 is InstallResult.Failure -> _message.value = result.message
             }
         }

@@ -27,6 +27,8 @@ import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.produceState
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -39,6 +41,7 @@ import androidx.core.net.toUri
 import androidx.lifecycle.compose.LifecycleResumeEffect
 import com.valghora.shrimpl.R
 import com.valghora.shrimpl.build.WebAppFactory
+import kotlinx.coroutines.delay
 
 /**
  * Build progress, result and recovery (docs/SHRIMPL_SPEC.md R3.4, R6.2, R6.3): the stages with the
@@ -49,6 +52,7 @@ import com.valghora.shrimpl.build.WebAppFactory
 fun BuildSheet(
     state: BuildState,
     onCancel: () -> Unit,
+    onShowInstaller: () -> Unit,
     onRetry: (withSystemInstaller: Boolean) -> Unit,
     onOpen: (String) -> Unit,
     onDone: () -> Unit,
@@ -74,6 +78,8 @@ fun BuildSheet(
                     WebAppFactory.Stage.entries.forEach { stage -> StageRow(stage, state.stage) }
                     if (state.stage != WebAppFactory.Stage.INSTALLING) {
                         TextButton(onClick = onCancel, modifier = Modifier.align(Alignment.End)) { Text(stringResource(R.string.action_cancel)) }
+                    } else if (state.waitingForUser) {
+                        WaitingForUser(onShowInstaller = onShowInstaller, onCancel = onCancel)
                     }
                 }
                 is BuildState.Done -> {
@@ -140,6 +146,36 @@ private fun StageRow(stage: WebAppFactory.Stage, current: WebAppFactory.Stage) {
         )
     }
 }
+
+/**
+ * R6.5: the system installer is waiting for the user's confirmation. Once Shrimpl is back in front
+ * (the user left the installer unfinished), offers to show the installer again or cancel the install.
+ * The short delay keeps this hidden while the installer's own screen is still opening.
+ */
+@Composable
+private fun WaitingForUser(onShowInstaller: () -> Unit, onCancel: () -> Unit) {
+    var resumed by remember { mutableStateOf(false) }
+    LifecycleResumeEffect(Unit) {
+        resumed = true
+        onPauseOrDispose { resumed = false }
+    }
+    val stalled by produceState(false, resumed) {
+        value = false
+        if (resumed) {
+            delay(STALL_MS)
+            value = true
+        }
+    }
+    if (!stalled) return
+    Text(stringResource(R.string.build_waiting_for_user), style = MaterialTheme.typography.bodyMedium)
+    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
+        TextButton(onClick = onCancel) { Text(stringResource(R.string.action_cancel)) }
+        Spacer(Modifier.width(8.dp))
+        Button(onClick = onShowInstaller) { Text(stringResource(R.string.action_show_installer)) }
+    }
+}
+
+private const val STALL_MS = 600L
 
 /** R6.3: explains the permission, opens its settings page, and continues on return. */
 @Composable

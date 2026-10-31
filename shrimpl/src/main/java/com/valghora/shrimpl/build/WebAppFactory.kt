@@ -38,6 +38,9 @@ sealed interface BuildOutcome {
 
     data object NeedsUnknownSources : BuildOutcome
 
+    /** The user cancelled the install in the system installer (R6.5); nothing was saved. */
+    data object Cancelled : BuildOutcome
+
     data class Failed(val message: String, val installMethodUnavailable: Boolean = false) : BuildOutcome
 }
 
@@ -98,6 +101,7 @@ class WebAppFactory(
                     BuildOutcome.Installed(record)
                 }
                 InstallResult.NeedsUnknownSources -> BuildOutcome.NeedsUnknownSources
+                InstallResult.Cancelled -> BuildOutcome.Cancelled
                 is InstallResult.Failure -> BuildOutcome.Failed(result.message, result.methodUnavailable)
             }
         } catch (e: BuildCancelledException) {

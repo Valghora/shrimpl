@@ -76,7 +76,7 @@ class HomeViewModel(private val container: AppContainer) : ViewModel() {
         viewModelScope.launch {
             when (val result = container.installers.preferred().uninstall(record.packageName)) {
                 InstallResult.Success -> refresh(context)
-                InstallResult.NeedsUnknownSources -> Unit
+                InstallResult.NeedsUnknownSources, InstallResult.Cancelled -> Unit
                 is InstallResult.Failure -> _message.value = result.message
             }
         }
