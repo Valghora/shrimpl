@@ -147,7 +147,7 @@ binary translation) on any device.
     Brand, Fill icon canvas for a Website image, Background color for Custom.
   - **Appearance:** Header color (System, matching the system theme, the default; Dynamic, the
     site's own colors, T3.3; Custom) and Custom header color (disabled unless Custom).
-  - **Behavior:** browser identity (user agent mode), keep running in the background, pause in
+  - **Behavior:** user agent (Auto, Desktop or Mobile), keep running in the background, pause in
     battery saver, long-press menu for links and images.
   - **Window:** Allow multiple windows (off by default), default and minimum window size.
   - **Permissions:** microphone, camera, notifications, location (off by default).
