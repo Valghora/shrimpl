@@ -103,7 +103,7 @@
     <!-- Build sheet -->
     <string name="build_title_creating">Creating an app for %1$s…</string>
     <string name="build_title_updating_one">Updating %1$s…</string>
-    <string name="other_key_notice">Shrimpl found one or more apps that were created using a signing key that differs from your current certificate.\n\nIf you have a certificate backup, import it via Settings to restore Shrimpl\'s ability to manage these apps. If you don\'t, select Fix on an app below, or Fix all.\n\nYour app\'s settings will be preserved, but not its site data.</string>
+    <string name="other_key_notice">Shrimpl found one or more apps that were created using a signing key that differs from your current certificate.\n\nIf you have a certificate backup, import it via Settings. If you don\'t, select \'Fix\' to uninstall and rebuild your app.\n\nYour app\'s settings will be preserved, but not its site data.</string>
     <string name="build_title_reinstalling_one">Reinstalling %1$s…</string>
     <string name="build_title_reinstalling">Reinstalling %1$s (%2$d of %3$d)…</string>
     <string name="build_title_done">%1$s is installed</string>
