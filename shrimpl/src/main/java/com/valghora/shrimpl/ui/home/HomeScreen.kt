@@ -51,6 +51,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.input.pointer.PointerEventType
@@ -206,7 +207,6 @@ fun HomeScreen(
                 // Room at the bottom so the last card can scroll clear of both floating buttons.
                 contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = padding.calculateTopPadding() + 8.dp, bottom = 168.dp),
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp),
             ) {
                 items(records, key = { it.appId }) { record ->
                     val app = installed[record.packageName]
@@ -294,13 +294,15 @@ private fun AppItem(
                     }
                 }
             }
+            // Borderless rows: the settings items' rounded shape shows only as the press, hover and
+            // (in two panes) selection highlight.
             .clip(ItemShape)
-            .background(if (selected) MaterialTheme.colorScheme.secondaryContainer else MaterialTheme.colorScheme.surfaceContainerHigh)
+            .background(if (selected) MaterialTheme.colorScheme.secondaryContainer else Color.Transparent)
             // A tap opens or edits the app, as chosen in Settings (R2.5).
             .combinedClickable(onClick = if (clickAction == ClickAction.EDIT) onEdit else onOpen, onLongClick = { menuAt = DpOffset(24.dp, 48.dp) }),
     ) {
         Row(
-            Modifier.fillMaxWidth().heightIn(min = 72.dp).padding(start = 12.dp, end = 4.dp, top = 12.dp, bottom = 12.dp),
+            Modifier.fillMaxWidth().heightIn(min = 72.dp).padding(start = 12.dp, end = 4.dp, top = 10.dp, bottom = 10.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(16.dp),
         ) {

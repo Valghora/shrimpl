@@ -90,15 +90,16 @@ binary translation) on any device.
 
 - R2.1 A top app bar titled with the shrimp glyph (in the theme's primary color) and "Shrimpl"
   (hides on scroll down, returns on scroll up) with a settings button, over an adaptive grid of
-  the web apps Shrimpl created (one column on phones, more on wide windows). Each app is a card
-  with the settings items' rounded-rectangle shape in the theme's surface container high color
-  (secondary container when selected in two panes): the installed icon (48 dp), the name, an
-  Update button when a newer template is bundled (R2.2), and a more-options (three vertical dots)
-  button (`Options for <name>`), lined up under the settings button, offering Open (when
-  installed), Edit, Reinstall (when not installed), and Uninstall (or Remove when not installed).
-  Build numbers are never shown. Tapping an item edits it, or opens the app, as the Default click
-  action setting says (R2.5); one that isn't installed is always edited. Right-click or long press
-  opens a menu with Open, Edit, Reinstall / Update / Rebuild, and Uninstall or Remove.
+  the web apps Shrimpl created (one column on phones, more on wide windows). Each app is a
+  borderless row on the page background; the settings items' rounded shape shows only as its press
+  and hover highlight, and in two panes as the selection (secondary container): the installed icon
+  (48 dp), the name, an Update button when a newer template is bundled (R2.2), and a more-options
+  (three vertical dots) button (`Options for <name>`), lined up under the settings button,
+  offering Open (when installed), Edit, Reinstall (when not installed), and Uninstall (or Remove
+  when not installed). Build numbers are never shown. Tapping an item edits it, or opens the app,
+  as the Default click action setting says (R2.5); one that isn't installed is always edited.
+  Right-click or long press opens a menu with Open, Edit, Reinstall / Update / Rebuild, and
+  Uninstall or Remove.
 - R2.2 The list comes from Shrimpl's records (R11) joined with the installed state, re-read on
   resume. A record whose app isn't installed says "Not installed" under its name. An installed app
   built from an older template (R11.4) shows an Update button to the right of its name, which
