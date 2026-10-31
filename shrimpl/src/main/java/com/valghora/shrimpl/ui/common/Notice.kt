@@ -96,7 +96,10 @@ fun NoticeCard(
     ) {
         Icon(notice.kind.icon(), contentDescription = stringResource(notice.kind.label()), tint = color, modifier = Modifier.padding(top = 2.dp).size(24.dp))
         Column(Modifier.weight(1f).padding(top = 3.dp)) {
-            Text(notice.text, style = MaterialTheme.typography.bodyMedium, color = color)
+            // Paragraphs (split at blank lines) sit closer together than a whole blank line would.
+            Column(verticalArrangement = Arrangement.spacedBy(PARAGRAPH_GAP)) {
+                notice.text.split("\n\n").forEach { Text(it, style = MaterialTheme.typography.bodyMedium, color = color) }
+            }
             if (action != null || endAction != null) {
                 // The icon column's width (24 dp icon and 12 dp gap) mirrored at the end.
                 Row(
@@ -138,3 +141,5 @@ private val ErrorIcon: ImageVector = ImageVector.Builder("Error", 24.dp, 24.dp, 
         fill = SolidColor(Color.Black),
     )
     .build()
+
+private val PARAGRAPH_GAP = 8.dp
