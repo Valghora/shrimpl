@@ -22,8 +22,6 @@ import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
@@ -178,9 +176,9 @@ fun <T> DropdownItem(
                     )
                     Icon(Icons.Filled.KeyboardArrowDown, contentDescription = null)
                 }
-                DropdownMenu(expanded = open, onDismissRequest = { open = false }) {
+                AppMenu(expanded = open, onDismissRequest = { open = false }) {
                     options.forEach { (option, label) ->
-                        DropdownMenuItem(
+                        AppMenuItem(
                             text = { Text(label) },
                             onClick = {
                                 open = false

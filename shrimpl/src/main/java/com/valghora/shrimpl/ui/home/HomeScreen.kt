@@ -29,8 +29,6 @@ import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
@@ -78,6 +76,8 @@ import com.valghora.shrimpl.data.ClickAction
 import com.valghora.shrimpl.data.InstallMethod
 import com.valghora.shrimpl.data.InstalledApp
 import com.valghora.shrimpl.data.InstalledApps
+import com.valghora.shrimpl.ui.common.AppMenu
+import com.valghora.shrimpl.ui.common.AppMenuItem
 import com.valghora.shrimpl.ui.common.BuildSheet
 import com.valghora.shrimpl.ui.common.CenteredEmptyState
 import com.valghora.shrimpl.ui.common.EmptyStateText
@@ -374,7 +374,7 @@ private fun AppItem(
             var optionsOpen by rememberSaveable { mutableStateOf(false) }
             Box {
                 TooltipIconButton(label, { optionsOpen = true }) { Icon(Icons.Filled.MoreVert, contentDescription = label) }
-                DropdownMenu(expanded = optionsOpen, onDismissRequest = { optionsOpen = false }) {
+                AppMenu(expanded = optionsOpen, onDismissRequest = { optionsOpen = false }) {
                     val options = if (locked) listOf(R.string.action_remove to onRemove) else buildList {
                         if (installed != null) add(R.string.action_open to onOpen)
                         add(R.string.action_edit to onEdit)
@@ -382,7 +382,7 @@ private fun AppItem(
                         add(if (installed != null) R.string.action_uninstall to onUninstall else R.string.action_remove to onRemove)
                     }
                     options.forEach { (option, action) ->
-                        DropdownMenuItem(text = { Text(stringResource(option)) }, onClick = {
+                        AppMenuItem(text = { Text(stringResource(option)) }, onClick = {
                             optionsOpen = false
                             action()
                         })
@@ -390,7 +390,7 @@ private fun AppItem(
                 }
             }
         }
-        DropdownMenu(expanded = menuAt != null, onDismissRequest = { menuAt = null }, offset = menuAt ?: DpOffset.Zero) {
+        AppMenu(expanded = menuAt != null, onDismissRequest = { menuAt = null }, offset = menuAt ?: DpOffset.Zero) {
             fun item(label: Int, action: () -> Unit) = Pair(label, action)
             val items = if (locked) listOf(item(R.string.action_remove, onRemove)) else buildList {
                 if (installed != null) add(item(R.string.action_open, onOpen))
@@ -399,7 +399,7 @@ private fun AppItem(
                 add(if (installed != null) item(R.string.action_uninstall, onUninstall) else item(R.string.action_remove, onRemove))
             }
             items.forEach { (label, action) ->
-                DropdownMenuItem(text = { Text(stringResource(label)) }, onClick = {
+                AppMenuItem(text = { Text(stringResource(label)) }, onClick = {
                     menuAt = null
                     action()
                 })

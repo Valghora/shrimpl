@@ -10,8 +10,6 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -41,6 +39,8 @@ import androidx.window.core.layout.WindowSizeClass
 import com.valghora.shrimpl.R
 import com.valghora.shrimpl.container
 import com.valghora.shrimpl.data.InstalledApps
+import com.valghora.shrimpl.ui.common.AppMenu
+import com.valghora.shrimpl.ui.common.AppMenuItem
 import com.valghora.shrimpl.ui.common.BuildSheet
 import com.valghora.shrimpl.ui.common.Notice
 import com.valghora.shrimpl.ui.common.PillButton
@@ -104,8 +104,8 @@ fun EditScreen(appId: String, showBack: Boolean, onBack: () -> Unit) {
                     TooltipIconButton(stringResource(R.string.action_more), { menu = true }) {
                         Icon(Icons.Filled.MoreVert, contentDescription = stringResource(R.string.action_more))
                     }
-                    DropdownMenu(expanded = menu, onDismissRequest = { menu = false }) {
-                        DropdownMenuItem(
+                    AppMenu(expanded = menu, onDismissRequest = { menu = false }) {
+                        AppMenuItem(
                             text = { Text(stringResource(if (installed == false) R.string.action_reinstall else R.string.action_rebuild)) },
                             onClick = {
                                 menu = false
@@ -113,18 +113,18 @@ fun EditScreen(appId: String, showBack: Boolean, onBack: () -> Unit) {
                             },
                         )
                         if (model.dirty) {
-                            DropdownMenuItem(text = { Text(stringResource(R.string.action_discard)) }, onClick = {
+                            AppMenuItem(text = { Text(stringResource(R.string.action_discard)) }, onClick = {
                                 menu = false
                                 model.reset()
                             })
                         }
                         if (installed == true) {
-                            DropdownMenuItem(text = { Text(stringResource(R.string.action_uninstall)) }, onClick = {
+                            AppMenuItem(text = { Text(stringResource(R.string.action_uninstall)) }, onClick = {
                                 menu = false
                                 confirmUninstall = true
                             })
                         } else {
-                            DropdownMenuItem(text = { Text(stringResource(R.string.action_remove)) }, onClick = {
+                            AppMenuItem(text = { Text(stringResource(R.string.action_remove)) }, onClick = {
                                 menu = false
                                 model.remove(onBack)
                             })
