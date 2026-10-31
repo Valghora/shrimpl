@@ -105,7 +105,7 @@ binary translation) on any device.
   built from an older template (R11.4) shows an Update button to the right of its name, which
   rebuilds it with the bundled template. An empty list says "No apps yet". User-facing text says
   "app", never "web app".
-- R2.3 The edit page offers every profile setting in the form of R3.3 (the app ID read-only) and the
+- R2.3 The edit page offers every profile setting in the form of R3.3 (the app ID is not shown) and the
   icon options (R10); its ⋮ menu offers Open (when installed), Rebuild (Reinstall when not
   installed) and Uninstall (confirmed; then offers to remove the record), or Remove. Once something
   is changed, a Save button rebuilds with the next build number and installs it as an update (same

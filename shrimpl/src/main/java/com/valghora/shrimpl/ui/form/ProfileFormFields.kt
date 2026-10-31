@@ -75,7 +75,6 @@ fun ProfileFormFields(
     notes: List<Notice>,
     storedImage: ((String) -> ByteArray)?,
     wide: Boolean,
-    appIdEditable: Boolean,
     modifier: Modifier = Modifier,
 ) {
     val result = draft.form.result()
@@ -89,7 +88,7 @@ fun ProfileFormFields(
             Notes(notes)
             Row(horizontalArrangement = Arrangement.spacedBy(COLUMN_GAP)) {
                 Column(Modifier.weight(1f)) {
-                    fields.Identity(appIdEditable)
+                    fields.Identity()
                     icon()
                     fields.Appearance()
                 }
@@ -103,7 +102,7 @@ fun ProfileFormFields(
     } else {
         Column(modifier.verticalScroll(rememberScrollState()).padding(horizontal = 16.dp).padding(bottom = 96.dp)) {
             Notes(notes)
-            fields.Identity(appIdEditable)
+            fields.Identity()
             icon()
             fields.Appearance()
             fields.Browser()
@@ -188,11 +187,10 @@ private class Fields(
 ) {
     /** The app's name and where it lives: start address and internal domains. */
     @Composable
-    fun Identity(appIdEditable: Boolean) {
+    fun Identity() {
         var editingDomains by rememberSaveable { mutableStateOf(false) }
         SettingsSection(stringResource(R.string.section_identity)) {
             TextValueItem(stringResource(R.string.field_name), form.name, { onChange(form.copy(name = it)) }, error("name"), hints["name"])
-            if (!appIdEditable) SettingsItem(stringResource(R.string.field_app_id), summary = form.appId)
             TextValueItem(
                 stringResource(R.string.field_start_url), form.startUrl, { onChange(form.copy(startUrl = it.trim())) },
                 error("startUrl"), hints["startUrl"], keyboardType = KeyboardType.Uri,

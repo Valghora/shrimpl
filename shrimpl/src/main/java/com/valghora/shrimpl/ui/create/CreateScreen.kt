@@ -110,7 +110,6 @@ fun CreateScreen(onClose: () -> Unit, onBackUpKey: () -> Unit) {
                     // Nothing is stored yet: every image is in the draft.
                     storedImage = null,
                     wide = maxWidth >= WindowSizeClass.WIDTH_DP_EXPANDED_LOWER_BOUND.dp,
-                    appIdEditable = true,
                 )
             }
         } else {

@@ -157,7 +157,6 @@ fun EditScreen(appId: String, showBack: Boolean, onBack: () -> Unit) {
                 notes = if (installed == false) listOf(Notice(Notice.Kind.INFO, stringResource(R.string.edit_not_installed))) else emptyList(),
                 storedImage = model::storedImage,
                 wide = maxWidth >= WindowSizeClass.WIDTH_DP_EXPANDED_LOWER_BOUND.dp,
-                appIdEditable = false,
             )
         }
     }
