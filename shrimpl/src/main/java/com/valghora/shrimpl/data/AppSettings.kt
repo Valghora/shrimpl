@@ -38,6 +38,11 @@ class AppSettings(context: Context) {
     private val _keyBackedUp = MutableStateFlow(prefs.getBoolean(KEY_BACKED_UP, false))
     val keyBackedUp: StateFlow<Boolean> = _keyBackedUp.asStateFlow()
 
+    /** The one-time search for web apps a previous install of Shrimpl built (R11.6) has run. */
+    var recoveryDone: Boolean
+        get() = prefs.getBoolean(KEY_RECOVERY_DONE, false)
+        set(value) = prefs.edit { putBoolean(KEY_RECOVERY_DONE, value) }
+
     /** The one-time "back up your key" prompt (R5.3) has been shown. */
     var backupPromptShown: Boolean
         get() = prefs.getBoolean(KEY_PROMPT_SHOWN, false)
@@ -69,5 +74,6 @@ class AppSettings(context: Context) {
         const val KEY_CLICK_ACTION = "click_action"
         const val KEY_BACKED_UP = "key_backed_up"
         const val KEY_PROMPT_SHOWN = "backup_prompt_shown"
+        const val KEY_RECOVERY_DONE = "recovery_done"
     }
 }

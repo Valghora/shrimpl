@@ -16,6 +16,7 @@ import com.valghora.shrimpl.core.build.WebAppSpec
 import com.valghora.shrimpl.core.icons.IconException
 import com.valghora.shrimpl.core.profile.Profile
 import com.valghora.shrimpl.core.profile.resolvedIconForeground
+import com.valghora.shrimpl.core.records.EmbeddedRecord
 import com.valghora.shrimpl.core.records.IconOptions
 import com.valghora.shrimpl.core.records.WebAppRecord
 import java.io.File
@@ -74,10 +75,12 @@ class WebAppFactory(
             val built = withContext(Dispatchers.IO) {
                 output.parentFile?.mkdirs()
                 val key = keys.getOrCreate()
+                // R11.6: the icon options travel with the app, so a reinstalled Shrimpl can list it again.
+                val embedded = EmbeddedRecord.entries(request.icons) { file -> request.newImages[file] ?: store.image(profile.appId, file) }
                 WebAppBuilder.build(
                     template = template.file(),
                     output = output,
-                    spec = WebAppSpec(profile, buildNumber, icons),
+                    spec = WebAppSpec(profile, buildNumber, icons, extras = embedded),
                     key = key,
                     onStage = { stage ->
                         when (stage) {

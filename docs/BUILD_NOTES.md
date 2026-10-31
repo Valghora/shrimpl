@@ -126,3 +126,7 @@ Template version 5 was used twice: by a discarded build (the first-load fade-in,
 by the app-list work. Apps built with the discarded build were recorded as version 5 and so showed
 no update. The template is now version 6. A version number is never reused, even for a build that is
 thrown away.
+
+- Template version 7 has no template code change: it is bumped so every installed web app shows
+  Update and, rebuilt, gains `assets/shrimpl/icons.json` (R11.6) for recovery after a reinstall of
+  Shrimpl. The extra assets are added by `WebAppBuilder` (`WebAppSpec.extras`), not by the template.

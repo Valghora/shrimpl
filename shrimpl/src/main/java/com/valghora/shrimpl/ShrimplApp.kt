@@ -6,6 +6,7 @@ import com.valghora.shrimpl.build.WebAppFactory
 import com.valghora.shrimpl.data.AppSettings
 import com.valghora.shrimpl.data.SigningKeyStore
 import com.valghora.shrimpl.data.TemplateProvider
+import com.valghora.shrimpl.data.WebAppRecovery
 import com.valghora.shrimpl.data.WebAppStore
 import com.valghora.shrimpl.discovery.SiteDiscovery
 import com.valghora.shrimpl.install.Installers
@@ -19,6 +20,7 @@ class AppContainer(context: Context) {
     val installers = Installers(context, settings)
     val factory = WebAppFactory(context, store, keys, template)
     val discovery = SiteDiscovery(context)
+    val recovery = WebAppRecovery(context, store, settings)
 }
 
 class ShrimplApp : Application() {

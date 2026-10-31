@@ -20,11 +20,15 @@ class IconSet(
     val notification: ByteArray,
 )
 
-/** What to build: a profile, its build number, and optionally its icons (null keeps the template's). */
+/**
+ * What to build: a profile, its build number, optionally its icons (null keeps the template's), and
+ * [extras]: more entries under `assets/shrimpl/` by path, such as the embedded record (R11.6).
+ */
 data class WebAppSpec(
     val profile: Profile,
     val buildNumber: Int,
     val icons: IconSet? = null,
+    val extras: Map<String, ByteArray> = emptyMap(),
 ) {
     val packageName: String get() = WebAppBuilder.packageNameFor(profile.appId)
 }
@@ -63,6 +67,7 @@ object WebAppBuilder {
 
     enum class Stage { PATCHING, SIGNING, VERIFYING }
 
+    private const val EXTRAS_DIRECTORY = "assets/shrimpl/"
     private val V1_SIGNATURE = Regex("""META-INF/(MANIFEST\.MF|[^/]+\.(SF|RSA|DSA|EC))""")
     private val PACKAGE_NAME = Regex("""[a-z][a-z0-9_]*(\.[a-z][a-z0-9_]*)+""")
 
@@ -108,6 +113,9 @@ object WebAppBuilder {
             throw BuildException("Invalid settings: " + errors.joinToString("; ") { "${it.field}: ${it.message}" })
         }
         if (spec.buildNumber < 1) throw BuildException("Build number must be at least 1")
+        spec.extras.keys.firstOrNull { !it.startsWith(EXTRAS_DIRECTORY) || it in Paths.REQUIRED || ".." in it }?.let {
+            throw BuildException("Invalid extra entry $it")
+        }
         val packageName = spec.packageName
         if (!PACKAGE_NAME.matches(packageName)) throw BuildException("Invalid package name $packageName")
 
@@ -143,7 +151,7 @@ object WebAppBuilder {
                     put(Paths.ICON_NOTIFICATION, it.notification)
                 }
             }
-            rewrite(template, unsigned, edits, replacements)
+            rewrite(template, unsigned, edits, replacements, spec.extras)
             checkCancelled()
 
             onStage(Stage.SIGNING)
@@ -170,8 +178,11 @@ object WebAppBuilder {
         }
     }
 
-    /** Copies the template with the patched manifest and replaced entries, keeping each entry's compression. */
-    private fun rewrite(template: File, out: File, edits: ManifestEdits, replacements: Map<String, ByteArray>) {
+    /**
+     * Copies the template with the patched manifest and replaced entries, keeping each entry's
+     * compression, then adds [extras] (replacing any the template already has).
+     */
+    private fun rewrite(template: File, out: File, edits: ManifestEdits, replacements: Map<String, ByteArray>, extras: Map<String, ByteArray>) {
         ZipFile(template).use { zip ->
             val missing = Paths.REQUIRED.filter { zip.getEntry(it) == null }
             if (missing.isNotEmpty()) throw BuildException("The template is missing ${missing.joinToString()}")
@@ -180,13 +191,18 @@ object WebAppBuilder {
             }
             ZipOutputStream(out.outputStream().buffered()).use { zipOut ->
                 for (entry in zip.entries()) {
-                    if (V1_SIGNATURE.matches(entry.name)) continue
+                    if (V1_SIGNATURE.matches(entry.name) || entry.name in extras) continue
                     val data = when (entry.name) {
                         Paths.MANIFEST -> ManifestPatcher.patch(zip.getInputStream(entry).use { it.readBytes() }, edits)
                         in replacements -> replacements.getValue(entry.name)
                         else -> zip.getInputStream(entry).use { it.readBytes() }
                     }
                     zipOut.putNextEntry(copyOf(entry, data))
+                    zipOut.write(data)
+                    zipOut.closeEntry()
+                }
+                extras.forEach { (name, data) ->
+                    zipOut.putNextEntry(ZipEntry(name).apply { method = ZipEntry.DEFLATED })
                     zipOut.write(data)
                     zipOut.closeEntry()
                 }

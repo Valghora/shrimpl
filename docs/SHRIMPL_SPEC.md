@@ -331,6 +331,15 @@ The template's behavior is docs/TEMPLATE_SPEC.md. What Shrimpl relies on:
   change. Records built with an older version show "Update available"; Update rebuilds with the
   bundled template.
 - R11.5 Shrimpl never reads or modifies web apps' private data.
+- R11.6 Each built web app carries what is needed to list it again: its profile, and its icon
+  options as `assets/shrimpl/icons.json` with their images beside it (from template version 7). On
+  its first start with no records (after a reinstall, say), Shrimpl reads every installed
+  `com.valghora.shrimpl.app.*` APK and rebuilds its record: profile, icon options, build number
+  (versionCode), template version (versionName) and signer. Apps built before icons.json come back
+  with their drawn launcher icon as a Custom icon. This search runs once, so apps removed from the
+  list stay removed. When any app was signed with a key other than Shrimpl's current one, Home shows
+  a Caution notice to import the certificate backup (R5.2) in Settings; until then those apps can't
+  be updated.
 
 ## R12 Repository, CI and releases
 

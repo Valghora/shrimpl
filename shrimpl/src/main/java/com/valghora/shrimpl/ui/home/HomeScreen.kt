@@ -19,6 +19,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.CircleShape
@@ -83,6 +84,8 @@ import com.valghora.shrimpl.ui.common.ItemShape
 import com.valghora.shrimpl.ui.common.LocalInPane
 import com.valghora.shrimpl.ui.common.NEW_APP_BUTTON_HEIGHT
 import com.valghora.shrimpl.ui.common.NewWebAppButton
+import com.valghora.shrimpl.ui.common.Notice
+import com.valghora.shrimpl.ui.common.NoticeCard
 import com.valghora.shrimpl.ui.common.PillButton
 import com.valghora.shrimpl.ui.common.PitchText
 import com.valghora.shrimpl.ui.common.TooltipIconButton
@@ -112,6 +115,8 @@ fun HomeScreen(
     val clickAction by model.clickAction.collectAsStateWithLifecycle()
     val method by model.installMethod.collectAsStateWithLifecycle()
     val outdated = model.outdated(records, installed)
+    val signingKey by model.signingKey.collectAsStateWithLifecycle()
+    val otherKey = model.otherKeyCount(records, signingKey)
     var confirmUpdateAll by rememberSaveable { mutableStateOf(false) }
     var confirmUninstall by rememberSaveable { mutableStateOf<String?>(null) }
     val snackbar = remember { SnackbarHostState() }
@@ -203,6 +208,16 @@ fun HomeScreen(
                 contentPadding = PaddingValues(top = padding.calculateTopPadding() + 8.dp, bottom = 168.dp),
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
             ) {
+                // R11.6: apps from a previous install, signed with a key Shrimpl no longer has.
+                if (otherKey > 0) {
+                    item(key = OTHER_KEY_NOTICE, span = { GridItemSpan(maxLineSpan) }) {
+                        NoticeCard(
+                            Notice(Notice.Kind.CAUTION, pluralStringResource(R.plurals.other_key_notice, otherKey, otherKey)),
+                            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+                            action = stringResource(R.string.action_open_settings) to onSettings,
+                        )
+                    }
+                }
                 items(records, key = { it.appId }) { record ->
                     val app = installed[record.packageName]
                     AppItem(
@@ -396,3 +411,5 @@ private val MIN_CELL_WIDTH = 360.dp
 
 /** The space Scaffold leaves between the floating action button and the bottom of the content. */
 private val FAB_MARGIN = 16.dp
+
+private const val OTHER_KEY_NOTICE = "other-key-notice"

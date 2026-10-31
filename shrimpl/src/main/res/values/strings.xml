@@ -114,6 +114,10 @@
         <item quantity="other">Your install method is System, so Android will ask you to confirm each update: %1$d prompts in a row. To update without prompts, choose Shizuku or Root in Settings.</item>
     </plurals>
     <string name="build_title_updating">Updating %1$s (%2$d of %3$d)…</string>
+    <plurals name="other_key_notice">
+        <item quantity="one">%d app was signed with a different key. Import your certificate backup in Settings to update it</item>
+        <item quantity="other">%d apps were signed with a different key. Import your certificate backup in Settings to update them</item>
+    </plurals>
     <plurals name="batch_updated">
         <item quantity="one">%1$d app updated</item>
         <item quantity="other">%1$d apps updated</item>

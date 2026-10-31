@@ -35,13 +35,28 @@ class HomeViewModel(private val container: AppContainer) : ViewModel() {
 
     val build = BuildController(container, viewModelScope)
 
+    private val _signingKey = MutableStateFlow<SigningKeyCheck>(SigningKeyCheck.Unknown)
+
+    /** Shrimpl's current signing key, once read; apps signed with another one can't be updated (R11.6). */
+    val signingKey: StateFlow<SigningKeyCheck> = _signingKey.asStateFlow()
+
+    init {
+        // R11.6: after a reinstall, list the web apps the previous install built.
+        viewModelScope.launch { container.recovery.runOnce() }
+    }
+
     fun refresh(context: Context) {
         viewModelScope.launch {
             _installed.value = withContext(Dispatchers.IO) {
                 records.value.mapNotNull { InstalledApps.find(context, it.packageName) }.associateBy { it.packageName }
             }
+            _signingKey.value = SigningKeyCheck.Read(withContext(Dispatchers.IO) { container.keys.current()?.fingerprint })
         }
     }
+
+    /** How many apps were signed with a key other than Shrimpl's current one (none until the key is read). */
+    fun otherKeyCount(records: List<WebAppRecord>, key: SigningKeyCheck): Int =
+        if (key is SigningKeyCheck.Read) records.count { it.signerFingerprint != key.fingerprint } else 0
 
     /** Reinstall or update: the same settings as the next build (R11.3, R11.4). */
     fun rebuild(record: WebAppRecord) {
@@ -85,4 +100,11 @@ class HomeViewModel(private val container: AppContainer) : ViewModel() {
     fun messageShown() {
         _message.value = null
     }
+}
+
+/** Shrimpl's signing key as Home knows it: not read yet, or read ([fingerprint] null when there is none yet). */
+sealed interface SigningKeyCheck {
+    data object Unknown : SigningKeyCheck
+
+    data class Read(val fingerprint: String?) : SigningKeyCheck
 }
