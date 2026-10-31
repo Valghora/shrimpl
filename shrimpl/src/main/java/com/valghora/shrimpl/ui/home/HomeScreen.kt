@@ -153,12 +153,7 @@ fun HomeScreen(
                 },
                 scrollBehavior = scrollBehavior,
                 actions = {
-                    TooltipIconButton(
-                        stringResource(R.string.settings_title),
-                        onSettings,
-                        Modifier.padding(end = SETTINGS_ALIGNMENT_PADDING),
-                        tooltip = stringResource(R.string.tooltip_settings),
-                    ) {
+                    TooltipIconButton(stringResource(R.string.settings_title), onSettings, tooltip = stringResource(R.string.tooltip_settings)) {
                         Icon(Icons.Filled.Settings, contentDescription = stringResource(R.string.settings_title))
                     }
                 },
@@ -205,7 +200,7 @@ fun HomeScreen(
             LazyVerticalGrid(
                 columns = GridCells.Adaptive(MIN_CELL_WIDTH),
                 // Room at the bottom so the last card can scroll clear of both floating buttons.
-                contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = padding.calculateTopPadding() + 8.dp, bottom = 168.dp),
+                contentPadding = PaddingValues(top = padding.calculateTopPadding() + 8.dp, bottom = 168.dp),
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
             ) {
                 items(records, key = { it.appId }) { record ->
@@ -302,7 +297,9 @@ private fun AppItem(
             .combinedClickable(onClick = if (clickAction == ClickAction.EDIT) onEdit else onOpen, onLongClick = { menuAt = DpOffset(24.dp, 48.dp) }),
     ) {
         Row(
-            Modifier.fillMaxWidth().heightIn(min = 72.dp).padding(start = 12.dp, end = 4.dp, top = 10.dp, bottom = 10.dp),
+            // The icon 16 dp from the edge; the ⋮ button's center 28 dp from it, under the top bar's
+            // settings button (a top bar keeps 4 dp beside its 48 dp action buttons).
+            Modifier.fillMaxWidth().heightIn(min = 72.dp).padding(start = 16.dp, end = 4.dp, top = 10.dp, bottom = 10.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(16.dp),
         ) {
@@ -390,12 +387,6 @@ private fun ItemIcon(record: WebAppRecord, installed: InstalledApp?) {
 
 /** The narrowest a web app item gets before the grid drops a column. */
 private val MIN_CELL_WIDTH = 360.dp
-
-/**
- * Space between the top bar's settings button and the window edge, so it lines up with the ⋮ buttons
- * inside the cards (list padding plus the card's end padding).
- */
-private val SETTINGS_ALIGNMENT_PADDING = 16.dp
 
 /** The space Scaffold leaves between the floating action button and the bottom of the content. */
 private val FAB_MARGIN = 16.dp
