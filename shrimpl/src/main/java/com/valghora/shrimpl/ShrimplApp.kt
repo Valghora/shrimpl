@@ -4,6 +4,7 @@ import android.app.Application
 import android.content.Context
 import com.valghora.shrimpl.build.WebAppFactory
 import com.valghora.shrimpl.data.AppSettings
+import com.valghora.shrimpl.data.InstalledApps
 import com.valghora.shrimpl.data.SigningKeyStore
 import com.valghora.shrimpl.data.TemplateProvider
 import com.valghora.shrimpl.data.WebAppRecovery
@@ -13,6 +14,11 @@ import com.valghora.shrimpl.install.Installers
 
 /** Shrimpl's long-lived objects, created once with the application. */
 class AppContainer(context: Context) {
+    private val appContext = context.applicationContext
+
+    /** Whether [packageName] is installed now. */
+    fun isInstalled(packageName: String) = InstalledApps.find(appContext, packageName) != null
+
     val settings = AppSettings(context)
     val store = WebAppStore(context)
     val keys = SigningKeyStore(context)

@@ -18,14 +18,14 @@ import kotlinx.coroutines.launch
 /** What the build sheet shows (docs/SHRIMPL_SPEC.md R3.4). */
 sealed interface BuildState {
     /**
-     * Building [name]: a new app, or an update of an existing one ([update]). [batch]: which app of
-     * an Update all it is; null for a single build. [waitingForUser]: installing, and the system
-     * installer is waiting for the user to confirm (R6.5).
+     * Building [name], as a new app, an update or a reinstall ([kind]). [batch]: which app of an
+     * Update all or Reinstall all it is; null for a single build. [waitingForUser]: installing, and
+     * the system installer is waiting for the user to confirm (R6.5).
      */
     data class Running(
         val stage: WebAppFactory.Stage,
         val name: String,
-        val update: Boolean,
+        val kind: BuildKind,
         val batch: BatchProgress? = null,
         val waitingForUser: Boolean = false,
     ) : BuildState
@@ -42,7 +42,10 @@ sealed interface BuildState {
     data class Failed(val message: String, val offerSystemInstaller: Boolean) : BuildState
 }
 
-/** The app being built during Update all: [index] (from 1) of [total]. */
+/** What a build does: makes a new app, updates an installed one, or installs a known one again. */
+enum class BuildKind { CREATE, UPDATE, REINSTALL }
+
+/** The app being built during Update all or Reinstall all: [index] (from 1) of [total]. */
 data class BatchProgress(val index: Int, val total: Int)
 
 /** Runs builds for a screen's ViewModel and exposes their progress. */
@@ -72,7 +75,8 @@ class BuildController(private val container: AppContainer, private val scope: Co
         if (job?.isActive == true) return
         lastRequest = request
         pendingBatch = null
-        fun running(stage: WebAppFactory.Stage) = BuildState.Running(stage, request.profile.name, update = request.existing != null)
+        val kind = kindOf(request)
+        fun running(stage: WebAppFactory.Stage) = BuildState.Running(stage, request.profile.name, kind)
         _state.value = running(WebAppFactory.Stage.RENDERING_ICON)
         job = scope.launch {
             val chosen = installer ?: container.installers.preferred()
@@ -105,7 +109,8 @@ class BuildController(private val container: AppContainer, private val scope: Co
             val installer = container.installers.preferred()
             for ((i, request) in requests.withIndex()) {
                 val progress = BatchProgress(batchTotal - requests.size + i + 1, batchTotal)
-                fun running(stage: WebAppFactory.Stage) = BuildState.Running(stage, request.profile.name, update = true, batch = progress)
+                val kind = kindOf(request)
+                fun running(stage: WebAppFactory.Stage) = BuildState.Running(stage, request.profile.name, kind, batch = progress)
                 _state.value = running(WebAppFactory.Stage.RENDERING_ICON)
                 val outcome = container.factory.build(request, installer) { _state.value = running(it) }
                 when (outcome) {
@@ -126,6 +131,12 @@ class BuildController(private val container: AppContainer, private val scope: Co
             pendingBatch = null
             _state.value = BuildState.BatchDone(batchUpdated, batchFailed)
         }
+    }
+
+    private fun kindOf(request: BuildRequest): BuildKind = when {
+        request.existing == null -> BuildKind.CREATE
+        container.isInstalled(request.existing.packageName) -> BuildKind.UPDATE
+        else -> BuildKind.REINSTALL
     }
 
     /** Runs the last request again (or resumes Update all), optionally with the system installer. */

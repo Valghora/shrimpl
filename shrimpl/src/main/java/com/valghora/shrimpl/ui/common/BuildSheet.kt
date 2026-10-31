@@ -69,10 +69,12 @@ fun BuildSheet(
         ) {
             when (state) {
                 is BuildState.Running -> {
-                    val title = when {
-                        state.batch != null -> stringResource(R.string.build_title_updating, state.name, state.batch.index, state.batch.total)
-                        state.update -> stringResource(R.string.build_title_updating_one, state.name)
-                        else -> stringResource(R.string.build_title_creating, state.name)
+                    val title = when (state.kind) {
+                        BuildKind.CREATE -> stringResource(R.string.build_title_creating, state.name)
+                        BuildKind.UPDATE -> state.batch?.let { stringResource(R.string.build_title_updating, state.name, it.index, it.total) }
+                            ?: stringResource(R.string.build_title_updating_one, state.name)
+                        BuildKind.REINSTALL -> state.batch?.let { stringResource(R.string.build_title_reinstalling, state.name, it.index, it.total) }
+                            ?: stringResource(R.string.build_title_reinstalling_one, state.name)
                     }
                     Text(title, style = MaterialTheme.typography.titleLarge)
                     WebAppFactory.Stage.entries.forEach { stage -> StageRow(stage, state.stage) }

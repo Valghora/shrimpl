@@ -103,6 +103,9 @@
     <!-- Build sheet -->
     <string name="build_title_creating">Creating an app for %1$s…</string>
     <string name="build_title_updating_one">Updating %1$s…</string>
+    <string name="build_title_reinstalling_one">Reinstalling %1$s…</string>
+    <string name="build_title_reinstalling">Reinstalling %1$s (%2$d of %3$d)…</string>
+    <string name="edit_other_key">%1$s was signed with a certificate Shrimpl no longer has, so it can\'t be updated or changed. Import your certificate backup in Settings, or uninstall it and reinstall it with your current certificate</string>
     <string name="build_title_done">%1$s is installed</string>
     <string name="action_update_all">Update all</string>
     <plurals name="update_all_title">

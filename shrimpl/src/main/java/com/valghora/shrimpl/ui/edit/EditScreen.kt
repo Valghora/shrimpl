@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -22,6 +23,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -42,7 +44,9 @@ import com.valghora.shrimpl.R
 import com.valghora.shrimpl.container
 import com.valghora.shrimpl.data.InstalledApps
 import com.valghora.shrimpl.ui.common.BuildSheet
+import com.valghora.shrimpl.ui.common.LocalReadOnly
 import com.valghora.shrimpl.ui.common.Notice
+import com.valghora.shrimpl.ui.common.NoticeCard
 import com.valghora.shrimpl.ui.common.PillButton
 import com.valghora.shrimpl.ui.common.TooltipIconButton
 import com.valghora.shrimpl.ui.form.ProfileFormFields
@@ -51,12 +55,13 @@ import kotlinx.coroutines.launch
 /** A web app's settings (docs/SHRIMPL_SPEC.md R2.3): change, save as the next build, uninstall. */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun EditScreen(appId: String, showBack: Boolean, onBack: () -> Unit) {
+fun EditScreen(appId: String, showBack: Boolean, onBack: () -> Unit, onSettings: () -> Unit) {
     val context = LocalContext.current
     val model = viewModel(key = "edit-$appId") { EditViewModel(context.container, appId) }
     val record by model.record.collectAsStateWithLifecycle()
     val draft by model.draft.collectAsStateWithLifecycle()
     val installed by model.installed.collectAsStateWithLifecycle()
+    val locked by model.locked.collectAsStateWithLifecycle()
     val buildState by model.build.state.collectAsStateWithLifecycle()
     val message by model.message.collectAsStateWithLifecycle()
     val offerRemove by model.offerRemove.collectAsStateWithLifecycle()
@@ -105,14 +110,17 @@ fun EditScreen(appId: String, showBack: Boolean, onBack: () -> Unit) {
                         Icon(Icons.Filled.MoreVert, contentDescription = stringResource(R.string.action_more))
                     }
                     DropdownMenu(expanded = menu, onDismissRequest = { menu = false }) {
-                        DropdownMenuItem(
-                            text = { Text(stringResource(if (installed == false) R.string.action_reinstall else R.string.action_rebuild)) },
-                            onClick = {
-                                menu = false
-                                model.rebuild()
-                            },
-                        )
-                        if (model.dirty) {
+                        // R11.7: an app signed with another key can't be rebuilt over.
+                        if (!locked) {
+                            DropdownMenuItem(
+                                text = { Text(stringResource(if (installed == false) R.string.action_reinstall else R.string.action_rebuild)) },
+                                onClick = {
+                                    menu = false
+                                    model.rebuild()
+                                },
+                            )
+                        }
+                        if (model.dirty && !locked) {
                             DropdownMenuItem(text = { Text(stringResource(R.string.action_discard)) }, onClick = {
                                 menu = false
                                 model.reset()
@@ -134,7 +142,7 @@ fun EditScreen(appId: String, showBack: Boolean, onBack: () -> Unit) {
             )
         },
         floatingActionButton = {
-            if (model.dirty) {
+            if (model.dirty && !locked) {
                 PillButton(
                     text = stringResource(R.string.action_save_update),
                     icon = Icons.Filled.Check,
@@ -144,16 +152,29 @@ fun EditScreen(appId: String, showBack: Boolean, onBack: () -> Unit) {
         },
         snackbarHost = { SnackbarHost(snackbar) },
     ) { padding ->
-        BoxWithConstraints(Modifier.padding(padding).fillMaxSize()) {
-            ProfileFormFields(
-                draft = form,
-                onChange = model::update,
-                hints = emptyMap(),
-                notes = if (installed == false) listOf(Notice(Notice.Kind.INFO, stringResource(R.string.edit_not_installed))) else emptyList(),
-                storedImage = model::storedImage,
-                wide = maxWidth >= WindowSizeClass.WIDTH_DP_EXPANDED_LOWER_BOUND.dp,
-                appIdEditable = false,
-            )
+        Column(Modifier.padding(padding).fillMaxSize()) {
+            // R11.7: why the settings are read-only, and the two ways out.
+            if (locked) {
+                NoticeCard(
+                    Notice(Notice.Kind.CAUTION, stringResource(R.string.edit_other_key, current.profile.name)),
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+                    action = stringResource(R.string.action_open_settings) to onSettings,
+                    secondaryAction = stringResource(R.string.action_uninstall) to { confirmUninstall = true },
+                )
+            }
+            BoxWithConstraints(Modifier.weight(1f).fillMaxWidth()) {
+                CompositionLocalProvider(LocalReadOnly provides locked) {
+                    ProfileFormFields(
+                        draft = form,
+                        onChange = model::update,
+                        hints = emptyMap(),
+                        notes = if (installed == false) listOf(Notice(Notice.Kind.INFO, stringResource(R.string.edit_not_installed))) else emptyList(),
+                        storedImage = model::storedImage,
+                        wide = maxWidth >= WindowSizeClass.WIDTH_DP_EXPANDED_LOWER_BOUND.dp,
+                        appIdEditable = false,
+                    )
+                }
+            }
         }
     }
 

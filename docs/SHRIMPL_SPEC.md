@@ -159,9 +159,10 @@ binary translation) on any device.
   as Info, Caution or Error notices. Every field is validated as the user types, by the core
   validator (R4.2).
 - R3.4 Create builds, signs and installs (R8, R6). A bottom sheet titled "Creating an app for
-  <name>…" ("Updating <name>…" for an update, with "(n of m)" during Update all) shows each stage
-  (drawing, building, signing, checking, installing; each on screen for at least 0.5 s) or the
-  failure; on success, Open and Done (no build number: build numbers are internal, R11.3).
+  <name>…" ("Updating <name>…" for an update, "Reinstalling <name>…" for a known app that isn't
+  installed, with "(n of m)" during Update all and Reinstall all) shows each stage (drawing,
+  building, signing, checking, installing; each on screen for at least 0.5 s) or the failure; on
+  success, Open and Done (no build number: build numbers are internal, R11.3).
 - R3.5 When the pane is expanded width (840 dp and up), the form uses two columns 40 dp apart,
   with notices across both above them so the first sections (Identity, Behavior) line up.
 
@@ -339,12 +340,13 @@ The template's behavior is docs/TEMPLATE_SPEC.md. What Shrimpl relies on:
   with their drawn launcher icon as a Custom icon. This search runs once, so apps removed from the
   list stay removed. Apps signed with another key are handled by R11.7.
 - R11.7 An app last signed with a key other than Shrimpl's current one keeps its record either way.
-  Installed, its row says "Different certificate" and offers no Update (Update all skips it), and
-  Home shows a Caution notice with Open settings (import the certificate backup, R5.2) and No
-  backup. No backup explains that the apps must be uninstalled, losing their sign-ins and site data,
-  then uninstalls them one after another with the chosen method. Uninstalled, the row offers
-  Reinstall and an Info notice offers Reinstall all; either builds from the saved settings, signed
-  with the current key.
+  Installed, its row says "Different certificate" and offers no Update (Update all skips it); its
+  edit screen shows its settings read-only, without Rebuild, with a Caution notice offering Open
+  settings and Uninstall; and Home shows a Caution notice with Open settings (import the certificate
+  backup, R5.2) and No backup. No backup explains that the apps must be uninstalled, losing their
+  sign-ins and site data, then uninstalls them one after another with the chosen method.
+  Uninstalled, the row offers Reinstall and an Info notice offers Reinstall all; either builds from
+  the saved settings, signed with the current key.
 
 ## R12 Repository, CI and releases
 

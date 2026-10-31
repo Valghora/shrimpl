@@ -52,10 +52,20 @@ class EditViewModel(private val container: AppContainer, val appId: String) : Vi
     /** A stored icon image, by file name. */
     fun storedImage(file: String): ByteArray = container.store.image(appId, file)
 
+    private val _locked = MutableStateFlow(false)
+
+    /**
+     * R11.7: installed but signed with a key other than Shrimpl's current one, so it can't be updated;
+     * its settings are read-only until it is uninstalled and reinstalled.
+     */
+    val locked: StateFlow<Boolean> = _locked.asStateFlow()
+
     fun refresh(context: Context) {
         val record = _record.value ?: return
         viewModelScope.launch {
-            _installed.value = withContext(Dispatchers.IO) { InstalledApps.find(context, record.packageName) != null }
+            val installed = withContext(Dispatchers.IO) { InstalledApps.find(context, record.packageName) != null }
+            _installed.value = installed
+            _locked.value = installed && withContext(Dispatchers.IO) { container.keys.current()?.fingerprint } != record.signerFingerprint
         }
     }
 
@@ -89,6 +99,7 @@ class EditViewModel(private val container: AppContainer, val appId: String) : Vi
             when (val result = container.installers.preferred().uninstall(record.packageName)) {
                 InstallResult.Success -> {
                     _installed.value = false
+                    _locked.value = false
                     _offerRemove.value = true
                 }
                 InstallResult.NeedsUnknownSources, InstallResult.Cancelled -> Unit
