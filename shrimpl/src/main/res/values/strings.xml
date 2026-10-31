@@ -84,7 +84,7 @@
     <string name="field_icon_background">Background color</string>
     <string name="field_icon_foreground">Glyph color</string>
     <string name="field_user_agent">Browser identity</string>
-    <string name="ua_auto">Automatic</string>
+    <string name="ua_auto">Auto</string>
     <string name="ua_desktop">Desktop</string>
     <string name="ua_mobile">Mobile</string>
     <string name="field_keep_alive">Keep running in the background</string>
@@ -171,7 +171,7 @@
     <string name="settings_about">About</string>
 
     <!-- Settings items -->
-    <string name="field_auto_contrast">Automatic (black or white)</string>
+    <string name="field_auto_contrast">Auto (black or white)</string>
     <string name="section_browser">Behavior</string>
     <string name="field_user_agent_detail">Which version of the site to ask for</string>
     <string name="field_keep_alive_detail">Keeps calls and timers alive when the window is hidden</string>
