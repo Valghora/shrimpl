@@ -119,3 +119,10 @@ package, so it installs beside UniWrap rather than updating it, and can't update
 - Custom icons come from Photos, Files or an icon pack's own picker
   (`org.adw.launcher.icons.ACTION_PICK_ICON`, result in the `icon` extra). Shrimpl no longer reads
   icon packs' `appfilter.xml` or drawables, so the `DiscouragedApi` lint warning is gone.
+
+## Template versions (2026-10-31)
+
+Template version 5 was used twice: by a discarded build (the first-load fade-in, never merged) and
+by the app-list work. Apps built with the discarded build were recorded as version 5 and so showed
+no update. The template is now version 6. A version number is never reused, even for a build that is
+thrown away.
