@@ -32,6 +32,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
@@ -64,7 +65,9 @@ fun BuildSheet(
         ) {
             when (state) {
                 is BuildState.Running -> {
-                    Text(stringResource(R.string.build_title_running), style = MaterialTheme.typography.titleLarge)
+                    val title = state.batch?.let { stringResource(R.string.build_title_updating, it.name, it.index, it.total) }
+                        ?: stringResource(R.string.build_title_running)
+                    Text(title, style = MaterialTheme.typography.titleLarge)
                     WebAppFactory.Stage.entries.forEach { stage -> StageRow(stage, state.stage) }
                     if (state.stage != WebAppFactory.Stage.INSTALLING) {
                         TextButton(onClick = onCancel, modifier = Modifier.align(Alignment.End)) { Text(stringResource(R.string.action_cancel)) }
@@ -72,11 +75,22 @@ fun BuildSheet(
                 }
                 is BuildState.Done -> {
                     Text(stringResource(R.string.build_title_done, state.record.profile.name), style = MaterialTheme.typography.titleLarge)
-                    Text(stringResource(R.string.build_done_detail, state.record.buildNumber))
                     Row(Modifier.align(Alignment.End), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         TextButton(onClick = onDone) { Text(stringResource(R.string.action_done)) }
                         Button(onClick = { onOpen(state.record.packageName) }) { Text(stringResource(R.string.action_open)) }
                     }
+                }
+                is BuildState.BatchDone -> {
+                    Text(
+                        pluralStringResource(R.plurals.batch_updated, state.updated.size, state.updated.size),
+                        style = MaterialTheme.typography.titleLarge,
+                    )
+                    if (state.updated.isNotEmpty()) Text(state.updated.joinToString(", "), style = MaterialTheme.typography.bodyMedium)
+                    if (state.failed.isNotEmpty()) {
+                        Text(stringResource(R.string.batch_failed), style = MaterialTheme.typography.titleSmall, color = MaterialTheme.colorScheme.error)
+                        state.failed.forEach { (name, why) -> Text(stringResource(R.string.batch_failed_item, name, why), style = MaterialTheme.typography.bodyMedium) }
+                    }
+                    TextButton(onClick = onDone, modifier = Modifier.align(Alignment.End)) { Text(stringResource(R.string.action_done)) }
                 }
                 BuildState.NeedsUnknownSources -> UnknownSources(onRetry = { onRetry(false) }, onDone = onDone)
                 is BuildState.Failed -> {

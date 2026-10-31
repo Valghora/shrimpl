@@ -90,26 +90,36 @@ binary translation) on any device.
 
 - R2.1 A top app bar titled with the shrimp glyph (in the theme's primary color) and "Shrimpl"
   (hides on scroll down, returns on scroll up) with a settings button, over an adaptive grid of
-  the web apps Shrimpl created (one column on phones, more on wide windows). Each item, left to
-  right: the installed icon (48 dp), the name, "Build N", and a more-options (three vertical dots)
+  the web apps Shrimpl created (one column on phones, more on wide windows). Each app is a card
+  with the settings items' rounded-rectangle shape in the theme's surface container high color
+  (secondary container when selected in two panes): the installed icon (48 dp), the name, an
+  Update button when a newer template is bundled (R2.2), and a more-options (three vertical dots)
   button (`Options for <name>`), lined up under the settings button, offering Open (when
-  installed), Edit, and Uninstall (or Remove when not installed). Tapping an item edits it, or
-  opens the app, as the Default click action setting says (R2.5); one that isn't installed is
-  always edited. Right-click or long press opens a menu with Open, Edit, Reinstall / Update /
-  Rebuild, and Uninstall or Remove.
+  installed), Edit, Reinstall (when not installed), and Uninstall (or Remove when not installed).
+  Build numbers are never shown. Tapping an item edits it, or opens the app, as the Default click
+  action setting says (R2.5); one that isn't installed is always edited. Right-click or long press
+  opens a menu with Open, Edit, Reinstall / Update / Rebuild, and Uninstall or Remove.
 - R2.2 The list comes from Shrimpl's records (R11) joined with the installed state, re-read on
-  resume. A record whose app isn't installed shows "Not installed" with Reinstall and Remove. An app
-  built from an older template shows "Update available" (R11.4). An empty list says "No apps yet". User-facing text says "app", never "web app".
-- R2.3 The edit page offers every profile setting in the form of R3.3 (the app ID read-only), the icon
-  options (R10), Open, Rebuild, Discard changes, and Uninstall (confirmed; then offers to remove the
-  record). "Save as build N" rebuilds with build number + 1 and installs it as an update (same
-  package and key, so the app keeps its data). In two panes the edit page has no back arrow.
+  resume. A record whose app isn't installed says "Not installed" under its name. An installed app
+  built from an older template (R11.4) shows an Update button to the right of its name, which
+  rebuilds it with the bundled template. An empty list says "No apps yet". User-facing text says
+  "app", never "web app".
+- R2.3 The edit page offers every profile setting in the form of R3.3 (the app ID read-only), the
+  icon options (R10), Open, Rebuild, Discard changes, and Uninstall (confirmed; then offers to
+  remove the record). "Save and update" rebuilds with the next build number and installs it as an
+  update (same package and key, so the app keeps its data). In two panes the edit page has no back
+  arrow.
 - R2.4 "New app" opens the configuration page (R3). It is one design everywhere, shared by the
-  other main-action buttons (Create, Save as build N): a fully rounded filled button with an icon
-  in the theme's primary color; New app's tooltip names Ctrl+N.
-  With one pane it sits at the bottom right of the list. With two panes it appears in exactly one
-  place: in the empty detail pane, or at the bottom right of the list while the detail pane shows a
-  web app's settings or Shrimpl's settings (not while it shows the configuration page).
+  other main-action buttons (Create, Save and update, Update all): a fully rounded filled button
+  with an icon in the theme's primary color (Update all in its secondary container color); New
+  app's tooltip names Ctrl+N. With one pane it sits at the bottom right of the list. With two
+  panes it appears in exactly one place: in the empty detail pane, or at the bottom right of the
+  list while the detail pane shows a web app's settings or Shrimpl's settings (not while it shows
+  the configuration page). When two or more installed apps have a template update, "Update all"
+  sits above it in the list, the two the same width: it rebuilds those apps one after another (a
+  failure doesn't stop the rest; the build sheet shows "Updating <name> (i of n)…" and ends with
+  what was updated and what failed). With the System install method it first explains that Android
+  will ask to confirm each update, with Cancel.
 - R2.5 Settings, from the top bar button or Ctrl+,:
   - **Appearance:** Theme: System (dynamic color from the wallpaper), Light or Dark.
   - **Installation:** Method (R6.2), and the Request Root / Request Shizuku item when one is chosen.
@@ -148,7 +158,8 @@ binary translation) on any device.
   as Info, Caution or Error notices. Every field is validated as the user types, by the core
   validator (R4.2).
 - R3.4 Create builds, signs and installs (R8, R6). A bottom sheet shows each stage (drawing the icon,
-  building, signing, checking, installing) or the failure; on success, Open and Done.
+  building, signing, checking, installing) or the failure; on success, Open and Done (no build
+  number: build numbers are internal, R11.3).
 - R3.5 When the pane is expanded width (840 dp and up), the form uses two columns 40 dp apart,
   with notices across both above them so the first sections (Identity, Behavior) line up.
 

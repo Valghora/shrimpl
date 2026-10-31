@@ -50,7 +50,8 @@ import com.valghora.shrimpl.R
 // Settings pages in the style of grouped Material 3 Expressive settings: a section title, then each
 // item as its own rounded tonal surface with a small gap, the value or control at the end.
 
-private val ItemShape = RoundedCornerShape(20.dp)
+/** The rounded rectangle of settings items, also used for the app list's cards. */
+val ItemShape = RoundedCornerShape(20.dp)
 
 /** A titled group of items. */
 @Composable

@@ -3,6 +3,7 @@ package com.valghora.shrimpl.ui.common
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -29,16 +30,25 @@ import androidx.compose.ui.unit.dp
 import com.valghora.shrimpl.R
 
 /**
- * The app's main-action button (New app, Create, Save as build N): fully rounded, filled in the
- * theme's primary color, with an icon and a label.
+ * The app's main-action button (New app, Create, Save and update): fully rounded, filled in the theme's
+ * primary color (or, [secondary], its secondary container color, as Update all), with an icon and a label.
  */
 @Composable
-fun PillButton(text: String, icon: ImageVector, onClick: () -> Unit, modifier: Modifier = Modifier) {
+fun PillButton(text: String, icon: ImageVector, onClick: () -> Unit, modifier: Modifier = Modifier, secondary: Boolean = false) {
     Button(
         onClick = onClick,
         modifier = modifier.heightIn(min = NEW_APP_BUTTON_HEIGHT),
-        contentPadding = PaddingValues(start = 20.dp, end = 24.dp),
+        contentPadding = PaddingValues(start = 16.dp, end = 20.dp),
         elevation = ButtonDefaults.buttonElevation(defaultElevation = 3.dp),
+        // A secondary action (Update all) beside a primary one takes the secondary container color.
+        colors = if (secondary) {
+            ButtonDefaults.buttonColors(
+                containerColor = MaterialTheme.colorScheme.secondaryContainer,
+                contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
+            )
+        } else {
+            ButtonDefaults.buttonColors()
+        },
     ) {
         Icon(icon, contentDescription = null, modifier = Modifier.size(ButtonDefaults.IconSize))
         Spacer(Modifier.width(ButtonDefaults.IconSpacing))
@@ -48,9 +58,9 @@ fun PillButton(text: String, icon: ImageVector, onClick: () -> Unit, modifier: M
 
 /** The one "New app" button, wherever it appears, with its keyboard shortcut in the tooltip. */
 @Composable
-fun NewWebAppButton(onClick: () -> Unit, modifier: Modifier = Modifier) {
+fun NewWebAppButton(onClick: () -> Unit, modifier: Modifier = Modifier, fillWidth: Boolean = false) {
     WithTooltip(stringResource(R.string.tooltip_new_web_app), modifier) {
-        PillButton(stringResource(R.string.action_new_web_app), Icons.Filled.Add, onClick)
+        PillButton(stringResource(R.string.action_new_web_app), Icons.Filled.Add, onClick, if (fillWidth) Modifier.fillMaxWidth() else Modifier)
     }
 }
 

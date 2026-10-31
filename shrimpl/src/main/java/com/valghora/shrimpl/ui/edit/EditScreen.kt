@@ -136,7 +136,7 @@ fun EditScreen(appId: String, showBack: Boolean, onBack: () -> Unit) {
         floatingActionButton = {
             if (model.dirty) {
                 PillButton(
-                    text = stringResource(R.string.action_save_update, current.nextBuildNumber),
+                    text = stringResource(R.string.action_save_update),
                     icon = Icons.Filled.Check,
                     onClick = { if (!model.save()) scope.launch { snackbar.showSnackbar(invalidMessage) } },
                 )

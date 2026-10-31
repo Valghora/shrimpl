@@ -6,6 +6,7 @@ import androidx.lifecycle.viewModelScope
 import com.valghora.shrimpl.AppContainer
 import com.valghora.shrimpl.build.BuildRequest
 import com.valghora.shrimpl.data.ClickAction
+import com.valghora.shrimpl.data.InstallMethod
 import com.valghora.shrimpl.data.InstalledApp
 import com.valghora.shrimpl.data.InstalledApps
 import com.valghora.shrimpl.install.InstallResult
@@ -44,8 +45,22 @@ class HomeViewModel(private val container: AppContainer) : ViewModel() {
 
     /** Reinstall or update: the same settings as the next build (R11.3, R11.4). */
     fun rebuild(record: WebAppRecord) {
-        build.start(BuildRequest(record.profile, record.iconOptions, newImages = emptyMap(), existing = record))
+        build.start(requestFor(record))
     }
+
+    /** The install method; Update all asks first when it is the system installer, which prompts for each app. */
+    val installMethod: StateFlow<InstallMethod> = container.settings.installMethod
+
+    /** Installed apps built with an older template than the bundled one (R11.4). */
+    fun outdated(records: List<WebAppRecord>, installed: Map<String, InstalledApp>): List<WebAppRecord> =
+        records.filter { it.updateAvailable(templateVersion) && it.packageName in installed }
+
+    /** Update all (R2.4): rebuilds [records] with the bundled template, one after another. */
+    fun updateAll(records: List<WebAppRecord>) {
+        build.startAll(records.map(::requestFor))
+    }
+
+    private fun requestFor(record: WebAppRecord) = BuildRequest(record.profile, record.iconOptions, newImages = emptyMap(), existing = record)
 
     fun remove(record: WebAppRecord) {
         viewModelScope.launch { container.store.delete(record.appId) }

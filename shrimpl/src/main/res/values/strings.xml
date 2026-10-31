@@ -27,7 +27,7 @@
     <string name="action_remove_domain">Remove %1$s</string>
     <string name="action_replace_key">Replace key</string>
     <string name="action_restore_key">Import certificate</string>
-    <string name="action_save_update">Save as build %1$d</string>
+    <string name="action_save_update">Save and update</string>
     <string name="action_search">Search</string>
     <string name="action_try_again">Try again</string>
     <string name="action_uninstall">Uninstall</string>
@@ -36,9 +36,7 @@
 
     <!-- Home -->
     <string name="home_title">Shrimpl</string>
-    <string name="home_build">Build %1$d</string>
     <string name="home_not_installed">Not installed</string>
-    <string name="home_update_available">Update available</string>
     <string name="home_empty_title">No apps yet</string>
     <string name="home_start_text">Provide a website, get a custom app.</string>
     <!-- Shown in italics on its own line after home_start_text. -->
@@ -105,7 +103,22 @@
     <!-- Build sheet -->
     <string name="build_title_running">Creating the app…</string>
     <string name="build_title_done">%1$s is installed</string>
-    <string name="build_done_detail">Build %1$d</string>
+    <string name="action_update_all">Update all</string>
+    <plurals name="update_all_title">
+        <item quantity="one">Update %1$d app?</item>
+        <item quantity="other">Update %1$d apps?</item>
+    </plurals>
+    <plurals name="update_all_text">
+        <item quantity="one">Your install method is System, so Android will ask you to confirm the update. To update without prompts, choose Shizuku or Root in Settings.</item>
+        <item quantity="other">Your install method is System, so Android will ask you to confirm each update: %1$d prompts in a row. To update without prompts, choose Shizuku or Root in Settings.</item>
+    </plurals>
+    <string name="build_title_updating">Updating %1$s (%2$d of %3$d)…</string>
+    <plurals name="batch_updated">
+        <item quantity="one">%1$d app updated</item>
+        <item quantity="other">%1$d apps updated</item>
+    </plurals>
+    <string name="batch_failed">Couldn\'t update</string>
+    <string name="batch_failed_item">%1$s: %2$s</string>
     <string name="build_title_failed">Something went wrong</string>
     <string name="build_title_permission">Allow Shrimpl to install apps</string>
     <string name="build_permission_detail">Android asks once: turn on \"Allow from this source\" for Shrimpl, then come back.</string>

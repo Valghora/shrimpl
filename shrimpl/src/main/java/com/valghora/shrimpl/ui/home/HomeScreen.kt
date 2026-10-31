@@ -2,14 +2,18 @@ package com.valghora.shrimpl.ui.home
 
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -20,13 +24,14 @@ import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
-import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
@@ -44,6 +49,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.input.nestedscroll.nestedScroll
@@ -53,6 +59,7 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
@@ -61,22 +68,25 @@ import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.valghora.shrimpl.R
-import com.valghora.shrimpl.data.ClickAction
 import com.valghora.shrimpl.container
+import com.valghora.shrimpl.core.profile.resolvedIconForeground
+import com.valghora.shrimpl.core.records.WebAppRecord
+import com.valghora.shrimpl.data.ClickAction
+import com.valghora.shrimpl.data.InstallMethod
 import com.valghora.shrimpl.data.InstalledApp
 import com.valghora.shrimpl.data.InstalledApps
 import com.valghora.shrimpl.ui.common.BuildSheet
 import com.valghora.shrimpl.ui.common.CenteredEmptyState
 import com.valghora.shrimpl.ui.common.EmptyStateText
-import com.valghora.shrimpl.ui.common.PitchText
-import com.valghora.shrimpl.ui.common.NewWebAppButton
+import com.valghora.shrimpl.ui.common.ItemShape
 import com.valghora.shrimpl.ui.common.LocalInPane
 import com.valghora.shrimpl.ui.common.NEW_APP_BUTTON_HEIGHT
+import com.valghora.shrimpl.ui.common.NewWebAppButton
+import com.valghora.shrimpl.ui.common.PillButton
+import com.valghora.shrimpl.ui.common.PitchText
 import com.valghora.shrimpl.ui.common.TooltipIconButton
 import com.valghora.shrimpl.ui.icons.AdaptiveIcon
 import com.valghora.shrimpl.ui.icons.rememberIconLayers
-import com.valghora.shrimpl.core.profile.resolvedIconForeground
-import com.valghora.shrimpl.core.records.WebAppRecord
 
 /**
  * "My Web Apps" (docs/SHRIMPL_SPEC.md R2), the list pane of the list-detail layout. The list flows
@@ -99,6 +109,9 @@ fun HomeScreen(
     val buildState by model.build.state.collectAsStateWithLifecycle()
     val message by model.message.collectAsStateWithLifecycle()
     val clickAction by model.clickAction.collectAsStateWithLifecycle()
+    val method by model.installMethod.collectAsStateWithLifecycle()
+    val outdated = model.outdated(records, installed)
+    var confirmUpdateAll by rememberSaveable { mutableStateOf(false) }
     var confirmUninstall by rememberSaveable { mutableStateOf<String?>(null) }
     val snackbar = remember { SnackbarHostState() }
     // In a pane card the top bar takes the card's color; full screen it matches Settings.
@@ -139,7 +152,12 @@ fun HomeScreen(
                 },
                 scrollBehavior = scrollBehavior,
                 actions = {
-                    TooltipIconButton(stringResource(R.string.settings_title), onSettings, tooltip = stringResource(R.string.tooltip_settings)) {
+                    TooltipIconButton(
+                        stringResource(R.string.settings_title),
+                        onSettings,
+                        Modifier.padding(end = SETTINGS_ALIGNMENT_PADDING),
+                        tooltip = stringResource(R.string.tooltip_settings),
+                    ) {
                         Icon(Icons.Filled.Settings, contentDescription = stringResource(R.string.settings_title))
                     }
                 },
@@ -147,9 +165,21 @@ fun HomeScreen(
             )
         },
         floatingActionButton = {
-            // R2.4. Beside the detail pane it shows only while the detail holds something else; the
-            // empty detail pane has its own.
-            if (showCreateButton) NewWebAppButton(onCreate)
+            // R2.4: Update all (two or more outdated apps) above New app, the same width. Beside the
+            // detail pane, New app shows only while the detail holds something else; the empty detail
+            // pane has its own.
+            Column(Modifier.width(IntrinsicSize.Max), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                if (outdated.size >= 2) {
+                    PillButton(
+                        stringResource(R.string.action_update_all),
+                        Icons.Filled.Refresh,
+                        onClick = { if (method == InstallMethod.SESSION) confirmUpdateAll = true else model.updateAll(outdated) },
+                        modifier = Modifier.fillMaxWidth(),
+                        secondary = true,
+                    )
+                }
+                if (showCreateButton) NewWebAppButton(onCreate, Modifier.fillMaxWidth(), fillWidth = true)
+            }
         },
         snackbarHost = { SnackbarHost(snackbar) },
     ) { padding ->
@@ -173,7 +203,10 @@ fun HomeScreen(
         } else {
             LazyVerticalGrid(
                 columns = GridCells.Adaptive(MIN_CELL_WIDTH),
-                contentPadding = PaddingValues(top = padding.calculateTopPadding() + 8.dp, bottom = 96.dp),
+                // Room at the bottom so the last card can scroll clear of both floating buttons.
+                contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = padding.calculateTopPadding() + 8.dp, bottom = 168.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
             ) {
                 items(records, key = { it.appId }) { record ->
                     val app = installed[record.packageName]
@@ -199,6 +232,21 @@ fun HomeScreen(
             confirmUninstall = null
             model.uninstall(context, record)
         }, onDismiss = { confirmUninstall = null })
+    }
+    // The system installer asks for each app, so Update all says so first and can be cancelled.
+    if (confirmUpdateAll) {
+        AlertDialog(
+            onDismissRequest = { confirmUpdateAll = false },
+            title = { Text(pluralStringResource(R.plurals.update_all_title, outdated.size, outdated.size)) },
+            text = { Text(pluralStringResource(R.plurals.update_all_text, outdated.size, outdated.size)) },
+            confirmButton = {
+                TextButton(onClick = {
+                    confirmUpdateAll = false
+                    model.updateAll(outdated)
+                }) { Text(stringResource(R.string.action_update_all)) }
+            },
+            dismissButton = { TextButton(onClick = { confirmUpdateAll = false }) { Text(stringResource(R.string.action_cancel)) } },
+        )
     }
     buildState?.let { state ->
         BuildSheet(
@@ -246,51 +294,51 @@ private fun AppItem(
                     }
                 }
             }
+            .clip(ItemShape)
+            .background(if (selected) MaterialTheme.colorScheme.secondaryContainer else MaterialTheme.colorScheme.surfaceContainerHigh)
             // A tap opens or edits the app, as chosen in Settings (R2.5).
             .combinedClickable(onClick = if (clickAction == ClickAction.EDIT) onEdit else onOpen, onLongClick = { menuAt = DpOffset(24.dp, 48.dp) }),
     ) {
-        Column {
-            ListItem(
-                leadingContent = { ItemIcon(record, installed) },
-                headlineContent = { Text(record.profile.name) },
-                supportingContent = {
-                    val status = when {
-                        installed == null -> stringResource(R.string.home_not_installed)
-                        updateAvailable -> stringResource(R.string.home_update_available)
-                        else -> null
+        Row(
+            Modifier.fillMaxWidth().heightIn(min = 72.dp).padding(start = 12.dp, end = 4.dp, top = 12.dp, bottom = 12.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(16.dp),
+        ) {
+            ItemIcon(record, installed)
+            Column(Modifier.weight(1f)) {
+                Text(record.profile.name, style = MaterialTheme.typography.titleMedium)
+                if (installed == null) {
+                    Text(stringResource(R.string.home_not_installed), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
+            }
+            // R2.2: a newer template is bundled; rebuild this app with it.
+            if (installed != null && updateAvailable) {
+                FilledTonalButton(
+                    onClick = onRebuild,
+                    contentPadding = PaddingValues(start = 12.dp, end = 16.dp),
+                    modifier = Modifier.heightIn(min = 36.dp),
+                ) {
+                    Icon(Icons.Filled.Refresh, contentDescription = null, modifier = Modifier.size(18.dp))
+                    Spacer(Modifier.width(6.dp))
+                    Text(stringResource(R.string.action_update))
+                }
+            }
+            val label = stringResource(R.string.action_app_options, record.profile.name)
+            var optionsOpen by rememberSaveable { mutableStateOf(false) }
+            Box {
+                TooltipIconButton(label, { optionsOpen = true }) { Icon(Icons.Filled.MoreVert, contentDescription = label) }
+                DropdownMenu(expanded = optionsOpen, onDismissRequest = { optionsOpen = false }) {
+                    val options = buildList {
+                        if (installed != null) add(R.string.action_open to onOpen)
+                        add(R.string.action_edit to onEdit)
+                        if (installed == null) add(R.string.action_reinstall to onRebuild)
+                        add(if (installed != null) R.string.action_uninstall to onUninstall else R.string.action_remove to onRemove)
                     }
-                    Text(listOfNotNull(stringResource(R.string.home_build, record.buildNumber), status).joinToString(" · "))
-                },
-                trailingContent = {
-                    val label = stringResource(R.string.action_app_options, record.profile.name)
-                    var optionsOpen by rememberSaveable { mutableStateOf(false) }
-                    // Shifted so it lines up with the top bar's settings button above it.
-                    Box(Modifier.offset(x = TRAILING_ALIGNMENT_SHIFT)) {
-                        TooltipIconButton(label, { optionsOpen = true }) { Icon(Icons.Filled.MoreVert, contentDescription = label) }
-                        DropdownMenu(expanded = optionsOpen, onDismissRequest = { optionsOpen = false }) {
-                            val options = buildList {
-                                if (installed != null) add(R.string.action_open to onOpen)
-                                add(R.string.action_edit to onEdit)
-                                add(if (installed != null) R.string.action_uninstall to onUninstall else R.string.action_remove to onRemove)
-                            }
-                            options.forEach { (option, action) ->
-                                DropdownMenuItem(text = { Text(stringResource(option)) }, onClick = {
-                                    optionsOpen = false
-                                    action()
-                                })
-                            }
-                        }
-                    }
-                },
-                tonalElevation = if (selected) 4.dp else 0.dp,
-            )
-            if (installed == null || updateAvailable) {
-                Row(Modifier.padding(start = 72.dp, bottom = 4.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    if (installed == null) {
-                        TextButton(onClick = onRebuild) { Text(stringResource(R.string.action_reinstall)) }
-                        TextButton(onClick = onRemove) { Text(stringResource(R.string.action_remove)) }
-                    } else {
-                        TextButton(onClick = onRebuild) { Text(stringResource(R.string.action_update)) }
+                    options.forEach { (option, action) ->
+                        DropdownMenuItem(text = { Text(stringResource(option)) }, onClick = {
+                            optionsOpen = false
+                            action()
+                        })
                     }
                 }
             }
@@ -342,10 +390,10 @@ private fun ItemIcon(record: WebAppRecord, installed: InstalledApp?) {
 private val MIN_CELL_WIDTH = 360.dp
 
 /**
- * A list item's trailing button sits 16 dp from the end (ListItem's end padding); a top bar's action
- * 4 dp (its horizontal padding). Moving the item's button 12 dp outward puts it under the action.
+ * Space between the top bar's settings button and the window edge, so it lines up with the ⋮ buttons
+ * inside the cards (list padding plus the card's end padding).
  */
-private val TRAILING_ALIGNMENT_SHIFT = 12.dp
+private val SETTINGS_ALIGNMENT_PADDING = 16.dp
 
 /** The space Scaffold leaves between the floating action button and the bottom of the content. */
 private val FAB_MARGIN = 16.dp
