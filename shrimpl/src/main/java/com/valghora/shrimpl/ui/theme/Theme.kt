@@ -11,14 +11,18 @@ import com.valghora.shrimpl.data.ThemeSetting
 /** Material 3 with the wallpaper's dynamic colors (always available at minSdk 37), light or dark per settings. */
 @Composable
 fun ShrimplTheme(setting: ThemeSetting, content: @Composable () -> Unit) {
-    val dark = when (setting) {
-        ThemeSetting.SYSTEM -> isSystemInDarkTheme()
-        ThemeSetting.LIGHT -> false
-        ThemeSetting.DARK -> true
-    }
+    val dark = setting.isDark()
     val context = LocalContext.current
     MaterialTheme(
         colorScheme = if (dark) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context),
         content = content,
     )
+}
+
+/** Whether the app is dark with this setting: System follows the device's dark theme. */
+@Composable
+fun ThemeSetting.isDark(): Boolean = when (this) {
+    ThemeSetting.SYSTEM -> isSystemInDarkTheme()
+    ThemeSetting.LIGHT -> false
+    ThemeSetting.DARK -> true
 }

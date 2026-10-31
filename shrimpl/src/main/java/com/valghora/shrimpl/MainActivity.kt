@@ -1,18 +1,22 @@
 package com.valghora.shrimpl
 
+import android.graphics.Color
 import android.os.Bundle
 import android.view.KeyEvent
 import android.view.KeyboardShortcutGroup
 import android.view.KeyboardShortcutInfo
 import android.view.Menu
 import androidx.activity.ComponentActivity
+import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.valghora.shrimpl.ui.AppShortcut
 import com.valghora.shrimpl.ui.ShrimplNavigation
 import com.valghora.shrimpl.ui.theme.ShrimplTheme
+import com.valghora.shrimpl.ui.theme.isDark
 import kotlinx.coroutines.flow.MutableSharedFlow
 
 /**
@@ -27,6 +31,15 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         setContent {
             val theme by container.settings.theme.collectAsStateWithLifecycle()
+            val dark = theme.isDark()
+            // Transparent system bars with icons for the app's own theme (which can differ from the
+            // device's): the screens' body color shows through, and Android adds no contrast scrim
+            // behind the 3-button navigation bar, as it does for the automatic style.
+            DisposableEffect(dark) {
+                val style = if (dark) SystemBarStyle.dark(Color.TRANSPARENT) else SystemBarStyle.light(Color.TRANSPARENT, Color.TRANSPARENT)
+                enableEdgeToEdge(statusBarStyle = style, navigationBarStyle = style)
+                onDispose {}
+            }
             ShrimplTheme(theme) {
                 ShrimplNavigation(shortcuts)
             }

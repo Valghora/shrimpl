@@ -78,7 +78,9 @@ binary translation) on any device.
 - R1.2 Kotlin only. The single exception: discovery injects JavaScript into a hidden WebView to read
   what only exists in the rendered page (R9.3).
 - R1.3 Material 3 in Jetpack Compose (latest stable, Expressive components where stable), dynamic
-  color, light and dark themes. Navigation is Jetpack Navigation 3 with Material's list-detail scene
+  color, light and dark themes. The status and navigation bars (including the 3-button bar) are
+  transparent with no contrast scrim, so the screen's body color shows through, and their icons follow
+  Shrimpl's own Theme setting. Navigation is Jetpack Navigation 3 with Material's list-detail scene
   strategy (`adaptive-navigation3`), not `ListDetailPaneScaffold`. Content descriptions on every
   icon, font scaling supported. The template stays on Views (T1.1).
 - R1.4 Three install methods behind one interface (R6): System (the platform installer), Shizuku and
