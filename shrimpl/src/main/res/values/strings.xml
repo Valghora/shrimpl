@@ -83,7 +83,7 @@
     <string name="field_custom_header">Custom header color</string>
     <string name="field_icon_background">Background color</string>
     <string name="field_icon_foreground">Glyph color</string>
-    <string name="field_user_agent">Browser identity</string>
+    <string name="field_user_agent">User agent</string>
     <string name="ua_auto">Auto</string>
     <string name="ua_desktop">Desktop</string>
     <string name="ua_mobile">Mobile</string>
