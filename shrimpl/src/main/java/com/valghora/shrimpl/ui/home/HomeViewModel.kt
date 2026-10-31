@@ -54,9 +54,35 @@ class HomeViewModel(private val container: AppContainer) : ViewModel() {
         }
     }
 
-    /** How many apps were signed with a key other than Shrimpl's current one (none until the key is read). */
-    fun otherKeyCount(records: List<WebAppRecord>, key: SigningKeyCheck): Int =
-        if (key is SigningKeyCheck.Read) records.count { it.signerFingerprint != key.fingerprint } else 0
+    /**
+     * The apps last signed with a key other than Shrimpl's current one (none until the key is read,
+     * R11.7): installed, they can't be updated; uninstalled, they reinstall with the current key.
+     */
+    fun otherKey(records: List<WebAppRecord>, key: SigningKeyCheck): Set<String> =
+        if (key is SigningKeyCheck.Read) records.filter { it.signerFingerprint != key.fingerprint }.mapTo(mutableSetOf()) { it.appId } else emptySet()
+
+    /** R11.7: uninstalls [records] one after another, keeping their records; stops if one is cancelled or fails. */
+    fun uninstallAll(context: Context, records: List<WebAppRecord>) {
+        viewModelScope.launch {
+            val installer = container.installers.preferred()
+            for (record in records) {
+                when (val result = installer.uninstall(record.packageName)) {
+                    InstallResult.Success -> Unit
+                    InstallResult.NeedsUnknownSources, InstallResult.Cancelled -> break
+                    is InstallResult.Failure -> {
+                        _message.value = result.message
+                        break
+                    }
+                }
+            }
+            refresh(context)
+        }
+    }
+
+    /** R11.7: installs [records] again, signed with the current key. */
+    fun reinstallAll(records: List<WebAppRecord>) {
+        build.startAll(records.map(::requestFor))
+    }
 
     /** Reinstall or update: the same settings as the next build (R11.3, R11.4). */
     fun rebuild(record: WebAppRecord) {
@@ -66,9 +92,9 @@ class HomeViewModel(private val container: AppContainer) : ViewModel() {
     /** The install method; Update all asks first when it is the system installer, which prompts for each app. */
     val installMethod: StateFlow<InstallMethod> = container.settings.installMethod
 
-    /** Installed apps built with an older template than the bundled one (R11.4). */
-    fun outdated(records: List<WebAppRecord>, installed: Map<String, InstalledApp>): List<WebAppRecord> =
-        records.filter { it.updateAvailable(templateVersion) && it.packageName in installed }
+    /** Installed apps built with an older template than the bundled one (R11.4), except those [otherKey] can't update. */
+    fun outdated(records: List<WebAppRecord>, installed: Map<String, InstalledApp>, otherKey: Set<String>): List<WebAppRecord> =
+        records.filter { it.updateAvailable(templateVersion) && it.packageName in installed && it.appId !in otherKey }
 
     /** Update all (R2.4): rebuilds [records] with the bundled template, one after another. */
     fun updateAll(records: List<WebAppRecord>) {

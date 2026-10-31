@@ -71,8 +71,8 @@ data class Notice(val kind: Kind, val text: String) {
 }
 
 /**
- * A notification card: the kind's icon and text, an optional [action] button (such as Retry), and a
- * dismiss button when [onDismiss] is set.
+ * A notification card: the kind's icon and text, optional [action] and [secondaryAction] buttons
+ * (such as Retry), and a dismiss button when [onDismiss] is set.
  */
 @Composable
 fun NoticeCard(
@@ -80,6 +80,7 @@ fun NoticeCard(
     modifier: Modifier = Modifier,
     onDismiss: (() -> Unit)? = null,
     action: Pair<String, () -> Unit>? = null,
+    secondaryAction: Pair<String, () -> Unit>? = null,
 ) {
     val color = notice.kind.tone.content
     Row(
@@ -94,9 +95,11 @@ fun NoticeCard(
         Icon(notice.kind.icon(), contentDescription = stringResource(notice.kind.label()), tint = color, modifier = Modifier.padding(top = 2.dp).size(24.dp))
         Column(Modifier.weight(1f).padding(top = 3.dp)) {
             Text(notice.text, style = MaterialTheme.typography.bodyMedium, color = color)
-            action?.let { (label, onClick) ->
-                TextButton(onClick = onClick, modifier = Modifier.padding(top = 4.dp)) {
-                    Text(label, color = color, style = MaterialTheme.typography.labelLarge)
+            if (action != null || secondaryAction != null) {
+                Row(Modifier.padding(top = 4.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    listOfNotNull(action, secondaryAction).forEach { (label, onClick) ->
+                        TextButton(onClick = onClick) { Text(label, color = color, style = MaterialTheme.typography.labelLarge) }
+                    }
                 }
             }
         }

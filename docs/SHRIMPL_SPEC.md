@@ -337,9 +337,14 @@ The template's behavior is docs/TEMPLATE_SPEC.md. What Shrimpl relies on:
   `com.valghora.shrimpl.app.*` APK and rebuilds its record: profile, icon options, build number
   (versionCode), template version (versionName) and signer. Apps built before icons.json come back
   with their drawn launcher icon as a Custom icon. This search runs once, so apps removed from the
-  list stay removed. When any app was signed with a key other than Shrimpl's current one, Home shows
-  a Caution notice to import the certificate backup (R5.2) in Settings; until then those apps can't
-  be updated.
+  list stay removed. Apps signed with another key are handled by R11.7.
+- R11.7 An app last signed with a key other than Shrimpl's current one keeps its record either way.
+  Installed, its row says "Different certificate" and offers no Update (Update all skips it), and
+  Home shows a Caution notice with Open settings (import the certificate backup, R5.2) and No
+  backup. No backup explains that the apps must be uninstalled, losing their sign-ins and site data,
+  then uninstalls them one after another with the chosen method. Uninstalled, the row offers
+  Reinstall and an Info notice offers Reinstall all; either builds from the saved settings, signed
+  with the current key.
 
 ## R12 Repository, CI and releases
 

@@ -115,9 +115,21 @@
     </plurals>
     <string name="build_title_updating">Updating %1$s (%2$d of %3$d)…</string>
     <plurals name="other_key_notice">
-        <item quantity="one">%d app was signed with a different key. Import your certificate backup in Settings to update it</item>
-        <item quantity="other">%d apps were signed with a different key. Import your certificate backup in Settings to update them</item>
+        <item quantity="one">%d app was signed with a certificate Shrimpl no longer has. Import your certificate backup in Settings to update it</item>
+        <item quantity="other">%d apps were signed with a certificate Shrimpl no longer has. Import your certificate backup in Settings to update them</item>
     </plurals>
+    <plurals name="reinstall_notice">
+        <item quantity="one">%d app is ready to reinstall with your current certificate, using its saved settings</item>
+        <item quantity="other">%d apps are ready to reinstall with your current certificate, using their saved settings</item>
+    </plurals>
+    <plurals name="no_backup_text">
+        <item quantity="one">Without the backup, Android won\'t accept updates to %1$s. Uninstall it, and Shrimpl keeps its settings so you can reinstall it with your current certificate. Its sign-ins and site data will be lost.</item>
+        <item quantity="other">Without the backup, Android won\'t accept updates to %1$s. Uninstall them, and Shrimpl keeps their settings so you can reinstall them with your current certificate. Their sign-ins and site data will be lost.</item>
+    </plurals>
+    <string name="no_backup_title">No certificate backup?</string>
+    <string name="action_no_backup">No backup</string>
+    <string name="action_reinstall_all">Reinstall all</string>
+    <string name="home_other_key">Different certificate</string>
     <plurals name="batch_updated">
         <item quantity="one">%1$d app updated</item>
         <item quantity="other">%1$d apps updated</item>

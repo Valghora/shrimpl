@@ -114,9 +114,13 @@ fun HomeScreen(
     val message by model.message.collectAsStateWithLifecycle()
     val clickAction by model.clickAction.collectAsStateWithLifecycle()
     val method by model.installMethod.collectAsStateWithLifecycle()
-    val outdated = model.outdated(records, installed)
     val signingKey by model.signingKey.collectAsStateWithLifecycle()
-    val otherKey = model.otherKeyCount(records, signingKey)
+    val otherKey = model.otherKey(records, signingKey)
+    val outdated = model.outdated(records, installed, otherKey)
+    // R11.7: apps signed with another key, installed (can't be updated) or uninstalled (ready to reinstall).
+    val otherKeyInstalled = records.filter { it.appId in otherKey && it.packageName in installed }
+    val toReinstall = records.filter { it.appId in otherKey && it.packageName !in installed }
+    var confirmNoBackup by rememberSaveable { mutableStateOf(false) }
     var confirmUpdateAll by rememberSaveable { mutableStateOf(false) }
     var confirmUninstall by rememberSaveable { mutableStateOf<String?>(null) }
     val snackbar = remember { SnackbarHostState() }
@@ -208,13 +212,23 @@ fun HomeScreen(
                 contentPadding = PaddingValues(top = padding.calculateTopPadding() + 8.dp, bottom = 168.dp),
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
             ) {
-                // R11.6: apps from a previous install, signed with a key Shrimpl no longer has.
-                if (otherKey > 0) {
+                // R11.6, R11.7: apps from a previous install, signed with a key Shrimpl no longer has.
+                if (otherKeyInstalled.isNotEmpty()) {
                     item(key = OTHER_KEY_NOTICE, span = { GridItemSpan(maxLineSpan) }) {
                         NoticeCard(
-                            Notice(Notice.Kind.CAUTION, pluralStringResource(R.plurals.other_key_notice, otherKey, otherKey)),
+                            Notice(Notice.Kind.CAUTION, pluralStringResource(R.plurals.other_key_notice, otherKeyInstalled.size, otherKeyInstalled.size)),
                             modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
                             action = stringResource(R.string.action_open_settings) to onSettings,
+                            secondaryAction = stringResource(R.string.action_no_backup) to { confirmNoBackup = true },
+                        )
+                    }
+                }
+                if (toReinstall.isNotEmpty()) {
+                    item(key = REINSTALL_NOTICE, span = { GridItemSpan(maxLineSpan) }) {
+                        NoticeCard(
+                            Notice(Notice.Kind.INFO, pluralStringResource(R.plurals.reinstall_notice, toReinstall.size, toReinstall.size)),
+                            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+                            action = stringResource(R.string.action_reinstall_all) to { model.reinstallAll(toReinstall) },
                         )
                     }
                 }
@@ -224,6 +238,7 @@ fun HomeScreen(
                         record = record,
                         installed = app,
                         updateAvailable = record.updateAvailable(model.templateVersion),
+                        otherKey = record.appId in otherKey,
                         selected = record.appId == selected,
                         clickAction = clickAction,
                         onOpen = { if (app != null) InstalledApps.open(context, record.packageName) else onEdit(record.appId) },
@@ -242,6 +257,29 @@ fun HomeScreen(
             confirmUninstall = null
             model.uninstall(context, record)
         }, onDismiss = { confirmUninstall = null })
+    }
+    // R11.7: without the certificate backup, the apps are uninstalled and reinstalled from their records.
+    if (confirmNoBackup) {
+        AlertDialog(
+            onDismissRequest = { confirmNoBackup = false },
+            title = { Text(stringResource(R.string.no_backup_title)) },
+            text = {
+                Text(
+                    pluralStringResource(
+                        R.plurals.no_backup_text,
+                        otherKeyInstalled.size,
+                        otherKeyInstalled.joinToString(", ") { it.profile.name },
+                    ),
+                )
+            },
+            confirmButton = {
+                TextButton(onClick = {
+                    confirmNoBackup = false
+                    model.uninstallAll(context, otherKeyInstalled)
+                }) { Text(stringResource(R.string.action_uninstall)) }
+            },
+            dismissButton = { TextButton(onClick = { confirmNoBackup = false }) { Text(stringResource(R.string.action_cancel)) } },
+        )
     }
     // The system installer asks for each app, so Update all says so first and can be cancelled.
     if (confirmUpdateAll) {
@@ -276,6 +314,7 @@ private fun AppItem(
     record: WebAppRecord,
     installed: InstalledApp?,
     updateAvailable: Boolean,
+    otherKey: Boolean,
     selected: Boolean,
     clickAction: ClickAction,
     onOpen: () -> Unit,
@@ -324,12 +363,21 @@ private fun AppItem(
             ItemIcon(record, installed)
             Column(Modifier.weight(1f)) {
                 Text(record.profile.name, style = MaterialTheme.typography.titleMedium)
-                if (installed == null) {
-                    Text(stringResource(R.string.home_not_installed), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                val status = when {
+                    installed == null -> R.string.home_not_installed
+                    otherKey -> R.string.home_other_key
+                    else -> null
                 }
+                status?.let { Text(stringResource(it), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant) }
             }
-            // R2.2: a newer template is bundled; rebuild this app with it.
-            if (installed != null && updateAvailable) {
+            // R2.2: a newer template is bundled; rebuild this app with it. R11.7: an app signed with
+            // another key can't be updated, but once uninstalled reinstalls with the current one.
+            val rowAction = when {
+                installed != null && updateAvailable && !otherKey -> R.string.action_update
+                installed == null && otherKey -> R.string.action_reinstall
+                else -> null
+            }
+            rowAction?.let { action ->
                 FilledTonalButton(
                     onClick = onRebuild,
                     contentPadding = PaddingValues(start = 12.dp, end = 16.dp),
@@ -337,7 +385,7 @@ private fun AppItem(
                 ) {
                     Icon(Icons.Filled.Refresh, contentDescription = null, modifier = Modifier.size(18.dp))
                     Spacer(Modifier.width(6.dp))
-                    Text(stringResource(R.string.action_update))
+                    Text(stringResource(action))
                 }
             }
             val label = stringResource(R.string.action_app_options, record.profile.name)
@@ -365,7 +413,10 @@ private fun AppItem(
             val items = buildList {
                 if (installed != null) add(item(R.string.action_open, onOpen))
                 add(item(R.string.action_edit, onEdit))
-                add(item(if (installed == null) R.string.action_reinstall else if (updateAvailable) R.string.action_update else R.string.action_rebuild, onRebuild))
+                // An installed app signed with another key can't be rebuilt over (R11.7).
+                if (installed == null || !otherKey) {
+                    add(item(if (installed == null) R.string.action_reinstall else if (updateAvailable) R.string.action_update else R.string.action_rebuild, onRebuild))
+                }
                 add(if (installed != null) item(R.string.action_uninstall, onUninstall) else item(R.string.action_remove, onRemove))
             }
             items.forEach { (label, action) ->
@@ -413,3 +464,4 @@ private val MIN_CELL_WIDTH = 360.dp
 private val FAB_MARGIN = 16.dp
 
 private const val OTHER_KEY_NOTICE = "other-key-notice"
+private const val REINSTALL_NOTICE = "reinstall-notice"
