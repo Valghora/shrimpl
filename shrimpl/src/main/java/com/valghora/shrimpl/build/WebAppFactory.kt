@@ -1,6 +1,7 @@
 package com.valghora.shrimpl.build
 
 import android.content.Context
+import android.os.SystemClock
 import androidx.core.graphics.toColorInt
 import com.valghora.shrimpl.data.SigningKeyStore
 import com.valghora.shrimpl.data.TemplateProvider
@@ -20,6 +21,7 @@ import com.valghora.shrimpl.core.records.WebAppRecord
 import java.io.File
 import kotlin.coroutines.coroutineContext
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.withContext
 
@@ -53,17 +55,18 @@ class WebAppFactory(
     enum class Stage { RENDERING_ICON, BUILDING, SIGNING, VERIFYING, INSTALLING }
 
     suspend fun build(request: BuildRequest, installer: Installer, onStage: (Stage) -> Unit): BuildOutcome {
+        val stages = StagePacer(onStage)
         val profile = request.profile
         val buildNumber = request.existing?.nextBuildNumber ?: WebAppRecord.FIRST_BUILD
         val output = File(context.cacheDir, "builds/${profile.appId}-$buildNumber.apk")
         try {
-            onStage(Stage.RENDERING_ICON)
+            stages.next(Stage.RENDERING_ICON)
             val icons = withContext(Dispatchers.Default) {
                 val source = request.icons.icon.toSource { file -> request.newImages[file] ?: store.image(profile.appId, file) }
                 IconRenderer.render(source, profile.iconBackground.toColorInt(), profile.resolvedIconForeground.toColorInt(), IconOptions.letterFor(profile.name))
             }
 
-            onStage(Stage.BUILDING)
+            stages.next(Stage.BUILDING)
             val active = coroutineContext
             val built = withContext(Dispatchers.IO) {
                 output.parentFile?.mkdirs()
@@ -76,15 +79,16 @@ class WebAppFactory(
                     onStage = { stage ->
                         when (stage) {
                             WebAppBuilder.Stage.PATCHING -> Unit
-                            WebAppBuilder.Stage.SIGNING -> onStage(Stage.SIGNING)
-                            WebAppBuilder.Stage.VERIFYING -> onStage(Stage.VERIFYING)
+                            // Reported from the builder's own (IO) thread, so these wait by blocking it.
+                            WebAppBuilder.Stage.SIGNING -> stages.nextBlocking(Stage.SIGNING)
+                            WebAppBuilder.Stage.VERIFYING -> stages.nextBlocking(Stage.VERIFYING)
                         }
                     },
                     isCancelled = { !active.isActive },
                 )
             }
 
-            onStage(Stage.INSTALLING)
+            stages.next(Stage.INSTALLING)
             return when (val result = installer.install(built.apk)) {
                 InstallResult.Success -> {
                     val now = System.currentTimeMillis()
@@ -111,5 +115,35 @@ class WebAppFactory(
         } finally {
             output.delete()
         }
+    }
+}
+
+/**
+ * Keeps each build stage on screen for at least [MIN_STAGE_MS] before showing the next (R3.4), so a
+ * fast build reads as a sequence of steps instead of flashing through them. Stages that take longer
+ * aren't delayed.
+ */
+private class StagePacer(private val onStage: (WebAppFactory.Stage) -> Unit) {
+    private var shownAt = 0L
+
+    suspend fun next(stage: WebAppFactory.Stage) {
+        delay(remaining())
+        show(stage)
+    }
+
+    fun nextBlocking(stage: WebAppFactory.Stage) {
+        Thread.sleep(remaining())
+        show(stage)
+    }
+
+    private fun remaining(): Long = if (shownAt == 0L) 0L else (shownAt + MIN_STAGE_MS - SystemClock.elapsedRealtime()).coerceAtLeast(0L)
+
+    private fun show(stage: WebAppFactory.Stage) {
+        shownAt = SystemClock.elapsedRealtime()
+        onStage(stage)
+    }
+
+    private companion object {
+        const val MIN_STAGE_MS = 500L
     }
 }
