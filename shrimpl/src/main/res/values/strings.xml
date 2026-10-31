@@ -66,8 +66,8 @@
     <string name="section_appearance">Appearance</string>
     <string name="field_name">Name</string>
     <string name="field_website">Website</string>
-    <string name="field_start_url">Start address</string>
-    <string name="field_domains">Internal domains</string>
+    <string name="field_start_url">Address</string>
+    <string name="field_domains">Domains</string>
     <string name="field_add_domain">Add a domain</string>
     <string name="field_microphone">Microphone</string>
     <string name="field_camera">Camera</string>

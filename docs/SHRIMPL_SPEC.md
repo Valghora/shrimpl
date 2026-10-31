@@ -141,7 +141,7 @@ binary translation) on any device.
 - R3.3 Review: a form prefilled from discovery, laid out like the system settings: titled sections of
   rounded tonal items, each showing its value (summary, switch, menu value or color swatch); text,
   color, domain and window size values open dialogs. Nothing is collapsed. The sections, in order:
-  - **Identity:** the name, on the edit page the app ID, the start address and internal domains.
+  - **Identity:** the name, Address (the start address) and Domains (the internal domains).
   - **Icon:** the icon options as preview tiles, then the selected option's settings (R10.1):
     Glyph color (`#FFFFFF` by default) and Background color (the site's brand color by default) for
     Brand, Fill icon canvas for a Website image, Background color for Custom.

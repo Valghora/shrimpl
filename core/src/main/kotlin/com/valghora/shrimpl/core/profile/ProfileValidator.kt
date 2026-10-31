@@ -45,7 +45,7 @@ object ProfileValidator {
             when {
                 host == null -> error("startUrl", "must be an https:// URL")
                 internalDomains.none { host == it || host.endsWith(".$it") } ->
-                    error("startUrl", "host '$host' is not covered by the internal domains")
+                    error("startUrl", "host '$host' is not covered by Domains")
             }
 
             if (userAgentOverride.any { it == '\n' || it == '\r' }) {

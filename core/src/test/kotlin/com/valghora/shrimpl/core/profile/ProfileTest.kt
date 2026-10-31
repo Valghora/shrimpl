@@ -135,7 +135,7 @@ class ProfileTest {
 
     @Test
     fun startUrlMustBeInternal() {
-        assertTrue(messages(minimal.copy(startUrl = "https://other.org/")).contains("not covered by the internal domains"))
+        assertTrue(messages(minimal.copy(startUrl = "https://other.org/")).contains("not covered by Domains"))
         assertEquals(emptyList<String>(), fields(minimal.copy(startUrl = "https://app.example.com./path")))
     }
 
