@@ -13,7 +13,7 @@
     <string name="action_create">Create</string>
     <string name="action_done">Done</string>
     <string name="action_edit">Edit</string>
-    <string name="action_export_key">Export certificate</string>
+    <string name="action_export_key">Export…</string>
     <string name="action_keep">Keep</string>
     <string name="action_later">Later</string>
     <string name="action_more">More options</string>
@@ -25,7 +25,7 @@
     <string name="action_remove">Remove</string>
     <string name="action_remove_domain">Remove %1$s</string>
     <string name="action_replace_key">Replace key</string>
-    <string name="action_restore_key">Import certificate</string>
+    <string name="action_restore_key">Import…</string>
     <string name="action_save">Save</string>
     <string name="action_search">Search</string>
     <string name="action_try_again">Try again</string>

@@ -127,8 +127,8 @@ binary translation) on any device.
   - **Installation:** Method (R6.2), and the Request Root / Request Shizuku item when one is chosen.
   - **Behavior:** Default click action: Edit (the default; "Edit the application on click") or Open
     ("Launch the application on click").
-  - **Signing:** the certificate's SHA-256 fingerprint with a copy button, Export certificate and
-    Import certificate (R5).
+  - **Signing:** the certificate's SHA-256 fingerprint with a copy button, "Export…" and "Import…"
+    (export and import the certificate, R5).
   - **About:** "App Version: x.y" and "Template Version: N.0".
 
 ## R3 Configuration page
