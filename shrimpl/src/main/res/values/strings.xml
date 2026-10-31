@@ -101,7 +101,8 @@
     <string name="hint_discovered">Suggested from %1$s</string>
 
     <!-- Build sheet -->
-    <string name="build_title_running">Creating the app…</string>
+    <string name="build_title_creating">Creating an app for %1$s…</string>
+    <string name="build_title_updating_one">Updating %1$s…</string>
     <string name="build_title_done">%1$s is installed</string>
     <string name="action_update_all">Update all</string>
     <plurals name="update_all_title">
@@ -123,7 +124,7 @@
     <string name="build_title_permission">Allow Shrimpl to install apps</string>
     <string name="build_permission_detail">Android asks once: turn on \"Allow from this source\" for Shrimpl, then come back.</string>
     <string name="build_method_unavailable">The chosen install method stopped working. The system installer can install this one</string>
-    <string name="stage_rendering_icon">Drawing the icon</string>
+    <string name="stage_rendering_icon">Drawing</string>
     <string name="stage_building">Building</string>
     <string name="stage_signing">Signing</string>
     <string name="stage_verifying">Checking</string>

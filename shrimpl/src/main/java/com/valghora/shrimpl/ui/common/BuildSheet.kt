@@ -65,8 +65,11 @@ fun BuildSheet(
         ) {
             when (state) {
                 is BuildState.Running -> {
-                    val title = state.batch?.let { stringResource(R.string.build_title_updating, it.name, it.index, it.total) }
-                        ?: stringResource(R.string.build_title_running)
+                    val title = when {
+                        state.batch != null -> stringResource(R.string.build_title_updating, state.name, state.batch.index, state.batch.total)
+                        state.update -> stringResource(R.string.build_title_updating_one, state.name)
+                        else -> stringResource(R.string.build_title_creating, state.name)
+                    }
                     Text(title, style = MaterialTheme.typography.titleLarge)
                     WebAppFactory.Stage.entries.forEach { stage -> StageRow(stage, state.stage) }
                     if (state.stage != WebAppFactory.Stage.INSTALLING) {

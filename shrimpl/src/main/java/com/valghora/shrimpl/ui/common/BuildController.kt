@@ -15,8 +15,11 @@ import kotlinx.coroutines.launch
 
 /** What the build sheet shows (docs/SHRIMPL_SPEC.md R3.4). */
 sealed interface BuildState {
-    /** [batch]: which app of an Update all is being built; null for a single build. */
-    data class Running(val stage: WebAppFactory.Stage, val batch: BatchProgress? = null) : BuildState
+    /**
+     * Building [name]: a new app, or an update of an existing one ([update]). [batch]: which app of
+     * an Update all it is; null for a single build.
+     */
+    data class Running(val stage: WebAppFactory.Stage, val name: String, val update: Boolean, val batch: BatchProgress? = null) : BuildState
 
     data class Done(val record: WebAppRecord) : BuildState
 
@@ -31,7 +34,7 @@ sealed interface BuildState {
 }
 
 /** The app being built during Update all: [index] (from 1) of [total]. */
-data class BatchProgress(val index: Int, val total: Int, val name: String)
+data class BatchProgress(val index: Int, val total: Int)
 
 /** Runs builds for a screen's ViewModel and exposes their progress. */
 class BuildController(private val container: AppContainer, private val scope: CoroutineScope) {
@@ -54,10 +57,11 @@ class BuildController(private val container: AppContainer, private val scope: Co
         if (job?.isActive == true) return
         lastRequest = request
         pendingBatch = null
-        _state.value = BuildState.Running(WebAppFactory.Stage.RENDERING_ICON)
+        fun running(stage: WebAppFactory.Stage) = BuildState.Running(stage, request.profile.name, update = request.existing != null)
+        _state.value = running(WebAppFactory.Stage.RENDERING_ICON)
         job = scope.launch {
             val chosen = installer ?: container.installers.preferred()
-            val outcome = container.factory.build(request, chosen) { _state.value = BuildState.Running(it) }
+            val outcome = container.factory.build(request, chosen) { _state.value = running(it) }
             _state.value = when (outcome) {
                 is BuildOutcome.Installed -> BuildState.Done(outcome.record).also { onInstalled(outcome.record) }
                 BuildOutcome.NeedsUnknownSources -> BuildState.NeedsUnknownSources
@@ -84,9 +88,10 @@ class BuildController(private val container: AppContainer, private val scope: Co
         job = scope.launch {
             val installer = container.installers.preferred()
             for ((i, request) in requests.withIndex()) {
-                val progress = BatchProgress(batchTotal - requests.size + i + 1, batchTotal, request.profile.name)
-                _state.value = BuildState.Running(WebAppFactory.Stage.RENDERING_ICON, progress)
-                val outcome = container.factory.build(request, installer) { _state.value = BuildState.Running(it, progress) }
+                val progress = BatchProgress(batchTotal - requests.size + i + 1, batchTotal)
+                fun running(stage: WebAppFactory.Stage) = BuildState.Running(stage, request.profile.name, update = true, batch = progress)
+                _state.value = running(WebAppFactory.Stage.RENDERING_ICON)
+                val outcome = container.factory.build(request, installer) { _state.value = running(it) }
                 when (outcome) {
                     is BuildOutcome.Installed -> {
                         batchUpdated = batchUpdated + request.profile.name

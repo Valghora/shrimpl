@@ -158,9 +158,10 @@ binary translation) on any device.
   Values discovered with low or medium confidence say where they came from; discovery's notes appear
   as Info, Caution or Error notices. Every field is validated as the user types, by the core
   validator (R4.2).
-- R3.4 Create builds, signs and installs (R8, R6). A bottom sheet shows each stage (drawing the icon,
-  building, signing, checking, installing; each on screen for at least 0.5 s) or the failure; on success, Open and Done (no build
-  number: build numbers are internal, R11.3).
+- R3.4 Create builds, signs and installs (R8, R6). A bottom sheet titled "Creating an app for
+  <name>…" ("Updating <name>…" for an update, with "(n of m)" during Update all) shows each stage
+  (drawing, building, signing, checking, installing; each on screen for at least 0.5 s) or the
+  failure; on success, Open and Done (no build number: build numbers are internal, R11.3).
 - R3.5 When the pane is expanded width (840 dp and up), the form uses two columns 40 dp apart,
   with notices across both above them so the first sections (Identity, Behavior) line up.
 
