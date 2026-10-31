@@ -58,7 +58,7 @@ There is no emulator in the cloud container; UI changes are confirmed on the own
   it, then send the APK"); then push the branch, check CI, and send `shrimpl-debug.apk`.
 - Never force-push. Branch from the default branch for new work.
 - Write user-facing text without ending punctuation in item descriptions, and with the palette rules
-  in `ui/common/Notice.kt` and the theme (pastel containers with dark text in dark theme, the inverse
-  in light theme).
+  in `ui/common/Notice.kt` and the theme (Info follows the Material theme; Caution, Error and Success
+  use pastel containers with dark text in dark theme, the inverse in light theme).
 - Record new toolchain or platform findings, and any deviation from the specs, in
   `docs/BUILD_NOTES.md`.

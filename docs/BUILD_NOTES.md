@@ -130,3 +130,6 @@ thrown away.
 - Template version 7 has no template code change: it is bumped so every installed web app shows
   Update and, rebuilt, gains `assets/shrimpl/icons.json` (R11.6) for recovery after a reinstall of
   Shrimpl. The extra assets are added by `WebAppBuilder` (`WebAppSpec.extras`), not by the template.
+
+- Template version 8 has no template code change either: it was bumped at the owner's request, to
+  exercise Update and Update all on installed web apps.

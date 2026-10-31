@@ -32,25 +32,31 @@ import com.valghora.shrimpl.R
 import com.valghora.shrimpl.core.discovery.Note
 
 /**
- * Status colors as pairs of a pastel and a deep shade. Dark theme: pastel notifications and buttons
- * with deep text, and pastel status text on ordinary surfaces (a failure description in light red).
- * Light theme: the opposite, deep notifications and buttons with pastel text, and deep status text.
+ * Status colors. Info follows the Material theme (the secondary container, like tonal buttons), since
+ * it carries no urgency. The others are fixed pairs of a pastel and a deep shade, so a warning reads
+ * as one whatever the wallpaper. Dark theme: pastel notifications and buttons with deep text, and
+ * pastel status text on ordinary surfaces (a failure description in light red). Light theme: the
+ * opposite, deep notifications and buttons with pastel text, and deep status text.
  */
-enum class Tone(private val pastel: Color, private val deep: Color) {
-    INFO(Color(0xFFD6E6FF), Color(0xFF0B3A7A)),
+enum class Tone(private val pastel: Color?, private val deep: Color?) {
+    INFO(null, null),
     CAUTION(Color(0xFFFFF1BF), Color(0xFF6B4E00)),
     ERROR(Color(0xFFFFDAD6), Color(0xFF8C1D18)),
     SUCCESS(Color(0xFFD4F5DC), Color(0xFF0F5223)),
     ;
 
     /** The background of a notification or button in this tone. */
-    val container: Color @Composable get() = if (isDarkTheme()) pastel else deep
+    val container: Color @Composable get() = themed(MaterialTheme.colorScheme.secondaryContainer) { dark -> if (dark) pastel else deep }
 
     /** Text and icons on [container]. */
-    val content: Color @Composable get() = if (isDarkTheme()) deep else pastel
+    val content: Color @Composable get() = themed(MaterialTheme.colorScheme.onSecondaryContainer) { dark -> if (dark) deep else pastel }
 
     /** Status text on ordinary surfaces, such as a failure description. */
-    val text: Color @Composable get() = if (isDarkTheme()) pastel else deep
+    val text: Color @Composable get() = themed(MaterialTheme.colorScheme.secondary) { dark -> if (dark) pastel else deep }
+
+    /** [material] for the theme-following tone, else the fixed shade [pick] chooses. */
+    @Composable
+    private fun themed(material: Color, pick: (dark: Boolean) -> Color?): Color = pick(isDarkTheme()) ?: material
 }
 
 /** Whether the app is showing its dark theme (set in Settings or by the system). */
