@@ -275,6 +275,8 @@ private fun AppItem(
     }
     Box(
         Modifier
+            // The highlight sits 4 dp in from each side, so its rounded corners don't meet the edge.
+            .padding(horizontal = ROW_INSET)
             .pointerInput(record.appId) {
                 // Right-click (secondary mouse button or two-finger trackpad tap) opens the menu at the pointer.
                 awaitPointerEventScope {
@@ -297,9 +299,9 @@ private fun AppItem(
             .combinedClickable(onClick = if (clickAction == ClickAction.EDIT) onEdit else onOpen, onLongClick = { menuAt = DpOffset(24.dp, 48.dp) }),
     ) {
         Row(
-            // The icon 16 dp from the edge; the ⋮ button's center 28 dp from it, under the top bar's
-            // settings button (a top bar keeps 4 dp beside its 48 dp action buttons).
-            Modifier.fillMaxWidth().heightIn(min = 72.dp).padding(start = 16.dp, end = 4.dp, top = 10.dp, bottom = 10.dp),
+            // With the inset, the icon is 16 dp from the edge and the ⋮ button's center 28 dp from it,
+            // under the top bar's settings button (a top bar keeps 4 dp beside its 48 dp actions).
+            Modifier.fillMaxWidth().heightIn(min = 72.dp).padding(start = 16.dp - ROW_INSET, top = 10.dp, bottom = 10.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(16.dp),
         ) {
@@ -384,6 +386,9 @@ private fun ItemIcon(record: WebAppRecord, installed: InstalledApp?) {
     }
     layers?.let { AdaptiveIcon(it, CircleShape, 48.dp) }
 }
+
+/** How far each row's highlight sits in from the sides. */
+private val ROW_INSET = 4.dp
 
 /** The narrowest a web app item gets before the grid drops a column. */
 private val MIN_CELL_WIDTH = 360.dp
