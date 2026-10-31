@@ -30,7 +30,7 @@ import androidx.compose.ui.unit.dp
 import com.valghora.shrimpl.R
 
 /**
- * The app's main-action button (New app, Create, Save and update): fully rounded, filled in the theme's
+ * The app's main-action button (New app, Create, Save): fully rounded, filled in the theme's
  * primary color (or, [secondary], its secondary container color, as Update all), with an icon and a label.
  */
 @Composable

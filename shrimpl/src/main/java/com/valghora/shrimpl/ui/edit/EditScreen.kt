@@ -1,5 +1,6 @@
 package com.valghora.shrimpl.ui.edit
 
+import androidx.activity.compose.LocalActivity
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
@@ -20,6 +21,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -66,6 +68,12 @@ fun EditScreen(appId: String, showBack: Boolean, onBack: () -> Unit) {
     val scope = rememberCoroutineScope()
     val invalidMessage = stringResource(R.string.create_fix_fields)
 
+    // R2.3: changes not saved are discarded on leaving the page (not when the window is only
+    // recreated, by a rotation or resize, say).
+    val activity = LocalActivity.current
+    DisposableEffect(appId) {
+        onDispose { if (activity?.isChangingConfigurations != true) model.reset() }
+    }
     LifecycleResumeEffect(appId) {
         model.refresh(context)
         onPauseOrDispose {}
@@ -98,13 +106,16 @@ fun EditScreen(appId: String, showBack: Boolean, onBack: () -> Unit) {
                     }
                 },
                 actions = {
-                    if (installed == true) {
-                        TextButton(onClick = { InstalledApps.open(context, current.packageName) }) { Text(stringResource(R.string.action_open)) }
-                    }
                     TooltipIconButton(stringResource(R.string.action_more), { menu = true }) {
                         Icon(Icons.Filled.MoreVert, contentDescription = stringResource(R.string.action_more))
                     }
                     AppMenu(expanded = menu, onDismissRequest = { menu = false }) {
+                        if (installed == true) {
+                            AppMenuItem(text = { Text(stringResource(R.string.action_open)) }, onClick = {
+                                menu = false
+                                InstalledApps.open(context, current.packageName)
+                            })
+                        }
                         AppMenuItem(
                             text = { Text(stringResource(if (installed == false) R.string.action_reinstall else R.string.action_rebuild)) },
                             onClick = {
@@ -112,12 +123,6 @@ fun EditScreen(appId: String, showBack: Boolean, onBack: () -> Unit) {
                                 model.rebuild()
                             },
                         )
-                        if (model.dirty) {
-                            AppMenuItem(text = { Text(stringResource(R.string.action_discard)) }, onClick = {
-                                menu = false
-                                model.reset()
-                            })
-                        }
                         if (installed == true) {
                             AppMenuItem(text = { Text(stringResource(R.string.action_uninstall)) }, onClick = {
                                 menu = false
@@ -136,7 +141,7 @@ fun EditScreen(appId: String, showBack: Boolean, onBack: () -> Unit) {
         floatingActionButton = {
             if (model.dirty) {
                 PillButton(
-                    text = stringResource(R.string.action_save_update),
+                    text = stringResource(R.string.action_save),
                     icon = Icons.Filled.Check,
                     onClick = { if (!model.save()) scope.launch { snackbar.showSnackbar(invalidMessage) } },
                 )
