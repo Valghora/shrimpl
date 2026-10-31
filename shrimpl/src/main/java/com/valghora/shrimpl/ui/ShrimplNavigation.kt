@@ -133,7 +133,6 @@ fun ShrimplNavigation(shortcuts: Flow<AppShortcut>) {
                         appId = key.appId,
                         showBack = !twoPane,
                         onBack = { backStack.remove(key) },
-                        onSettings = { show(SettingsKey) },
                     )
                 }
             }

@@ -56,33 +56,16 @@ class HomeViewModel(private val container: AppContainer) : ViewModel() {
 
     /**
      * The apps last signed with a key other than Shrimpl's current one (none until the key is read,
-     * R11.7): installed, they can't be updated; uninstalled, they reinstall with the current key.
+     * R11.7): installed, they can't be updated, only uninstalled; uninstalled, they rebuild with the
+     * current key.
      */
     fun otherKey(records: List<WebAppRecord>, key: SigningKeyCheck): Set<String> =
         if (key is SigningKeyCheck.Read) records.filter { it.signerFingerprint != key.fingerprint }.mapTo(mutableSetOf()) { it.appId } else emptySet()
 
-    /** R11.7: uninstalls [records] one after another, keeping their records; stops if one is cancelled or fails. */
-    fun uninstallAll(context: Context, records: List<WebAppRecord>) {
-        viewModelScope.launch {
-            val installer = container.installers.preferred()
-            for (record in records) {
-                when (val result = installer.uninstall(record.packageName)) {
-                    InstallResult.Success -> Unit
-                    InstallResult.NeedsUnknownSources, InstallResult.Cancelled -> break
-                    is InstallResult.Failure -> {
-                        _message.value = result.message
-                        break
-                    }
-                }
-            }
-            refresh(context)
-        }
-    }
+    /** The apps the different-key notice was dismissed for (R11.7). */
+    val keyNoticeDismissed: StateFlow<Set<String>> = container.settings.keyNoticeDismissed
 
-    /** R11.7: installs [records] again, signed with the current key. */
-    fun reinstallAll(records: List<WebAppRecord>) {
-        build.startAll(records.map(::requestFor))
-    }
+    fun dismissKeyNotice(appIds: Set<String>) = container.settings.dismissKeyNotice(appIds)
 
     /** Reinstall or update: the same settings as the next build (R11.3, R11.4). */
     fun rebuild(record: WebAppRecord) {

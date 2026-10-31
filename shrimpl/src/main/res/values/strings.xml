@@ -103,9 +103,9 @@
     <!-- Build sheet -->
     <string name="build_title_creating">Creating an app for %1$s…</string>
     <string name="build_title_updating_one">Updating %1$s…</string>
+    <string name="other_key_notice">Shrimpl found one or more apps that were created using a signing key that differs from your current certificate.\n\nIf you have a certificate backup, import it via Settings to restore Shrimpl\'s ability to manage these apps. If you don\'t, select the Uninstall button below, then the resulting Rebuild button.\n\nYour app\'s settings will be preserved, but not its site data.</string>
     <string name="build_title_reinstalling_one">Reinstalling %1$s…</string>
     <string name="build_title_reinstalling">Reinstalling %1$s (%2$d of %3$d)…</string>
-    <string name="edit_other_key">%1$s was signed with a certificate Shrimpl no longer has, so it can\'t be updated or changed. Import your certificate backup in Settings, or uninstall it and reinstall it with your current certificate</string>
     <string name="build_title_done">%1$s is installed</string>
     <string name="action_update_all">Update all</string>
     <plurals name="update_all_title">
@@ -117,22 +117,6 @@
         <item quantity="other">Your install method is System, so Android will ask you to confirm each update: %1$d prompts in a row. To update without prompts, choose Shizuku or Root in Settings.</item>
     </plurals>
     <string name="build_title_updating">Updating %1$s (%2$d of %3$d)…</string>
-    <plurals name="other_key_notice">
-        <item quantity="one">%d app was signed with a certificate Shrimpl no longer has. Import your certificate backup in Settings to update it</item>
-        <item quantity="other">%d apps were signed with a certificate Shrimpl no longer has. Import your certificate backup in Settings to update them</item>
-    </plurals>
-    <plurals name="reinstall_notice">
-        <item quantity="one">%d app is ready to reinstall with your current certificate, using its saved settings</item>
-        <item quantity="other">%d apps are ready to reinstall with your current certificate, using their saved settings</item>
-    </plurals>
-    <plurals name="no_backup_text">
-        <item quantity="one">Without the backup, Android won\'t accept updates to %1$s. Uninstall it, and Shrimpl keeps its settings so you can reinstall it with your current certificate. Its sign-ins and site data will be lost.</item>
-        <item quantity="other">Without the backup, Android won\'t accept updates to %1$s. Uninstall them, and Shrimpl keeps their settings so you can reinstall them with your current certificate. Their sign-ins and site data will be lost.</item>
-    </plurals>
-    <string name="no_backup_title">No certificate backup?</string>
-    <string name="action_no_backup">No backup</string>
-    <string name="action_reinstall_all">Reinstall all</string>
-    <string name="home_other_key">Different certificate</string>
     <plurals name="batch_updated">
         <item quantity="one">%1$d app updated</item>
         <item quantity="other">%1$d apps updated</item>

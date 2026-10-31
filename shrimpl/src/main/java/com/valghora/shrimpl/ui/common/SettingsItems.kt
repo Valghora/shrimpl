@@ -36,7 +36,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
-import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
@@ -69,12 +68,6 @@ fun SettingsSection(title: String, modifier: Modifier = Modifier, content: @Comp
 }
 
 /**
- * Settings shown but not changeable (R11.7): items keep their values readable but don't respond, and
- * switches look disabled.
- */
-val LocalReadOnly = staticCompositionLocalOf { false }
-
-/**
  * One item: [title], an optional [summary] (and an error or hint below it), and [trailing] at the end.
  * Clickable when [onClick] is set; dimmed when not [enabled].
  */
@@ -92,13 +85,12 @@ fun SettingsItem(
     leading: (@Composable () -> Unit)? = null,
     trailing: (@Composable () -> Unit)? = null,
 ) {
-    val clickable = onClick != null && !LocalReadOnly.current
     Row(
         modifier
             .fillMaxWidth()
             .clip(ItemShape)
             .background(MaterialTheme.colorScheme.surfaceContainer)
-            .then(if (clickable && onClick != null) Modifier.clickable(enabled = enabled, role = role, onClick = onClick) else Modifier)
+            .then(if (onClick != null) Modifier.clickable(enabled = enabled, role = role, onClick = onClick) else Modifier)
             .heightIn(min = 72.dp)
             .padding(horizontal = 20.dp, vertical = 14.dp)
             .alpha(if (enabled) 1f else DISABLED_ALPHA),
@@ -145,7 +137,7 @@ fun SwitchItem(
             Switch(
                 checked = checked,
                 onCheckedChange = null,
-                enabled = enabled && !LocalReadOnly.current,
+                enabled = enabled,
                 thumbContent = {
                     Icon(
                         if (checked) Icons.Filled.Check else Icons.Filled.Close,
@@ -184,7 +176,7 @@ fun <T> DropdownItem(
                         color = MaterialTheme.colorScheme.onSurface,
                         modifier = Modifier.widthIn(max = 160.dp),
                     )
-                    if (!LocalReadOnly.current) Icon(Icons.Filled.KeyboardArrowDown, contentDescription = null)
+                    Icon(Icons.Filled.KeyboardArrowDown, contentDescription = null)
                 }
                 DropdownMenu(expanded = open, onDismissRequest = { open = false }) {
                     options.forEach { (option, label) ->
@@ -212,7 +204,7 @@ fun NavigationItem(title: String, onClick: () -> Unit, summary: String? = null, 
         error = error,
         enabled = enabled,
         onClick = onClick,
-        trailing = { if (!LocalReadOnly.current) Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = null) },
+        trailing = { Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = null) },
     )
 }
 

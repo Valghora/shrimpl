@@ -43,6 +43,16 @@ class AppSettings(context: Context) {
         get() = prefs.getBoolean(KEY_RECOVERY_DONE, false)
         set(value) = prefs.edit { putBoolean(KEY_RECOVERY_DONE, value) }
 
+    private val _keyNoticeDismissed = MutableStateFlow(prefs.getStringSet(KEY_KEY_NOTICE_DISMISSED, null).orEmpty().toSet())
+
+    /** The apps the different-key notice (R11.7) was dismissed for; another such app shows it again. */
+    val keyNoticeDismissed: StateFlow<Set<String>> = _keyNoticeDismissed.asStateFlow()
+
+    fun dismissKeyNotice(appIds: Set<String>) {
+        prefs.edit { putStringSet(KEY_KEY_NOTICE_DISMISSED, appIds) }
+        _keyNoticeDismissed.value = appIds
+    }
+
     /** The one-time "back up your key" prompt (R5.3) has been shown. */
     var backupPromptShown: Boolean
         get() = prefs.getBoolean(KEY_PROMPT_SHOWN, false)
@@ -75,5 +85,6 @@ class AppSettings(context: Context) {
         const val KEY_BACKED_UP = "key_backed_up"
         const val KEY_PROMPT_SHOWN = "backup_prompt_shown"
         const val KEY_RECOVERY_DONE = "recovery_done"
+        const val KEY_KEY_NOTICE_DISMISSED = "key_notice_dismissed"
     }
 }

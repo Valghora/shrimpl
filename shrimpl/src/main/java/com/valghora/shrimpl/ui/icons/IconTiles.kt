@@ -37,7 +37,6 @@ import androidx.compose.ui.unit.dp
 import com.valghora.shrimpl.R
 import com.valghora.shrimpl.core.records.IconOptions
 import com.valghora.shrimpl.core.records.IconRecord
-import com.valghora.shrimpl.ui.common.LocalReadOnly
 
 /**
  * The icon choice (docs/SHRIMPL_SPEC.md R10.1): one preview tile per option (Brand, Website, Custom),
@@ -98,7 +97,7 @@ private fun Tile(label: String, selected: Boolean, onClick: () -> Unit, preview:
         Modifier
             .width(TILE_WIDTH)
             .clip(RoundedCornerShape(16.dp))
-            .selectable(selected = selected, enabled = !LocalReadOnly.current, onClick = onClick, role = Role.RadioButton)
+            .selectable(selected = selected, onClick = onClick, role = Role.RadioButton)
             .padding(vertical = 6.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(8.dp),

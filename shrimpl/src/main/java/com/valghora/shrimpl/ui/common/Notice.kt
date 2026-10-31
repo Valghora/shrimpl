@@ -4,6 +4,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -71,8 +72,9 @@ data class Notice(val kind: Kind, val text: String) {
 }
 
 /**
- * A notification card: the kind's icon and text, optional [action] and [secondaryAction] buttons
- * (such as Retry), and a dismiss button when [onDismiss] is set.
+ * A notification card: the kind's icon and text, an optional [action] button (such as Retry) under
+ * the text, an optional [endAction] (such as Dismiss) at the other end of that row, inset as far from
+ * the card's end as [action] is from its start, and a dismiss button when [onDismiss] is set.
  */
 @Composable
 fun NoticeCard(
@@ -80,7 +82,7 @@ fun NoticeCard(
     modifier: Modifier = Modifier,
     onDismiss: (() -> Unit)? = null,
     action: Pair<String, () -> Unit>? = null,
-    secondaryAction: Pair<String, () -> Unit>? = null,
+    endAction: Pair<String, () -> Unit>? = null,
 ) {
     val color = notice.kind.tone.content
     Row(
@@ -95,11 +97,15 @@ fun NoticeCard(
         Icon(notice.kind.icon(), contentDescription = stringResource(notice.kind.label()), tint = color, modifier = Modifier.padding(top = 2.dp).size(24.dp))
         Column(Modifier.weight(1f).padding(top = 3.dp)) {
             Text(notice.text, style = MaterialTheme.typography.bodyMedium, color = color)
-            if (action != null || secondaryAction != null) {
-                Row(Modifier.padding(top = 4.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    listOfNotNull(action, secondaryAction).forEach { (label, onClick) ->
-                        TextButton(onClick = onClick) { Text(label, color = color, style = MaterialTheme.typography.labelLarge) }
-                    }
+            if (action != null || endAction != null) {
+                // The icon column's width (24 dp icon and 12 dp gap) mirrored at the end.
+                Row(
+                    Modifier.fillMaxWidth().padding(top = 10.dp, end = if (endAction != null) 36.dp else 0.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                ) {
+                    action?.let { (label, onClick) -> TextButton(onClick = onClick) { Text(label, color = color, style = MaterialTheme.typography.labelLarge) } }
+                    Spacer(Modifier.weight(1f))
+                    endAction?.let { (label, onClick) -> TextButton(onClick = onClick) { Text(label, color = color, style = MaterialTheme.typography.labelLarge) } }
                 }
             }
         }
