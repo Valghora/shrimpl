@@ -34,9 +34,9 @@ import com.valghora.shrimpl.core.discovery.Note
 /**
  * Status colors. Info follows the Material theme (the secondary container, like tonal buttons), since
  * it carries no urgency. The others are fixed pairs of a pastel and a deep shade, so a warning reads
- * as one whatever the wallpaper. Dark theme: pastel notifications and buttons with deep text, and
- * pastel status text on ordinary surfaces (a failure description in light red). Light theme: the
- * opposite, deep notifications and buttons with pastel text, and deep status text.
+ * as one whatever the wallpaper: pastel notifications and buttons with deep text in both themes.
+ * Status text on ordinary surfaces (a failure description) is pastel in dark theme and deep in light
+ * theme, so it stays readable.
  */
 enum class Tone(private val pastel: Color?, private val deep: Color?) {
     INFO(null, null),
@@ -46,17 +46,13 @@ enum class Tone(private val pastel: Color?, private val deep: Color?) {
     ;
 
     /** The background of a notification or button in this tone. */
-    val container: Color @Composable get() = themed(MaterialTheme.colorScheme.secondaryContainer) { dark -> if (dark) pastel else deep }
+    val container: Color @Composable get() = pastel ?: MaterialTheme.colorScheme.secondaryContainer
 
     /** Text and icons on [container]. */
-    val content: Color @Composable get() = themed(MaterialTheme.colorScheme.onSecondaryContainer) { dark -> if (dark) deep else pastel }
+    val content: Color @Composable get() = deep ?: MaterialTheme.colorScheme.onSecondaryContainer
 
     /** Status text on ordinary surfaces, such as a failure description. */
-    val text: Color @Composable get() = themed(MaterialTheme.colorScheme.secondary) { dark -> if (dark) pastel else deep }
-
-    /** [material] for the theme-following tone, else the fixed shade [pick] chooses. */
-    @Composable
-    private fun themed(material: Color, pick: (dark: Boolean) -> Color?): Color = pick(isDarkTheme()) ?: material
+    val text: Color @Composable get() = (if (isDarkTheme()) pastel else deep) ?: MaterialTheme.colorScheme.secondary
 }
 
 /** Whether the app is showing its dark theme (set in Settings or by the system). */

@@ -59,6 +59,7 @@ There is no emulator in the cloud container; UI changes are confirmed on the own
 - Never force-push. Branch from the default branch for new work.
 - Write user-facing text without ending punctuation in item descriptions, and with the palette rules
   in `ui/common/Notice.kt` and the theme (Info follows the Material theme; Caution, Error and Success
-  use pastel containers with dark text in dark theme, the inverse in light theme).
+  use pastel containers with dark text in both themes; status text on plain surfaces is pastel in
+  dark theme and deep in light theme).
 - Record new toolchain or platform findings, and any deviation from the specs, in
   `docs/BUILD_NOTES.md`.
