@@ -100,7 +100,7 @@ fun BuildSheet(
                 }
                 is BuildState.BatchDone -> {
                     Text(
-                        pluralStringResource(R.plurals.batch_updated, state.updated.size, state.updated.size),
+                        pluralStringResource(if (state.fixed) R.plurals.batch_fixed else R.plurals.batch_updated, state.updated.size, state.updated.size),
                         style = MaterialTheme.typography.titleLarge,
                     )
                     if (state.updated.isNotEmpty()) Text(state.updated.joinToString(", "), style = MaterialTheme.typography.bodyMedium)

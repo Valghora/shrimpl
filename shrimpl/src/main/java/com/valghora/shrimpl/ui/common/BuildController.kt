@@ -39,8 +39,8 @@ sealed interface BuildState {
 
     data class Done(val record: WebAppRecord) : BuildState
 
-    /** Update all finished: the apps that were updated, and the ones that failed with why. */
-    data class BatchDone(val updated: List<String>, val failed: List<Pair<String, String>>) : BuildState
+    /** Update all or Fix all ([fixed]) finished: the apps that were updated or fixed, and the ones that failed with why. */
+    data class BatchDone(val updated: List<String>, val failed: List<Pair<String, String>>, val fixed: Boolean = false) : BuildState
 
     /** The system installer needs "Install unknown apps" for Shrimpl (R6.3). */
     data object NeedsUnknownSources : BuildState
@@ -77,6 +77,9 @@ class BuildController(private val container: AppContainer, private val scope: Co
     private var batchUpdated = emptyList<String>()
     private var batchFailed = emptyList<Pair<String, String>>()
     private var batchTotal = 0
+
+    /** The batch is Fix all, kept across a resume (whose first item is no longer uninstalled first). */
+    private var batchFixing = false
 
     /** Called with the record after each successful install. */
     var onInstalled: (WebAppRecord) -> Unit = {}
@@ -120,6 +123,7 @@ class BuildController(private val container: AppContainer, private val scope: Co
         batchUpdated = emptyList()
         batchFailed = emptyList()
         batchTotal = items.size
+        batchFixing = items.any { it.uninstallFirst }
         runBatch(items)
     }
 
@@ -169,7 +173,7 @@ class BuildController(private val container: AppContainer, private val scope: Co
             }
             pendingBatch = null
             _state.value = when {
-                !single -> BuildState.BatchDone(batchUpdated, batchFailed)
+                !single -> BuildState.BatchDone(batchUpdated, batchFailed, fixed = batchFixing)
                 lastInstalled != null -> BuildState.Done(lastInstalled)
                 batchFailed.isNotEmpty() -> BuildState.Failed(batchFailed.first().second, offerSystemInstaller = false)
                 else -> null
