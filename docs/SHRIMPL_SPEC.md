@@ -340,13 +340,16 @@ The template's behavior is docs/TEMPLATE_SPEC.md. What Shrimpl relies on:
   with their drawn launcher icon as a Custom icon. This search runs once, so apps removed from the
   list stay removed. Apps signed with another key are handled by R11.7.
 - R11.7 An app last signed with a key other than Shrimpl's current one keeps its record either way.
-  Installed, its row offers only Uninstall (a tonal button like Update; it uninstalls without
-  asking), tapping the row does nothing, and its menus offer only Remove; Update all skips it.
-  Uninstalled, the row offers Rebuild, which builds from the saved settings signed with the current
-  key, after which the app is managed normally. Home shows a Caution notice explaining both ways out
-  (import the certificate backup, R5.2, or Uninstall then Rebuild, keeping the settings but not the
-  site data), with Open settings at the start and Dismiss at the end. Dismiss hides it for the apps
-  it covered; another such app shows it again.
+  Installed, its row offers only Fix (a tonal button like Update, with a wrench icon), tapping the
+  row does nothing, and its menus offer only Remove; Update all skips it. Fix uninstalls the app
+  (the system asks), then rebuilds it from the saved settings signed with the current key (the
+  system asks again); the build sheet adds an Uninstalling step before the build's stages, and
+  turning the uninstall down stops with nothing changed. With two or more such apps, Fix all (a pill
+  above New app, like Update all) fixes them one after another and ends with what was fixed and what
+  failed. An app whose Fix stopped after the uninstall offers Rebuild. Home shows a Caution notice
+  explaining both ways out (import the certificate backup, R5.2, or Fix, keeping the settings but
+  not the site data), with Open settings at the start and Dismiss at the end. Dismiss hides it for
+  the apps it covered; another such app shows it again.
 
 ## R12 Repository, CI and releases
 

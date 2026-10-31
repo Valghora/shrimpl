@@ -77,11 +77,18 @@ fun BuildSheet(
                             ?: stringResource(R.string.build_title_reinstalling_one, state.name)
                     }
                     Text(title, style = MaterialTheme.typography.titleLarge)
-                    WebAppFactory.Stage.entries.forEach { stage -> StageRow(stage, state.stage) }
-                    if (state.stage != WebAppFactory.Stage.INSTALLING) {
+                    // Fix (R11.7) uninstalls the old copy first; the build's stages wait until it's gone.
+                    state.uninstalling?.let { inProgress ->
+                        StepRow(stringResource(R.string.stage_uninstalling), done = !inProgress, current = inProgress, reached = true)
+                    }
+                    WebAppFactory.Stage.entries.forEach { stage ->
+                        val current = if (state.uninstalling == true) null else state.stage
+                        StageRow(stage, current)
+                    }
+                    if (!state.withSystem) {
                         TextButton(onClick = onCancel, modifier = Modifier.align(Alignment.End)) { Text(stringResource(R.string.action_cancel)) }
                     } else if (state.waitingForUser) {
-                        WaitingForUser(onShowInstaller = onShowInstaller, onCancel = onCancel)
+                        WaitingForUser(uninstalling = state.uninstalling == true, onShowInstaller = onShowInstaller, onCancel = onCancel)
                     }
                 }
                 is BuildState.Done -> {
@@ -125,26 +132,38 @@ fun BuildSheet(
     }
 }
 
+/** One build stage; [current] null: the build hasn't started (Fix is still uninstalling). */
 @Composable
-private fun StageRow(stage: WebAppFactory.Stage, current: WebAppFactory.Stage) {
+private fun StageRow(stage: WebAppFactory.Stage, current: WebAppFactory.Stage?) {
+    val label = when (stage) {
+        WebAppFactory.Stage.RENDERING_ICON -> R.string.stage_rendering_icon
+        WebAppFactory.Stage.BUILDING -> R.string.stage_building
+        WebAppFactory.Stage.SIGNING -> R.string.stage_signing
+        WebAppFactory.Stage.VERIFYING -> R.string.stage_verifying
+        WebAppFactory.Stage.INSTALLING -> R.string.stage_installing
+    }
+    StepRow(
+        stringResource(label),
+        done = current != null && stage.ordinal < current.ordinal,
+        current = stage == current,
+        reached = current != null && stage.ordinal <= current.ordinal,
+    )
+}
+
+/** A step of the build sheet: a check when [done], a spinner when [current], dimmed until [reached]. */
+@Composable
+private fun StepRow(label: String, done: Boolean, current: Boolean, reached: Boolean) {
     Row(verticalAlignment = Alignment.CenterVertically) {
         when {
-            stage.ordinal < current.ordinal -> Icon(Icons.Filled.CheckCircle, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(24.dp))
-            stage == current -> CircularProgressIndicator(Modifier.size(24.dp), strokeWidth = 3.dp)
+            done -> Icon(Icons.Filled.CheckCircle, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(24.dp))
+            current -> CircularProgressIndicator(Modifier.size(24.dp), strokeWidth = 3.dp)
             else -> Spacer(Modifier.size(24.dp))
         }
         Spacer(Modifier.width(16.dp))
-        val label = when (stage) {
-            WebAppFactory.Stage.RENDERING_ICON -> R.string.stage_rendering_icon
-            WebAppFactory.Stage.BUILDING -> R.string.stage_building
-            WebAppFactory.Stage.SIGNING -> R.string.stage_signing
-            WebAppFactory.Stage.VERIFYING -> R.string.stage_verifying
-            WebAppFactory.Stage.INSTALLING -> R.string.stage_installing
-        }
         Text(
-            stringResource(label),
+            label,
             style = MaterialTheme.typography.bodyLarge,
-            color = if (stage.ordinal <= current.ordinal) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurfaceVariant,
+            color = if (reached) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurfaceVariant,
         )
     }
 }
@@ -155,7 +174,7 @@ private fun StageRow(stage: WebAppFactory.Stage, current: WebAppFactory.Stage) {
  * The short delay keeps this hidden while the installer's own screen is still opening.
  */
 @Composable
-private fun WaitingForUser(onShowInstaller: () -> Unit, onCancel: () -> Unit) {
+private fun WaitingForUser(uninstalling: Boolean, onShowInstaller: () -> Unit, onCancel: () -> Unit) {
     var resumed by remember { mutableStateOf(false) }
     LifecycleResumeEffect(Unit) {
         resumed = true
@@ -169,7 +188,7 @@ private fun WaitingForUser(onShowInstaller: () -> Unit, onCancel: () -> Unit) {
         }
     }
     if (!stalled) return
-    Text(stringResource(R.string.build_waiting_for_user), style = MaterialTheme.typography.bodyMedium)
+    Text(stringResource(if (uninstalling) R.string.build_waiting_for_uninstall else R.string.build_waiting_for_user), style = MaterialTheme.typography.bodyMedium)
     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
         TextButton(onClick = onCancel) { Text(stringResource(R.string.action_cancel)) }
         Spacer(Modifier.width(8.dp))

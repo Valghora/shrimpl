@@ -4,6 +4,7 @@ import com.valghora.shrimpl.AppContainer
 import com.valghora.shrimpl.build.BuildOutcome
 import com.valghora.shrimpl.build.BuildRequest
 import com.valghora.shrimpl.build.WebAppFactory
+import com.valghora.shrimpl.install.InstallResult
 import com.valghora.shrimpl.install.Installer
 import com.valghora.shrimpl.core.records.WebAppRecord
 import kotlinx.coroutines.CoroutineScope
@@ -19,16 +20,22 @@ import kotlinx.coroutines.launch
 sealed interface BuildState {
     /**
      * Building [name], as a new app, an update or a reinstall ([kind]). [batch]: which app of an
-     * Update all or Reinstall all it is; null for a single build. [waitingForUser]: installing, and
-     * the system installer is waiting for the user to confirm (R6.5).
+     * Update all or Fix all it is; null for a single build. [uninstalling]: for Fix (R11.7), whether
+     * the old copy is still being uninstalled (true) or already is (false); null without that step.
+     * [waitingForUser]: installing or uninstalling, and the system is waiting for the user to
+     * confirm (R6.5).
      */
     data class Running(
         val stage: WebAppFactory.Stage,
         val name: String,
         val kind: BuildKind,
         val batch: BatchProgress? = null,
+        val uninstalling: Boolean? = null,
         val waitingForUser: Boolean = false,
-    ) : BuildState
+    ) : BuildState {
+        /** The system's own screen is in charge: installing, or uninstalling for Fix. */
+        val withSystem: Boolean get() = stage == WebAppFactory.Stage.INSTALLING || uninstalling == true
+    }
 
     data class Done(val record: WebAppRecord) : BuildState
 
@@ -45,14 +52,17 @@ sealed interface BuildState {
 /** What a build does: makes a new app, updates an installed one, or installs a known one again. */
 enum class BuildKind { CREATE, UPDATE, REINSTALL }
 
-/** The app being built during Update all or Reinstall all: [index] (from 1) of [total]. */
+/** The app being built during Update all or Fix all: [index] (from 1) of [total]. */
 data class BatchProgress(val index: Int, val total: Int)
+
+/** One build of a batch; [uninstallFirst] for Fix (R11.7): the installed copy is uninstalled first. */
+private data class BatchItem(val request: BuildRequest, val uninstallFirst: Boolean)
 
 /** Runs builds for a screen's ViewModel and exposes their progress. */
 class BuildController(private val container: AppContainer, private val scope: CoroutineScope) {
     private val _state = MutableStateFlow<BuildState?>(null)
     val state: StateFlow<BuildState?> = combine(_state, container.installers.session.confirmation) { state, confirmation ->
-        if (state is BuildState.Running && state.stage == WebAppFactory.Stage.INSTALLING && confirmation != null) {
+        if (state is BuildState.Running && state.withSystem && confirmation != null) {
             state.copy(waitingForUser = true)
         } else {
             state
@@ -62,8 +72,8 @@ class BuildController(private val container: AppContainer, private val scope: Co
     private var job: Job? = null
     private var lastRequest: BuildRequest? = null
 
-    /** Update all's builds not done yet, with what is done so far, to resume after a permission prompt. */
-    private var pendingBatch: List<BuildRequest>? = null
+    /** Update all's or Fix all's builds not done yet, with what is done so far, to resume after a permission prompt. */
+    private var pendingBatch: List<BatchItem>? = null
     private var batchUpdated = emptyList<String>()
     private var batchFailed = emptyList<Pair<String, String>>()
     private var batchTotal = 0
@@ -95,41 +105,75 @@ class BuildController(private val container: AppContainer, private val scope: Co
      * sheet ends with what was updated and what failed. Only "Install unknown apps" pauses the run,
      * which [retry] then resumes.
      */
-    fun startAll(requests: List<BuildRequest>) {
-        if (job?.isActive == true || requests.isEmpty()) return
+    fun startAll(requests: List<BuildRequest>) = startBatch(requests.map { BatchItem(it, uninstallFirst = false) })
+
+    /**
+     * Fix and Fix all (R11.7): for each app signed with another key, uninstalls the installed copy,
+     * then builds it again from its record with the current key. Cancelling an uninstall stops the
+     * run; one app alone ends like a single build.
+     */
+    fun startFix(requests: List<BuildRequest>) = startBatch(requests.map { BatchItem(it, uninstallFirst = true) })
+
+    private fun startBatch(items: List<BatchItem>) {
+        if (job?.isActive == true || items.isEmpty()) return
+        lastRequest = items.singleOrNull()?.request
         batchUpdated = emptyList()
         batchFailed = emptyList()
-        batchTotal = requests.size
-        runBatch(requests)
+        batchTotal = items.size
+        runBatch(items)
     }
 
-    private fun runBatch(requests: List<BuildRequest>) {
-        pendingBatch = requests
+    private fun runBatch(items: List<BatchItem>) {
+        pendingBatch = items
         job = scope.launch {
             val installer = container.installers.preferred()
-            for ((i, request) in requests.withIndex()) {
-                val progress = BatchProgress(batchTotal - requests.size + i + 1, batchTotal)
-                val kind = kindOf(request)
-                fun running(stage: WebAppFactory.Stage) = BuildState.Running(stage, request.profile.name, kind, batch = progress)
+            val single = batchTotal == 1
+            var lastInstalled: WebAppRecord? = null
+            for ((i, item) in items.withIndex()) {
+                val request = item.request
+                val progress = if (single) null else BatchProgress(batchTotal - items.size + i + 1, batchTotal)
+                val kind = if (item.uninstallFirst) BuildKind.REINSTALL else kindOf(request)
+                val uninstallStep = if (item.uninstallFirst) false else null
+                fun running(stage: WebAppFactory.Stage, uninstalling: Boolean? = uninstallStep) =
+                    BuildState.Running(stage, request.profile.name, kind, batch = progress, uninstalling = uninstalling)
+                if (item.uninstallFirst) {
+                    _state.value = running(WebAppFactory.Stage.RENDERING_ICON, uninstalling = true)
+                    when (val result = installer.uninstall(requireNotNull(request.existing) { "Fix needs an existing app" }.packageName)) {
+                        InstallResult.Success -> Unit
+                        // Turning the uninstall down stops the run; this app stays as it was.
+                        InstallResult.NeedsUnknownSources, InstallResult.Cancelled -> break
+                        is InstallResult.Failure -> {
+                            batchFailed = batchFailed + (request.profile.name to result.message)
+                            continue
+                        }
+                    }
+                }
                 _state.value = running(WebAppFactory.Stage.RENDERING_ICON)
                 val outcome = container.factory.build(request, installer) { _state.value = running(it) }
                 when (outcome) {
                     is BuildOutcome.Installed -> {
                         batchUpdated = batchUpdated + request.profile.name
+                        lastInstalled = outcome.record
                         onInstalled(outcome.record)
                     }
                     BuildOutcome.NeedsUnknownSources -> {
-                        pendingBatch = requests.drop(i)
+                        // Resumed by retry(); this app is already uninstalled, so it isn't uninstalled again.
+                        pendingBatch = listOf(item.copy(uninstallFirst = false)) + items.drop(i + 1)
                         _state.value = BuildState.NeedsUnknownSources
                         return@launch
                     }
-                    // Cancelling one install stops Update all; the rest keep their Update buttons.
+                    // Cancelling one install stops the run; the rest keep their buttons.
                     BuildOutcome.Cancelled -> break
                     is BuildOutcome.Failed -> batchFailed = batchFailed + (request.profile.name to outcome.message)
                 }
             }
             pendingBatch = null
-            _state.value = BuildState.BatchDone(batchUpdated, batchFailed)
+            _state.value = when {
+                !single -> BuildState.BatchDone(batchUpdated, batchFailed)
+                lastInstalled != null -> BuildState.Done(lastInstalled)
+                batchFailed.isNotEmpty() -> BuildState.Failed(batchFailed.first().second, offerSystemInstaller = false)
+                else -> null
+            }
         }
     }
 
@@ -139,7 +183,7 @@ class BuildController(private val container: AppContainer, private val scope: Co
         else -> BuildKind.REINSTALL
     }
 
-    /** Runs the last request again (or resumes Update all), optionally with the system installer. */
+    /** Runs the last request again (or resumes Update all or Fix all), optionally with the system installer. */
     fun retry(withSystemInstaller: Boolean = false) {
         pendingBatch?.let {
             if (job?.isActive != true) runBatch(it)

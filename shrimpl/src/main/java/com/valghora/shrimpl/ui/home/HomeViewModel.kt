@@ -62,6 +62,11 @@ class HomeViewModel(private val container: AppContainer) : ViewModel() {
     fun otherKey(records: List<WebAppRecord>, key: SigningKeyCheck): Set<String> =
         if (key is SigningKeyCheck.Read) records.filter { it.signerFingerprint != key.fingerprint }.mapTo(mutableSetOf()) { it.appId } else emptySet()
 
+    /** Fix and Fix all (R11.7): uninstalls [records], then rebuilds them signed with the current key. */
+    fun fix(records: List<WebAppRecord>) {
+        build.startFix(records.map(::requestFor))
+    }
+
     /** The apps the different-key notice was dismissed for (R11.7). */
     val keyNoticeDismissed: StateFlow<Set<String>> = container.settings.keyNoticeDismissed
 

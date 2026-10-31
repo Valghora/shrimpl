@@ -24,7 +24,7 @@ import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Build
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Settings
@@ -121,6 +121,7 @@ fun HomeScreen(
     // R11.7: the notice shows until dismissed, and again when another such app turns up.
     val keyNoticeDismissed by model.keyNoticeDismissed.collectAsStateWithLifecycle()
     val showKeyNotice = otherKey.isNotEmpty() && !keyNoticeDismissed.containsAll(otherKey)
+    val toFix = records.filter { it.appId in otherKey && it.packageName in installed }
     var confirmUpdateAll by rememberSaveable { mutableStateOf(false) }
     var confirmUninstall by rememberSaveable { mutableStateOf<String?>(null) }
     val snackbar = remember { SnackbarHostState() }
@@ -174,6 +175,16 @@ fun HomeScreen(
             // detail pane, New app shows only while the detail holds something else; the empty detail
             // pane has its own.
             Column(Modifier.width(IntrinsicSize.Max), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                // R11.7: two or more apps signed with another key.
+                if (toFix.size >= 2) {
+                    PillButton(
+                        stringResource(R.string.action_fix_all),
+                        Icons.Filled.Build,
+                        onClick = { model.fix(toFix) },
+                        modifier = Modifier.fillMaxWidth(),
+                        secondary = true,
+                    )
+                }
                 if (outdated.size >= 2) {
                     PillButton(
                         stringResource(R.string.action_update_all),
@@ -236,7 +247,7 @@ fun HomeScreen(
                         onEdit = { onEdit(record.appId) },
                         onRebuild = { model.rebuild(record) },
                         onUninstall = { confirmUninstall = record.appId },
-                        onUninstallNow = { model.uninstall(context, record) },
+                        onFix = { model.fix(listOf(record)) },
                         onRemove = { model.remove(record) },
                     )
                 }
@@ -290,10 +301,10 @@ private fun AppItem(
     onEdit: () -> Unit,
     onRebuild: () -> Unit,
     onUninstall: () -> Unit,
-    onUninstallNow: () -> Unit,
+    onFix: () -> Unit,
     onRemove: () -> Unit,
 ) {
-    // R11.7: installed but signed with another key; it can only be uninstalled (then rebuilt) or removed.
+    // R11.7: installed but signed with another key; it can only be fixed (uninstalled, then rebuilt) or removed.
     val locked = installed != null && otherKey
     var menuAt by remember { mutableStateOf<DpOffset?>(null) }
     val density = LocalDensity.current
@@ -340,9 +351,10 @@ private fun AppItem(
                 }
             }
             // R2.2: a newer template is bundled; Update rebuilds this app with it. R11.7: an app signed
-            // with another key offers Uninstall (no confirmation), then Rebuild with the current key.
+            // with another key offers Fix (uninstall, then rebuild with the current key); Rebuild is
+            // left for one whose Fix stopped after the uninstall.
             val rowAction = when {
-                locked -> Triple(R.string.action_uninstall, Icons.Filled.Delete, onUninstallNow)
+                locked -> Triple(R.string.action_fix, Icons.Filled.Build, onFix)
                 installed == null && otherKey -> Triple(R.string.action_rebuild, Icons.Filled.Refresh, onRebuild)
                 installed != null && updateAvailable -> Triple(R.string.action_update, Icons.Filled.Refresh, onRebuild)
                 else -> null
