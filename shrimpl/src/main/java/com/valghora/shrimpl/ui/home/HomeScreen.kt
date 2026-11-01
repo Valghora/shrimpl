@@ -49,10 +49,17 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.toRect
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.graphics.ColorMatrix
+import androidx.compose.ui.graphics.Paint
 import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.input.pointer.PointerEventType
 import androidx.compose.ui.input.pointer.isSecondaryPressed
@@ -236,7 +243,8 @@ fun HomeScreen(
                         )
                     }
                 }
-                items(records, key = { it.appId }) { record ->
+                // R2.2: uninstalled apps sit at the bottom, each group still in name order.
+                items(records.sortedBy { it.packageName !in installed }, key = { it.appId }) { record ->
                     val app = installed[record.packageName]
                     AppItem(
                         record = record,
@@ -336,7 +344,7 @@ private fun AppItem(
             .clip(ItemShape)
             .background(if (selected) MaterialTheme.colorScheme.secondaryContainer else Color.Transparent)
             // A tap opens or edits the app, as chosen in Settings (R2.5).
-            .combinedClickable(onClick = if (locked) ({}) else if (clickAction == ClickAction.EDIT) onEdit else onOpen, onLongClick = { menuAt = DpOffset(24.dp, 48.dp) }),
+            .combinedClickable(onClick = if (locked || installed == null) ({}) else if (clickAction == ClickAction.EDIT) onEdit else onOpen, onLongClick = { menuAt = DpOffset(24.dp, 48.dp) }),
     ) {
         Row(
             // With the inset, the icon is 16 dp from the edge and the ⋮ button's center 28 dp from it,
@@ -345,9 +353,11 @@ private fun AppItem(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(16.dp),
         ) {
-            ItemIcon(record, installed)
+            // R2.2: an uninstalled app is greyed out; its menus and buttons stay as they are.
+            val greyed = installed == null
+            Box(if (greyed) Modifier.greyedOut() else Modifier) { ItemIcon(record, installed) }
             Column(Modifier.weight(1f)) {
-                Text(record.profile.name, style = MaterialTheme.typography.titleMedium)
+                Text(record.profile.name, style = MaterialTheme.typography.titleMedium, modifier = if (greyed) Modifier.alpha(GREYED_ALPHA) else Modifier)
                 if (installed == null) {
                     Text(stringResource(R.string.home_not_installed), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
@@ -445,3 +455,18 @@ private val MIN_CELL_WIDTH = 360.dp
 private val FAB_MARGIN = 16.dp
 
 private const val OTHER_KEY_NOTICE = "other-key-notice"
+
+private const val GREYED_ALPHA = 0.38f
+
+/** Draws its content without color and dimmed, as Material does for disabled content. */
+private fun Modifier.greyedOut(): Modifier = drawWithContent {
+    val paint = Paint().apply {
+        colorFilter = ColorFilter.colorMatrix(ColorMatrix().apply { setToSaturation(0f) })
+        alpha = GREYED_ALPHA
+    }
+    drawIntoCanvas { canvas ->
+        canvas.saveLayer(size.toRect(), paint)
+        drawContent()
+        canvas.restore()
+    }
+}
