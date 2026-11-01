@@ -16,8 +16,8 @@ import com.valghora.shrimpl.install.Installers
 class AppContainer(context: Context) {
     private val appContext = context.applicationContext
 
-    /** Whether [packageName] is installed now. */
-    fun isInstalled(packageName: String) = InstalledApps.find(appContext, packageName) != null
+    /** Whether [packageName] is installed now; a binder call, so not on the main thread. */
+    fun isInstalled(packageName: String) = InstalledApps.isInstalled(appContext, packageName)
 
     val settings = AppSettings(context)
     val store = WebAppStore(context)

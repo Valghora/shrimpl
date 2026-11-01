@@ -10,6 +10,7 @@ import com.valghora.shrimpl.install.InstallResult
 import com.valghora.shrimpl.install.Installer
 import com.valghora.shrimpl.testing.TestMode
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.awaitCancellation
 import kotlinx.coroutines.delay
@@ -19,6 +20,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 /** What the build sheet shows (docs/SHRIMPL_SPEC.md R3.4). */
 sealed interface BuildState {
@@ -92,10 +94,10 @@ class BuildController(private val container: AppContainer, private val scope: Co
         if (job?.isActive == true) return
         lastRequest = request
         pendingBatch = null
-        val kind = kindOf(request)
-        fun running(stage: WebAppFactory.Stage) = BuildState.Running(stage, request.profile.name, kind)
-        _state.value = running(WebAppFactory.Stage.RENDERING_ICON)
         job = scope.launch {
+            val kind = kindOf(request)
+            fun running(stage: WebAppFactory.Stage) = BuildState.Running(stage, request.profile.name, kind)
+            _state.value = running(WebAppFactory.Stage.RENDERING_ICON)
             val chosen = installer ?: container.installers.preferred()
             val tags = simulated(request)
             val outcome = if (tags != null) {
@@ -236,9 +238,10 @@ class BuildController(private val container: AppContainer, private val scope: Co
         }
     }
 
-    private fun kindOf(request: BuildRequest): BuildKind = when {
+    /** Asks the package manager off the main thread (anr-audit-and-fix skill). */
+    private suspend fun kindOf(request: BuildRequest): BuildKind = when {
         request.existing == null -> BuildKind.CREATE
-        container.isInstalled(request.existing.packageName) -> BuildKind.UPDATE
+        withContext(Dispatchers.IO) { container.isInstalled(request.existing.packageName) } -> BuildKind.UPDATE
         else -> BuildKind.REINSTALL
     }
 

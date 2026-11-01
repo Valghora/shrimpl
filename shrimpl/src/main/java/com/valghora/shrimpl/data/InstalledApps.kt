@@ -17,6 +17,14 @@ object InstalledApps {
         null
     }
 
+    /** Whether [packageName] is installed, without loading its icon as [find] does. */
+    fun isInstalled(context: Context, packageName: String): Boolean = try {
+        context.packageManager.getPackageInfo(packageName, 0)
+        true
+    } catch (_: PackageManager.NameNotFoundException) {
+        false
+    }
+
     /** Opens the web app; false if it isn't installed or has no launcher activity. */
     fun open(context: Context, packageName: String): Boolean {
         val intent = context.packageManager.getLaunchIntentForPackage(packageName) ?: return false
