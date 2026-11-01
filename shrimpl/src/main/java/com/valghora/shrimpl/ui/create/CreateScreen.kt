@@ -224,7 +224,7 @@ private fun ActionRow(vararg actions: Pair<Int, () -> Unit>) {
 }
 
 /**
- * R3.2: the search as a checklist under "Searching…": a check for each finished step, Material's wavy
+ * R3.2: the search as a checklist under "Searching…" ("Search failed" once a step has failed): a check for each finished step, Material's wavy
  * progress circle on the current one (turning for as long as it runs), empty circles for the rest. A
  * [failed] step gets a red mark with [message] under it; the steps after it never started.
  */
@@ -236,7 +236,7 @@ private fun SearchSteps(
     message: String? = null,
 ) {
     Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
-        Text(stringResource(R.string.search_running), style = MaterialTheme.typography.titleLarge)
+        Text(stringResource(if (failed != null) R.string.search_failed else R.string.search_running), style = MaterialTheme.typography.titleLarge)
         stages.forEach { stage ->
             val state = when {
                 stage == failed -> StepState.FAILED
