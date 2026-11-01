@@ -148,8 +148,9 @@ binary translation) on any device.
   certificate problem "The site's certificate is invalid"; anything else "The site couldn't be
   loaded". A 403 continues to the rendered pass, since bot protection often refuses plain requests
   but lets a browser in; only if the rendered page is refused too does Researching permissions fail
-  with "The site denied the request". On failure the heading reads "Search failed", and Retry and
-  Continue (defaults for the address) replace Cancel.
+  with "The site denied the request". On failure the heading reads "Search failed"; the search
+  button beside the address becomes Retry (a refresh icon) until the address is edited, and a
+  Continue pill (defaults for the address) floats at the bottom right.
 - R3.3 Review: a form prefilled from discovery, laid out like the system settings: titled sections of
   rounded tonal items, each showing its value (summary, switch, menu value or color swatch); text,
   color, domain and window size values open dialogs. Nothing is collapsed. The sections, in order:

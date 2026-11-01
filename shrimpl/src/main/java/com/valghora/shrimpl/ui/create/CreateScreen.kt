@@ -21,9 +21,11 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
@@ -108,6 +110,13 @@ fun CreateScreen(onClose: () -> Unit, onBackUpKey: () -> Unit) {
                     icon = Icons.Filled.Check,
                     onClick = { if (!model.create()) scope.launch { snackbar.showSnackbar(invalidMessage) } },
                 )
+            } else if (step is CreateViewModel.Step.Failed) {
+                // R3.2: after a failed search, Continue is the one next step (Retry is the search button).
+                PillButton(
+                    text = stringResource(R.string.action_continue),
+                    icon = Icons.AutoMirrored.Filled.ArrowForward,
+                    onClick = model::continueWithoutDiscovery,
+                )
             }
         },
         snackbarHost = { SnackbarHost(snackbar) },
@@ -189,37 +198,36 @@ private fun UrlStep(model: CreateViewModel, step: CreateViewModel.Step, modifier
                     keyboardActions = KeyboardActions(onSearch = { model.search() }),
                     modifier = Modifier.weight(1f),
                 )
-                val search = stringResource(R.string.action_search)
-                WithTooltip(search) {
+                // After a failed search the same button retries it, until the address is edited.
+                val retry = step is CreateViewModel.Step.Failed
+                val label = stringResource(if (retry) R.string.action_retry else R.string.action_search)
+                WithTooltip(label) {
                     FilledTonalIconButton(
                         onClick = model::search,
                         enabled = !busy && url.isNotBlank(),
                         shape = FieldShape,
                         modifier = Modifier.size(FIELD_HEIGHT),
-                    ) { Icon(Icons.Filled.Search, contentDescription = search) }
+                    ) { Icon(if (retry) Icons.Filled.Refresh else Icons.Filled.Search, contentDescription = label) }
                 }
             }
             when (step) {
                 is CreateViewModel.Step.Discovering -> {
                     SearchSteps(SiteDiscovery.Stage.entries, current = step.stage)
-                    ActionRow(R.string.action_cancel to model::cancelSearch)
+                    ActionRow(R.string.action_cancel, model::cancelSearch)
                 }
                 CreateViewModel.Step.Continuing -> SearchSteps(listOf(SiteDiscovery.Stage.FINDING_ICON), current = SiteDiscovery.Stage.FINDING_ICON)
-                is CreateViewModel.Step.Failed -> {
-                    SearchSteps(SiteDiscovery.Stage.entries, failed = step.stage, message = step.message)
-                    ActionRow(R.string.action_retry to model::search, R.string.action_continue to model::continueWithoutDiscovery)
-                }
+                is CreateViewModel.Step.Failed -> SearchSteps(SiteDiscovery.Stage.entries, failed = step.stage, message = step.message)
                 else -> Unit
             }
         }
     }
 }
 
-/** Text buttons at the end of the row, where Cancel sits while searching. */
+/** A text button at the end of the row (Cancel while searching). */
 @Composable
-private fun ActionRow(vararg actions: Pair<Int, () -> Unit>) {
+private fun ActionRow(label: Int, onClick: () -> Unit) {
     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
-        actions.forEach { (label, onClick) -> TextButton(onClick = onClick) { Text(stringResource(label)) } }
+        TextButton(onClick = onClick) { Text(stringResource(label)) }
     }
 }
 
