@@ -29,6 +29,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.PathEffect
+import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
@@ -37,6 +38,8 @@ import androidx.compose.ui.unit.dp
 import com.valghora.shrimpl.R
 import com.valghora.shrimpl.core.records.IconOptions
 import com.valghora.shrimpl.core.records.IconRecord
+import com.valghora.shrimpl.ui.common.ItemShape
+import com.valghora.shrimpl.ui.common.LocalInGroup
 
 /**
  * The icon choice (docs/SHRIMPL_SPEC.md R10.1): one preview tile per option (Brand, Website, Custom),
@@ -54,7 +57,8 @@ fun IconTiles(
     onCustom: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    Surface(shape = RoundedCornerShape(20.dp), color = MaterialTheme.colorScheme.surfaceContainer, modifier = modifier.fillMaxWidth()) {
+    // In a section, the section gives it its place's shape.
+    Surface(shape = if (LocalInGroup.current) RectangleShape else ItemShape, color = MaterialTheme.colorScheme.surfaceContainer, modifier = modifier.fillMaxWidth()) {
         Row(
             Modifier.selectableGroup().padding(vertical = 14.dp, horizontal = 8.dp),
             horizontalArrangement = Arrangement.SpaceEvenly,

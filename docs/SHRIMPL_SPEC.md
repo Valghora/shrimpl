@@ -151,9 +151,12 @@ binary translation) on any device.
   request". On failure the heading reads "Search failed"; the search button beside the address
   becomes Retry (a refresh icon) until the address is edited, and a Continue pill (defaults for the
   address) floats at the bottom right.
-- R3.3 Review: a form prefilled from discovery, laid out like the system settings: titled sections of
-  rounded tonal items, each showing its value (summary, switch, menu value or color swatch); text,
-  color, domain and window size values open dialogs. Nothing is collapsed. The sections, in order:
+- R3.3 Review: a form prefilled from discovery, laid out like the system settings: titled sections
+  of tonal items 3 dp apart, each group rounded on the outside (20 dp) and tight where items meet (4
+  dp): the first item rounded at the top, the last at the bottom, a lone item all round (Settings,
+  R2.5, uses the same sections); each showing its value (summary, switch, menu value or color
+  swatch); text, color, domain and window size values open dialogs. Nothing is collapsed. The
+  sections, in order:
   - **Identity:** the name, Address (the start address) and Domains (the internal domains).
   - **Icon:** the icon options as preview tiles, then the selected option's settings (R10.1):
     Glyph color (`#FFFFFF` by default) and Background color (the site's brand color by default) for

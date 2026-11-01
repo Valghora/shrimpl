@@ -6,7 +6,6 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
@@ -29,30 +28,47 @@ import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.layout.Layout
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import com.valghora.shrimpl.R
 
-// Settings pages in the style of grouped Material 3 Expressive settings: a section title, then each
-// item as its own rounded tonal surface with a small gap, the value or control at the end.
+// Settings pages in the style of grouped Material 3 Expressive settings: a section title, then the
+// items as tonal surfaces a small gap apart, the value or control at the end. A group is rounded on
+// the outside and tight where its items meet.
+
+/** A group's outer corners, the corners where its items meet, and the gap between items. */
+private val OUTER_RADIUS = 20.dp
+private val INNER_RADIUS = 4.dp
+private val ITEM_GAP = 3.dp
 
 /** The rounded rectangle of settings items, also used for the app list's cards. */
-val ItemShape = RoundedCornerShape(20.dp)
+val ItemShape = RoundedCornerShape(OUTER_RADIUS)
 
-/** A titled group of items. */
+/** Whether an item sits in a [SettingsSection], which shapes it by its place in the group. */
+val LocalInGroup = staticCompositionLocalOf { false }
+
+/**
+ * A titled group of items (docs/SHRIMPL_SPEC.md R3.3). Each visible item is shaped by its place: the
+ * first rounded at the top, the last at the bottom, the ones between with small corners, and a lone
+ * item rounded all round. Items that come and go (Shizuku access, say) are counted as they are.
+ */
 @Composable
-fun SettingsSection(title: String, modifier: Modifier = Modifier, content: @Composable ColumnScope.() -> Unit) {
+fun SettingsSection(title: String, modifier: Modifier = Modifier, content: @Composable () -> Unit) {
     Column(modifier.fillMaxWidth()) {
         Text(
             title,
@@ -60,8 +76,37 @@ fun SettingsSection(title: String, modifier: Modifier = Modifier, content: @Comp
             color = MaterialTheme.colorScheme.primary,
             modifier = Modifier.padding(start = 4.dp, top = 24.dp, bottom = 12.dp),
         )
-        Column(verticalArrangement = Arrangement.spacedBy(4.dp), content = content)
+        Layout(content = { CompositionLocalProvider(LocalInGroup provides true, content) }) { measurables, constraints ->
+            val placeables = measurables.map { it.measure(constraints.copy(minHeight = 0)) }
+            // Dialogs and popups an item opens leave empty nodes; they take no place in the group.
+            val items = placeables.filter { it.height > 0 }
+            val gap = ITEM_GAP.roundToPx()
+            val height = items.sumOf { it.height } + gap * (items.size - 1).coerceAtLeast(0)
+            val width = if (constraints.hasBoundedWidth) constraints.maxWidth else placeables.maxOfOrNull { it.width } ?: 0
+            layout(width, height) {
+                var y = 0
+                placeables.forEach { placeable ->
+                    val index = items.indexOf(placeable)
+                    if (index < 0) {
+                        placeable.place(0, y)
+                    } else {
+                        placeable.placeWithLayer(0, y) {
+                            shape = groupShape(index, items.size)
+                            clip = true
+                        }
+                        y += placeable.height + gap
+                    }
+                }
+            }
+        }
     }
+}
+
+/** The shape of item [index] of [count] in a group. */
+private fun groupShape(index: Int, count: Int): Shape {
+    val top = if (index == 0) OUTER_RADIUS else INNER_RADIUS
+    val bottom = if (index == count - 1) OUTER_RADIUS else INNER_RADIUS
+    return RoundedCornerShape(topStart = top, topEnd = top, bottomStart = bottom, bottomEnd = bottom)
 }
 
 /**
@@ -85,7 +130,8 @@ fun SettingsItem(
     Row(
         modifier
             .fillMaxWidth()
-            .clip(ItemShape)
+            // In a section the section clips it to its place in the group.
+            .then(if (LocalInGroup.current) Modifier else Modifier.clip(ItemShape))
             .background(MaterialTheme.colorScheme.surfaceContainer)
             .then(if (onClick != null) Modifier.clickable(enabled = enabled, role = role, onClick = onClick) else Modifier)
             .heightIn(min = 72.dp)
