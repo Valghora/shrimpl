@@ -136,3 +136,25 @@ thrown away.
 
 - `ACCESS_NETWORK_STATE` (a normal permission) lets the search tell "No internet connection" apart
   from a site that can't be reached.
+
+## Robolectric (Shrimpl's Compose screens in unit tests)
+
+- Robolectric 4.17 (September 2026) supports API 37 with the Android 17 runtime
+  `android-all-instrumented:17-robolectric-15733970-i7` (about 240 MB) and needs Java 21, which the
+  build already uses.
+- Robolectric's own downloader fetches that runtime at test time from Maven Central, which answered
+  429 (rate limited) here. Gradle fetches it instead (the `robolectricRuntime` configuration and
+  `prepareRobolectricRuntime` task in `shrimpl/build.gradle.kts`), and the tests run Robolectric
+  offline against it: cached, retried, and the same repositories as every other dependency.
+- On Java 17 and later the test JVM needs `--add-exports=java.base/jdk.internal.access=ALL-UNNAMED`
+  (and `--add-opens=java.base/java.io=ALL-UNNAMED`): Robolectric emulates Android's file descriptors
+  through those internals.
+- `ui-test-junit4` brings Espresso 3.5.0 and androidx.test 1.5.0, which call
+  `InputManager.getInstance()`, gone in API 37. The tests pin Espresso 3.7.0 and androidx.test 1.7.0.
+- Robolectric's default screen is 320 dp wide; layout tests set a larger one with
+  `@Config(qualifiers = "w1600dp-h1200dp")` so the pane sizes they try aren't squeezed.
+- There is no Android Keystore under Robolectric, so tests run without a signing key: every saved app
+  counts as signed with another key (R11.7). Installed apps are faked with `ShadowPackageManager`,
+  which also needs `setApplicationIcon` for each, since Shrimpl reads the icon.
+- `ui-test-manifest` is a debug-only dependency (it declares the activity Compose tests host screens
+  in); it adds no code to release builds and no native code.

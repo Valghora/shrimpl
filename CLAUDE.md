@@ -61,5 +61,10 @@ There is no emulator in the cloud container; UI changes are confirmed on the own
   in `ui/common/Notice.kt` and the theme (Info follows the Material theme; Caution, Error and Success
   use pastel containers with dark text in both themes; status text on plain surfaces is pastel in
   dark theme and deep in light theme).
+- Shrimpl's Compose screens are tested with Robolectric in `shrimpl/src/test` (layout at several
+  window sizes, what a state shows, simple interactions; docs/BUILD_NOTES.md). With every change,
+  look for behavior worth a new Robolectric test, and add it where it makes sense; a layout or state
+  bug found on a device gets a test that would have caught it. The template's WebView, real installs
+  and hinges still need devices.
 - Record new toolchain or platform findings, and any deviation from the specs, in
   `docs/BUILD_NOTES.md`.

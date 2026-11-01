@@ -42,6 +42,11 @@ android {
         versionName = "0.1"
     }
 
+    testOptions {
+        // Robolectric runs Shrimpl's Compose screens in unit tests (docs/BUILD_NOTES.md).
+        unitTests.isIncludeAndroidResources = true
+    }
+
     buildFeatures {
         aidl = true // the Shizuku shell service (R6.1)
         buildConfig = true // the version on the settings page
@@ -99,4 +104,29 @@ dependencies {
     implementation(libs.shizuku.api)
     implementation(libs.shizuku.provider)
     testImplementation(libs.junit)
+    testImplementation(libs.robolectric)
+    testImplementation(platform(libs.androidx.compose.bom))
+    testImplementation(libs.androidx.compose.ui.test.junit4)
+    testImplementation(libs.androidx.test.espresso.core)
+    testImplementation(libs.androidx.test.core)
+    testImplementation(libs.androidx.test.runner)
+    debugImplementation(libs.androidx.compose.ui.test.manifest)
+}
+
+// Robolectric's Android runtime comes through Gradle (cached, retried, the same repositories as every
+// other dependency) and the tests run Robolectric offline against it, so they never download at test
+// time (docs/BUILD_NOTES.md).
+val robolectricRuntime: Configuration by configurations.creating
+dependencies { robolectricRuntime(libs.robolectric.android.all) { isTransitive = false } }
+val robolectricRuntimeDir = layout.buildDirectory.dir("robolectric-runtime")
+val prepareRobolectricRuntime = tasks.register<Sync>("prepareRobolectricRuntime") {
+    from(robolectricRuntime)
+    into(robolectricRuntimeDir)
+}
+tasks.withType<Test>().configureEach {
+    dependsOn(prepareRobolectricRuntime)
+    systemProperty("robolectric.offline", "true")
+    systemProperty("robolectric.dependency.dir", robolectricRuntimeDir.get().asFile.absolutePath)
+    // Robolectric reaches into these JDK internals to emulate Android's file descriptors (Java 17+).
+    jvmArgs("--add-exports=java.base/jdk.internal.access=ALL-UNNAMED", "--add-opens=java.base/java.io=ALL-UNNAMED")
 }
