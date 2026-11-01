@@ -152,7 +152,7 @@ class CreateViewModel(private val container: AppContainer) : ViewModel() {
                 iconBackground = brand?.color ?: Discovery.DEFAULT_BRAND,
             )
             hints = emptyMap()
-            notes = listOf(Notice(Notice.Kind.CAUTION, "Discovery didn't finish, so these are defaults. Check the icon color and the domains."))
+            notes = listOf(Notice(Notice.Kind.CAUTION, "Discovery didn't finish, so some of these settings are defaults. Verify their accuracy before building."))
             val brandIcon = brand?.let { IconRecord.glyph(it.svg, "simple-icons '${it.slug}'") }
             _draft.value = WebAppDraft.create(ProfileForm.from(profile), brandIcon, website = null)
             _step.value = Step.Review
