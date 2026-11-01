@@ -33,6 +33,8 @@ tasks.test {
     dependsOn(":template:assembleRelease")
     inputs.file(templateApk).withPropertyName("templateApk")
     systemProperty("templateApk", templateApk.asFile.path)
+    // The version the template APK must carry, so a template version bump needs no test edits.
+    systemProperty("templateVersion", providers.gradleProperty("shrimpl.templateVersion").get())
 }
 
 tasks.jacocoTestReport {
