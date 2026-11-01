@@ -6,9 +6,11 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.fitInside
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -48,6 +50,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.WindowInsetsRulers
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -68,6 +71,7 @@ import com.valghora.shrimpl.ui.common.PillButton
 import com.valghora.shrimpl.ui.common.Tone
 import com.valghora.shrimpl.ui.common.TooltipIconButton
 import com.valghora.shrimpl.ui.common.WithTooltip
+import com.valghora.shrimpl.ui.common.withoutBottom
 import com.valghora.shrimpl.ui.form.ProfileFormFields
 import kotlinx.coroutines.launch
 
@@ -123,7 +127,7 @@ fun CreateScreen(onClose: () -> Unit, onBackUpKey: () -> Unit) {
     ) { padding ->
         val current = draft
         if (reviewing && current != null) {
-            Box(Modifier.padding(padding).fillMaxSize()) {
+            Box(Modifier.padding(padding.withoutBottom()).fillMaxSize()) {
                 ProfileFormFields(
                     draft = current,
                     onChange = model::update,
@@ -131,10 +135,11 @@ fun CreateScreen(onClose: () -> Unit, onBackUpKey: () -> Unit) {
                     notes = model.notes,
                     // Nothing is stored yet: every image is in the draft.
                     storedImage = null,
+                    bottomInset = padding.calculateBottomPadding(),
                 )
             }
         } else {
-            UrlStep(model, step, Modifier.padding(padding))
+            UrlStep(model, step, padding)
         }
     }
 
@@ -184,11 +189,17 @@ fun CreateScreen(onClose: () -> Unit, onBackUpKey: () -> Unit) {
 }
 
 @Composable
-private fun UrlStep(model: CreateViewModel, step: CreateViewModel.Step, modifier: Modifier) {
+private fun UrlStep(model: CreateViewModel, step: CreateViewModel.Step, padding: PaddingValues) {
     val url by model.url.collectAsStateWithLifecycle()
     val invalid by model.urlInvalid.collectAsStateWithLifecycle()
     val busy = step is CreateViewModel.Step.Discovering || step is CreateViewModel.Step.Continuing
-    Column(modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(24.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+    // The page fits above the keyboard (edge-to-edge skill: IME), so the focused address field can
+    // scroll into view on a short landscape screen; it scrolls behind the navigation bar.
+    Column(
+        Modifier.padding(padding.withoutBottom()).fillMaxSize().fitInside(WindowInsetsRulers.Ime.current)
+            .verticalScroll(rememberScrollState()).padding(24.dp).padding(bottom = padding.calculateBottomPadding()),
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
         Column(Modifier.widthIn(max = 560.dp).fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(16.dp)) {
             Text(stringResource(R.string.create_url_intro), style = MaterialTheme.typography.bodyLarge)
             // R3.2: the address, with the search button beside it in the same shape and height.

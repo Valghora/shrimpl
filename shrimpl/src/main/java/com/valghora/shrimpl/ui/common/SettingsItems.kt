@@ -82,19 +82,20 @@ fun SettingsSection(title: String, modifier: Modifier = Modifier, content: @Comp
         Layout(content = { CompositionLocalProvider(LocalInGroup provides true, content) }) { measurables, constraints ->
             val placeables = measurables.map { it.measure(constraints.copy(minHeight = 0)) }
             // Dialogs and popups an item opens leave empty nodes; they take no place in the group.
-            val items = placeables.filter { it.height > 0 }
+            val count = placeables.count { it.height > 0 }
             val gap = ITEM_GAP.roundToPx()
-            val height = items.sumOf { it.height } + gap * (items.size - 1).coerceAtLeast(0)
+            val height = placeables.sumOf { it.height } + gap * (count - 1).coerceAtLeast(0)
             val width = if (constraints.hasBoundedWidth) constraints.maxWidth else placeables.maxOfOrNull { it.width } ?: 0
             layout(width, height) {
                 var y = 0
+                var index = 0 // among the items that take place
                 placeables.forEach { placeable ->
-                    val index = items.indexOf(placeable)
-                    if (index < 0) {
+                    if (placeable.height == 0) {
                         placeable.place(0, y)
                     } else {
+                        val position = index++
                         placeable.placeWithLayer(0, y) {
-                            shape = groupShape(index, items.size)
+                            shape = groupShape(position, count)
                             clip = true
                         }
                         y += placeable.height + gap

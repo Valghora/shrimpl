@@ -40,6 +40,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.core.graphics.toColorInt
 import com.valghora.shrimpl.R
@@ -69,7 +70,8 @@ import com.valghora.shrimpl.ui.icons.IconTiles
  * A web app's settings (docs/SHRIMPL_SPEC.md R3.3), shared by the configuration and edit pages, as
  * grouped settings items. [hints] are discovery sources shown under low- and medium-confidence values.
  * Wide enough (R3.5), the sections form one column of at most 600 dp, centred, or moved left as far
- * as needed so the floating button (Save, Create) never covers it.
+ * as needed so the floating button (Save, Create) never covers it. [bottomInset] (the navigation
+ * bar) is added inside the scroll, so the form scrolls behind the bar and ends above it.
  */
 @Composable
 fun ProfileFormFields(
@@ -79,6 +81,7 @@ fun ProfileFormFields(
     notes: List<Notice>,
     storedImage: ((String) -> ByteArray)?,
     modifier: Modifier = Modifier,
+    bottomInset: Dp = 0.dp,
 ) {
     val result = draft.form.result()
     val fields = Fields(draft.form, { onChange(draft.withForm(it)) }, result::errorFor, hints)
@@ -99,14 +102,14 @@ fun ProfileFormFields(
         val scroll = Modifier.fillMaxSize().verticalScroll(rememberScrollState())
         if (width < MIN_COLUMN) {
             // Narrow (a phone): the full width; the floating button floats over it, and the end clears it.
-            Column(scroll.padding(horizontal = 16.dp).padding(bottom = 96.dp)) { sections() }
+            Column(scroll.padding(horizontal = 16.dp).padding(bottom = 96.dp + bottomInset)) { sections() }
         } else {
             // Centred, unless that would put the column under the floating button at the bottom right.
             val start = minOf((maxWidth - width) / 2, maxWidth - FAB_CLEARANCE - width)
             // The scroll area fills the pane; the column inside it gets its own width (a width set after
             // fillMaxSize on the same modifier can't shrink it).
             Column(scroll) {
-                Column(Modifier.padding(start = start, bottom = 32.dp).width(width)) { sections() }
+                Column(Modifier.padding(start = start, bottom = 32.dp + bottomInset).width(width)) { sections() }
             }
         }
     }

@@ -46,6 +46,7 @@ import com.valghora.shrimpl.ui.common.BuildSheet
 import com.valghora.shrimpl.ui.common.Notice
 import com.valghora.shrimpl.ui.common.PillButton
 import com.valghora.shrimpl.ui.common.TooltipIconButton
+import com.valghora.shrimpl.ui.common.withoutBottom
 import com.valghora.shrimpl.ui.form.ProfileFormFields
 import kotlinx.coroutines.launch
 
@@ -148,13 +149,14 @@ fun EditScreen(appId: String, showBack: Boolean, onBack: () -> Unit) {
         },
         snackbarHost = { SnackbarHost(snackbar) },
     ) { padding ->
-        Box(Modifier.padding(padding).fillMaxSize()) {
+        Box(Modifier.padding(padding.withoutBottom()).fillMaxSize()) {
             ProfileFormFields(
                 draft = form,
                 onChange = model::update,
                 hints = emptyMap(),
                 notes = if (installed == false) listOf(Notice(Notice.Kind.INFO, stringResource(R.string.edit_not_installed))) else emptyList(),
                 storedImage = model::storedImage,
+                bottomInset = padding.calculateBottomPadding(),
             )
         }
     }

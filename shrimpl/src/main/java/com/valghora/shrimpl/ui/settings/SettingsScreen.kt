@@ -68,6 +68,7 @@ import com.valghora.shrimpl.ui.common.SettingsItem
 import com.valghora.shrimpl.ui.common.SettingsSection
 import com.valghora.shrimpl.ui.common.Tone
 import com.valghora.shrimpl.ui.common.TooltipIconButton
+import com.valghora.shrimpl.ui.common.withoutBottom
 
 /** Shrimpl's settings page (docs/SHRIMPL_SPEC.md R2.5). */
 @OptIn(ExperimentalMaterial3Api::class)
@@ -121,10 +122,13 @@ fun SettingsScreen(inPane: Boolean, onBack: () -> Unit) {
         snackbarHost = { SnackbarHost(snackbar) },
     ) { padding ->
         Column(
-            Modifier.padding(padding).fillMaxSize().verticalScroll(rememberScrollState()),
+            Modifier.padding(padding.withoutBottom()).fillMaxSize().verticalScroll(rememberScrollState()),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
-            Column(Modifier.widthIn(max = 720.dp).fillMaxWidth().padding(horizontal = 16.dp).padding(bottom = 32.dp)) {
+            Column(
+                Modifier.widthIn(max = 720.dp).fillMaxWidth().padding(horizontal = 16.dp)
+                    .padding(bottom = 32.dp + padding.calculateBottomPadding()),
+            ) {
                 SettingsSection(stringResource(R.string.settings_appearance)) {
                     DropdownItem(
                         stringResource(R.string.theme_mode),

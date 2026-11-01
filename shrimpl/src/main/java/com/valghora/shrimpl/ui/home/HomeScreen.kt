@@ -11,6 +11,8 @@ import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.calculateEndPadding
+import androidx.compose.foundation.layout.calculateStartPadding
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
@@ -68,9 +70,11 @@ import androidx.compose.ui.input.pointer.isSecondaryPressed
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import androidx.core.graphics.drawable.toBitmap
@@ -119,6 +123,10 @@ fun HomeScreen(
     onEdit: (String) -> Unit,
 ) {
     val context = LocalContext.current
+    // Read once here, not in each list item (jetpack-compose-performance skill: lazy layouts).
+    val layoutDirection = LocalLayoutDirection.current
+    val density = LocalDensity.current
+    val store = context.container.store
     val model = viewModel { HomeViewModel(context.container) }
     val records by model.records.collectAsStateWithLifecycle()
     val installedApps by model.installed.collectAsStateWithLifecycle()
@@ -232,13 +240,19 @@ fun HomeScreen(
         } else {
             LazyVerticalGrid(
                 columns = GridCells.Adaptive(MIN_CELL_WIDTH),
-                // Room at the bottom so the last card can scroll clear of both floating buttons.
-                contentPadding = PaddingValues(top = padding.calculateTopPadding() + 8.dp, bottom = 168.dp),
+                // The sides keep clear of a side navigation bar or camera cutout (landscape phones), and
+                // the bottom leaves room so the last card can scroll clear of the floating buttons.
+                contentPadding = PaddingValues(
+                    start = padding.calculateStartPadding(layoutDirection),
+                    top = padding.calculateTopPadding() + 8.dp,
+                    end = padding.calculateEndPadding(layoutDirection),
+                    bottom = 168.dp,
+                ),
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
             ) {
                 // R11.6, R11.7: apps from a previous install, signed with a key Shrimpl no longer has.
                 if (showKeyNotice) {
-                    item(key = OTHER_KEY_NOTICE, span = { GridItemSpan(maxLineSpan) }) {
+                    item(key = OTHER_KEY_NOTICE, span = { GridItemSpan(maxLineSpan) }, contentType = OTHER_KEY_NOTICE) {
                         NoticeCard(
                             Notice(Notice.Kind.CAUTION, stringResource(R.string.other_key_notice)),
                             modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
@@ -254,6 +268,8 @@ fun HomeScreen(
                     AppItem(
                         record = record,
                         installed = app,
+                        density = density,
+                        loadImage = { file -> store.image(record.appId, file) },
                         updateAvailable = model.updateAvailable(record),
                         otherKey = record.appId in otherKey,
                         selected = record.appId == selected,
@@ -266,9 +282,9 @@ fun HomeScreen(
                         onRemove = { model.remove(record) },
                     )
                 }
-                items(present, key = { it.appId }) { row(it) }
+                items(present, key = { it.appId }, contentType = { APP_ROW }) { row(it) }
                 if (absent.isNotEmpty()) {
-                    item(key = NOT_INSTALLED_LABEL, span = { GridItemSpan(maxLineSpan) }) {
+                    item(key = NOT_INSTALLED_LABEL, span = { GridItemSpan(maxLineSpan) }, contentType = NOT_INSTALLED_LABEL) {
                         Text(
                             stringResource(R.string.home_not_installed),
                             style = MaterialTheme.typography.labelLarge,
@@ -276,7 +292,7 @@ fun HomeScreen(
                             modifier = Modifier.padding(start = 20.dp, top = 16.dp, bottom = 4.dp),
                         )
                     }
-                    items(absent, key = { it.appId }) { row(it) }
+                    items(absent, key = { it.appId }, contentType = { APP_ROW }) { row(it) }
                 }
             }
         }
@@ -320,6 +336,8 @@ fun HomeScreen(
 private fun AppItem(
     record: WebAppRecord,
     installed: InstalledApp?,
+    density: Density,
+    loadImage: (String) -> ByteArray,
     updateAvailable: Boolean,
     otherKey: Boolean,
     selected: Boolean,
@@ -334,7 +352,6 @@ private fun AppItem(
     // R11.7: installed but signed with another key; it can only be fixed (uninstalled, then rebuilt) or removed.
     val locked = installed != null && otherKey
     var menuAt by remember { mutableStateOf<DpOffset?>(null) }
-    val density = LocalDensity.current
     fun showMenu(at: Offset) {
         menuAt = with(density) { DpOffset(at.x.toDp(), at.y.toDp()) }
     }
@@ -374,7 +391,7 @@ private fun AppItem(
         ) {
             // R2.2: an uninstalled app is greyed out; its menus and buttons stay as they are.
             val greyed = installed == null
-            Box(if (greyed) Modifier.greyedOut() else Modifier) { ItemIcon(record, installed) }
+            Box(if (greyed) Modifier.greyedOut() else Modifier) { ItemIcon(record, installed, loadImage) }
             Column(Modifier.weight(1f)) {
                 Text(record.profile.name, style = MaterialTheme.typography.titleMedium, modifier = if (greyed) Modifier.alpha(GREYED_ALPHA) else Modifier)
             }
@@ -426,16 +443,13 @@ private fun UninstallDialog(name: String, onConfirm: () -> Unit, onDismiss: () -
 }
 
 @Composable
-private fun ItemIcon(record: WebAppRecord, installed: InstalledApp?) {
+private fun ItemIcon(record: WebAppRecord, installed: InstalledApp?, loadImage: (String) -> ByteArray) {
     if (installed != null) {
         val bitmap = remember(installed) { installed.icon.toBitmap(144, 144).asImageBitmap() }
         Image(bitmap, contentDescription = null, modifier = Modifier.size(48.dp))
         return
     }
-    val context = LocalContext.current
-    val layers by rememberIconLayers(record.icon, record.profile.iconBackground, record.profile.resolvedIconForeground, record.updatedAt) { file ->
-        context.container.store.image(record.appId, file)
-    }
+    val layers by rememberIconLayers(record.icon, record.profile.iconBackground, record.profile.resolvedIconForeground, record.updatedAt, loadImage)
     layers?.let { AdaptiveIcon(it, CircleShape, 48.dp) }
 }
 
@@ -450,6 +464,9 @@ private val FAB_MARGIN = 16.dp
 
 private const val OTHER_KEY_NOTICE = "other-key-notice"
 private const val NOT_INSTALLED_LABEL = "not-installed-label"
+
+/** The content type of every web app row, so the grid reuses rows for rows only. */
+private const val APP_ROW = "app-row"
 
 private const val GREYED_ALPHA = 0.38f
 
