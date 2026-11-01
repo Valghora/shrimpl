@@ -3,6 +3,7 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.serialization)
     alias(libs.plugins.kotlin.compose)
+    jacoco
 }
 
 /** Copies the neutral template release APK and its version into the generated assets (R8.1). */
@@ -53,6 +54,11 @@ android {
     }
 
     buildTypes {
+        debug {
+            // Line coverage of the unit and Robolectric tests (testing-setup skill):
+            // :shrimpl:createDebugUnitTestCoverageReport writes build/reports/coverage/test/debug.
+            enableUnitTestCoverage = true
+        }
         release {
             isMinifyEnabled = true
             isShrinkResources = true
@@ -129,4 +135,9 @@ tasks.withType<Test>().configureEach {
     systemProperty("robolectric.dependency.dir", robolectricRuntimeDir.get().asFile.absolutePath)
     // Robolectric reaches into these JDK internals to emulate Android's file descriptors (Java 17+).
     jvmArgs("--add-exports=java.base/jdk.internal.access=ALL-UNNAMED", "--add-opens=java.base/java.io=ALL-UNNAMED")
+    // Coverage of classes Robolectric loads through its own class loader, without the JDK's internals.
+    extensions.configure<JacocoTaskExtension> {
+        isIncludeNoLocationClasses = true
+        excludes = listOf("jdk.internal.*")
+    }
 }

@@ -158,3 +158,22 @@ thrown away.
   which also needs `setApplicationIcon` for each, since Shrimpl reads the icon.
 - `ui-test-manifest` is a debug-only dependency (it declares the activity Compose tests host screens
   in); it adds no code to release builds and no native code.
+- Window sizes: `DeviceConfigurationOverride.ForcedSize` overrides `LocalConfiguration` and
+  `LocalDensity` but not `LocalWindowInfo`, which `currentWindowAdaptiveInfo` reads, so the list-detail
+  switch ignores it. `WindowSizeTest` sets the screen with `RuntimeEnvironment.setQualifiers` and then
+  launches `MainActivity`, for each of the testing-setup skill's nine sizes (400, 610 and 900 dp wide
+  by 400, 500 and 1000 dp high).
+- Robolectric runs out of touch mode, so Compose gives keyboard focus to the first focusable item of
+  each new window, as for a keyboard user. A focused icon button shows its tooltip, which appears in
+  tests as a second, small root.
+- A dialog with a text field never lets Compose go idle (`AppNotIdleException` after 60 s) once the
+  field can take focus: opening such a dialog from a click, focusing the field or typing into it.
+  Pausing the test clock, `setInTouchMode(true)` and turning off initial focus
+  (`ComposeUiFlags.isInitialFocusOnFocusableAvailable`) don't help. Tests change values through
+  switches and menus instead; dialog drafts surviving recreation stay a device check.
+- Coverage: debug builds set `enableUnitTestCoverage`, so
+  `./gradlew :shrimpl:createDebugUnitTestCoverageReport` writes a JaCoCo report of the unit and
+  Robolectric tests to `shrimpl/build/reports/coverage/test/debug/`. JaCoCo has to include classes
+  without a source location (Robolectric loads the app's classes itself) and leave out `jdk.internal`.
+  There is no threshold for Shrimpl; the 85 % rule is for `:core`. The first report (2026-11-01)
+  covered 34 % of Shrimpl's lines.
