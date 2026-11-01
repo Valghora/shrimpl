@@ -174,8 +174,7 @@ binary translation) on any device.
   - **Window:** Allow multiple windows (off by default), default and minimum window size.
   - **Permissions:** microphone, camera, notifications, location (off by default).
 
-  On two columns (R3.5), Identity, Icon and Appearance are on the left; Behavior, Window and
-  Permissions on the right. Site keyboard shortcuts (`appShortcuts`) are not editable in the form;
+  Site keyboard shortcuts (`appShortcuts`) are not editable in the form;
   a profile keeps any it already has.
 
   Values discovered with low or medium confidence say where they came from; discovery's notes appear
@@ -188,8 +187,11 @@ binary translation) on any device.
   success, Open and Done (no build number: build numbers are internal, R11.3); a new app from the
   Create app page instead drops the user back on the app list (after the one-time backup prompt,
   R5.3).
-- R3.5 When the pane is expanded width (840 dp and up), the form uses two columns 40 dp apart,
-  with notices across both above them so the first sections (Identity, Behavior) line up.
+- R3.5 The form is one column. When its pane leaves room, the column is at most 600 dp wide and
+  centred; if centring would put it under the floating button (Save, Create) at the bottom right, it
+  moves left as far as needed (at least 24 dp from the left edge), so the button never covers an
+  option. In a pane too narrow for a 360 dp column beside the button (a phone), the form takes the
+  full width and the button floats over it, with room below the last section.
 
 ## R4 Modules and core
 

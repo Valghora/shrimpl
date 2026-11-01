@@ -2,13 +2,16 @@ package com.valghora.shrimpl.ui.form
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
@@ -65,7 +68,8 @@ import com.valghora.shrimpl.ui.icons.IconTiles
 /**
  * A web app's settings (docs/SHRIMPL_SPEC.md R3.3), shared by the configuration and edit pages, as
  * grouped settings items. [hints] are discovery sources shown under low- and medium-confidence values.
- * On wide windows (R3.5) the sections are split over two columns.
+ * Wide enough (R3.5), the sections form one column of at most 600 dp, centred, or moved left as far
+ * as needed so the floating button (Save, Create) never covers it.
  */
 @Composable
 fun ProfileFormFields(
@@ -74,7 +78,6 @@ fun ProfileFormFields(
     hints: Map<String, String>,
     notes: List<Notice>,
     storedImage: ((String) -> ByteArray)?,
-    wide: Boolean,
     modifier: Modifier = Modifier,
 ) {
     val result = draft.form.result()
@@ -82,38 +85,40 @@ fun ProfileFormFields(
     // Images not yet saved are in the draft; the rest are read from the stored record.
     val loadImage: (String) -> ByteArray = { file -> draft.newImages[file] ?: requireNotNull(storedImage) { "no image $file" }(file) }
     val icon: @Composable () -> Unit = { IconSection(draft, onChange, loadImage, result::errorFor, hints) }
-    if (wide) {
-        // Notices span both columns, so the columns' first sections (Identity, Behavior) line up.
-        Column(modifier.verticalScroll(rememberScrollState()).padding(horizontal = 24.dp).padding(bottom = 96.dp)) {
-            Notes(notes)
-            Row(horizontalArrangement = Arrangement.spacedBy(COLUMN_GAP)) {
-                Column(Modifier.weight(1f)) {
-                    fields.Identity()
-                    icon()
-                    fields.Appearance()
-                }
-                Column(Modifier.weight(1f)) {
-                    fields.Browser()
-                    fields.Window()
-                    fields.Permissions()
-                }
-            }
-        }
-    } else {
-        Column(modifier.verticalScroll(rememberScrollState()).padding(horizontal = 16.dp).padding(bottom = 96.dp)) {
-            Notes(notes)
-            fields.Identity()
-            icon()
-            fields.Appearance()
-            fields.Browser()
-            fields.Window()
-            fields.Permissions()
+    val sections: @Composable () -> Unit = {
+        Notes(notes)
+        fields.Identity()
+        icon()
+        fields.Appearance()
+        fields.Browser()
+        fields.Window()
+        fields.Permissions()
+    }
+    BoxWithConstraints(modifier.fillMaxSize()) {
+        val width = minOf(MAX_COLUMN, maxWidth - FAB_CLEARANCE - SIDE_MARGIN)
+        val scroll = Modifier.fillMaxSize().verticalScroll(rememberScrollState())
+        if (width < MIN_COLUMN) {
+            // Narrow (a phone): the full width; the floating button floats over it, and the end clears it.
+            Column(scroll.padding(horizontal = 16.dp).padding(bottom = 96.dp)) { sections() }
+        } else {
+            // Centred, unless that would put the column under the floating button at the bottom right.
+            val start = minOf((maxWidth - width) / 2, maxWidth - FAB_CLEARANCE - width)
+            Column(scroll.padding(start = start, bottom = 32.dp).width(width)) { sections() }
         }
     }
 }
 
-/** The gutter between the two columns: wider than the 24 dp side margins, so the columns read apart. */
-private val COLUMN_GAP = 40.dp
+/** The widest the form's column grows (R3.5). */
+private val MAX_COLUMN = 600.dp
+
+/** Narrower than this, the form takes the full width instead. */
+private val MIN_COLUMN = 360.dp
+
+/** Kept clear at the right for the floating button: its width, its 16 dp margin and a gap. */
+private val FAB_CLEARANCE = 192.dp
+
+/** The least space at the left of the column. */
+private val SIDE_MARGIN = 24.dp
 
 /** Discovery's notes as dismissible notifications; a dismissed note stays hidden while the page is open. */
 @Composable

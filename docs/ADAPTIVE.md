@@ -24,7 +24,7 @@ deviation that isn't written down is a bug.
 | Skill step 4, adaptive lists | Home is a `LazyVerticalGrid(GridCells.Adaptive(360.dp))`: one column on phones, more on wide windows. | `ui/home/HomeScreen.kt` |
 | Skill step 5, app bars | Home's top bar uses `enterAlwaysScrollBehavior`. | `HomeScreen.kt` |
 | Skill step 6 / Tier 3 Config_Changes | No `android:configChanges` or orientation locks. Dialog flags, field drafts, menus, picker state and the open icon source sheet survive rotation, folding and resizing (`rememberSaveable` with the savers in `ui/common/Savers.kt`, or the ViewModel). Navigation state is `rememberNavBackStack` with `@Serializable` keys; entries get saved-state and ViewModel decorators. | `MainActivity.kt`, `Savers.kt`, ViewModels |
-| Tier 2 responsive layouts | Layout decisions use window size classes (`isMediumWidth()`, the pane directive, `WIDTH_DP_EXPANDED_LOWER_BOUND` for the two-column form), never device type. | `ui/common/Adaptive.kt` |
+| Tier 2 responsive layouts | Layout decisions use window size classes (`isMediumWidth()`, the pane directive, the form's column measured against its own pane), never device type. | `ui/common/Adaptive.kt` |
 | Tier 2 Touch_Targets | Icon-only buttons are `IconButton`s (48 dp), including the notice dismiss button. | `TooltipIconButton` |
 | Tier 2 Hover_States / desktop Hover_Parity | Every icon-only button has a plain tooltip above it, shown on hover, long press and focus, with its shortcut where one exists ("Settings (Ctrl+,)"). | `TooltipIconButton`, `WithTooltip` |
 | Tier 2 Context_Menus | Right-click (and long press) on a web app opens Open / Edit / Reinstall-Update-Rebuild / Uninstall-Remove at the pointer. | `HomeScreen.kt` `AppItem` |

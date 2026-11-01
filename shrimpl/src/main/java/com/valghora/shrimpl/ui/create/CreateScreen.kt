@@ -5,7 +5,6 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -57,7 +56,6 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.window.core.layout.WindowSizeClass
 import com.valghora.shrimpl.R
 import com.valghora.shrimpl.container
 import com.valghora.shrimpl.data.InstalledApps
@@ -125,7 +123,7 @@ fun CreateScreen(onClose: () -> Unit, onBackUpKey: () -> Unit) {
     ) { padding ->
         val current = draft
         if (reviewing && current != null) {
-            BoxWithConstraints(Modifier.padding(padding).fillMaxSize()) {
+            Box(Modifier.padding(padding).fillMaxSize()) {
                 ProfileFormFields(
                     draft = current,
                     onChange = model::update,
@@ -133,7 +131,6 @@ fun CreateScreen(onClose: () -> Unit, onBackUpKey: () -> Unit) {
                     notes = model.notes,
                     // Nothing is stored yet: every image is in the draft.
                     storedImage = null,
-                    wide = maxWidth >= WindowSizeClass.WIDTH_DP_EXPANDED_LOWER_BOUND.dp,
                 )
             }
         } else {
