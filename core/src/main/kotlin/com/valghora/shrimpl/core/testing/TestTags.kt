@@ -41,14 +41,17 @@ enum class TestSearch(val host: String, val stage: Int) {
 }
 
 object TestTags {
+    /** A leading list of words separated by commas, optionally in square brackets, then a space or the end. */
+    private val LEADING = Regex("""^\s*\[?\s*([A-Za-z-]+(?:\s*,\s*[A-Za-z-]+)*)\s*]?(?=\s|$)""")
+
     /**
-     * The tags in the first word of [name], split on commas ("update,cert Gmail"). Every part must be
-     * a known tag, so an ordinary first word ("Discord", "Updates") is never read as one.
+     * The tags at the start of [name], separated by commas: "update,cert Gmail", "update, cert Gmail"
+     * or "[update,cert] Gmail". Every part must be a known tag, so an ordinary first word
+     * ("Discord", "Updates") is never read as one.
      */
     fun parse(name: String): Set<TestTag> {
-        val word = name.trim().substringBefore(' ')
-        if (word.isEmpty()) return emptySet()
-        val tags = word.split(',').map { part -> TestTag.entries.firstOrNull { it.key == part.trim().lowercase() } ?: return emptySet() }
+        val list = LEADING.find(name)?.groupValues?.get(1) ?: return emptySet()
+        val tags = list.split(',').map { part -> TestTag.entries.firstOrNull { it.key == part.trim().lowercase() } ?: return emptySet() }
         return tags.toSet()
     }
 

@@ -390,12 +390,12 @@ The template's behavior is docs/TEMPLATE_SPEC.md. What Shrimpl relies on:
 Debug builds can put the app list and the search into states that are hard to set up for real.
 Release builds never read tags or test addresses.
 
-- R13.1 An app whose name's first word is a comma-separated list of tags, such as "update,cert
-  Discord" (or just "update,cert"), shows the states they name; every part must be a known tag, so
-  an ordinary first word is never read as one. The tags override what Home works out for each row
-  (installed, update available, signed with another key) in one place, before the usual rules, so
-  the list shows only states real users can reach: update,cert shows Fix, as a real mismatch would.
-  Nothing is stored.
+- R13.1 An app whose name starts with a comma-separated list of tags, such as "update,cert Discord",
+  "update, cert Discord", "[update,cert] Discord" or just "update,cert", shows the states they name;
+  every part must be a known tag, so an ordinary first word is never read as one. The tags override
+  what Home works out for each row (installed, update available, signed with another key) in one
+  place, before the usual rules, so the list shows only states real users can reach: update,cert
+  shows Fix, as a real mismatch would. Nothing is stored.
   - `update`: Update is offered (R2.2), and the app counts for Update all.
   - `cert`: signed with another key (R11.7): Fix, the Remove-only menu, the notice and Fix all.
   - `missing`: shown as not installed.

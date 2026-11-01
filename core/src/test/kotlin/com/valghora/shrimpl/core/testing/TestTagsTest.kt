@@ -15,12 +15,22 @@ class TestTagsTest {
     }
 
     @Test
+    fun acceptsBracketsAndSpacesAfterCommas() {
+        assertEquals(setOf(TestTag.MISSING), TestTags.parse("[missing] Discord"))
+        assertEquals(setOf(TestTag.UPDATE, TestTag.CERT), TestTags.parse("update, cert Gmail"))
+        assertEquals(setOf(TestTag.UPDATE, TestTag.CERT), TestTags.parse("[ update , cert ] Gmail"))
+        assertEquals(setOf(TestTag.MISSING), TestTags.parse("Missing"))
+    }
+
+    @Test
     fun ignoresOrdinaryNames() {
         assertEquals(emptySet<TestTag>(), TestTags.parse("Discord"))
         assertEquals(emptySet<TestTag>(), TestTags.parse("Updates"))
         assertEquals(emptySet<TestTag>(), TestTags.parse("Discord update"))
         assertEquals(emptySet<TestTag>(), TestTags.parse("update,nonsense Discord"))
         assertEquals(emptySet<TestTag>(), TestTags.parse("update, Discord"))
+        assertEquals(emptySet<TestTag>(), TestTags.parse("missing-link Discord"))
+        assertEquals(emptySet<TestTag>(), TestTags.parse("update2 Discord"))
         assertEquals(emptySet<TestTag>(), TestTags.parse(""))
     }
 
