@@ -140,17 +140,17 @@ binary translation) on any device.
   address shows an error under the field, before any search.
 - R3.2 Discovery (R9) shows a checklist under "Searching…": Loading the site, Consulting the
   manifest, Researching permissions, Searching for icon. Finished steps get a check, the current one
-  a wavy progress circle that turns for as long as it runs, the others an empty circle; each step
-  shows for at least 0.5 s. Cancel sits at the end. Only loading the site can fail, with a plain
-  message under the step: 404 "The site could not be found"; other 4xx "The site responded with an
-  error"; 5xx "The site is unavailable"; no connection "No internet connection"; an unknown host
-  also "The site could not be found"; no answer in 15 s "The site took too long to respond"; a
-  certificate problem "The site's certificate is invalid"; anything else "The site couldn't be
-  loaded". A 403 continues to the rendered pass, since bot protection often refuses plain requests
-  but lets a browser in; only if the rendered page is refused too does Researching permissions fail
-  with "The site denied the request". On failure the heading reads "Search failed"; the search
-  button beside the address becomes Retry (a refresh icon) until the address is edited, and a
-  Continue pill (defaults for the address) floats at the bottom right.
+  a spinner (as in the build sheet), the others an empty circle; each step shows for at least 0.5 s.
+  Cancel sits at the end. Only loading the site can fail, with a plain message under the step: 404
+  "The site could not be found"; other 4xx "The site responded with an error"; 5xx "The site is
+  unavailable"; no connection "No internet connection"; an unknown host also "The site could not be
+  found"; no answer in 15 s "The site took too long to respond"; a certificate problem "The site's
+  certificate is invalid"; anything else "The site couldn't be loaded". A 403 continues to the
+  rendered pass, since bot protection often refuses plain requests but lets a browser in; only if
+  the rendered page is refused too does Researching permissions fail with "The site denied the
+  request". On failure the heading reads "Search failed"; the search button beside the address
+  becomes Retry (a refresh icon) until the address is edited, and a Continue pill (defaults for the
+  address) floats at the bottom right.
 - R3.3 Review: a form prefilled from discovery, laid out like the system settings: titled sections of
   rounded tonal items, each showing its value (summary, switch, menu value or color swatch); text,
   color, domain and window size values open dialogs. Nothing is collapsed. The sections, in order:
