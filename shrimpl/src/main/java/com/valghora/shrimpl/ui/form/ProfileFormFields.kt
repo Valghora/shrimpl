@@ -103,7 +103,11 @@ fun ProfileFormFields(
         } else {
             // Centred, unless that would put the column under the floating button at the bottom right.
             val start = minOf((maxWidth - width) / 2, maxWidth - FAB_CLEARANCE - width)
-            Column(scroll.padding(start = start, bottom = 32.dp).width(width)) { sections() }
+            // The scroll area fills the pane; the column inside it gets its own width (a width set after
+            // fillMaxSize on the same modifier can't shrink it).
+            Column(scroll) {
+                Column(Modifier.padding(start = start, bottom = 32.dp).width(width)) { sections() }
+            }
         }
     }
 }
