@@ -44,6 +44,8 @@ Kotlin and Java. `scripts/check_native_code.sh` enforces this in CI.
 - [docs/TEMPLATE_SPEC.md](docs/TEMPLATE_SPEC.md): what every web app does.
 - [docs/ADAPTIVE.md](docs/ADAPTIVE.md): how Google's adaptive skill (vendored in
   `.claude/skills/adaptive/`) and app quality guidelines apply, and the deliberate deviations.
+- [docs/SKILLS.md](docs/SKILLS.md): the other Android skills in use, when to use each, their
+  deliberate deviations, and how `scripts/android_skills.sh` keeps them current.
 - [docs/BUILD_NOTES.md](docs/BUILD_NOTES.md): toolchain versions, platform findings, deviations.
 - [CLAUDE.md](CLAUDE.md): the rules for every change. `docs/history/` keeps superseded documents.
 

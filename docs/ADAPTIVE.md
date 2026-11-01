@@ -5,9 +5,9 @@ records how each applies here:
 
 1. **The adaptive skill**, vendored at [`.claude/skills/adaptive/`](../.claude/skills/adaptive/SKILL.md)
    (Google's [android/skills](https://github.com/android/skills) `jetpack-compose/adaptive`, see
-   `UPSTREAM.md` for the commit). Claude Code loads it as a project skill. Read it, and the reference
-   it points to for the feature at hand (keyboard shortcuts, tooltips, cursors, list-detail, saved
-   state), before changing a screen.
+   `UPSTREAM.md` for the commit; [SKILLS.md](SKILLS.md) covers how it is kept current). Claude Code
+   loads it as a project skill. Read it, and the reference it points to for the feature at hand
+   (keyboard shortcuts, tooltips, cursors, list-detail, saved state), before changing a screen.
 2. **The [Adaptive app quality guidelines](https://developer.android.com/docs/quality-guidelines/adaptive-app-quality)**
    (Tier 3 adaptive ready, Tier 2 adaptive optimized, Tier 1 adaptive differentiated) and the
    [desktop app quality checklist](https://developer.android.com/docs/quality-guidelines/large-screen-app-quality).

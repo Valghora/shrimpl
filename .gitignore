@@ -6,6 +6,8 @@ local.properties
 *.iml
 .DS_Store
 captures/
+# Analysis output from the r8-analyzer skill (docs/SKILLS.md).
+/tmp/
 *.jks
 *.keystore
 # "build" is also a source package name (core/.../build/); keep sources tracked.

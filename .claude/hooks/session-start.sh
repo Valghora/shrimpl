@@ -2,11 +2,18 @@
 # SessionStart hook for Claude Code cloud sessions: Android SDK + Gradle warm-up.
 set -euo pipefail
 
+cd "${CLAUDE_PROJECT_DIR:-$(dirname "$0")/../..}"
+
+# Android skills (docs/SKILLS.md): when a vendored skill has an upstream update, or upstream has a
+# skill docs/SKILLS.md doesn't mention, print the note so it reaches the session's context.
+# Best-effort: an unreachable upstream stays quiet.
+if ! skills_report="$(timeout 30 scripts/android_skills.sh check 2>/dev/null)"; then
+  [ -z "$skills_report" ] || printf '%s\n' "$skills_report"
+fi
+
 if [ "${CLAUDE_CODE_REMOTE:-}" != "true" ]; then
   exit 0
 fi
-
-cd "${CLAUDE_PROJECT_DIR:-$(dirname "$0")/../..}"
 
 export ANDROID_HOME="${ANDROID_HOME:-/opt/android-sdk}"
 scripts/setup_android_sdk.sh

@@ -66,5 +66,13 @@ There is no emulator in the cloud container; UI changes are confirmed on the own
   look for behavior worth a new Robolectric test, and add it where it makes sense; a layout or state
   bug found on a device gets a test that would have caught it. The template's WebView, real installs
   and hinges still need devices.
+- Android skills from Google's android/skills are vendored unchanged in `.claude/skills/`;
+  `docs/SKILLS.md` says when to use each and records the deliberate deviations (the adaptive
+  skill's are in `docs/ADAPTIVE.md`). Use the skill that matches the work and follow it unless a
+  recorded deviation says otherwise; a new deviation gets a row in the same commit. Never edit a
+  vendored skill. When a session starts with an "android skills:" note, run
+  `scripts/android_skills.sh update <name>`, review the diff against the recorded deviations,
+  commit it on its own and tell the owner; bring a new upstream skill to the owner with a
+  recommendation before adopting it.
 - Record new toolchain or platform findings, and any deviation from the specs, in
   `docs/BUILD_NOTES.md`.
