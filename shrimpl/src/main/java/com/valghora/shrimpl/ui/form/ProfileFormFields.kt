@@ -23,7 +23,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.InputChip
 import androidx.compose.material3.InputChipDefaults
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -41,6 +40,13 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.core.graphics.toColorInt
 import com.valghora.shrimpl.R
+import com.valghora.shrimpl.core.UaMode
+import com.valghora.shrimpl.core.profile.HeaderMode
+import com.valghora.shrimpl.core.profile.ProfileForm
+import com.valghora.shrimpl.core.records.IconOptions
+import com.valghora.shrimpl.core.records.IconRecord
+import com.valghora.shrimpl.core.records.WebAppDraft
+import com.valghora.shrimpl.ui.common.AppTextField
 import com.valghora.shrimpl.ui.common.ColorSwatch
 import com.valghora.shrimpl.ui.common.DropdownItem
 import com.valghora.shrimpl.ui.common.NavigationItem
@@ -55,12 +61,6 @@ import com.valghora.shrimpl.ui.common.TextValueItem
 import com.valghora.shrimpl.ui.common.TooltipIconButton
 import com.valghora.shrimpl.ui.icons.CustomIconSheet
 import com.valghora.shrimpl.ui.icons.IconTiles
-import com.valghora.shrimpl.core.UaMode
-import com.valghora.shrimpl.core.profile.HeaderMode
-import com.valghora.shrimpl.core.profile.ProfileForm
-import com.valghora.shrimpl.core.records.IconOptions
-import com.valghora.shrimpl.core.records.IconRecord
-import com.valghora.shrimpl.core.records.WebAppDraft
 
 /**
  * A web app's settings (docs/SHRIMPL_SPEC.md R3.3), shared by the configuration and edit pages, as
@@ -349,13 +349,13 @@ private fun ColorDialog(title: String, initial: String, emptyLabel: String?, onD
         title = { Text(title) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-                OutlinedTextField(
+                AppTextField(
                     value = text,
                     onValueChange = { text = it },
-                    label = { Text(stringResource(R.string.field_hex_color)) },
-                    placeholder = emptyLabel?.let { { Text(it) } },
+                    label = stringResource(R.string.field_hex_color),
+                    placeholder = emptyLabel,
                     leadingIcon = { ColorSwatch(swatch(text), size = 24) },
-                    singleLine = true,
+                    inDialog = true,
                     modifier = Modifier.fillMaxWidth(),
                 )
                 FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -410,11 +410,11 @@ private fun DomainsDialog(initial: List<String>, onDone: (List<String>) -> Unit,
                         )
                     }
                 }
-                OutlinedTextField(
+                AppTextField(
                     value = adding,
                     onValueChange = { adding = it },
-                    label = { Text(stringResource(R.string.field_add_domain)) },
-                    singleLine = true,
+                    label = stringResource(R.string.field_add_domain),
+                    inDialog = true,
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Uri, imeAction = ImeAction.Done),
                     keyboardActions = KeyboardActions(onDone = { add() }),
                     trailingIcon = { TooltipIconButton(stringResource(R.string.action_add), ::add) { Icon(Icons.Filled.Add, contentDescription = stringResource(R.string.action_add)) } },
@@ -441,12 +441,12 @@ private fun SizeDialog(title: String, width: String, height: String, onDone: (St
         title = { Text(title) },
         text = {
             Row(horizontalArrangement = Arrangement.spacedBy(12.dp), verticalAlignment = Alignment.CenterVertically) {
-                OutlinedTextField(
-                    w, { w = it }, label = { Text(stringResource(R.string.field_width_dp)) }, singleLine = true,
+                AppTextField(
+                    w, { w = it }, label = stringResource(R.string.field_width_dp), inDialog = true,
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number), modifier = Modifier.weight(1f),
                 )
-                OutlinedTextField(
-                    h, { h = it }, label = { Text(stringResource(R.string.field_height_dp)) }, singleLine = true,
+                AppTextField(
+                    h, { h = it }, label = stringResource(R.string.field_height_dp), inDialog = true,
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number), modifier = Modifier.weight(1f),
                 )
             }

@@ -1,0 +1,98 @@
+package com.valghora.shrimpl.ui.common
+
+import androidx.compose.foundation.border
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsFocusedAsState
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldDefaults
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.input.VisualTransformation
+import androidx.compose.ui.unit.dp
+
+/** The shape of text fields and of buttons that sit beside one (the New app search button). */
+val FieldShape = RoundedCornerShape(12.dp)
+
+/**
+ * Shrimpl's text field (docs/SHRIMPL_SPEC.md R3.1): filled, with 12 dp corners and no outline, like the
+ * settings items. Typing in it draws a primary edge, an error a red one; [supportingText] sits below,
+ * in red when [isError]. In a dialog ([inDialog]) the fill is one step lighter so it stands out.
+ */
+@Composable
+fun AppTextField(
+    value: String,
+    onValueChange: (String) -> Unit,
+    label: String,
+    modifier: Modifier = Modifier,
+    inDialog: Boolean = false,
+    isError: Boolean = false,
+    supportingText: String? = null,
+    placeholder: String? = null,
+    enabled: Boolean = true,
+    leadingIcon: (@Composable () -> Unit)? = null,
+    trailingIcon: (@Composable () -> Unit)? = null,
+    keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
+    keyboardActions: KeyboardActions = KeyboardActions.Default,
+    visualTransformation: VisualTransformation = VisualTransformation.None,
+) {
+    val interaction = remember { MutableInteractionSource() }
+    val focused by interaction.collectIsFocusedAsState()
+    val colors = MaterialTheme.colorScheme
+    val errorColor = Tone.ERROR.text
+    val fill = if (inDialog) colors.surfaceContainerHighest else colors.surfaceContainer
+    val edge = when {
+        isError -> errorColor
+        focused -> colors.primary
+        else -> Color.Transparent
+    }
+    Column(modifier) {
+        TextField(
+            value = value,
+            onValueChange = onValueChange,
+            modifier = Modifier.fillMaxWidth().border(2.dp, edge, FieldShape),
+            enabled = enabled,
+            label = { Text(label) },
+            placeholder = placeholder?.let { { Text(it) } },
+            leadingIcon = leadingIcon,
+            trailingIcon = trailingIcon,
+            isError = isError,
+            visualTransformation = visualTransformation,
+            keyboardOptions = keyboardOptions,
+            keyboardActions = keyboardActions,
+            singleLine = true,
+            shape = FieldShape,
+            interactionSource = interaction,
+            colors = TextFieldDefaults.colors(
+                focusedContainerColor = fill,
+                unfocusedContainerColor = fill,
+                disabledContainerColor = fill,
+                errorContainerColor = fill,
+                focusedIndicatorColor = Color.Transparent,
+                unfocusedIndicatorColor = Color.Transparent,
+                disabledIndicatorColor = Color.Transparent,
+                errorIndicatorColor = Color.Transparent,
+                errorLabelColor = errorColor,
+                errorCursorColor = errorColor,
+            ),
+        )
+        supportingText?.let {
+            Text(
+                it,
+                style = MaterialTheme.typography.bodySmall,
+                color = if (isError) errorColor else colors.onSurfaceVariant,
+                modifier = Modifier.padding(start = 16.dp, top = 4.dp, end = 16.dp),
+            )
+        }
+    }
+}

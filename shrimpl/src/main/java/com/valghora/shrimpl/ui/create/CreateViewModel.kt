@@ -1,10 +1,12 @@
 package com.valghora.shrimpl.ui.create
 
+import android.os.SystemClock
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.valghora.shrimpl.AppContainer
 import com.valghora.shrimpl.build.BuildRequest
 import com.valghora.shrimpl.discovery.Discovered
+import com.valghora.shrimpl.discovery.SearchFailure
 import com.valghora.shrimpl.discovery.SiteDiscovery
 import com.valghora.shrimpl.ui.common.BuildController
 import com.valghora.shrimpl.ui.common.Notice
@@ -18,6 +20,7 @@ import com.valghora.shrimpl.core.profile.Profile
 import com.valghora.shrimpl.core.profile.ProfileForm
 import com.valghora.shrimpl.core.records.IconRecord
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -28,9 +31,14 @@ class CreateViewModel(private val container: AppContainer) : ViewModel() {
     sealed interface Step {
         data object EnterUrl : Step
 
+        /** Searching, at [stage] (R3.2). */
         data class Discovering(val stage: SiteDiscovery.Stage) : Step
 
-        data class Failed(val message: String) : Step
+        /** The search stopped at [stage] with [message]. */
+        data class Failed(val stage: SiteDiscovery.Stage, val message: String) : Step
+
+        /** Continue after a failed search: only the brand icon is looked up. */
+        data object Continuing : Step
 
         data object Review : Step
     }
@@ -40,6 +48,10 @@ class CreateViewModel(private val container: AppContainer) : ViewModel() {
 
     private val _url = MutableStateFlow("")
     val url: StateFlow<String> = _url.asStateFlow()
+
+    /** The address isn't a web address (caught before searching, shown under the field). */
+    private val _urlInvalid = MutableStateFlow(false)
+    val urlInvalid: StateFlow<Boolean> = _urlInvalid.asStateFlow()
 
     /** Set once the page is in review. */
     private val _draft = MutableStateFlow<WebAppDraft?>(null)
@@ -68,21 +80,33 @@ class CreateViewModel(private val container: AppContainer) : ViewModel() {
 
     fun setUrl(value: String) {
         _url.value = value
+        _urlInvalid.value = false
+        // A changed address starts over: an old failure no longer applies to it.
+        if (_step.value is Step.Failed) _step.value = Step.EnterUrl
     }
 
     fun search() {
         if (SiteDiscovery.normalizeUrl(_url.value) == null) {
-            _step.value = Step.Failed(INVALID_URL)
+            _urlInvalid.value = true
             return
         }
         discovery?.cancel()
-        _step.value = Step.Discovering(SiteDiscovery.Stage.FETCHING_PAGE)
+        val pacer = StepPacer()
         discovery = viewModelScope.launch {
+            var stage = SiteDiscovery.Stage.FETCHING_PAGE
             try {
-                val found = container.discovery.discover(_url.value) { _step.value = Step.Discovering(it) }
+                val found = container.discovery.discover(_url.value) {
+                    stage = it
+                    pacer.show { _step.value = Step.Discovering(it) }
+                }
+                pacer.finish()
                 apply(found)
+            } catch (e: SearchFailure) {
+                pacer.finish()
+                _step.value = Step.Failed(e.stage, e.message.orEmpty())
             } catch (e: DiscoveryException) {
-                _step.value = Step.Failed(e.message ?: "Discovery failed")
+                pacer.finish()
+                _step.value = Step.Failed(stage, e.message.orEmpty())
             }
         }
     }
@@ -90,6 +114,21 @@ class CreateViewModel(private val container: AppContainer) : ViewModel() {
     fun cancelSearch() {
         discovery?.cancel()
         _step.value = Step.EnterUrl
+    }
+
+    /** R3.2: each search step stays on screen for at least [MIN_STEP_MS], so none flashes past. */
+    private class StepPacer {
+        private var shownAt = 0L
+
+        private fun remaining() = if (shownAt == 0L) 0L else (shownAt + MIN_STEP_MS - SystemClock.elapsedRealtime()).coerceAtLeast(0L)
+
+        suspend fun show(update: () -> Unit) {
+            delay(remaining())
+            shownAt = SystemClock.elapsedRealtime()
+            update()
+        }
+
+        suspend fun finish() = delay(remaining())
     }
 
     fun backToUrl() {
@@ -102,7 +141,7 @@ class CreateViewModel(private val container: AppContainer) : ViewModel() {
         val host = requireNotNull(java.net.URI(url).host).lowercase().removePrefix("www.")
         val name = host.substringBefore('.').replaceFirstChar(Char::uppercaseChar)
         discovery?.cancel()
-        _step.value = Step.Discovering(SiteDiscovery.Stage.FINDING_ICON)
+        _step.value = Step.Continuing
         discovery = viewModelScope.launch {
             val brand = container.discovery.simpleIcon(name)
             val profile = Profile(
@@ -163,6 +202,6 @@ class CreateViewModel(private val container: AppContainer) : ViewModel() {
     }
 
     private companion object {
-        const val INVALID_URL = "Enter a web address, like example.com"
+        const val MIN_STEP_MS = 500L
     }
 }

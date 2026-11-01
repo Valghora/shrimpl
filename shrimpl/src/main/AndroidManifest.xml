@@ -3,6 +3,8 @@
 
     <!-- Site discovery downloads pages, manifests, scripts and icons (docs/SHRIMPL_SPEC.md R9). -->
     <uses-permission android:name="android.permission.INTERNET" />
+    <!-- R3.2: tells "no internet connection" apart from a site that can't be reached. -->
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <!-- The system installer path (R6.1). -->
     <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
     <uses-permission android:name="android.permission.REQUEST_DELETE_PACKAGES" />

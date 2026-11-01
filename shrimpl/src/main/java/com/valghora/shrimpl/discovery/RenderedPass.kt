@@ -14,6 +14,7 @@ import android.webkit.WebViewClient
 import com.valghora.shrimpl.core.discovery.PageInfo
 import com.valghora.shrimpl.core.discovery.Request
 import java.util.Collections
+import java.util.concurrent.atomic.AtomicReference
 import kotlin.coroutines.resume
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -68,7 +69,9 @@ class RenderedPass(private val context: Context) {
         val webView = WebView(themedContext(mode.night))
         val requests = Collections.synchronizedList(mutableListOf<Request>())
         val navigations = mutableListOf<String>()
-        var errorStatus: Int? = null
+        // Written from WebView's network thread; a new main-frame request clears it (R3.2: a bot
+        // challenge that answers 403 and then reloads into the site counts as loaded).
+        val errorStatus = AtomicReference<Int?>(null)
         var rendererGone = false
         try {
             configure(webView, mode)
@@ -77,6 +80,7 @@ class RenderedPass(private val context: Context) {
                     webView.webViewClient = object : WebViewClient() {
                         override fun shouldInterceptRequest(view: WebView, request: WebResourceRequest): WebResourceResponse? {
                             val type = if (request.isForMainFrame) "document" else "other"
+                            if (request.isForMainFrame) errorStatus.set(null)
                             requests += Request(request.url.toString(), type)
                             return null
                         }
@@ -94,7 +98,7 @@ class RenderedPass(private val context: Context) {
                         }
 
                         override fun onReceivedHttpError(view: WebView, request: WebResourceRequest, response: WebResourceResponse) {
-                            if (request.isForMainFrame) errorStatus = response.statusCode
+                            if (request.isForMainFrame) errorStatus.set(response.statusCode)
                         }
 
                         override fun onPageFinished(view: WebView, finishedUrl: String) {
@@ -125,7 +129,7 @@ class RenderedPass(private val context: Context) {
                 scriptUrls = collected?.resources.orEmpty().filter { it.type == "script" }.map { it.url }.distinct(),
                 inlineScripts = collected?.inlineScripts.orEmpty(),
                 navigations = navigations.toList(),
-                errorStatus = errorStatus,
+                errorStatus = errorStatus.get(),
             )
         } finally {
             webView.stopLoading()

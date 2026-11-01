@@ -24,7 +24,6 @@ import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
@@ -248,11 +247,12 @@ fun TextDialog(
         onDismissRequest = onDismiss,
         title = { Text(title) },
         text = {
-            OutlinedTextField(
+            AppTextField(
                 value = text,
                 onValueChange = { text = it },
-                placeholder = placeholder?.let { { Text(it) } },
-                singleLine = true,
+                label = title,
+                placeholder = placeholder,
+                inDialog = true,
                 keyboardOptions = KeyboardOptions(keyboardType = keyboardType),
                 modifier = Modifier.fillMaxWidth(),
             )

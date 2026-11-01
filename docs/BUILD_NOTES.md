@@ -133,3 +133,10 @@ thrown away.
 
 - Template version 8 has no template code change either: it was bumped at the owner's request, to
   exercise Update and Update all on installed web apps.
+
+- Material 3 1.4.0 keeps the Expressive `CircularWavyProgressIndicator` internal (public only in the
+  1.5 alphas). Rather than move the whole app to an alpha, the search checklist draws its own wavy
+  progress circle (`ui/common/WavyProgress.kt`). Replace it with the Material one once a stable
+  release exposes it.
+- `ACCESS_NETWORK_STATE` (a normal permission) lets the search tell "No internet connection" apart
+  from a site that can't be reached.

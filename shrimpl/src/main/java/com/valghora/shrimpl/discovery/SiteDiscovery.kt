@@ -1,7 +1,10 @@
 package com.valghora.shrimpl.discovery
 
 import android.content.Context
+import android.net.ConnectivityManager
+import android.net.NetworkCapabilities
 import android.webkit.WebSettings
+import com.valghora.shrimpl.R
 import com.valghora.shrimpl.core.discovery.Discovery
 import com.valghora.shrimpl.core.discovery.DiscoveryException
 import com.valghora.shrimpl.core.discovery.Draft
@@ -18,6 +21,9 @@ import com.valghora.shrimpl.core.discovery.SlimVisit
 import com.valghora.shrimpl.core.discovery.Visit
 import com.valghora.shrimpl.icons.IconImages
 import java.io.IOException
+import java.net.SocketTimeoutException
+import java.net.UnknownHostException
+import javax.net.ssl.SSLException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runInterruptible
 import kotlinx.coroutines.withContext
@@ -29,6 +35,9 @@ import kotlinx.serialization.json.JsonObject
  * its web manifest, a hidden-WebView pass for what only exists once rendered, then the core discovery
  * rules. Cancel the calling coroutine to stop it.
  */
+/** Search stopped at [stage], with [message] to show under it (R3.2). */
+class SearchFailure(val stage: SiteDiscovery.Stage, message: String) : Exception(message)
+
 /** Discovery's draft, and the site's own icon for the Website option (a PNG of at most 512 px), if it has one. */
 class Discovered(val draft: Draft, val websiteIcon: IconChoice.Raster?)
 
@@ -38,7 +47,7 @@ class SiteDiscovery(private val context: Context) {
 
     private val data by lazy { DiscoveryData.get(context) }
 
-    suspend fun discover(input: String, onStage: (Stage) -> Unit = {}): Discovered {
+    suspend fun discover(input: String, onStage: suspend (Stage) -> Unit = {}): Discovered {
         val url = normalizeUrl(input) ?: throw DiscoveryException("Enter a web address, like example.com")
         val desktopAgent = RenderedPass.desktopUserAgent(WebSettings.getDefaultUserAgent(context))
         val network = Network(desktopAgent)
@@ -50,11 +59,14 @@ class SiteDiscovery(private val context: Context) {
                 try {
                     network.get(url)
                 } catch (e: IOException) {
-                    throw DiscoveryException("Could not load $url: ${e.message}")
+                    throw SearchFailure(Stage.FETCHING_PAGE, context.getString(loadFailure(e)))
                 }
             }
         }
-        if (document.status >= 400) throw DiscoveryException("$url answered with HTTP ${document.status}")
+        // R3.2: sites behind bot protection often answer 403 to a plain request but let a browser in,
+        // so a 403 only fails the search if the hidden browser is refused too (below).
+        val refused = document.status == HTTP_FORBIDDEN
+        httpFailure(document.status)?.let { throw SearchFailure(Stage.FETCHING_PAGE, context.getString(it)) }
         val staticPage = HtmlHead.parse(document.body.decodeToString(), document.finalUrl)
 
         onStage(Stage.READING_MANIFEST)
@@ -65,6 +77,9 @@ class SiteDiscovery(private val context: Context) {
         onStage(Stage.CHECKING_PAGE)
         val rendered = RenderedPass(context)
         val desktop = rendered.visit(url, RenderedPass.Mode.DESKTOP_LIGHT, DESKTOP_TIMEOUT_MS)
+        if (refused && (desktop == null || (desktop.errorStatus ?: 0) >= HTTP_ERROR)) {
+            throw SearchFailure(Stage.CHECKING_PAGE, context.getString(R.string.search_denied))
+        }
         val dark = desktop?.let { rendered.visit(it.finalUrl ?: url, RenderedPass.Mode.DESKTOP_DARK, SECONDARY_TIMEOUT_MS) }
         val webview = rendered.visit(url, RenderedPass.Mode.WEBVIEW, SECONDARY_TIMEOUT_MS)
         val page = desktop?.page ?: staticPage
@@ -115,6 +130,29 @@ class SiteDiscovery(private val context: Context) {
         }
     }
 
+    /** R3.2: what a failed page load says, by what went wrong. */
+    private fun loadFailure(e: IOException): Int = when {
+        offline() -> R.string.search_offline
+        e is UnknownHostException -> R.string.search_no_such_site
+        e is SocketTimeoutException -> R.string.search_timeout
+        e is SSLException -> R.string.search_certificate
+        else -> R.string.search_not_loaded
+    }
+
+    /** R3.2: what an error status says; null when the page loaded (or for 403, decided later). */
+    private fun httpFailure(status: Int): Int? = when {
+        status < HTTP_ERROR || status == HTTP_FORBIDDEN -> null
+        status == HTTP_NOT_FOUND -> R.string.search_not_found
+        status >= HTTP_SERVER_ERROR -> R.string.search_unavailable
+        else -> R.string.search_error
+    }
+
+    private fun offline(): Boolean {
+        val connectivity = context.getSystemService(ConnectivityManager::class.java)
+        val capabilities = connectivity.getNetworkCapabilities(connectivity.activeNetwork)
+        return capabilities?.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET) != true
+    }
+
     /** The simple-icons brand named [name] ("Discord" -> `discord`), or null; for "Continue without discovery" (R3.2). */
     suspend fun simpleIcon(name: String): SimpleIcon? = withContext(Dispatchers.IO) {
         runInterruptible {
@@ -151,6 +189,10 @@ class SiteDiscovery(private val context: Context) {
     companion object {
         private const val DESKTOP_TIMEOUT_MS = 12_000L
         private const val SECONDARY_TIMEOUT_MS = 4_000L
+        private const val HTTP_ERROR = 400
+        private const val HTTP_FORBIDDEN = 403
+        private const val HTTP_NOT_FOUND = 404
+        private const val HTTP_SERVER_ERROR = 500
         private const val MANIFEST_MAX_BYTES = 512 * 1024
         /** Scripts get their own 20 MB budget: large web apps keep their API calls in big bundles. */
         private const val SCRIPT_BUDGET_BYTES = 20 * 1024 * 1024

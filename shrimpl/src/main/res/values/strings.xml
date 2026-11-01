@@ -9,7 +9,6 @@
     <string name="action_cancel">Cancel</string>
     <string name="action_close">Close</string>
     <string name="action_continue">Continue</string>
-    <string name="action_continue_without">Continue without discovery</string>
     <string name="action_create">Create</string>
     <string name="action_done">Done</string>
     <string name="action_edit">Edit</string>
@@ -46,10 +45,21 @@
     <string name="create_title">New app</string>
     <string name="create_url_intro">Enter a website and hang tight while Shrimpl finds suggested settings.</string>
     <string name="create_fix_fields">Fix the highlighted fields first</string>
-    <string name="discovery_fetching">Loading the page…</string>
-    <string name="discovery_manifest">Reading the web manifest…</string>
-    <string name="discovery_rendering">Checking the page as it renders…</string>
-    <string name="discovery_icon">Finding an icon…</string>
+    <string name="search_invalid_url">Enter a web address, like example.com</string>
+    <string name="search_running">Searching…</string>
+    <string name="search_not_found">The site could not be found</string>
+    <string name="search_denied">The site denied the request</string>
+    <string name="search_unavailable">The site is unavailable</string>
+    <string name="search_error">The site responded with an error</string>
+    <string name="search_offline">No internet connection</string>
+    <string name="search_no_such_site">The site could not be found. Check the address</string>
+    <string name="search_timeout">The site took too long to respond</string>
+    <string name="search_certificate">The site\'s security certificate isn\'t valid</string>
+    <string name="search_not_loaded">The site couldn\'t be loaded</string>
+    <string name="discovery_fetching">Loading the site</string>
+    <string name="discovery_manifest">Consulting the manifest</string>
+    <string name="discovery_rendering">Researching permissions</string>
+    <string name="discovery_icon">Searching for icon</string>
 
     <!-- Edit page -->
     <string name="edit_missing">This app is no longer in Shrimpl</string>
@@ -96,6 +106,7 @@
     <string name="field_width_dp">Width (dp)</string>
     <string name="field_height_dp">Height (dp)</string>
     <string name="field_password">Password</string>
+    <string name="password_mismatch">The passwords don\'t match</string>
     <string name="field_password_repeat">Repeat password</string>
     <string name="hint_discovered">Suggested from %1$s</string>
 

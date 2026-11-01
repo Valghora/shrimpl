@@ -1,30 +1,36 @@
 package com.valghora.shrimpl.ui.create
 
 import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
@@ -38,8 +44,10 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
@@ -50,9 +58,14 @@ import com.valghora.shrimpl.R
 import com.valghora.shrimpl.container
 import com.valghora.shrimpl.data.InstalledApps
 import com.valghora.shrimpl.discovery.SiteDiscovery
+import com.valghora.shrimpl.ui.common.AppTextField
 import com.valghora.shrimpl.ui.common.BuildSheet
+import com.valghora.shrimpl.ui.common.FieldShape
 import com.valghora.shrimpl.ui.common.PillButton
+import com.valghora.shrimpl.ui.common.Tone
 import com.valghora.shrimpl.ui.common.TooltipIconButton
+import com.valghora.shrimpl.ui.common.WavyProgressCircle
+import com.valghora.shrimpl.ui.common.WithTooltip
 import com.valghora.shrimpl.ui.form.ProfileFormFields
 import kotlinx.coroutines.launch
 
@@ -157,48 +170,122 @@ fun CreateScreen(onClose: () -> Unit, onBackUpKey: () -> Unit) {
 @Composable
 private fun UrlStep(model: CreateViewModel, step: CreateViewModel.Step, modifier: Modifier) {
     val url by model.url.collectAsStateWithLifecycle()
-    val busy = step is CreateViewModel.Step.Discovering
-    Column(
-        modifier.fillMaxSize().padding(24.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(16.dp),
-    ) {
-        Text(stringResource(R.string.create_url_intro), style = MaterialTheme.typography.bodyLarge)
-        OutlinedTextField(
-            value = url,
-            onValueChange = model::setUrl,
-            label = { Text(stringResource(R.string.field_website)) },
-            placeholder = { Text("example.com") },
-            singleLine = true,
-            enabled = !busy,
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Uri, imeAction = ImeAction.Search),
-            keyboardActions = KeyboardActions(onSearch = { model.search() }),
-            modifier = Modifier.widthIn(max = 560.dp).fillMaxWidth(),
-        )
-        when (step) {
-            is CreateViewModel.Step.Discovering -> {
-                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                    CircularProgressIndicator(Modifier.size(24.dp))
-                    Text(stringResource(stageLabel(step.stage)))
-                }
-                OutlinedButton(onClick = model::cancelSearch) { Text(stringResource(R.string.action_cancel)) }
-            }
-            is CreateViewModel.Step.Failed -> {
-                Text(step.message, color = MaterialTheme.colorScheme.error)
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Button(onClick = model::search) { Text(stringResource(R.string.action_try_again)) }
-                    if (SiteDiscovery.normalizeUrl(url) != null) {
-                        OutlinedButton(onClick = model::continueWithoutDiscovery) { Text(stringResource(R.string.action_continue_without)) }
-                    }
+    val invalid by model.urlInvalid.collectAsStateWithLifecycle()
+    val busy = step is CreateViewModel.Step.Discovering || step is CreateViewModel.Step.Continuing
+    Column(modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(24.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+        Column(Modifier.widthIn(max = 560.dp).fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(16.dp)) {
+            Text(stringResource(R.string.create_url_intro), style = MaterialTheme.typography.bodyLarge)
+            // R3.2: the address, with the search button beside it in the same shape and height.
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.Top) {
+                AppTextField(
+                    value = url,
+                    onValueChange = model::setUrl,
+                    label = stringResource(R.string.field_website),
+                    placeholder = "example.com",
+                    enabled = !busy,
+                    isError = invalid,
+                    supportingText = if (invalid) stringResource(R.string.search_invalid_url) else null,
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Uri, imeAction = ImeAction.Search),
+                    keyboardActions = KeyboardActions(onSearch = { model.search() }),
+                    modifier = Modifier.weight(1f),
+                )
+                val search = stringResource(R.string.action_search)
+                WithTooltip(search) {
+                    FilledTonalIconButton(
+                        onClick = model::search,
+                        enabled = !busy && url.isNotBlank(),
+                        shape = FieldShape,
+                        modifier = Modifier.size(FIELD_HEIGHT),
+                    ) { Icon(Icons.Filled.Search, contentDescription = search) }
                 }
             }
-            else -> Button(onClick = model::search, enabled = url.isNotBlank()) {
-                Icon(Icons.Filled.Search, contentDescription = null)
-                Text(stringResource(R.string.action_search), Modifier.padding(start = 8.dp))
+            when (step) {
+                is CreateViewModel.Step.Discovering -> {
+                    SearchSteps(SiteDiscovery.Stage.entries, current = step.stage)
+                    ActionRow(R.string.action_cancel to model::cancelSearch)
+                }
+                CreateViewModel.Step.Continuing -> SearchSteps(listOf(SiteDiscovery.Stage.FINDING_ICON), current = SiteDiscovery.Stage.FINDING_ICON)
+                is CreateViewModel.Step.Failed -> {
+                    SearchSteps(SiteDiscovery.Stage.entries, failed = step.stage, message = step.message)
+                    ActionRow(R.string.action_retry to model::search, R.string.action_continue to model::continueWithoutDiscovery)
+                }
+                else -> Unit
             }
         }
     }
 }
+
+/** Text buttons at the end of the row, where Cancel sits while searching. */
+@Composable
+private fun ActionRow(vararg actions: Pair<Int, () -> Unit>) {
+    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
+        actions.forEach { (label, onClick) -> TextButton(onClick = onClick) { Text(stringResource(label)) } }
+    }
+}
+
+/**
+ * R3.2: the search as a checklist under "Searching…": a check for each finished step, Material's wavy
+ * progress circle on the current one (turning for as long as it runs), empty circles for the rest. A
+ * [failed] step gets a red mark with [message] under it; the steps after it never started.
+ */
+@Composable
+private fun SearchSteps(
+    stages: List<SiteDiscovery.Stage>,
+    current: SiteDiscovery.Stage? = null,
+    failed: SiteDiscovery.Stage? = null,
+    message: String? = null,
+) {
+    Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
+        Text(stringResource(R.string.search_running), style = MaterialTheme.typography.titleLarge)
+        stages.forEach { stage ->
+            val state = when {
+                stage == failed -> StepState.FAILED
+                stage == current -> StepState.CURRENT
+                (failed ?: current)?.let { stage.ordinal < it.ordinal } == true -> StepState.DONE
+                else -> StepState.PENDING
+            }
+            StepLine(stringResource(stageLabel(stage)), state)
+            if (stage == failed && message != null) {
+                Text(
+                    message,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = Tone.ERROR.text,
+                    modifier = Modifier.padding(start = STEP_TEXT_INSET).offset(y = (-6).dp),
+                )
+            }
+        }
+    }
+}
+
+private enum class StepState { DONE, CURRENT, FAILED, PENDING }
+
+@Composable
+private fun StepLine(label: String, state: StepState) {
+    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+        val mark = Modifier.size(STEP_MARK)
+        when (state) {
+            StepState.DONE -> Icon(Icons.Filled.CheckCircle, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = mark)
+            StepState.CURRENT -> WavyProgressCircle(diameter = STEP_MARK)
+            StepState.FAILED -> Box(mark.clip(CircleShape).background(Tone.ERROR.container), contentAlignment = Alignment.Center) {
+                Text("!", color = Tone.ERROR.content, style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.Bold)
+            }
+            StepState.PENDING -> Box(mark.border(2.dp, MaterialTheme.colorScheme.outline, CircleShape))
+        }
+        Text(
+            label,
+            style = MaterialTheme.typography.bodyLarge,
+            color = if (state == StepState.PENDING) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onSurface,
+        )
+    }
+}
+
+private val STEP_MARK = 24.dp
+
+/** Where a step's text starts: past its mark and the gap after it. */
+private val STEP_TEXT_INSET = STEP_MARK + 16.dp
+
+/** A filled text field's height, which the search button matches. */
+private val FIELD_HEIGHT = 56.dp
 
 private fun stageLabel(stage: SiteDiscovery.Stage) = when (stage) {
     SiteDiscovery.Stage.FETCHING_PAGE -> R.string.discovery_fetching

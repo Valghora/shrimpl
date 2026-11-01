@@ -17,8 +17,8 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -26,7 +26,6 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
@@ -62,6 +61,7 @@ import com.valghora.shrimpl.container
 import com.valghora.shrimpl.data.ClickAction
 import com.valghora.shrimpl.data.InstallMethod
 import com.valghora.shrimpl.data.ThemeSetting
+import com.valghora.shrimpl.ui.common.AppTextField
 import com.valghora.shrimpl.ui.common.DropdownItem
 import com.valghora.shrimpl.ui.common.NavigationItem
 import com.valghora.shrimpl.ui.common.SettingsItem
@@ -334,22 +334,24 @@ private fun PasswordDialog(model: SettingsViewModel, title: Int, text: Int, conf
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Text(stringResource(text))
-                OutlinedTextField(
+                AppTextField(
                     value = password,
                     onValueChange = { model.password = it },
-                    label = { Text(stringResource(R.string.field_password)) },
-                    supportingText = if (confirm) ({ Text(pluralStringResource(R.plurals.password_min, SettingsViewModel.MIN_PASSWORD, SettingsViewModel.MIN_PASSWORD)) }) else null,
-                    singleLine = true,
+                    label = stringResource(R.string.field_password),
+                    supportingText = if (confirm) pluralStringResource(R.plurals.password_min, SettingsViewModel.MIN_PASSWORD, SettingsViewModel.MIN_PASSWORD) else null,
+                    inDialog = true,
                     visualTransformation = PasswordVisualTransformation(),
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
                 )
                 if (confirm) {
-                    OutlinedTextField(
+                    val showMismatch = repeat.isNotEmpty() && mismatch
+                    AppTextField(
                         value = repeat,
                         onValueChange = { model.passwordRepeat = it },
-                        label = { Text(stringResource(R.string.field_password_repeat)) },
-                        isError = repeat.isNotEmpty() && mismatch,
-                        singleLine = true,
+                        label = stringResource(R.string.field_password_repeat),
+                        isError = showMismatch,
+                        supportingText = if (showMismatch) stringResource(R.string.password_mismatch) else null,
+                        inDialog = true,
                         visualTransformation = PasswordVisualTransformation(),
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
                     )
