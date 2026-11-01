@@ -6,8 +6,9 @@ local.properties
 *.iml
 .DS_Store
 captures/
-# Analysis output from the r8-analyzer skill (docs/SKILLS.md).
+# Analysis output from the r8-analyzer skill (docs/SKILLS.md), and the caches its scripts write.
 /tmp/
+__pycache__/
 *.jks
 *.keystore
 # "build" is also a source package name (core/.../build/); keep sources tracked.

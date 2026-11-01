@@ -42,13 +42,14 @@ vendored() {
   done
 }
 
-# "blob path" lines for the files of a skill, leaving out the files this project adds.
+# "blob path" lines for the files of a skill, leaving out the files this project adds (and Python's
+# caches, written when a skill's scripts run).
 upstream_files() {
   up ls-tree -r "$1:$2" 2>/dev/null | awk -F'\t' '{split($1, a, " "); print a[3], $2}' |
     grep -Ev ' (UPSTREAM\.md|LICENSE\.txt)$' | sort
 }
 local_files() {
-  (cd "$SKILLS/$1" && find . -type f ! -path ./UPSTREAM.md ! -path ./LICENSE.txt | sed 's|^\./||' |
+  (cd "$SKILLS/$1" && find . -type f ! -path ./UPSTREAM.md ! -path ./LICENSE.txt ! -path '*/__pycache__/*' | sed 's|^\./||' |
     sort | while read -r file; do echo "$(git hash-object --no-filters "$file") $file"; done) | sort
 }
 
