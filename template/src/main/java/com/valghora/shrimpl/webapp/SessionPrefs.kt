@@ -5,6 +5,7 @@ import androidx.core.content.edit
 import com.valghora.shrimpl.core.UaMode
 import com.valghora.shrimpl.core.UaStore
 import com.valghora.shrimpl.core.ZoomStore
+import java.util.UUID
 
 /** ZoomStore and UaStore backed by one private SharedPreferences file (docs/TEMPLATE_SPEC.md T6.1). */
 class SessionPrefs(context: Context) : ZoomStore, UaStore {
@@ -23,7 +24,14 @@ class SessionPrefs(context: Context) : ZoomStore, UaStore {
         get() = prefs.getBoolean(KEY_UA_LEARNED_DESKTOP, false)
         set(value) = prefs.edit { putBoolean(KEY_UA_LEARNED_DESKTOP, value) }
 
+    /** A random token the desktop/mobile shortcut carries, so only that shortcut toggles (T6.11). */
+    val toggleToken: String
+        get() = prefs.getString(KEY_TOGGLE_TOKEN, null) ?: UUID.randomUUID().toString().also { token ->
+            prefs.edit { putString(KEY_TOGGLE_TOKEN, token) }
+        }
+
     private companion object {
+        const val KEY_TOGGLE_TOKEN = "toggle_token"
         const val KEY_TEXT_ZOOM = "text_zoom"
         const val KEY_UA_CHOICE = "ua_user_choice"
         const val KEY_UA_LEARNED_DESKTOP = "ua_learned_desktop"

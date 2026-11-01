@@ -119,7 +119,8 @@ Unit tests cover every branch with a fixed fixture config, including look-alike 
   platform when `USER_AGENT_METADATA` is supported, and uses a wide viewport on small screens; mobile
   mode restores the original metadata. The mode is resolved once in `onCreate` and changes only by
   T6.10 and T6.11, never on resize.
-- T6.2 Cookies, including third-party ones, are accepted; `flush()` in onPause, onStop, onDestroy.
+- T6.2 Cookies, including third-party ones, are accepted; they are flushed to disk in onStop and on
+  SLEEP (T8.3), on a background thread (`flush()` blocks on file I/O).
 - T6.3 Downloads (http and https only) go to `DownloadManager` with the page's cookies and user
   agent, into Downloads, with a completion notification. Other schemes show a toast.
 - T6.4 File chooser: the page's chooser intent (multiple when asked), results from clip data and
@@ -131,7 +132,8 @@ Unit tests cover every branch with a fixed fixture config, including look-alike 
   with the result.
 - T6.6 Routing through T2a. Main frame: INTERNAL, OAUTH and PASSTHROUGH load in place; EXTERNAL
   opens the browser (`ACTION_VIEW`, `CATEGORY_BROWSABLE`); SPECIAL_SCHEME intents are sanitized
-  (no component or selector) with a `browser_fallback_url` fallback; BLOCKED does nothing. Popups
+  (no component or selector, no URI permission grant flags, `CATEGORY_BROWSABLE`) with a
+  `browser_fallback_url` fallback; BLOCKED does nothing. Popups
   (`onCreateWindow`) get a child WebView configured like the main one; on its first real navigation
   it is handed off (EXTERNAL, SPECIAL_SCHEME), shown in a dialog at 90 % of the window (INTERNAL,
   OAUTH, or a dialog popup), or destroyed. A WebView is never destroyed inside its own callback; the
@@ -146,6 +148,8 @@ Unit tests cover every branch with a fixed fixture config, including look-alike 
   is blocked, desktop mode is learned, and the start URL reloads. At most once per install.
 - T6.11 Desktop/mobile toggle (`profile.uaUserToggle`, no override): one dynamic launcher shortcut,
   "Request desktop site" or "Request mobile site", which saves the choice and reloads the start URL.
+  The shortcut carries a random token kept in the app's preferences; a launch without it (another
+  app starting the exported activity) doesn't toggle.
 - T6.12 One startup log line: `UA mode=<mode> reason=<reason> metadata=<applied|unsupported|default>`
   (tag `profile.appId`).
 - T6.13 Full-screen video: the page's custom view covers the window with the system bars hidden (swipe

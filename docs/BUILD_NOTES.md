@@ -134,6 +134,10 @@ thrown away.
 - Template version 8 has no template code change either: it was bumped at the owner's request, to
   exercise Update and Update all on installed web apps.
 
+- Template version 9 (2026-11-01): fixes from the Android skills audits. `intent:` links lose URI
+  permission grant flags; only the toggle shortcut's token toggles desktop/mobile; `onNewIntent`
+  keeps the latest intent; cookies are flushed once per stop, off the main thread.
+
 - `ACCESS_NETWORK_STATE` (a normal permission) lets the search tell "No internet connection" apart
   from a site that can't be reached.
 

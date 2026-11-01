@@ -80,6 +80,8 @@ import com.valghora.shrimpl.core.profile.uaFeaturesActive
 import java.net.URISyntaxException
 import java.util.Collections
 import java.util.WeakHashMap
+import java.util.concurrent.ExecutorService
+import java.util.concurrent.Executors
 
 class MainActivity : AppCompatActivity() {
 
@@ -231,12 +233,8 @@ class MainActivity : AppCompatActivity() {
 
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
+        setIntent(intent)
         handleToggleIntent(intent)
-    }
-
-    override fun onPause() {
-        super.onPause()
-        CookieManager.getInstance().flush()
     }
 
     override fun onStart() {
@@ -247,7 +245,7 @@ class MainActivity : AppCompatActivity() {
 
     override fun onStop() {
         super.onStop()
-        CookieManager.getInstance().flush()
+        flushCookies()
         if (!WebApp.profile.keepAliveWhenHidden && webViewAlive) webView.onPause()
     }
 
@@ -276,7 +274,6 @@ class MainActivity : AppCompatActivity() {
         pendingPermissionRequest = null
         fileChooserCallback?.onReceiveValue(null)
         fileChooserCallback = null
-        CookieManager.getInstance().flush()
         destroyMainWebView()
         super.onDestroy()
     }
@@ -526,8 +523,11 @@ class MainActivity : AppCompatActivity() {
         } catch (_: URISyntaxException) {
             return
         }
+        // A page wrote this intent: it may name any app, but not one of this app's components, and it
+        // can't pass on access to this app's files (android-intent-security skill; Chrome does the same).
         intent.component = null
         intent.selector = null
+        intent.flags = intent.flags and URI_GRANT_FLAGS.inv()
         intent.addCategory(Intent.CATEGORY_BROWSABLE)
         try {
             startActivity(intent)
@@ -1043,18 +1043,22 @@ class MainActivity : AppCompatActivity() {
             .setIntent(
                 Intent(this, MainActivity::class.java)
                     .setAction(Intent.ACTION_VIEW)
-                    .putExtra(EXTRA_TOGGLE_UA, true),
+                    .putExtra(EXTRA_TOGGLE_UA, prefs.toggleToken),
             )
             .build()
         ShortcutManagerCompat.setDynamicShortcuts(this, listOf(shortcut))
     }
 
-    /** Applies a pending toggle from the launcher shortcut; returns true if it loaded START_URL. */
+    /**
+     * Applies a pending toggle from the launcher shortcut; returns true if it loaded START_URL. The
+     * activity is exported (it is the launcher's), so only the shortcut's own token counts: another app
+     * can't flip the layout (android-intent-security skill).
+     */
     private fun handleToggleIntent(intent: Intent?): Boolean {
-        if (intent?.getBooleanExtra(EXTRA_TOGGLE_UA, false) != true) return false
+        val token = intent?.getStringExtra(EXTRA_TOGGLE_UA) ?: return false
         intent.removeExtra(EXTRA_TOGGLE_UA)
         setIntent(intent)
-        if (!uaToggleEnabled) return false
+        if (!uaToggleEnabled || token != prefs.toggleToken) return false
         ShortcutManagerCompat.reportShortcutUsed(this, SHORTCUT_TOGGLE_UA)
         val target = controller.toggleTarget(resolvedMode)
         prefs.userChoice = target
@@ -1072,7 +1076,7 @@ class MainActivity : AppCompatActivity() {
         if (!webViewAlive) return
         when (event) {
             WakeEvent.SLEEP -> {
-                CookieManager.getInstance().flush()
+                flushCookies()
                 webView.setWorkspaceAwake(false)
                 webView.onPause()
                 webView.pauseTimers()
@@ -1087,6 +1091,15 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    /**
+     * T6.2: writes cookies to disk on [cookieWriter], since `flush()` blocks its caller on file I/O
+     * (anr-audit-and-fix skill).
+     */
+    private fun flushCookies() {
+        val cookies = CookieManager.getInstance()
+        cookieWriter.execute { cookies.flush() }
+    }
+
     private fun toast(message: Int) {
         Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
     }
@@ -1099,6 +1112,11 @@ class MainActivity : AppCompatActivity() {
         const val SHORTCUT_TOGGLE_UA = "toggle_ua"
         const val EXTRA_TOGGLE_UA = "toggle_ua"
         const val EXTRA_BROWSER_FALLBACK_URL = "browser_fallback_url"
+        const val URI_GRANT_FLAGS = Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION or
+            Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION or Intent.FLAG_GRANT_PREFIX_URI_PERMISSION
+
+        /** One background thread for cookie writes, shared by every window. */
+        val cookieWriter: ExecutorService = Executors.newSingleThreadExecutor()
         const val STORE_REDIRECT_WINDOW_MS = 10_000L
         const val POPUP_FRACTION = 0.9f
         const val WAKE_SCRIPT =
