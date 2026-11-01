@@ -144,7 +144,6 @@
     <string name="build_waiting_for_user">Android is waiting for you to confirm the install</string>
     <string name="build_waiting_for_uninstall">Android is waiting for you to confirm the uninstall</string>
     <string name="stage_uninstalling">Uninstalling</string>
-    <string name="action_fix">Fix</string>
     <string name="action_fix_all">Fix all</string>
     <string name="action_show_installer">Show installer</string>
     <string name="stage_rendering_icon">Drawing</string>
@@ -221,6 +220,9 @@
     <string name="click_action_open_detail">Launch the application on click</string>
     <string name="click_action_edit_detail">Edit the application on click</string>
     <string name="action_app_options">Options for %1$s</string>
+    <string name="action_update_app">Update %1$s</string>
+    <string name="action_fix_app">Fix %1$s</string>
+    <string name="action_rebuild_app">Rebuild %1$s</string>
     <string name="icon_option_brand">Brand</string>
     <string name="icon_option_website">Website</string>
     <string name="icon_option_custom">Custom</string>

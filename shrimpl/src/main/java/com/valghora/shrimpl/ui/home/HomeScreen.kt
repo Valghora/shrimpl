@@ -30,8 +30,9 @@ import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FilledTonalButton
+import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
@@ -60,6 +61,7 @@ import androidx.compose.ui.graphics.ColorMatrix
 import androidx.compose.ui.graphics.Paint
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.input.pointer.PointerEventType
 import androidx.compose.ui.input.pointer.isSecondaryPressed
@@ -96,7 +98,9 @@ import com.valghora.shrimpl.ui.common.Notice
 import com.valghora.shrimpl.ui.common.NoticeCard
 import com.valghora.shrimpl.ui.common.PillButton
 import com.valghora.shrimpl.ui.common.PitchText
+import com.valghora.shrimpl.ui.common.Tone
 import com.valghora.shrimpl.ui.common.TooltipIconButton
+import com.valghora.shrimpl.ui.common.WithTooltip
 import com.valghora.shrimpl.ui.icons.AdaptiveIcon
 import com.valghora.shrimpl.ui.icons.rememberIconLayers
 
@@ -376,22 +380,12 @@ private fun AppItem(
             // with another key offers Fix (uninstall, then rebuild with the current key); Rebuild is
             // left for one whose Fix stopped after the uninstall.
             val rowAction = when {
-                locked -> Triple(R.string.action_fix, Icons.Filled.Build, onFix)
-                installed == null && otherKey -> Triple(R.string.action_rebuild, Icons.Filled.Refresh, onRebuild)
-                installed != null && updateAvailable -> Triple(R.string.action_update, Icons.Filled.Refresh, onRebuild)
+                locked -> RowAction(R.string.action_fix_app, Icons.Filled.Build, Tone.CAUTION, onFix)
+                installed == null && otherKey -> RowAction(R.string.action_rebuild_app, Icons.Filled.Refresh, Tone.SUCCESS, onRebuild)
+                installed != null && updateAvailable -> RowAction(R.string.action_update_app, Icons.Filled.Refresh, null, onRebuild)
                 else -> null
             }
-            rowAction?.let { (action, icon, onClick) ->
-                FilledTonalButton(
-                    onClick = onClick,
-                    contentPadding = PaddingValues(start = 12.dp, end = 16.dp),
-                    modifier = Modifier.heightIn(min = 36.dp),
-                ) {
-                    Icon(icon, contentDescription = null, modifier = Modifier.size(18.dp))
-                    Spacer(Modifier.width(6.dp))
-                    Text(stringResource(action))
-                }
-            }
+            rowAction?.let { RowActionButton(it, record.profile.name) }
             val label = stringResource(R.string.action_app_options, record.profile.name)
             var optionsOpen by rememberSaveable { mutableStateOf(false) }
             val actions = menuActions(locked, installed != null, updateAvailable, onOpen, onEdit, onRebuild, onUninstall, onRemove)
@@ -497,5 +491,28 @@ private fun menuActions(
         }
         add(rebuild to onRebuild)
         add(if (installed) R.string.action_uninstall to onUninstall else R.string.action_remove to onRemove)
+    }
+}
+
+/** A row's action (R2.2): its label (taking the app's name), icon, and status tone (null: the theme's tonal color). */
+private class RowAction(val label: Int, val icon: ImageVector, val tone: Tone?, val onClick: () -> Unit)
+
+/**
+ * R2.2: a small icon-only pill (48 x 32 dp, a full 48 dp touch target) with a tooltip naming the
+ * action. Update is in the theme's tonal color; Fix in the Caution yellow and Rebuild in the Success
+ * green, as in the notices.
+ */
+@Composable
+private fun RowActionButton(action: RowAction, appName: String) {
+    val label = stringResource(action.label, appName)
+    val colors = action.tone?.let { IconButtonDefaults.filledTonalIconButtonColors(containerColor = it.container, contentColor = it.content) }
+        ?: IconButtonDefaults.filledTonalIconButtonColors()
+    WithTooltip(label) {
+        FilledTonalIconButton(
+            onClick = action.onClick,
+            shape = CircleShape,
+            colors = colors,
+            modifier = Modifier.size(width = 48.dp, height = 32.dp),
+        ) { Icon(action.icon, contentDescription = label, modifier = Modifier.size(18.dp)) }
     }
 }
