@@ -359,7 +359,9 @@ private fun AppItem(
             // Borderless rows: the settings items' rounded shape shows only as the press, hover and
             // (in two panes) selection highlight.
             .clip(ItemShape)
-            .background(if (selected) MaterialTheme.colorScheme.secondaryContainer else Color.Transparent)
+            // The selected row takes the hover tint, not secondaryContainer, so its tonal Update pill stays
+            // visible on it.
+            .background(if (selected) MaterialTheme.colorScheme.onSurface.copy(alpha = HOVER_ALPHA) else Color.Transparent)
             // A tap opens or edits the app, as chosen in Settings (R2.5).
             .combinedClickable(onClick = if (locked || installed == null) ({}) else if (clickAction == ClickAction.EDIT) onEdit else onOpen, onLongClick = { menuAt = DpOffset(24.dp, 48.dp) }),
     ) {
@@ -516,3 +518,6 @@ private fun RowActionButton(action: RowAction, appName: String) {
         ) { Icon(action.icon, contentDescription = label, modifier = Modifier.size(18.dp)) }
     }
 }
+
+/** Material's hover state layer: the content color at 8 %. */
+private const val HOVER_ALPHA = 0.08f

@@ -93,7 +93,7 @@ binary translation) on any device.
   (hides on scroll down, returns on scroll up) with a settings button, over an adaptive grid of
   the web apps Shrimpl created (one column on phones, more on wide windows). Each app is a
   borderless row on the page background; the settings items' rounded shape shows only as its press
-  and hover highlight, and in two panes as the selection (secondary container): the installed icon
+  and hover highlight, and in two panes as the selection (the hover tint, so a tonal button on it stays visible): the installed icon
   (48 dp), the name, an Update button when a newer template is bundled (R2.2), and a more-options
   (three vertical dots) button (`Options for <name>`), lined up under the settings button,
   offering Open (when installed), Edit, Reinstall (when not installed), and Uninstall (or Remove
