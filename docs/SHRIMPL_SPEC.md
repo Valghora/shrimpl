@@ -101,12 +101,12 @@ binary translation) on any device.
   Right-click or long press opens a menu with Open, Edit, Reinstall / Update / Rebuild, and
   Uninstall or Remove.
 - R2.2 The list comes from Shrimpl's records (R11) joined with the installed state, re-read on
-  resume. A record whose app isn't installed sits at the bottom of the list (each group in name
-  order), its icon and name greyed out, with "Not installed" under its name; tapping it does
-  nothing, but its ⋮ menu, long press, right-click menu and Rebuild button work as usual. An
-  installed app built from an older template (R11.4) shows an Update button to the right of its
-  name, which rebuilds it with the bundled template. An empty list says "No apps yet". User-facing
-  text says "app", never "web app".
+  resume. A record whose app isn't installed sits at the bottom of the list under a "Not installed"
+  label (each group in name order), its icon and name greyed out; tapping it does nothing, but its ⋮
+  menu, long press, right-click menu and Rebuild button work as usual. An installed app built from
+  an older template (R11.4) shows an Update button to the right of its name, which rebuilds it with
+  the bundled template. An empty list says "No apps yet". User-facing text says "app", never "web
+  app".
 - R2.3 The edit page offers every profile setting in the form of R3.3 (the app ID is not shown) and the
   icon options (R10); its ⋮ menu offers Open (when installed), Rebuild (Reinstall when not
   installed) and Uninstall (confirmed; then offers to remove the record), or Remove. Once something

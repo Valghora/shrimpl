@@ -243,8 +243,9 @@ fun HomeScreen(
                         )
                     }
                 }
-                // R2.2: uninstalled apps sit at the bottom, each group still in name order.
-                items(records.sortedBy { it.packageName !in installed }, key = { it.appId }) { record ->
+                // R2.2: uninstalled apps sit at the bottom under a "Not installed" label, each group in name order.
+                val (present, absent) = records.partition { it.packageName in installed }
+                val row: @Composable (WebAppRecord) -> Unit = { record ->
                     val app = installed[record.packageName]
                     AppItem(
                         record = record,
@@ -260,6 +261,18 @@ fun HomeScreen(
                         onFix = { model.fix(listOf(record)) },
                         onRemove = { model.remove(record) },
                     )
+                }
+                items(present, key = { it.appId }) { row(it) }
+                if (absent.isNotEmpty()) {
+                    item(key = NOT_INSTALLED_LABEL, span = { GridItemSpan(maxLineSpan) }) {
+                        Text(
+                            stringResource(R.string.home_not_installed),
+                            style = MaterialTheme.typography.labelLarge,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.padding(start = 20.dp, top = 16.dp, bottom = 4.dp),
+                        )
+                    }
+                    items(absent, key = { it.appId }) { row(it) }
                 }
             }
         }
@@ -358,9 +371,6 @@ private fun AppItem(
             Box(if (greyed) Modifier.greyedOut() else Modifier) { ItemIcon(record, installed) }
             Column(Modifier.weight(1f)) {
                 Text(record.profile.name, style = MaterialTheme.typography.titleMedium, modifier = if (greyed) Modifier.alpha(GREYED_ALPHA) else Modifier)
-                if (installed == null) {
-                    Text(stringResource(R.string.home_not_installed), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                }
             }
             // R2.2: a newer template is bundled; Update rebuilds this app with it. R11.7: an app signed
             // with another key offers Fix (uninstall, then rebuild with the current key); Rebuild is
@@ -455,6 +465,7 @@ private val MIN_CELL_WIDTH = 360.dp
 private val FAB_MARGIN = 16.dp
 
 private const val OTHER_KEY_NOTICE = "other-key-notice"
+private const val NOT_INSTALLED_LABEL = "not-installed-label"
 
 private const val GREYED_ALPHA = 0.38f
 
