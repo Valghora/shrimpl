@@ -130,7 +130,17 @@ Unit tests cover every branch with a fixed fixture config, including look-alike 
   (microphone, camera, protected media); Android's runtime permission is requested when missing and
   only granted resources are passed on. Location (with `profile.allowLocation`): internal origins
   only; Android's location permission (precise or approximate) is asked for, and the page is answered
-  with the result.
+  with the result. A missing permission is handled in three steps (`PermissionPlan` in `:core`):
+  - the first time, Android asks directly;
+  - after one "Don't allow", a dialog explains first ("Use your camera and microphone?", the page's
+    host and the app's name; Not now or Continue). Continue brings Android's prompt back; Not now,
+    Back or tapping outside turns the page down;
+  - once Android no longer asks (a second "Don't allow"), the page is turned down and a snackbar says
+    so ("Camera and microphone are off for <app>") with Settings, which opens the app's info page.
+    It shows once per window for each permission.
+
+  The app remembers which permissions it asked for, since Android can't tell "never asked" from
+  "Don't allow" twice; a permission seen granted is forgotten, so a later revoke asks again.
 - T6.6 Routing through T2a. Main frame: INTERNAL, OAUTH and PASSTHROUGH load in place; EXTERNAL
   opens the browser (`ACTION_VIEW`, `CATEGORY_BROWSABLE`); SPECIAL_SCHEME intents are sanitized
   (no component or selector, no URI permission grant flags, `CATEGORY_BROWSABLE`) with a

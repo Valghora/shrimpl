@@ -138,6 +138,12 @@ thrown away.
   permission grant flags; only the toggle shortcut's token toggles desktop/mobile; `onNewIntent`
   keeps the latest intent; cookies are flushed once per stop, off the main thread.
 
+- Template version 10 (2026-11-01): the camera, microphone and location steps of T6.5 (explain after
+  one refusal, a snackbar with Settings once Android stops asking), with Material's
+  `MaterialAlertDialogBuilder` and `Snackbar`, which the template already depended on for its theme.
+  Android's `shouldShowRequestPermissionRationale` is false both before the first request and after
+  "Don't allow" twice, so the template keeps an "asked" flag per permission in its preferences.
+
 - `ACCESS_NETWORK_STATE` (a normal permission) lets the search tell "No internet connection" apart
   from a site that can't be reached.
 

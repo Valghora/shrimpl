@@ -30,7 +30,19 @@ class SessionPrefs(context: Context) : ZoomStore, UaStore {
             prefs.edit { putString(KEY_TOGGLE_TOKEN, token) }
         }
 
+    /**
+     * Whether the app asked Android for [permission] before (T6.5). Android can't tell "never asked"
+     * from "Don't allow" chosen twice; with this it can.
+     */
+    fun wasAsked(permission: String): Boolean = prefs.getBoolean(KEY_ASKED + permission, false)
+
+    fun markAsked(permissions: List<String>) = prefs.edit { permissions.forEach { putBoolean(KEY_ASKED + it, true) } }
+
+    /** A granted permission starts over: if it is revoked in Settings, Android asks again. */
+    fun clearAsked(permissions: List<String>) = prefs.edit { permissions.forEach { remove(KEY_ASKED + it) } }
+
     private companion object {
+        const val KEY_ASKED = "asked_"
         const val KEY_TOGGLE_TOKEN = "toggle_token"
         const val KEY_TEXT_ZOOM = "text_zoom"
         const val KEY_UA_CHOICE = "ua_user_choice"

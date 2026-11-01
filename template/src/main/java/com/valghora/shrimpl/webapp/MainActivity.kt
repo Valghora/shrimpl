@@ -23,6 +23,7 @@ import android.os.Message
 import android.os.SystemClock
 import android.print.PrintAttributes
 import android.print.PrintManager
+import android.provider.Settings
 import android.util.Log
 import android.view.ContextMenu
 import android.view.DragEvent
@@ -51,6 +52,7 @@ import androidx.activity.OnBackPressedCallback
 import androidx.activity.SystemBarStyle
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.animation.addListener
 import androidx.core.content.ContextCompat
@@ -65,11 +67,14 @@ import androidx.core.view.WindowInsetsControllerCompat
 import androidx.webkit.UserAgentMetadata
 import androidx.webkit.WebSettingsCompat
 import androidx.webkit.WebViewFeature
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import com.google.android.material.snackbar.Snackbar
 import com.valghora.shrimpl.core.DesktopSessionController
 import com.valghora.shrimpl.core.HitType
 import com.valghora.shrimpl.core.KeyAction
 import com.valghora.shrimpl.core.MenuAction
 import com.valghora.shrimpl.core.Modifier
+import com.valghora.shrimpl.core.PermissionPlan
 import com.valghora.shrimpl.core.UaMode
 import com.valghora.shrimpl.core.UrlClass
 import com.valghora.shrimpl.core.WakeEvent
@@ -150,22 +155,19 @@ class MainActivity : AppCompatActivity() {
         }
 
     private val mediaPermissionLauncher =
-        registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) {
-            val request = pendingPermissionRequest ?: return@registerForActivityResult
-            pendingPermissionRequest = null
-            grantPermittedResources(request, pendingPermissionResources)
-        }
+        registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { finishMediaRequest() }
 
     /** A page's location request waiting for Android's location permission prompt. */
     private var pendingGeolocation: Pair<String, GeolocationPermissions.Callback>? = null
 
     private val locationPermissionLauncher =
-        registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) {
-            val (origin, callback) = pendingGeolocation ?: return@registerForActivityResult
-            pendingGeolocation = null
-            // Precise or approximate, whichever the user allowed.
-            callback.invoke(origin, hasLocationPermission(), false)
-        }
+        registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { finishGeolocation() }
+
+    /** The dialog explaining a permission before Android asks again (T6.5), while it shows. */
+    private var permissionDialog: AlertDialog? = null
+
+    /** Permissions whose "off" message this window showed already: once each per window (T6.5). */
+    private val offShown = mutableSetOf<String>()
 
     private val notificationPermissionLauncher =
         registerForActivityResult(ActivityResultContracts.RequestPermission()) { }
@@ -270,6 +272,7 @@ class MainActivity : AppCompatActivity() {
     override fun onDestroy() {
         workspaceMonitor.unregister()
         popups.toList().forEach { it.destroy() }
+        permissionDialog?.dismiss()
         pendingPermissionRequest?.deny()
         pendingPermissionRequest = null
         fileChooserCallback?.onReceiveValue(null)
@@ -721,7 +724,9 @@ class MainActivity : AppCompatActivity() {
                 request.deny()
                 return
             }
-            val missing = allowed.mapNotNull(::runtimePermissionFor).distinct().filterNot(::isGranted)
+            val needed = allowed.mapNotNull(::runtimePermissionFor).distinct()
+            prefs.clearAsked(needed.filter(::isGranted))
+            val missing = needed.filterNot(::isGranted)
             if (missing.isEmpty()) {
                 grantPermittedResources(request, allowed)
                 return
@@ -729,7 +734,9 @@ class MainActivity : AppCompatActivity() {
             pendingPermissionRequest?.deny()
             pendingPermissionRequest = request
             pendingPermissionResources = allowed
-            mediaPermissionLauncher.launch(missing.toTypedArray())
+            requestForPage(request.origin.host ?: request.origin.toString(), missing, mediaPermissionLauncher::launch) {
+                if (pendingPermissionRequest === request) finishMediaRequest()
+            }
         }
 
         override fun onShowCustomView(view: View, callback: CustomViewCallback) {
@@ -741,7 +748,10 @@ class MainActivity : AppCompatActivity() {
         }
 
         override fun onPermissionRequestCanceled(request: PermissionRequest) {
-            if (pendingPermissionRequest == request) pendingPermissionRequest = null
+            if (pendingPermissionRequest == request) {
+                pendingPermissionRequest = null
+                permissionDialog?.dismiss()
+            }
         }
 
         override fun onGeolocationPermissionsShowPrompt(origin: String, callback: GeolocationPermissions.Callback) {
@@ -749,17 +759,23 @@ class MainActivity : AppCompatActivity() {
                 callback.invoke(origin, false, false)
                 return
             }
+            prefs.clearAsked(LOCATION_PERMISSIONS.filter(::isGranted))
             if (hasLocationPermission()) {
                 callback.invoke(origin, true, false)
                 return
             }
             pendingGeolocation?.let { (previous, previousCallback) -> previousCallback.invoke(previous, false, false) }
             pendingGeolocation = origin to callback
-            locationPermissionLauncher.launch(arrayOf(Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION))
+            requestForPage(origin.toUri().host ?: origin, LOCATION_PERMISSIONS, locationPermissionLauncher::launch) {
+                if (pendingGeolocation?.second === callback) finishGeolocation()
+            }
         }
 
         override fun onGeolocationPermissionsHidePrompt() {
-            pendingGeolocation = null
+            if (pendingGeolocation != null) {
+                pendingGeolocation = null
+                permissionDialog?.dismiss()
+            }
         }
 
         override fun onShowFileChooser(
@@ -799,6 +815,95 @@ class MainActivity : AppCompatActivity() {
     private fun grantPermittedResources(request: PermissionRequest, resources: List<String>) {
         val granted = resources.filter { resource -> runtimePermissionFor(resource)?.let(::isGranted) ?: true }
         if (granted.isEmpty()) request.deny() else request.grant(granted.toTypedArray())
+    }
+
+    /** Answers the waiting media request with the resources Android now allows. */
+    private fun finishMediaRequest() {
+        val request = pendingPermissionRequest ?: return
+        pendingPermissionRequest = null
+        prefs.clearAsked(pendingPermissionResources.mapNotNull(::runtimePermissionFor).filter(::isGranted))
+        grantPermittedResources(request, pendingPermissionResources)
+    }
+
+    /** Answers the waiting location request: precise or approximate, whichever the user allowed. */
+    private fun finishGeolocation() {
+        val (origin, callback) = pendingGeolocation ?: return
+        pendingGeolocation = null
+        prefs.clearAsked(LOCATION_PERMISSIONS.filter(::isGranted))
+        callback.invoke(origin, hasLocationPermission(), false)
+    }
+
+    // ---------- Android permissions for a page (T6.5, android-permissions-security skill) ----------
+
+    /**
+     * Gets Android's [missing] permissions for a page on [host], then [finish]es its request. The first
+     * time Android asks directly; after one refusal a dialog explains first ("Not now" turns the page
+     * down); once Android no longer asks, a snackbar says the permission is off, with Settings.
+     * [finish] answers this request only, so a dialog replaced by another request's turns its own down.
+     */
+    private fun requestForPage(host: String, missing: List<String>, launch: (Array<String>) -> Unit, finish: () -> Unit) {
+        val plan = PermissionPlan.of(missing, prefs::wasAsked, ::shouldShowRequestPermissionRationale)
+        if (plan.blocked.isNotEmpty()) showPermissionOff(plan.blocked)
+        if (plan.ask.isEmpty()) {
+            finish()
+            return
+        }
+        val ask = {
+            prefs.markAsked(plan.ask)
+            launch(plan.ask.toTypedArray())
+        }
+        if (!plan.explainFirst) {
+            ask()
+            return
+        }
+        val labels = PermissionLabels.of(plan.ask)
+        permissionDialog?.cancel()
+        permissionDialog = MaterialAlertDialogBuilder(this)
+            .setIcon(labels.icon)
+            .setTitle(labels.title)
+            .setMessage(getString(if (labels.plural) R.string.permission_explain_many else R.string.permission_explain_one, host, WebApp.profile.name))
+            .setNegativeButton(R.string.action_not_now) { _, _ -> finish() }
+            .setPositiveButton(R.string.action_continue) { _, _ -> ask() }
+            .setOnCancelListener { finish() }
+            .setOnDismissListener { dialog -> if (permissionDialog === dialog) permissionDialog = null }
+            .show()
+    }
+
+    /** Says [permissions] are off for this app, once per window each, with a way to its Settings page. */
+    private fun showPermissionOff(permissions: List<String>) {
+        if (!offShown.addAll(permissions)) return
+        Snackbar.make(root, getString(PermissionLabels.of(permissions).off, WebApp.profile.name), Snackbar.LENGTH_LONG)
+            .setAction(R.string.action_settings) {
+                startActivity(Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.fromParts("package", packageName, null)))
+            }
+            .show()
+    }
+
+    /** The words and icon for a set of permissions: camera, microphone, both, or location. */
+    private enum class PermissionLabels(val title: Int, val off: Int, val icon: Int, val plural: Boolean) {
+        CAMERA(R.string.permission_title_camera, R.string.permission_off_camera, R.drawable.ic_permission_camera, false),
+        MICROPHONE(R.string.permission_title_microphone, R.string.permission_off_microphone, R.drawable.ic_permission_microphone, false),
+        CAMERA_MICROPHONE(
+            R.string.permission_title_camera_microphone,
+            R.string.permission_off_camera_microphone,
+            R.drawable.ic_permission_camera,
+            true,
+        ),
+        LOCATION(R.string.permission_title_location, R.string.permission_off_location, R.drawable.ic_permission_location, false),
+        ;
+
+        companion object {
+            fun of(permissions: List<String>): PermissionLabels {
+                val camera = Manifest.permission.CAMERA in permissions
+                val microphone = Manifest.permission.RECORD_AUDIO in permissions
+                return when {
+                    camera && microphone -> CAMERA_MICROPHONE
+                    camera -> CAMERA
+                    microphone -> MICROPHONE
+                    else -> LOCATION
+                }
+            }
+        }
     }
 
     private fun collectUris(data: Intent?): Array<Uri>? {
@@ -1112,6 +1217,7 @@ class MainActivity : AppCompatActivity() {
         const val SHORTCUT_TOGGLE_UA = "toggle_ua"
         const val EXTRA_TOGGLE_UA = "toggle_ua"
         const val EXTRA_BROWSER_FALLBACK_URL = "browser_fallback_url"
+        val LOCATION_PERMISSIONS = listOf(Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION)
         const val URI_GRANT_FLAGS = Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION or
             Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION or Intent.FLAG_GRANT_PREFIX_URI_PERMISSION
 
