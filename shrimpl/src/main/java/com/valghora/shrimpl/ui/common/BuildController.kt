@@ -4,11 +4,15 @@ import com.valghora.shrimpl.AppContainer
 import com.valghora.shrimpl.build.BuildOutcome
 import com.valghora.shrimpl.build.BuildRequest
 import com.valghora.shrimpl.build.WebAppFactory
+import com.valghora.shrimpl.core.records.WebAppRecord
+import com.valghora.shrimpl.core.testing.TestTag
 import com.valghora.shrimpl.install.InstallResult
 import com.valghora.shrimpl.install.Installer
-import com.valghora.shrimpl.core.records.WebAppRecord
+import com.valghora.shrimpl.testing.TestMode
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.awaitCancellation
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -93,7 +97,12 @@ class BuildController(private val container: AppContainer, private val scope: Co
         _state.value = running(WebAppFactory.Stage.RENDERING_ICON)
         job = scope.launch {
             val chosen = installer ?: container.installers.preferred()
-            val outcome = container.factory.build(request, chosen) { _state.value = running(it) }
+            val tags = simulated(request)
+            val outcome = if (tags != null) {
+                simulate(requireNotNull(request.existing), tags, uninstallFirst = false) { stage, _ -> _state.value = running(stage) }
+            } else {
+                container.factory.build(request, chosen) { _state.value = running(it) }
+            }
             _state.value = when (outcome) {
                 is BuildOutcome.Installed -> BuildState.Done(outcome.record).also { onInstalled(outcome.record) }
                 BuildOutcome.NeedsUnknownSources -> BuildState.NeedsUnknownSources
@@ -140,7 +149,8 @@ class BuildController(private val container: AppContainer, private val scope: Co
                 val uninstallStep = if (item.uninstallFirst) false else null
                 fun running(stage: WebAppFactory.Stage, uninstalling: Boolean? = uninstallStep) =
                     BuildState.Running(stage, request.profile.name, kind, batch = progress, uninstalling = uninstalling)
-                if (item.uninstallFirst) {
+                val tags = simulated(request)
+                if (item.uninstallFirst && tags == null) {
                     _state.value = running(WebAppFactory.Stage.RENDERING_ICON, uninstalling = true)
                     when (val result = installer.uninstall(requireNotNull(request.existing) { "Fix needs an existing app" }.packageName)) {
                         InstallResult.Success -> Unit
@@ -152,8 +162,12 @@ class BuildController(private val container: AppContainer, private val scope: Co
                         }
                     }
                 }
-                _state.value = running(WebAppFactory.Stage.RENDERING_ICON)
-                val outcome = container.factory.build(request, installer) { _state.value = running(it) }
+                val outcome = if (tags != null) {
+                    simulate(requireNotNull(request.existing), tags, item.uninstallFirst) { stage, uninstalling -> _state.value = running(stage, uninstalling) }
+                } else {
+                    _state.value = running(WebAppFactory.Stage.RENDERING_ICON)
+                    container.factory.build(request, installer) { _state.value = running(it) }
+                }
                 when (outcome) {
                     is BuildOutcome.Installed -> {
                         batchUpdated = batchUpdated + request.profile.name
@@ -178,6 +192,47 @@ class BuildController(private val container: AppContainer, private val scope: Co
                 batchFailed.isNotEmpty() -> BuildState.Failed(batchFailed.first().second, offerSystemInstaller = false)
                 else -> null
             }
+        }
+    }
+
+    /**
+     * R13: the test tags of a build that plays back instead of building: an existing app whose name
+     * has tags and keeps them. Creating an app, or saving one with its tags removed, builds for real.
+     */
+    private fun simulated(request: BuildRequest): Set<TestTag>? {
+        val existing = request.existing ?: return null
+        val tags = TestMode.tags(existing.profile.name)
+        return tags.takeIf { it.isNotEmpty() && TestMode.tags(request.profile.name).isNotEmpty() }
+    }
+
+    /**
+     * R13: walks the sheet for [record] through the stages ([uninstallFirst] adds Uninstalling) at the usual pace
+     * without touching the app or its record, then ends as the [tags] say: "Install unknown apps",
+     * waiting for confirmation (until Cancel), turned down, failed, or installed.
+     */
+    private suspend fun simulate(
+        record: WebAppRecord,
+        tags: Set<TestTag>,
+        uninstallFirst: Boolean,
+        show: (WebAppFactory.Stage, Boolean?) -> Unit,
+    ): BuildOutcome {
+        if (uninstallFirst) {
+            show(WebAppFactory.Stage.RENDERING_ICON, true)
+            delay(SIMULATED_STEP_MS)
+        }
+        WebAppFactory.Stage.entries.forEach { stage ->
+            show(stage, if (uninstallFirst) false else null)
+            delay(SIMULATED_STEP_MS)
+        }
+        return when {
+            TestTag.UNKNOWN_SOURCES in tags -> BuildOutcome.NeedsUnknownSources
+            TestTag.WAIT in tags -> {
+                (_state.value as? BuildState.Running)?.let { _state.value = it.copy(waitingForUser = true) }
+                awaitCancellation()
+            }
+            TestTag.CANCEL in tags -> BuildOutcome.Cancelled
+            TestTag.FAIL in tags -> BuildOutcome.Failed("Simulated failure: this app is tagged [fail]")
+            else -> BuildOutcome.Installed(record)
         }
     }
 
@@ -222,3 +277,6 @@ class BuildController(private val container: AppContainer, private val scope: Co
         }
     }
 }
+
+/** R13: how long each simulated stage shows, as real stages do at least. */
+private const val SIMULATED_STEP_MS = 500L

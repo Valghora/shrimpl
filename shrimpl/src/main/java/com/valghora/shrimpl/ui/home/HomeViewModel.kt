@@ -5,13 +5,15 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.valghora.shrimpl.AppContainer
 import com.valghora.shrimpl.build.BuildRequest
+import com.valghora.shrimpl.core.records.WebAppRecord
+import com.valghora.shrimpl.core.testing.TestTag
 import com.valghora.shrimpl.data.ClickAction
 import com.valghora.shrimpl.data.InstallMethod
 import com.valghora.shrimpl.data.InstalledApp
 import com.valghora.shrimpl.data.InstalledApps
 import com.valghora.shrimpl.install.InstallResult
+import com.valghora.shrimpl.testing.TestMode
 import com.valghora.shrimpl.ui.common.BuildController
-import com.valghora.shrimpl.core.records.WebAppRecord
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -59,8 +61,21 @@ class HomeViewModel(private val container: AppContainer) : ViewModel() {
      * R11.7): installed, they can't be updated, only uninstalled; uninstalled, they rebuild with the
      * current key.
      */
-    fun otherKey(records: List<WebAppRecord>, key: SigningKeyCheck): Set<String> =
-        if (key is SigningKeyCheck.Read) records.filter { it.signerFingerprint != key.fingerprint }.mapTo(mutableSetOf()) { it.appId } else emptySet()
+    fun otherKey(records: List<WebAppRecord>, key: SigningKeyCheck): Set<String> {
+        val real = if (key is SigningKeyCheck.Read) records.filter { it.signerFingerprint != key.fingerprint } else emptyList()
+        // R13: "[cert]" apps behave as if signed with another key.
+        return (real + records.filter { TestTag.CERT in TestMode.tags(it.profile.name) }).mapTo(mutableSetOf()) { it.appId }
+    }
+
+    /** R13: the installed apps as the list shows them; "[missing]" apps count as not installed. */
+    fun shownInstalled(records: List<WebAppRecord>, installed: Map<String, InstalledApp>): Map<String, InstalledApp> {
+        val missing = records.filter { TestTag.MISSING in TestMode.tags(it.profile.name) }.mapTo(mutableSetOf()) { it.packageName }
+        return if (missing.isEmpty()) installed else installed - missing
+    }
+
+    /** Built with an older template than the bundled one (R11.4), or tagged "[update]" (R13). */
+    fun updateAvailable(record: WebAppRecord): Boolean =
+        record.updateAvailable(templateVersion) || TestTag.UPDATE in TestMode.tags(record.profile.name)
 
     /** Fix and Fix all (R11.7): uninstalls [records], then rebuilds them signed with the current key. */
     fun fix(records: List<WebAppRecord>) {
@@ -82,7 +97,7 @@ class HomeViewModel(private val container: AppContainer) : ViewModel() {
 
     /** Installed apps built with an older template than the bundled one (R11.4), except those [otherKey] can't update. */
     fun outdated(records: List<WebAppRecord>, installed: Map<String, InstalledApp>, otherKey: Set<String>): List<WebAppRecord> =
-        records.filter { it.updateAvailable(templateVersion) && it.packageName in installed && it.appId !in otherKey }
+        records.filter { updateAvailable(it) && it.packageName in installed && it.appId !in otherKey }
 
     /** Update all (R2.4): rebuilds [records] with the bundled template, one after another. */
     fun updateAll(records: List<WebAppRecord>) {

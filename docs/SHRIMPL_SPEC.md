@@ -379,6 +379,32 @@ The template's behavior is docs/TEMPLATE_SPEC.md. What Shrimpl relies on:
   template release build, both Shrimpl builds and the R0 check, and uploads the APKs and reports.
 - R12.3 Shrimpl release builds use R8 and are signed with the debug key, for personal sideloading.
 
+## R13 Test tags (debug builds only)
+
+Debug builds can put the app list and the search into states that are hard to set up for real.
+Release builds never read tags or test addresses.
+
+- R13.1 An app whose name starts with tags in square brackets, such as "[update,cert] Discord",
+  shows the states they name. The tags override what Home works out for each row (installed, update
+  available, signed with another key) in one place, before the usual rules, so the list shows only
+  states real users can reach: [update,cert] shows Fix, as a real mismatch would. Unknown tags are
+  ignored; nothing is stored.
+  - `update`: Update is offered (R2.2), and the app counts for Update all.
+  - `cert`: signed with another key (R11.7): Fix, the Remove-only menu, the notice and Fix all.
+  - `missing`: shown as not installed.
+- R13.2 A build of an existing app whose name has tags and keeps them plays back: the sheet goes
+  through every stage (and Uninstalling for Fix) at 0.5 s each without uninstalling, building,
+  installing or saving, then ends as installed, or as its tags say:
+  - `fail`: fails at installing.
+  - `cancel`: the install is turned down (R6.5).
+  - `wait`: waits for confirmation until Cancel (R6.5).
+  - `unknown-sources`: asks for "Install unknown apps" (R6.3).
+  Creating an app, or saving one with its tags removed, builds for real.
+- R13.3 Searching for a test address goes through the steps up to its failing one without going
+  online, then fails as a real search would (R3.2): 404.test, 400.test, 500.test, offline.test,
+  nohost.test, timeout.test, certificate.test and unloaded.test fail at Loading the site; 403.test
+  fails at Researching permissions. The .test domain is reserved and never resolves.
+
 ## Rules for every change
 
 Do not use lint baselines, disabled lint checks, `@SuppressLint` (except `SetJavaScriptEnabled` on

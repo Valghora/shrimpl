@@ -110,12 +110,14 @@ fun HomeScreen(
     val context = LocalContext.current
     val model = viewModel { HomeViewModel(context.container) }
     val records by model.records.collectAsStateWithLifecycle()
-    val installed by model.installed.collectAsStateWithLifecycle()
+    val installedApps by model.installed.collectAsStateWithLifecycle()
     val buildState by model.build.state.collectAsStateWithLifecycle()
     val message by model.message.collectAsStateWithLifecycle()
     val clickAction by model.clickAction.collectAsStateWithLifecycle()
     val method by model.installMethod.collectAsStateWithLifecycle()
     val signingKey by model.signingKey.collectAsStateWithLifecycle()
+    // R13: test tags are applied here, once; everything below sees the states they name.
+    val installed = model.shownInstalled(records, installedApps)
     val otherKey = model.otherKey(records, signingKey)
     val outdated = model.outdated(records, installed, otherKey)
     // R11.7: the notice shows until dismissed, and again when another such app turns up.
@@ -239,7 +241,7 @@ fun HomeScreen(
                     AppItem(
                         record = record,
                         installed = app,
-                        updateAvailable = record.updateAvailable(model.templateVersion),
+                        updateAvailable = model.updateAvailable(record),
                         otherKey = record.appId in otherKey,
                         selected = record.appId == selected,
                         clickAction = clickAction,

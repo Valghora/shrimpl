@@ -19,7 +19,9 @@ import com.valghora.shrimpl.core.discovery.SimpleIcon
 import com.valghora.shrimpl.core.discovery.SimpleIcons
 import com.valghora.shrimpl.core.discovery.SlimVisit
 import com.valghora.shrimpl.core.discovery.Visit
+import com.valghora.shrimpl.core.testing.TestSearch
 import com.valghora.shrimpl.icons.IconImages
+import com.valghora.shrimpl.testing.TestMode
 import java.io.IOException
 import java.net.SocketTimeoutException
 import java.net.UnknownHostException
@@ -49,6 +51,7 @@ class SiteDiscovery(private val context: Context) {
 
     suspend fun discover(input: String, onStage: suspend (Stage) -> Unit = {}): Discovered {
         val url = normalizeUrl(input) ?: throw DiscoveryException("Enter a web address, like example.com")
+        TestMode.search(url)?.let { playBack(it, onStage) }
         val desktopAgent = RenderedPass.desktopUserAgent(WebSettings.getDefaultUserAgent(context))
         val network = Network(desktopAgent)
 
@@ -128,6 +131,22 @@ class SiteDiscovery(private val context: Context) {
                 Discovered(draft, website)
             }
         }
+    }
+
+    /** R13: a test search address goes through the steps up to its failing one, offline, and fails there. */
+    private suspend fun playBack(test: TestSearch, onStage: suspend (Stage) -> Unit): Nothing {
+        Stage.entries.take(test.stage + 1).forEach { onStage(it) }
+        val message = when (test) {
+            TestSearch.NOT_FOUND, TestSearch.NO_SUCH_HOST -> R.string.search_not_found
+            TestSearch.DENIED -> R.string.search_denied
+            TestSearch.UNAVAILABLE -> R.string.search_unavailable
+            TestSearch.ERROR -> R.string.search_error
+            TestSearch.OFFLINE -> R.string.search_offline
+            TestSearch.TIMEOUT -> R.string.search_timeout
+            TestSearch.CERTIFICATE -> R.string.search_certificate
+            TestSearch.NOT_LOADED -> R.string.search_not_loaded
+        }
+        throw SearchFailure(Stage.entries[test.stage], context.getString(message))
     }
 
     /** R3.2: what a failed page load says, by what went wrong. */
