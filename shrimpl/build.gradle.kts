@@ -60,9 +60,11 @@ android {
             enableUnitTestCoverage = true
         }
         release {
-            isMinifyEnabled = true
-            isShrinkResources = true
-            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
+            // R8 code and resource optimization with the optimized default rules (r8-analyzer skill,
+            // AGP 9.3+ DSL); Shrimpl's own keep rules are in src/main/keepRules.
+            optimization {
+                enable = true
+            }
             // R12.3: signed with the debug key, for personal sideloading.
             signingConfig = signingConfigs.getByName("debug")
         }

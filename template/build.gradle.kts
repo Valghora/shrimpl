@@ -25,9 +25,11 @@ android {
     buildTypes {
         release {
             signingConfig = signingConfigs.getByName("debug")
-            isMinifyEnabled = true
-            isShrinkResources = true
-            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
+            // R8 code and resource optimization with the optimized default rules (r8-analyzer skill,
+            // AGP 9.3+ DSL). The template needs no keep rules of its own.
+            optimization {
+                enable = true
+            }
         }
     }
 

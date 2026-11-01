@@ -14,8 +14,9 @@ docs/SHRIMPL_SPEC.md. Profile fields are written `profile.field`.
   androidx.appcompat, com.google.android.material, androidx.activity:activity-ktx and
   androidx.webkit; tests use junit 4. No Compose (every web app is a copy of the template, and Compose
   would add megabytes to each), and no native code at all (docs/SHRIMPL_SPEC.md R0).
-- T1.2 Release builds use R8 (`isMinifyEnabled`, `isShrinkResources`, the optimize ProGuard file);
-  keep rules only when code genuinely needs them.
+- T1.2 Release builds use R8 with code and resource optimization and the optimized default rules
+  (`optimization { enable = true }`); keep rules only when code genuinely needs them, in
+  `src/main/keepRules/*.keep` (there are none).
 - T1.3 SDK checks: minSdk is 37, so no `SDK_INT` guards for APIs at or below 37. androidx.webkit
   features are checked at runtime, each call directly inside its own
   `if (WebViewFeature.isFeatureSupported(X))` (nested, never `a && b`: lint's RequiresFeature does not

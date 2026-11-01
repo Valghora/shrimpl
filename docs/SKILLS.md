@@ -57,7 +57,11 @@ deviation gets a row here in the same commit. The adaptive skill's deviations ar
 
 ### android-intent-security and android-permissions-security
 
-No deviations recorded yet.
+| Skill guidance | What this project does | Why |
+|---|---|---|
+| Intent security 3: never launch a nested intent without an allowlist (`IntentSanitizer`) | Shrimpl launches the confirmation screen PackageInstaller hands back in `Intent.EXTRA_INTENT` as it is (`SessionInstaller`). | It is the platform's documented install flow. The receiver isn't exported and its mutable `PendingIntent` is explicit (component and package), and only the system installer holds it, so the nested intent can only come from the system. |
+| Intent security 3: sanitize with an allowlist of components | The template's `intent:` links (a page's links to other apps) clear the component and selector, strip URI permission grant flags and add `CATEGORY_BROWSABLE`, as Chrome does, but name no allowed apps (TEMPLATE_SPEC T6.6). | A page may link to any app, as in a browser; the target must already accept browsable links, and the page can't reach the web app's own components or files. |
+| Permissions 6: ask in context, with a rationale | The notification permission is asked when a web app first starts, if the site uses notifications (TEMPLATE_SPEC T7). | Pages assume notifications are allowed (the polyfill reports "granted"), and asking only when the first one arrives would lose it. Camera, microphone and location are asked for when the page asks. |
 
 ### edge-to-edge
 
@@ -83,6 +87,11 @@ No deviations recorded yet.
 |---|---|---|
 | Write analysis files under `tmp/` | `tmp/` is ignored by git. | Keeps the skill unchanged without committing its output. |
 | CONFIGURATION.md: full resource optimization | `android.enableResourceOptimizations=false`. | Resource path shortening would move the template's icon files, which Shrimpl replaces by fixed path (BUILD_NOTES.md, R7.4). |
+
+Both apps use the AGP 9.3+ `optimization { enable = true }` block; Shrimpl's one keep rule (the
+Shizuku shell service) is in `shrimpl/src/main/keepRules/`. The first analysis (2026-11-01, before
+the move, with identical APKs after it) scored Shrimpl 98 % and the template 93 % for optimization;
+every broad rule comes from a library or AGP's defaults.
 
 ### jetpack-compose-performance
 
