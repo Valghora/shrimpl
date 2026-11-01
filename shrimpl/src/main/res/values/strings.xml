@@ -42,7 +42,7 @@
     <string name="home_pick_app">Select an app to edit it</string>
 
     <!-- Configuration page -->
-    <string name="create_title">New app</string>
+    <string name="create_title">Create app</string>
     <string name="create_url_intro">Enter a website and sit tight while Shrimpl determines default settings for your app.</string>
     <string name="create_fix_fields">Fix the highlighted fields first</string>
     <string name="search_invalid_url">Enter a web address, like example.com</string>

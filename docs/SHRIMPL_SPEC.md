@@ -111,7 +111,7 @@ binary translation) on any device.
   is changed, a Save button rebuilds with the next build number and installs it as an update (same
   package and key, so the app keeps its data). Changes not saved are discarded on leaving the page;
   recreating the window (rotation, resize) keeps them. In two panes the edit page has no back arrow.
-- R2.4 "New app" opens the configuration page (R3). It is one design everywhere, shared by the
+- R2.4 "New app" opens the configuration page (R3), titled "Create app". It is one design everywhere, shared by the
   other main-action buttons (Create, Save, Update all): a fully rounded filled button
   with an icon in the theme's primary color (Update all in its secondary container color); New
   app's tooltip names Ctrl+N. With one pane it sits at the bottom right of the list. With two
