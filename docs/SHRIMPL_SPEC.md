@@ -105,8 +105,10 @@ binary translation) on any device.
   label (each group in name order), its icon and name greyed out; tapping it does nothing, but its ⋮
   menu, long press, right-click menu and Rebuild button work as usual. An installed app built from
   an older template (R11.4) shows an Update button to the right of its name, which rebuilds it with
-  the bundled template. An empty list says "No apps yet". User-facing text says "app", never "web
-  app".
+  the bundled template. Each app's ⋮ menu and its right-click and long-press menu offer the same
+  actions: Open (when installed), Edit, then Update (an update is available), Reinstall (not
+  installed) or Rebuild, then Uninstall or Remove. An empty list says "No apps yet". User-facing
+  text says "app", never "web app".
 - R2.3 The edit page offers every profile setting in the form of R3.3 (the app ID is not shown) and the
   icon options (R10); its ⋮ menu offers Open (when installed), Rebuild (Reinstall when not
   installed) and Uninstall (confirmed; then offers to remove the record), or Remove. Once something

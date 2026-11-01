@@ -394,16 +394,11 @@ private fun AppItem(
             }
             val label = stringResource(R.string.action_app_options, record.profile.name)
             var optionsOpen by rememberSaveable { mutableStateOf(false) }
+            val actions = menuActions(locked, installed != null, updateAvailable, onOpen, onEdit, onRebuild, onUninstall, onRemove)
             Box {
                 TooltipIconButton(label, { optionsOpen = true }) { Icon(Icons.Filled.MoreVert, contentDescription = label) }
                 AppMenu(expanded = optionsOpen, onDismissRequest = { optionsOpen = false }) {
-                    val options = if (locked) listOf(R.string.action_remove to onRemove) else buildList {
-                        if (installed != null) add(R.string.action_open to onOpen)
-                        add(R.string.action_edit to onEdit)
-                        if (installed == null) add(R.string.action_reinstall to onRebuild)
-                        add(if (installed != null) R.string.action_uninstall to onUninstall else R.string.action_remove to onRemove)
-                    }
-                    options.forEach { (option, action) ->
+                    actions.forEach { (option, action) ->
                         AppMenuItem(text = { Text(stringResource(option)) }, onClick = {
                             optionsOpen = false
                             action()
@@ -413,14 +408,7 @@ private fun AppItem(
             }
         }
         AppMenu(expanded = menuAt != null, onDismissRequest = { menuAt = null }, offset = menuAt ?: DpOffset.Zero) {
-            fun item(label: Int, action: () -> Unit) = Pair(label, action)
-            val items = if (locked) listOf(item(R.string.action_remove, onRemove)) else buildList {
-                if (installed != null) add(item(R.string.action_open, onOpen))
-                add(item(R.string.action_edit, onEdit))
-                add(item(if (installed == null) R.string.action_reinstall else if (updateAvailable) R.string.action_update else R.string.action_rebuild, onRebuild))
-                add(if (installed != null) item(R.string.action_uninstall, onUninstall) else item(R.string.action_remove, onRemove))
-            }
-            items.forEach { (label, action) ->
+            menuActions(locked, installed != null, updateAvailable, onOpen, onEdit, onRebuild, onUninstall, onRemove).forEach { (label, action) ->
                 AppMenuItem(text = { Text(stringResource(label)) }, onClick = {
                     menuAt = null
                     action()
@@ -479,5 +467,35 @@ private fun Modifier.greyedOut(): Modifier = drawWithContent {
         canvas.saveLayer(size.toRect(), paint)
         drawContent()
         canvas.restore()
+    }
+}
+
+/**
+ * R2.2: an app's actions, the same in its ⋮ menu and its right-click and long-press menu: Open,
+ * Edit, then Update (an update is available), Reinstall (not installed) or Rebuild, then Uninstall
+ * or Remove. An app signed with another key ([locked], R11.7) offers only Remove.
+ */
+private fun menuActions(
+    locked: Boolean,
+    installed: Boolean,
+    updateAvailable: Boolean,
+    onOpen: () -> Unit,
+    onEdit: () -> Unit,
+    onRebuild: () -> Unit,
+    onUninstall: () -> Unit,
+    onRemove: () -> Unit,
+): List<Pair<Int, () -> Unit>> = if (locked) {
+    listOf(R.string.action_remove to onRemove)
+} else {
+    buildList {
+        if (installed) add(R.string.action_open to onOpen)
+        add(R.string.action_edit to onEdit)
+        val rebuild = when {
+            !installed -> R.string.action_reinstall
+            updateAvailable -> R.string.action_update
+            else -> R.string.action_rebuild
+        }
+        add(rebuild to onRebuild)
+        add(if (installed) R.string.action_uninstall to onUninstall else R.string.action_remove to onRemove)
     }
 }
