@@ -4,6 +4,7 @@ import androidx.compose.foundation.background
 import androidx.compose.material3.adaptive.ExperimentalMaterial3AdaptiveApi
 import androidx.compose.material3.adaptive.currentWindowAdaptiveInfoV2
 import androidx.compose.material3.adaptive.layout.calculatePaneScaffoldDirective
+import androidx.compose.material3.adaptive.navigation.BackNavigationBehavior
 import androidx.compose.material3.adaptive.navigation3.ListDetailSceneStrategy
 import androidx.compose.material3.adaptive.navigation3.rememberListDetailSceneStrategy
 import androidx.compose.runtime.Composable
@@ -77,7 +78,12 @@ fun ShrimplNavigation(shortcuts: Flow<AppShortcut>) {
         defaultPanePreferredWidth = LIST_PANE_WIDTH,
         horizontalPartitionSpacerSize = PANE_GAP,
     )
-    val listDetail = rememberListDetailSceneStrategy<NavKey>(directive = directive)
+    // Back closes what the detail pane shows, even when both panes stay on screen (Material's default
+    // pops until the panes change, which would leave Shrimpl from two panes).
+    val listDetail = rememberListDetailSceneStrategy<NavKey>(
+        backNavigationBehavior = BackNavigationBehavior.PopUntilContentChange,
+        directive = directive,
+    )
     // With two panes the detail has no back arrow (adaptive skill: detail screens in a list-detail
     // layout must not show one), and both panes are cards on the window background.
     val twoPane = directive.maxHorizontalPartitions > 1

@@ -5,7 +5,7 @@ import androidx.compose.ui.test.hasClickAction
 import androidx.compose.ui.test.hasContentDescription
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.isRoot
-import androidx.compose.ui.test.junit4.createEmptyComposeRule
+import androidx.compose.ui.test.junit4.v2.createEmptyComposeRule
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
@@ -78,20 +78,23 @@ class WindowSizeTest(private val width: Int, private val height: Int) {
     }
 
     @Test
-    fun editOpensBesideOrInsteadOfTheList() {
+    fun editOpensBesideOrInsteadOfTheListAndBackCloses() {
         compose.onNodeWithContentDescription(string(R.string.action_app_options, "Squoosh")).performClick()
         compose.onNodeWithText(string(R.string.action_edit)).performClick()
         compose.waitUntil(LOAD_TIMEOUT_MS) { editShown }
 
         assertEquals("the list stays beside the app's settings", twoPanes, listShown)
         assertEquals("a back arrow only when the settings fill the window", !twoPanes, backArrowShown)
-        if (twoPanes) return
 
-        // One pane: Back closes the app's settings and shows the list again.
-        scenario.onActivity { it.onBackPressedDispatcher.onBackPressed() }
+        // Back closes the app's settings, in two panes too (Shrimpl stays open: R1.1).
+        scenario.onActivity { activity ->
+            assertTrue("Back is handled in the app", activity.onBackPressedDispatcher.hasEnabledCallbacks())
+            activity.onBackPressedDispatcher.onBackPressed()
+        }
         compose.waitForIdle()
         assertTrue("Back closes the app's settings", !editShown)
         assertTrue("Back returns to the list", listShown)
+        assertEquals("the empty detail pane returns beside the list", twoPanes, placeholderShown)
     }
 
     companion object {
