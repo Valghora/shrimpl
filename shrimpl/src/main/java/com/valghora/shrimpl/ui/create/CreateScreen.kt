@@ -41,6 +41,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -63,6 +64,7 @@ import com.valghora.shrimpl.data.InstalledApps
 import com.valghora.shrimpl.discovery.SiteDiscovery
 import com.valghora.shrimpl.ui.common.AppTextField
 import com.valghora.shrimpl.ui.common.BuildSheet
+import com.valghora.shrimpl.ui.common.BuildState
 import com.valghora.shrimpl.ui.common.FieldShape
 import com.valghora.shrimpl.ui.common.PillButton
 import com.valghora.shrimpl.ui.common.Tone
@@ -139,7 +141,15 @@ fun CreateScreen(onClose: () -> Unit, onBackUpKey: () -> Unit) {
         }
     }
 
-    buildState?.let { state ->
+    // R3.4: a new app that installed drops the user back on the app list, without the Done sheet
+    // (the one-time backup prompt, R5.3, still comes first).
+    LaunchedEffect(buildState) {
+        if (buildState is BuildState.Done) {
+            model.build.dismiss()
+            if (!backupPrompt) onClose()
+        }
+    }
+    buildState?.takeIf { it !is BuildState.Done }?.let { state ->
         BuildSheet(
             state = state,
             onCancel = model.build::cancel,

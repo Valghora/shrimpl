@@ -231,7 +231,7 @@ class BuildController(private val container: AppContainer, private val scope: Co
                 awaitCancellation()
             }
             TestTag.CANCEL in tags -> BuildOutcome.Cancelled
-            TestTag.FAIL in tags -> BuildOutcome.Failed("Simulated failure: this app is tagged [fail]")
+            TestTag.FAIL in tags -> BuildOutcome.Failed("Simulated failure: this app is tagged fail")
             else -> BuildOutcome.Installed(record)
         }
     }

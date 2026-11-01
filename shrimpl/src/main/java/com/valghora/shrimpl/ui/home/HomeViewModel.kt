@@ -63,17 +63,17 @@ class HomeViewModel(private val container: AppContainer) : ViewModel() {
      */
     fun otherKey(records: List<WebAppRecord>, key: SigningKeyCheck): Set<String> {
         val real = if (key is SigningKeyCheck.Read) records.filter { it.signerFingerprint != key.fingerprint } else emptyList()
-        // R13: "[cert]" apps behave as if signed with another key.
+        // R13: apps tagged cert behave as if signed with another key.
         return (real + records.filter { TestTag.CERT in TestMode.tags(it.profile.name) }).mapTo(mutableSetOf()) { it.appId }
     }
 
-    /** R13: the installed apps as the list shows them; "[missing]" apps count as not installed. */
+    /** R13: the installed apps as the list shows them; apps tagged missing count as not installed. */
     fun shownInstalled(records: List<WebAppRecord>, installed: Map<String, InstalledApp>): Map<String, InstalledApp> {
         val missing = records.filter { TestTag.MISSING in TestMode.tags(it.profile.name) }.mapTo(mutableSetOf()) { it.packageName }
         return if (missing.isEmpty()) installed else installed - missing
     }
 
-    /** Built with an older template than the bundled one (R11.4), or tagged "[update]" (R13). */
+    /** Built with an older template than the bundled one (R11.4), or tagged update (R13). */
     fun updateAvailable(record: WebAppRecord): Boolean =
         record.updateAvailable(templateVersion) || TestTag.UPDATE in TestMode.tags(record.profile.name)
 

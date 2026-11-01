@@ -7,7 +7,7 @@ import com.valghora.shrimpl.core.testing.TestTags
 
 /**
  * Test tags and test search addresses (docs/SHRIMPL_SPEC.md R13), in debug builds only: release
- * builds never read them, so a real app named "[update]" is just an app.
+ * builds never read them, so a real app named "update" is just an app.
  */
 object TestMode {
     private val enabled = BuildConfig.DEBUG

@@ -1,7 +1,7 @@
 package com.valghora.shrimpl.core.testing
 
 /**
- * Test tags for debug builds (docs/SHRIMPL_SPEC.md R13): an app named "[update,cert] Discord" shows
+ * Test tags for debug builds (docs/SHRIMPL_SPEC.md R13): an app named "update,cert Discord" shows
  * the states and outcomes its tags name, so each case can be tried without setting it up for real.
  */
 enum class TestTag(val key: String) {
@@ -41,13 +41,15 @@ enum class TestSearch(val host: String, val stage: Int) {
 }
 
 object TestTags {
-    private val PREFIX = Regex("""^\s*\[([^\]]*)]""")
-
-    /** The tags in a leading "[a,b]" of [name]; unknown ones are ignored. */
+    /**
+     * The tags in the first word of [name], split on commas ("update,cert Gmail"). Every part must be
+     * a known tag, so an ordinary first word ("Discord", "Updates") is never read as one.
+     */
     fun parse(name: String): Set<TestTag> {
-        val list = PREFIX.find(name)?.groupValues?.get(1) ?: return emptySet()
-        val keys = list.split(',').map { it.trim().lowercase() }.toSet()
-        return TestTag.entries.filterTo(mutableSetOf()) { it.key in keys }
+        val word = name.trim().substringBefore(' ')
+        if (word.isEmpty()) return emptySet()
+        val tags = word.split(',').map { part -> TestTag.entries.firstOrNull { it.key == part.trim().lowercase() } ?: return emptySet() }
+        return tags.toSet()
     }
 
     /** The test search for [host] ("404.test", any case, with or without "www."), or null. */
