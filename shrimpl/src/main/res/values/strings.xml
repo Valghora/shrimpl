@@ -97,10 +97,17 @@
     <string name="ua_auto">Auto</string>
     <string name="ua_desktop">Desktop</string>
     <string name="ua_mobile">Mobile</string>
-    <string name="field_keep_alive">Keep running in the background</string>
+    <string name="ua_auto_detail">Site will automatically attempt to determine the right user agent</string>
+    <string name="ua_desktop_detail">Site will request the desktop layout</string>
+    <string name="ua_mobile_detail">Site will request the mobile layout</string>
+    <string name="context_menu_shrimpl">Shrimpl</string>
+    <string name="context_menu_site">Site</string>
+    <string name="context_menu_shrimpl_detail">Menu interaction via long-press or right-click will display Shrimpl\'s context menu for links and images (copy, open, save)</string>
+    <string name="context_menu_site_detail">Menu interaction via long-press or right-click will display the site\'s context menu</string>
+    <string name="field_keep_alive">Run in background</string>
     <string name="field_pause_power_save">Pause in battery saver</string>
     <string name="field_multi_window">Allow multiple windows</string>
-    <string name="field_context_menu">Long-press menu for links and images</string>
+    <string name="field_context_menu">Menu interaction behavior</string>
     <string name="field_window_default">Default window size</string>
     <string name="field_window_min">Minimum window size</string>
     <string name="field_width_dp">Width (dp)</string>
@@ -183,7 +190,6 @@
     <!-- Settings items -->
     <string name="field_auto_contrast">Auto (black or white)</string>
     <string name="section_browser">Behavior</string>
-    <string name="field_user_agent_detail">Which version of the site to ask for</string>
     <string name="field_keep_alive_detail">Keeps calls and timers alive when the window is hidden</string>
     <string name="section_window">Window</string>
     <string name="window_size">%1$s × %2$s dp</string>
@@ -206,7 +212,7 @@
     <string name="notice_info">Information</string>
     <string name="notice_caution">Caution</string>
     <string name="notice_error">Error</string>
-    <string name="field_pause_power_save_detail">Pauses the page while battery saver is on, even with the screen on. Saves battery; messages and notifications arrive once the app resumes.</string>
+    <string name="field_pause_power_save_detail">Pauses the site while battery saver is enabled. Saves battery, but notifications will not arrive until resuming the app</string>
     <string name="request_root">Request Root</string>
     <string name="request_shizuku">Request Shizuku</string>
     <string name="request_root_failed">Failed to acquire root</string>

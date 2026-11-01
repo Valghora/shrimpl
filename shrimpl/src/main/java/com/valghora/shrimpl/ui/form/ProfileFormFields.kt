@@ -264,7 +264,21 @@ private class Fields(
                     UaMode.MOBILE to stringResource(R.string.ua_mobile),
                 ),
                 { onChange(form.copy(userAgentMode = it)) },
-                summary = stringResource(R.string.field_user_agent_detail),
+                summary = stringResource(
+                    when (form.userAgentMode) {
+                        UaMode.AUTO -> R.string.ua_auto_detail
+                        UaMode.DESKTOP -> R.string.ua_desktop_detail
+                        UaMode.MOBILE -> R.string.ua_mobile_detail
+                    },
+                ),
+            )
+            // Whose menu a long press or right-click opens on a link or image: Shrimpl's or the site's.
+            DropdownItem(
+                stringResource(R.string.field_context_menu),
+                form.nativeContextMenu,
+                listOf(true to stringResource(R.string.context_menu_shrimpl), false to stringResource(R.string.context_menu_site)),
+                { onChange(form.copy(nativeContextMenu = it)) },
+                summary = stringResource(if (form.nativeContextMenu) R.string.context_menu_shrimpl_detail else R.string.context_menu_site_detail),
             )
             SwitchItem(
                 stringResource(R.string.field_keep_alive), form.keepAliveWhenHidden, { onChange(form.copy(keepAliveWhenHidden = it)) },
@@ -274,7 +288,6 @@ private class Fields(
                 stringResource(R.string.field_pause_power_save), form.pauseOnPowerSave, { onChange(form.copy(pauseOnPowerSave = it)) },
                 summary = stringResource(R.string.field_pause_power_save_detail),
             )
-            SwitchItem(stringResource(R.string.field_context_menu), form.nativeContextMenu, { onChange(form.copy(nativeContextMenu = it)) })
         }
     }
 
