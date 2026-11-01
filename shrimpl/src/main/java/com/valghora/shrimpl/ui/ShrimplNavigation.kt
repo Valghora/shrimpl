@@ -1,9 +1,6 @@
 package com.valghora.shrimpl.ui
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.material3.LocalMinimumInteractiveComponentSize
-import androidx.compose.material3.VerticalDragHandle
 import androidx.compose.material3.adaptive.ExperimentalMaterial3AdaptiveApi
 import androidx.compose.material3.adaptive.currentWindowAdaptiveInfoV2
 import androidx.compose.material3.adaptive.layout.calculatePaneScaffoldDirective
@@ -12,11 +9,11 @@ import androidx.compose.material3.adaptive.navigation3.rememberListDetailSceneSt
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.navigation3.rememberViewModelStoreNavEntryDecorator
 import androidx.navigation3.runtime.NavBackStack
@@ -29,10 +26,10 @@ import com.valghora.shrimpl.R
 import com.valghora.shrimpl.container
 import com.valghora.shrimpl.ui.common.CenteredEmptyState
 import com.valghora.shrimpl.ui.common.EmptyStateText
-import com.valghora.shrimpl.ui.common.PitchText
 import com.valghora.shrimpl.ui.common.NewWebAppButton
 import com.valghora.shrimpl.ui.common.PaneCard
 import com.valghora.shrimpl.ui.common.PaneSide
+import com.valghora.shrimpl.ui.common.PitchText
 import com.valghora.shrimpl.ui.common.paneBackground
 import com.valghora.shrimpl.ui.create.CreateScreen
 import com.valghora.shrimpl.ui.edit.EditScreen
@@ -74,18 +71,13 @@ enum class AppShortcut { NEW_WEB_APP, SETTINGS }
 @Composable
 fun ShrimplNavigation(shortcuts: Flow<AppShortcut>) {
     val backStack = rememberNavBackStack(HomeKey)
-    val directive = calculatePaneScaffoldDirective(currentWindowAdaptiveInfoV2())
-    val listDetail = rememberListDetailSceneStrategy<NavKey>(
-        directive = directive,
-        // Desktop and tablet users can widen or narrow the list by dragging the gap between panes.
-        paneExpansionDragHandle = { state ->
-            val interactionSource = remember { MutableInteractionSource() }
-            VerticalDragHandle(
-                modifier = Modifier.paneExpansionDraggable(state, LocalMinimumInteractiveComponentSize.current, interactionSource),
-                interactionSource = interactionSource,
-            )
-        },
+    // R1.1: a fixed 360 dp list pane, the rest for the detail; no drag handle. On a dual-screen phone
+    // or a foldable half-open like a book, the default hinge policy splits the panes along the hinge.
+    val directive = calculatePaneScaffoldDirective(currentWindowAdaptiveInfoV2()).copy(
+        defaultPanePreferredWidth = LIST_PANE_WIDTH,
+        horizontalPartitionSpacerSize = PANE_GAP,
     )
+    val listDetail = rememberListDetailSceneStrategy<NavKey>(directive = directive)
     // With two panes the detail has no back arrow (adaptive skill: detail screens in a list-detail
     // layout must not show one), and both panes are cards on the window background.
     val twoPane = directive.maxHorizontalPartitions > 1
@@ -183,3 +175,9 @@ private fun DetailPlaceholder(onCreate: () -> Unit) {
         if (empty) PitchText() else EmptyStateText(stringResource(R.string.home_pick_app))
     }
 }
+
+/** The list pane's width beside a detail pane (Material's default list pane width). */
+private val LIST_PANE_WIDTH = 360.dp
+
+/** The gap between the two panes, without a drag handle in it. */
+private val PANE_GAP = 16.dp

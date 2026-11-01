@@ -67,8 +67,9 @@ binary translation) on any device.
     app-wide keyboard shortcuts (Ctrl+N new web app, Ctrl+, settings) listed in the Keyboard
     Shortcuts Helper.
   - When the window has room for two panes (expanded width, 840 dp and up), the home list sits
-    beside a detail pane as rounded cards on the window background, separated by a gap with a drag
-    handle that resizes them. The detail pane shows a web app's edit page, the configuration page
+    beside a detail pane as rounded cards on the window background: the list a fixed 360 dp, the
+    detail the rest, 16 dp apart, with no drag handle. On a separating hinge (a dual-screen phone, a
+    foldable half-open like a book) the panes split along the hinge, one on each side. The detail pane shows a web app's edit page, the configuration page
     (R3) or Shrimpl's settings (R2.5), each replacing the previous one, so the list is always one
     Back away. Settings has Close instead of a back arrow there; the edit page has neither. With
     nothing open, the detail pane says to pick a web app (or, with none yet, "Provide a website, get
