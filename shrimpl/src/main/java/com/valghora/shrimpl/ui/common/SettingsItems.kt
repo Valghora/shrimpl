@@ -43,6 +43,9 @@ import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.layout.Layout
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.toggleableState
+import androidx.compose.ui.state.ToggleableState
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import com.valghora.shrimpl.R
@@ -171,6 +174,8 @@ fun SwitchItem(
 ) {
     SettingsItem(
         title = title,
+        // The row is the switch for accessibility services: they announce its on or off state.
+        modifier = Modifier.semantics { toggleableState = ToggleableState(checked) },
         summary = summary,
         hint = hint,
         enabled = enabled,
