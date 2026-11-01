@@ -1,5 +1,6 @@
 package com.valghora.shrimpl.ui.icons
 
+import android.content.ContentResolver
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -187,8 +188,14 @@ private fun readSquare(context: Context, uri: Uri): ByteArray? = try {
     null
 }
 
-/** The icon an icon pack handed back, as a square PNG: a bitmap in the "icon" extra, or an image URI. */
+/**
+ * The icon an icon pack handed back, as a square PNG: a bitmap in the "icon" extra, or an image URI.
+ * The pack is another app, so only its own content URIs are read: a file URI, or one of Shrimpl's own
+ * providers, would be opened with Shrimpl's access (android-intent-security skill).
+ */
 private fun packIcon(context: Context, data: Intent): ByteArray? {
     IntentCompat.getParcelableExtra(data, "icon", Bitmap::class.java)?.let { return IconImages.squarePng(it) }
-    return data.data?.let { readSquare(context, it) }
+    return data.data
+        ?.takeIf { it.scheme == ContentResolver.SCHEME_CONTENT && it.authority?.startsWith(context.packageName) == false }
+        ?.let { readSquare(context, it) }
 }
