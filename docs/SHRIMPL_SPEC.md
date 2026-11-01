@@ -144,12 +144,12 @@ binary translation) on any device.
   shows for at least 0.5 s. Cancel sits at the end. Only loading the site can fail, with a plain
   message under the step: 404 "The site could not be found"; other 4xx "The site responded with an
   error"; 5xx "The site is unavailable"; no connection "No internet connection"; an unknown host
-  "The site could not be found. Check the address"; no answer in 15 s "The site took too long to
-  respond"; a certificate problem "The site's security certificate isn't valid"; anything else "The
-  site couldn't be loaded". A 403 continues to the rendered pass, since bot protection often refuses
-  plain requests but lets a browser in; only if the rendered page is refused too does Researching
-  permissions fail with "The site denied the request". On failure, Retry and Continue (defaults for
-  the address) replace Cancel.
+  also "The site could not be found"; no answer in 15 s "The site took too long to respond"; a
+  certificate problem "The site's certificate is invalid"; anything else "The site couldn't be
+  loaded". A 403 continues to the rendered pass, since bot protection often refuses plain requests
+  but lets a browser in; only if the rendered page is refused too does Researching permissions fail
+  with "The site denied the request". On failure, Retry and Continue (defaults for the address)
+  replace Cancel.
 - R3.3 Review: a form prefilled from discovery, laid out like the system settings: titled sections of
   rounded tonal items, each showing its value (summary, switch, menu value or color swatch); text,
   color, domain and window size values open dialogs. Nothing is collapsed. The sections, in order:

@@ -52,9 +52,8 @@
     <string name="search_unavailable">The site is unavailable</string>
     <string name="search_error">The site responded with an error</string>
     <string name="search_offline">No internet connection</string>
-    <string name="search_no_such_site">The site could not be found. Check the address</string>
     <string name="search_timeout">The site took too long to respond</string>
-    <string name="search_certificate">The site\'s security certificate isn\'t valid</string>
+    <string name="search_certificate">The site\'s certificate is invalid</string>
     <string name="search_not_loaded">The site couldn\'t be loaded</string>
     <string name="discovery_fetching">Loading the site</string>
     <string name="discovery_manifest">Consulting the manifest</string>

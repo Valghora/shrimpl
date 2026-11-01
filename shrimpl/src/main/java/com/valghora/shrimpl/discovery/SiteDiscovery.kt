@@ -133,7 +133,7 @@ class SiteDiscovery(private val context: Context) {
     /** R3.2: what a failed page load says, by what went wrong. */
     private fun loadFailure(e: IOException): Int = when {
         offline() -> R.string.search_offline
-        e is UnknownHostException -> R.string.search_no_such_site
+        e is UnknownHostException -> R.string.search_not_found
         e is SocketTimeoutException -> R.string.search_timeout
         e is SSLException -> R.string.search_certificate
         else -> R.string.search_not_loaded

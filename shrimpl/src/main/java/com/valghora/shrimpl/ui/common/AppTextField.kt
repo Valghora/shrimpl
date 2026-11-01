@@ -91,7 +91,7 @@ fun AppTextField(
                 it,
                 style = MaterialTheme.typography.bodySmall,
                 color = if (isError) errorColor else colors.onSurfaceVariant,
-                modifier = Modifier.padding(start = 16.dp, top = 4.dp, end = 16.dp),
+                modifier = Modifier.padding(start = 16.dp, top = 8.dp, end = 16.dp),
             )
         }
     }
