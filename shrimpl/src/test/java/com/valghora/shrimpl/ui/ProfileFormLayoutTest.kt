@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.test.junit4.v2.createComposeRule
 import androidx.compose.ui.test.onNodeWithText
@@ -12,6 +13,7 @@ import androidx.compose.ui.unit.dp
 import com.valghora.shrimpl.core.profile.Profile
 import com.valghora.shrimpl.core.profile.ProfileForm
 import com.valghora.shrimpl.core.records.WebAppDraft
+import com.valghora.shrimpl.ui.common.LocalInPane
 import com.valghora.shrimpl.ui.form.ProfileFormFields
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
@@ -23,7 +25,8 @@ import org.robolectric.annotation.Config
 
 /**
  * docs/SHRIMPL_SPEC.md R3.5: the app settings form is one column of at most 680 dp, centred or moved
- * left so the floating button (192 dp at the right) never covers it, and full width on narrow panes.
+ * left so the floating button (192 dp at the right) never covers it, beside the list; full width with
+ * one pane and on narrow panes.
  */
 // A screen wider than every pane tried, so each pane gets its full width (Robolectric's default is 320 dp).
 @Config(qualifiers = "w1600dp-h1200dp")
@@ -46,12 +49,14 @@ class ProfileFormLayoutTest {
         website = null,
     )
 
-    /** The Name item's left and right edges in a pane [pane] wide, in dp. */
-    private fun nameItemEdges(pane: Dp): Pair<Float, Float> {
+    /** The Name item's left and right edges in a pane [pane] wide, in dp; beside the list if [inPane]. */
+    private fun nameItemEdges(pane: Dp, inPane: Boolean = true): Pair<Float, Float> {
         compose.setContent {
             MaterialTheme {
-                Box(Modifier.width(pane).height(1600.dp)) {
-                    ProfileFormFields(draft, onChange = {}, hints = emptyMap(), notes = emptyList(), storedImage = null)
+                CompositionLocalProvider(LocalInPane provides inPane) {
+                    Box(Modifier.width(pane).height(1600.dp)) {
+                        ProfileFormFields(draft, onChange = {}, hints = emptyMap(), notes = emptyList(), storedImage = null)
+                    }
                 }
             }
         }
@@ -84,9 +89,17 @@ class ProfileFormLayoutTest {
 
     @Test
     fun phoneWidthUsesTheFullWidth() {
-        val (left, right) = nameItemEdges(400.dp)
+        val (left, right) = nameItemEdges(400.dp, inPane = false)
         assertEquals(16f, left, 1f)
         assertEquals(400f - 32f, right - left, 1f)
+    }
+
+    @Test
+    fun onePaneFillsTheWidthEvenWhenWide() {
+        // A window too narrow for two panes (under 840 dp): the floating button floats over the form.
+        val (left, right) = nameItemEdges(820.dp, inPane = false)
+        assertEquals(16f, left, 1f)
+        assertEquals(820f - 32f, right - left, 1f)
     }
 
     private companion object {

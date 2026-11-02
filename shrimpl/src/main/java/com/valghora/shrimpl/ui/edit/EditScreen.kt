@@ -48,6 +48,7 @@ import com.valghora.shrimpl.ui.common.Notice
 import com.valghora.shrimpl.ui.common.PillButton
 import com.valghora.shrimpl.ui.common.TooltipIconButton
 import com.valghora.shrimpl.ui.common.withoutBottom
+import com.valghora.shrimpl.ui.form.FormActions
 import com.valghora.shrimpl.ui.form.FormTitle
 import com.valghora.shrimpl.ui.form.ProfileFormFields
 import kotlinx.coroutines.launch
@@ -110,33 +111,35 @@ fun EditScreen(appId: String, showBack: Boolean, onBack: () -> Unit) {
                         }
                     },
                     actions = {
-                        TooltipIconButton(stringResource(R.string.action_more), { menu = true }) {
-                            Icon(Icons.Filled.MoreVert, contentDescription = stringResource(R.string.action_more))
-                        }
-                        AppMenu(expanded = menu, onDismissRequest = { menu = false }) {
-                            if (installed == true) {
-                                AppMenuItem(text = { Text(stringResource(R.string.action_open)) }, onClick = {
-                                    menu = false
-                                    InstalledApps.open(context, current.packageName)
-                                })
+                        FormActions(paneWidth) {
+                            TooltipIconButton(stringResource(R.string.action_more), { menu = true }) {
+                                Icon(Icons.Filled.MoreVert, contentDescription = stringResource(R.string.action_more))
                             }
-                            AppMenuItem(
-                                text = { Text(stringResource(if (installed == false) R.string.action_reinstall else R.string.action_rebuild)) },
-                                onClick = {
-                                    menu = false
-                                    model.rebuild()
-                                },
-                            )
-                            if (installed == true) {
-                                AppMenuItem(text = { Text(stringResource(R.string.action_uninstall)) }, onClick = {
-                                    menu = false
-                                    confirmUninstall = true
-                                })
-                            } else {
-                                AppMenuItem(text = { Text(stringResource(R.string.action_remove)) }, onClick = {
-                                    menu = false
-                                    model.remove(onBack)
-                                })
+                            AppMenu(expanded = menu, onDismissRequest = { menu = false }) {
+                                if (installed == true) {
+                                    AppMenuItem(text = { Text(stringResource(R.string.action_open)) }, onClick = {
+                                        menu = false
+                                        InstalledApps.open(context, current.packageName)
+                                    })
+                                }
+                                AppMenuItem(
+                                    text = { Text(stringResource(if (installed == false) R.string.action_reinstall else R.string.action_rebuild)) },
+                                    onClick = {
+                                        menu = false
+                                        model.rebuild()
+                                    },
+                                )
+                                if (installed == true) {
+                                    AppMenuItem(text = { Text(stringResource(R.string.action_uninstall)) }, onClick = {
+                                        menu = false
+                                        confirmUninstall = true
+                                    })
+                                } else {
+                                    AppMenuItem(text = { Text(stringResource(R.string.action_remove)) }, onClick = {
+                                        menu = false
+                                        model.remove(onBack)
+                                    })
+                                }
                             }
                         }
                     },

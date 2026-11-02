@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -54,6 +55,7 @@ import com.valghora.shrimpl.core.records.WebAppDraft
 import com.valghora.shrimpl.ui.common.AppTextField
 import com.valghora.shrimpl.ui.common.ColorSwatch
 import com.valghora.shrimpl.ui.common.DropdownItem
+import com.valghora.shrimpl.ui.common.LocalInPane
 import com.valghora.shrimpl.ui.common.NavigationItem
 import com.valghora.shrimpl.ui.common.Notice
 import com.valghora.shrimpl.ui.common.NoticeCard
@@ -98,11 +100,13 @@ fun ProfileFormFields(
         fields.Window()
         fields.Permissions()
     }
+    val inPane = LocalInPane.current
     BoxWithConstraints(modifier.fillMaxSize()) {
-        val column = formColumn(maxWidth)
+        val column = formColumn(maxWidth, inPane)
         val scroll = Modifier.fillMaxSize().verticalScroll(rememberScrollState())
         if (column == null) {
-            // Narrow (a phone): the full width; the floating button floats over it, and the end clears it.
+            // One pane (a phone, or a window too narrow for two panes), or a narrow pane: the full width;
+            // the floating button floats over it, and the end clears it.
             Column(scroll.padding(horizontal = 16.dp).padding(bottom = 96.dp + bottomInset)) { sections() }
         } else {
             // Centred, unless that would put the column under the floating button at the bottom right.
@@ -485,10 +489,12 @@ private fun SizeDialog(title: String, width: String, height: String, onDone: (St
 data class FormColumn(val start: Dp, val width: Dp)
 
 /**
- * The form's column in a pane [paneWidth] wide: at most 680 dp, centred, or moved left so the floating
- * button never covers it. Null when the pane is too narrow (a phone): the form then takes the full width.
+ * The form's column in a pane [paneWidth] wide beside the list ([inPane]): at most 680 dp, centred, or
+ * moved left so the floating button never covers it. Null with one pane, or a pane too narrow: the
+ * form then takes the full width and the button floats over it.
  */
-fun formColumn(paneWidth: Dp): FormColumn? {
+fun formColumn(paneWidth: Dp, inPane: Boolean): FormColumn? {
+    if (!inPane) return null
     val width = minOf(MAX_COLUMN, paneWidth - FAB_CLEARANCE - SIDE_MARGIN)
     if (width < MIN_COLUMN) return null
     return FormColumn(minOf((paneWidth - width) / 2, paneWidth - FAB_CLEARANCE - width), width)
@@ -502,9 +508,26 @@ fun formColumn(paneWidth: Dp): FormColumn? {
 fun FormTitle(text: String, paneWidth: Dp, afterIcon: Boolean) {
     val titleStart = if (afterIcon) TITLE_AFTER_ICON else TITLE_START
     // The section labels sit 4 dp in from the column's edge (SettingsSection); the title lines up with them.
-    val shift = formColumn(paneWidth)?.let { (it.start + SECTION_LABEL_INSET - titleStart).coerceAtLeast(0.dp) } ?: 0.dp
+    val shift = formColumn(paneWidth, LocalInPane.current)?.let { (it.start + SECTION_LABEL_INSET - titleStart).coerceAtLeast(0.dp) } ?: 0.dp
     Text(text, Modifier.padding(start = shift), maxLines = 1, overflow = TextOverflow.Ellipsis)
 }
+
+/**
+ * The top bar's action buttons, moved in from the pane's end so the last icon sits over the items'
+ * trailing chevrons, 32 dp in from the form column's end (two panes only).
+ */
+@Composable
+fun FormActions(paneWidth: Dp, content: @Composable RowScope.() -> Unit) {
+    val column = formColumn(paneWidth, LocalInPane.current)
+    val end = column?.let { (paneWidth - (it.start + it.width) + ACTIONS_INSET).coerceAtLeast(0.dp) } ?: 0.dp
+    Row(Modifier.padding(end = end), verticalAlignment = Alignment.CenterVertically, content = content)
+}
+
+/**
+ * Material's top bar ends its actions 4 dp from the pane's edge and the last button (40 dp) is centred
+ * 24 dp in from there; padding by the column's end distance plus 4 dp puts it 32 dp in from the column's end.
+ */
+private val ACTIONS_INSET = 4.dp
 
 /** Where Material's top bar puts its title in the pane, without and with a navigation icon. */
 private val TITLE_START = 16.dp

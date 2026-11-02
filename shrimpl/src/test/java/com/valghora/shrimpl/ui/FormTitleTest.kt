@@ -23,7 +23,8 @@ import org.robolectric.RuntimeEnvironment
 
 /**
  * R1.1 and R3.5: beside the list, which takes a third of the window, an app's settings page puts its
- * name over the form's column, starting where the section labels start. With one pane (below 840 dp)
+ * name over the form's column, starting where the section labels start, and its ⋮ button over the
+ * column's end. With one pane (below 840 dp)
  * the column sits 24 dp from the edge to clear the floating button, so the title keeps its place after
  * the back arrow.
  */
@@ -72,5 +73,12 @@ class FormTitleTest {
             .boundsInRoot.right / density
         assertTrue("the list ends near a third of the window ($listEnd)", listEnd in 1280f / 3 - 48f..1280f / 3)
         assertTitleOverColumn(after = listEnd)
+
+        // The ⋮ icon sits over the items' trailing chevrons (32 dp in from the column's end), not at the
+        // window's edge.
+        val columnEnd = compose.onAllNodes(hasText(string(R.string.field_name))).fetchSemanticsNodes()
+            .maxBy { it.boundsInRoot.width }.boundsInRoot.right / density
+        val more = compose.onNode(hasContentDescription(string(R.string.action_more))).fetchSemanticsNode().boundsInRoot.center.x / density
+        assertEquals("⋮ over the chevrons", columnEnd - 32f, more, 1f)
     }
 }

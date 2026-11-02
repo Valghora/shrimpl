@@ -191,16 +191,14 @@ binary translation) on any device.
   success, Open and Done (no build number: build numbers are internal, R11.3); a new app from the
   Create app page instead drops the user back on the app list (after the one-time backup prompt,
   R5.3).
-- R3.5 The form is one column. When its pane leaves room, the column is at most 680 dp wide and
+- R3.5 The form is one column. Beside the list (two panes), the column is at most 680 dp wide and
   centred; if centring would put it under the floating button (Save, Create) at the bottom right, it
   moves left as far as needed (at least 24 dp from the left edge), so the button never covers an
-  option. In a pane too narrow for a 360 dp column beside the button (a phone), the form takes the
-  full width and the button floats over it, with room below the last section. Beside the list (two
-  panes), the page's title (the app's name, or Create app while reviewing) starts where the section
-  labels do, so it sits over the column; with one pane it keeps its place after the back arrow.
-
-## R4 Modules and core
-
+  option. The page's title (the app's name, or Create app while reviewing) starts where the section
+  labels do, and the edit page's ⋮ button sits over the items' trailing chevrons, so both line up
+  with the column. With one pane (a phone, or any window too narrow for two panes), or in a pane too
+  narrow for a 360 dp column beside the button, the form takes the full width and the button floats
+  over it, with room below the last section; the title and ⋮ keep their usual places.
 - R4.1 Three Gradle modules: `:core` (Kotlin JVM), `:template` (Android app, the web app) and
   `:shrimpl` (Android app, the manager). Both apps depend on `:core`; `:shrimpl` bundles the
   template's release APK (R8.1).
