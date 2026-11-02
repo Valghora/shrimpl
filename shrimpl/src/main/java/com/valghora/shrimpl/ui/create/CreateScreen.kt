@@ -54,6 +54,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.WindowInsetsRulers
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
@@ -72,6 +73,8 @@ import com.valghora.shrimpl.ui.common.PillButton
 import com.valghora.shrimpl.ui.common.Tone
 import com.valghora.shrimpl.ui.common.TooltipIconButton
 import com.valghora.shrimpl.ui.common.WithTooltip
+import com.valghora.shrimpl.ui.common.asHeading
+import com.valghora.shrimpl.ui.common.progressStep
 import com.valghora.shrimpl.ui.common.withoutBottom
 import com.valghora.shrimpl.ui.form.FormTitle
 import com.valghora.shrimpl.ui.form.ProfileFormFields
@@ -101,7 +104,7 @@ fun CreateScreen(onClose: () -> Unit, onBackUpKey: () -> Unit) {
                 TopAppBar(
                     // On the review step the title lines up with the form's column (R3.5).
                     title = {
-                        if (reviewing) FormTitle(stringResource(R.string.create_title), paneWidth, afterIcon = true) else Text(stringResource(R.string.create_title))
+                        if (reviewing) FormTitle(stringResource(R.string.create_title), paneWidth, afterIcon = true) else Text(stringResource(R.string.create_title), Modifier.asHeading())
                     },
                     navigationIcon = {
                         if (reviewing) {
@@ -296,12 +299,21 @@ private enum class StepState { DONE, CURRENT, FAILED, PENDING }
 
 @Composable
 private fun StepLine(label: String, state: StepState) {
-    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+    val spoken = stringResource(
+        when (state) {
+            StepState.DONE -> R.string.step_done
+            StepState.CURRENT -> R.string.step_in_progress
+            StepState.FAILED -> R.string.step_failed
+            StepState.PENDING -> R.string.step_not_started
+        },
+    )
+    Row(Modifier.progressStep(spoken), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(16.dp)) {
         val mark = Modifier.size(STEP_MARK)
         when (state) {
             StepState.DONE -> Icon(Icons.Filled.CheckCircle, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = mark)
             StepState.CURRENT -> CircularProgressIndicator(mark, strokeWidth = 3.dp)
-            StepState.FAILED -> Box(mark.clip(CircleShape).background(Tone.ERROR.container), contentAlignment = Alignment.Center) {
+            // The "!" is drawn only; the row's state says "Failed".
+            StepState.FAILED -> Box(mark.clip(CircleShape).background(Tone.ERROR.container).clearAndSetSemantics {}, contentAlignment = Alignment.Center) {
                 Text("!", color = Tone.ERROR.content, style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.Bold)
             }
             StepState.PENDING -> Box(mark.border(2.dp, MaterialTheme.colorScheme.outline, CircleShape))

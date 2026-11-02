@@ -18,6 +18,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.semantics.error
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 
@@ -60,7 +62,9 @@ fun AppTextField(
         TextField(
             value = value,
             onValueChange = onValueChange,
-            modifier = Modifier.fillMaxWidth().border(2.dp, edge, FieldShape),
+            // The message below is the field's error for accessibility services, read with the field.
+            modifier = Modifier.fillMaxWidth().border(2.dp, edge, FieldShape)
+                .semantics { if (isError && supportingText != null) error(supportingText) },
             enabled = enabled,
             label = { Text(label) },
             placeholder = placeholder?.let { { Text(it) } },

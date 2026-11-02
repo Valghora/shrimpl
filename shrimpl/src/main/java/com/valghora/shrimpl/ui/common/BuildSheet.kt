@@ -76,7 +76,7 @@ fun BuildSheet(
                         BuildKind.REINSTALL -> state.batch?.let { stringResource(R.string.build_title_reinstalling, state.name, it.index, it.total) }
                             ?: stringResource(R.string.build_title_reinstalling_one, state.name)
                     }
-                    Text(title, style = MaterialTheme.typography.titleLarge)
+                    Text(title, style = MaterialTheme.typography.titleLarge, modifier = Modifier.asHeading())
                     // Fix (R11.7) uninstalls the old copy first; the build's stages wait until it's gone.
                     state.uninstalling?.let { inProgress ->
                         StepRow(stringResource(R.string.stage_uninstalling), done = !inProgress, current = inProgress, reached = true)
@@ -92,7 +92,7 @@ fun BuildSheet(
                     }
                 }
                 is BuildState.Done -> {
-                    Text(stringResource(R.string.build_title_done, state.record.profile.name), style = MaterialTheme.typography.titleLarge)
+                    Text(stringResource(R.string.build_title_done, state.record.profile.name), style = MaterialTheme.typography.titleLarge, modifier = Modifier.asHeading())
                     Row(Modifier.align(Alignment.End), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         TextButton(onClick = onDone) { Text(stringResource(R.string.action_done)) }
                         Button(onClick = { onOpen(state.record.packageName) }) { Text(stringResource(R.string.action_open)) }
@@ -102,6 +102,7 @@ fun BuildSheet(
                     Text(
                         pluralStringResource(if (state.fixed) R.plurals.batch_fixed else R.plurals.batch_updated, state.updated.size, state.updated.size),
                         style = MaterialTheme.typography.titleLarge,
+                        modifier = Modifier.asHeading(),
                     )
                     if (state.updated.isNotEmpty()) Text(state.updated.joinToString(", "), style = MaterialTheme.typography.bodyMedium)
                     if (state.failed.isNotEmpty()) {
@@ -115,7 +116,7 @@ fun BuildSheet(
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Icon(Icons.Filled.Warning, contentDescription = null, tint = MaterialTheme.colorScheme.error)
                         Spacer(Modifier.width(12.dp))
-                        Text(stringResource(R.string.build_title_failed), style = MaterialTheme.typography.titleLarge)
+                        Text(stringResource(R.string.build_title_failed), style = MaterialTheme.typography.titleLarge, modifier = Modifier.asHeading())
                     }
                     Text(state.message, style = MaterialTheme.typography.bodyMedium)
                     if (state.offerSystemInstaller) Text(stringResource(R.string.build_method_unavailable))
@@ -153,7 +154,14 @@ private fun StageRow(stage: WebAppFactory.Stage, current: WebAppFactory.Stage?) 
 /** A step of the build sheet: a check when [done], a spinner when [current], dimmed until [reached]. */
 @Composable
 private fun StepRow(label: String, done: Boolean, current: Boolean, reached: Boolean) {
-    Row(verticalAlignment = Alignment.CenterVertically) {
+    val state = stringResource(
+        when {
+            done -> R.string.step_done
+            current -> R.string.step_in_progress
+            else -> R.string.step_not_started
+        },
+    )
+    Row(Modifier.progressStep(state), verticalAlignment = Alignment.CenterVertically) {
         when {
             done -> Icon(Icons.Filled.CheckCircle, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(24.dp))
             current -> CircularProgressIndicator(Modifier.size(24.dp), strokeWidth = 3.dp)
@@ -207,7 +215,7 @@ private fun UnknownSources(onRetry: () -> Unit, onDone: () -> Unit) {
         if (opened && context.packageManager.canRequestPackageInstalls()) onRetry()
         onPauseOrDispose { }
     }
-    Text(stringResource(R.string.build_title_permission), style = MaterialTheme.typography.titleLarge)
+    Text(stringResource(R.string.build_title_permission), style = MaterialTheme.typography.titleLarge, modifier = Modifier.asHeading())
     Text(stringResource(R.string.build_permission_detail))
     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
         TextButton(onClick = onDone) { Text(stringResource(R.string.action_cancel)) }

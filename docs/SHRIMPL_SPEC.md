@@ -104,8 +104,9 @@ binary translation) on any device.
   Uninstall or Remove.
 - R2.2 The list comes from Shrimpl's records (R11) joined with the installed state, re-read on
   resume. A record whose app isn't installed sits at the bottom of the list under a "Not installed"
-  label (each group in name order), its icon and name greyed out; tapping it does nothing, but its ⋮
-  menu, long press, right-click menu and Rebuild button work as usual. An installed app built from
+  label (each group in name order), its icon and name greyed out (65 % opacity, so the name keeps
+  4.5:1 contrast in both themes); tapping it does nothing, and accessibility services aren't offered a
+  tap, but its ⋮ menu, long press ("Show options"), right-click menu and Rebuild button work as usual. An installed app built from
   an older template (R11.4) shows an Update button to the right of its name, which rebuilds it with
   the bundled template. Row buttons are small icon-only pills (48 x 32 dp, a 48 dp touch target)
   whose tooltip names the action and the app: Update (refresh icon) in the theme's tonal color, Fix

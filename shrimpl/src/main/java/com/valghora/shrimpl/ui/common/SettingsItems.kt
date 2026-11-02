@@ -77,7 +77,7 @@ fun SettingsSection(title: String, modifier: Modifier = Modifier, content: @Comp
             title,
             style = MaterialTheme.typography.titleSmall,
             color = MaterialTheme.colorScheme.primary,
-            modifier = Modifier.padding(start = 4.dp, top = 24.dp, bottom = 12.dp),
+            modifier = Modifier.padding(start = 4.dp, top = 24.dp, bottom = 12.dp).asHeading(),
         )
         Layout(content = { CompositionLocalProvider(LocalInGroup provides true, content) }) { measurables, constraints ->
             val placeables = measurables.map { it.measure(constraints.copy(minHeight = 0)) }

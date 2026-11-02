@@ -239,4 +239,32 @@
     <string name="icon_source_files">Files</string>
     <string name="icon_unreadable">This image can\'t be used as an icon</string>
     <string name="tooltip_new_web_app">New app (Ctrl+N)</string>
+    <!-- What TalkBack says about a step of building an app or searching a site. -->
+    <string name="step_done">Done</string>
+    <string name="step_in_progress">In progress</string>
+    <string name="step_not_started">Not started</string>
+    <string name="step_failed">Failed</string>
+    <!-- TalkBack's name for a long press on an app in the list: it opens the app's menu. -->
+    <string name="action_show_options">Show options</string>
+    <!-- The preset colors of the color dialog, as TalkBack reads them. -->
+    <string name="color_red">Red</string>
+    <string name="color_pink">Pink</string>
+    <string name="color_purple">Purple</string>
+    <string name="color_deep_purple">Deep purple</string>
+    <string name="color_indigo">Indigo</string>
+    <string name="color_blue">Blue</string>
+    <string name="color_light_blue">Light blue</string>
+    <string name="color_cyan">Cyan</string>
+    <string name="color_teal">Teal</string>
+    <string name="color_green">Green</string>
+    <string name="color_light_green">Light green</string>
+    <string name="color_amber">Amber</string>
+    <string name="color_orange">Orange</string>
+    <string name="color_deep_orange">Deep orange</string>
+    <string name="color_brown">Brown</string>
+    <string name="color_blue_grey">Blue grey</string>
+    <string name="color_white">White</string>
+    <string name="color_grey">Grey</string>
+    <string name="color_dark_grey">Dark grey</string>
+    <string name="color_black">Black</string>
 </resources>

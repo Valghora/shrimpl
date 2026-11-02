@@ -68,6 +68,7 @@ import com.valghora.shrimpl.ui.common.SettingsItem
 import com.valghora.shrimpl.ui.common.SettingsSection
 import com.valghora.shrimpl.ui.common.Tone
 import com.valghora.shrimpl.ui.common.TooltipIconButton
+import com.valghora.shrimpl.ui.common.asHeading
 import com.valghora.shrimpl.ui.common.withoutBottom
 
 /** Shrimpl's settings page (docs/SHRIMPL_SPEC.md R2.5). */
@@ -105,7 +106,7 @@ fun SettingsScreen(inPane: Boolean, onBack: () -> Unit) {
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(stringResource(R.string.settings_title)) },
+                title = { Text(stringResource(R.string.settings_title), Modifier.asHeading()) },
                 navigationIcon = {
                     // Beside the list there is nothing to go back to; Close returns the pane to its prompt.
                     if (inPane) {

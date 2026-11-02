@@ -4,6 +4,7 @@ import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -74,6 +75,9 @@ import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.onLongClick
+import androidx.compose.ui.semantics.selected
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
@@ -105,6 +109,7 @@ import com.valghora.shrimpl.ui.common.PitchText
 import com.valghora.shrimpl.ui.common.Tone
 import com.valghora.shrimpl.ui.common.TooltipIconButton
 import com.valghora.shrimpl.ui.common.WithTooltip
+import com.valghora.shrimpl.ui.common.asHeading
 import com.valghora.shrimpl.ui.icons.AdaptiveIcon
 import com.valghora.shrimpl.ui.icons.rememberIconLayers
 
@@ -179,7 +184,7 @@ fun HomeScreen(
                             tint = MaterialTheme.colorScheme.primary,
                         )
                         Spacer(Modifier.width(12.dp))
-                        Text(stringResource(R.string.home_title))
+                        Text(stringResource(R.string.home_title), Modifier.asHeading())
                     }
                 },
                 scrollBehavior = scrollBehavior,
@@ -289,7 +294,7 @@ fun HomeScreen(
                             stringResource(R.string.home_not_installed),
                             style = MaterialTheme.typography.labelLarge,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.padding(start = 20.dp, top = 16.dp, bottom = 4.dp),
+                            modifier = Modifier.padding(start = 20.dp, top = 16.dp, bottom = 4.dp).asHeading(),
                         )
                     }
                     items(absent, key = { it.appId }, contentType = { APP_ROW }) { row(it) }
@@ -352,6 +357,7 @@ private fun AppItem(
     // R11.7: installed but signed with another key; it can only be fixed (uninstalled, then rebuilt) or removed.
     val locked = installed != null && otherKey
     var menuAt by remember { mutableStateOf<DpOffset?>(null) }
+    val showOptions = stringResource(R.string.action_show_options)
     fun showMenu(at: Offset) {
         menuAt = with(density) { DpOffset(at.x.toDp(), at.y.toDp()) }
     }
@@ -379,8 +385,24 @@ private fun AppItem(
             // The selected row takes the hover tint, not secondaryContainer, so its tonal Update pill stays
             // visible on it.
             .background(if (selected) MaterialTheme.colorScheme.onSurface.copy(alpha = HOVER_ALPHA) else Color.Transparent)
-            // A tap opens or edits the app, as chosen in Settings (R2.5).
-            .combinedClickable(onClick = if (locked || installed == null) ({}) else if (clickAction == ClickAction.EDIT) onEdit else onOpen, onLongClick = { menuAt = DpOffset(24.dp, 48.dp) }),
+            // In two panes the highlighted row is announced as selected.
+            .semantics { if (selected) this.selected = true }
+            // A tap opens or edits the app, as chosen in Settings (R2.5); a long press opens its menu.
+            // An uninstalled app, or one signed with another key, does nothing on a tap, so it offers
+            // no tap to accessibility services either, only the long press.
+            .then(
+                if (locked || installed == null) {
+                    Modifier
+                        .pointerInput(record.appId) { detectTapGestures(onLongPress = { showMenu(it) }) }
+                        .semantics(mergeDescendants = true) { onLongClick(showOptions) { menuAt = DpOffset(24.dp, 48.dp); true } }
+                } else {
+                    Modifier.combinedClickable(
+                        onClick = if (clickAction == ClickAction.EDIT) onEdit else onOpen,
+                        onLongClickLabel = showOptions,
+                        onLongClick = { menuAt = DpOffset(24.dp, 48.dp) },
+                    )
+                },
+            ),
     ) {
         Row(
             // With the inset, the icon is 16 dp from the edge and the ⋮ button's center 28 dp from it,
@@ -468,7 +490,8 @@ private const val NOT_INSTALLED_LABEL = "not-installed-label"
 /** The content type of every web app row, so the grid reuses rows for rows only. */
 private const val APP_ROW = "app-row"
 
-private const val GREYED_ALPHA = 0.38f
+/** The dimming of an uninstalled app's name and icon: its name keeps 4.5:1 contrast in both themes. */
+private const val GREYED_ALPHA = 0.65f
 
 /** Draws its content without color and dimmed, as Material does for disabled content. */
 private fun Modifier.greyedOut(): Modifier = drawWithContent {

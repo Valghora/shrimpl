@@ -2,6 +2,7 @@ package com.valghora.shrimpl.ui.form
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
@@ -14,6 +15,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
@@ -39,6 +41,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextOverflow
@@ -66,6 +70,7 @@ import com.valghora.shrimpl.ui.common.StringListSaver
 import com.valghora.shrimpl.ui.common.SwitchItem
 import com.valghora.shrimpl.ui.common.TextValueItem
 import com.valghora.shrimpl.ui.common.TooltipIconButton
+import com.valghora.shrimpl.ui.common.asHeading
 import com.valghora.shrimpl.ui.icons.CustomIconSheet
 import com.valghora.shrimpl.ui.icons.IconTiles
 
@@ -363,11 +368,19 @@ private fun ColorItem(
     }
 }
 
+/** The color dialog's presets, each with the name TalkBack reads. */
 private val PRESETS = listOf(
-    "#F44336", "#E91E63", "#9C27B0", "#673AB7", "#3F51B5", "#2196F3", "#03A9F4", "#00BCD4",
-    "#009688", "#4CAF50", "#8BC34A", "#FFC107", "#FF9800", "#FF5722", "#795548", "#607D8B",
-    "#FFFFFF", "#9E9E9E", "#212121", "#000000",
+    "#F44336" to R.string.color_red, "#E91E63" to R.string.color_pink, "#9C27B0" to R.string.color_purple,
+    "#673AB7" to R.string.color_deep_purple, "#3F51B5" to R.string.color_indigo, "#2196F3" to R.string.color_blue,
+    "#03A9F4" to R.string.color_light_blue, "#00BCD4" to R.string.color_cyan, "#009688" to R.string.color_teal,
+    "#4CAF50" to R.string.color_green, "#8BC34A" to R.string.color_light_green, "#FFC107" to R.string.color_amber,
+    "#FF9800" to R.string.color_orange, "#FF5722" to R.string.color_deep_orange, "#795548" to R.string.color_brown,
+    "#607D8B" to R.string.color_blue_grey, "#FFFFFF" to R.string.color_white, "#9E9E9E" to R.string.color_grey,
+    "#212121" to R.string.color_dark_grey, "#000000" to R.string.color_black,
 )
+
+/** A preset's touch area (the swatch is 36 dp). */
+private val PRESET_TOUCH = 48.dp
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
@@ -387,9 +400,18 @@ private fun ColorDialog(title: String, initial: String, emptyLabel: String?, onD
                     inDialog = true,
                     modifier = Modifier.fillMaxWidth(),
                 )
-                FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    PRESETS.forEach { hex ->
-                        ColorSwatch(swatch(hex), Modifier.clickable(role = Role.Button) { text = hex }, size = 36)
+                // Each preset has a 48 dp touch area around its 36 dp swatch, a name for TalkBack, and
+                // reads as selected when it is the color in the field.
+                FlowRow {
+                    PRESETS.forEach { (hex, name) ->
+                        val label = stringResource(name)
+                        Box(
+                            Modifier
+                                .size(PRESET_TOUCH)
+                                .selectable(selected = text.equals(hex, ignoreCase = true), role = Role.RadioButton) { text = hex }
+                                .semantics { contentDescription = label },
+                            contentAlignment = Alignment.Center,
+                        ) { ColorSwatch(swatch(hex), size = 36) }
                     }
                 }
                 if (emptyLabel != null) {
@@ -509,7 +531,7 @@ fun FormTitle(text: String, paneWidth: Dp, afterIcon: Boolean) {
     val titleStart = if (afterIcon) TITLE_AFTER_ICON else TITLE_START
     // The section labels sit 4 dp in from the column's edge (SettingsSection); the title lines up with them.
     val shift = formColumn(paneWidth, LocalInPane.current)?.let { (it.start + SECTION_LABEL_INSET - titleStart).coerceAtLeast(0.dp) } ?: 0.dp
-    Text(text, Modifier.padding(start = shift), maxLines = 1, overflow = TextOverflow.Ellipsis)
+    Text(text, Modifier.padding(start = shift).asHeading(), maxLines = 1, overflow = TextOverflow.Ellipsis)
 }
 
 /**
