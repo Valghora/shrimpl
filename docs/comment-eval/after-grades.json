@@ -1,0 +1,322 @@
+{
+ "0d55cc9683": {
+  "where": "core/src/main/kotlin/com/valghora/shrimpl/core/CoreTypes.kt:33",
+  "purpose": 2,
+  "accuracy": 2,
+  "concision": 2,
+  "placement": 2,
+  "note": "(unchanged since baseline; grade carried over)"
+ },
+ "06fc21b98b": {
+  "where": "core/src/main/kotlin/com/valghora/shrimpl/core/discovery/Discovery.kt:204",
+  "purpose": 1,
+  "accuracy": 2,
+  "concision": 2,
+  "placement": 2,
+  "note": "section header: structure only (unchanged since baseline; grade carried over)"
+ },
+ "0d10010b09": {
+  "where": "core/src/main/kotlin/com/valghora/shrimpl/core/discovery/Evidence.kt:41",
+  "purpose": 2,
+  "accuracy": 2,
+  "concision": 2,
+  "placement": 2,
+  "note": "(unchanged since baseline; grade carried over)"
+ },
+ "08a58060d9": {
+  "where": "core/src/main/kotlin/com/valghora/shrimpl/core/discovery/Urls.kt:13",
+  "purpose": 2,
+  "accuracy": 2,
+  "concision": 2,
+  "placement": 2,
+  "note": "(unchanged since baseline; grade carried over)"
+ },
+ "020d5d79c9": {
+  "where": "core/src/main/kotlin/com/valghora/shrimpl/core/profile/Profile.kt:72",
+  "purpose": 2,
+  "accuracy": 2,
+  "concision": 2,
+  "placement": 2,
+  "note": "(unchanged since baseline; grade carried over)"
+ },
+ "0f8c104357": {
+  "where": "core/src/main/kotlin/com/valghora/shrimpl/core/records/EmbeddedRecord.kt:10",
+  "purpose": 2,
+  "accuracy": 2,
+  "concision": 2,
+  "placement": 2,
+  "note": "(unchanged since baseline; grade carried over)"
+ },
+ "0d71da1a80": {
+  "where": "core/src/main/kotlin/com/valghora/shrimpl/core/records/WebAppRecord.kt:130",
+  "purpose": 2,
+  "accuracy": 2,
+  "concision": 2,
+  "placement": 2,
+  "note": "(unchanged since baseline; grade carried over)"
+ },
+ "03de46c0c8": {
+  "where": "core/src/main/kotlin/com/valghora/shrimpl/core/testing/TestTags.kt:26",
+  "purpose": 2,
+  "accuracy": 2,
+  "concision": 2,
+  "placement": 2,
+  "note": "(unchanged since baseline; grade carried over)"
+ },
+ "0021bb4042": {
+  "where": "shrimpl/src/main/java/com/valghora/shrimpl/data/AppSettings.kt:28",
+  "purpose": 2,
+  "accuracy": 2,
+  "concision": 2,
+  "placement": 2,
+  "note": "(unchanged since baseline; grade carried over)"
+ },
+ "0eb6658c87": {
+  "where": "shrimpl/src/main/java/com/valghora/shrimpl/data/SigningKeyStore.kt:19",
+  "purpose": 2,
+  "accuracy": 2,
+  "concision": 2,
+  "placement": 2,
+  "note": "(unchanged since baseline; grade carried over)"
+ },
+ "03a529f3c7": {
+  "where": "shrimpl/src/main/java/com/valghora/shrimpl/discovery/SiteDiscovery.kt:217",
+  "purpose": 2,
+  "accuracy": 2,
+  "concision": 2,
+  "placement": 2,
+  "note": "(unchanged since baseline; grade carried over)"
+ },
+ "07e4939995": {
+  "where": "shrimpl/src/main/java/com/valghora/shrimpl/install/Installer.kt:20",
+  "purpose": 2,
+  "accuracy": 2,
+  "concision": 2,
+  "placement": 2,
+  "note": "(unchanged since baseline; grade carried over)"
+ },
+ "10eec6f827": {
+  "where": "shrimpl/src/main/java/com/valghora/shrimpl/install/RootInstaller.kt:37",
+  "purpose": 2,
+  "accuracy": 2,
+  "concision": 2,
+  "placement": 2,
+  "note": ""
+ },
+ "00d1cec73c": {
+  "where": "shrimpl/src/main/java/com/valghora/shrimpl/install/SessionInstaller.kt:83",
+  "purpose": 2,
+  "accuracy": 2,
+  "concision": 2,
+  "placement": 2,
+  "note": "(unchanged since baseline; grade carried over)"
+ },
+ "0ef25d54d7": {
+  "where": "shrimpl/src/main/java/com/valghora/shrimpl/install/SessionInstaller.kt:135",
+  "purpose": 2,
+  "accuracy": 2,
+  "concision": 2,
+  "placement": 2,
+  "note": "(unchanged since baseline; grade carried over)"
+ },
+ "063a3408f1": {
+  "where": "shrimpl/src/main/java/com/valghora/shrimpl/install/ShellService.kt:6",
+  "purpose": 2,
+  "accuracy": 2,
+  "concision": 2,
+  "placement": 2,
+  "note": "(unchanged since baseline; grade carried over)"
+ },
+ "00b5e9ccfd": {
+  "where": "shrimpl/src/main/java/com/valghora/shrimpl/install/ShizukuInstaller.kt:25",
+  "purpose": 2,
+  "accuracy": 2,
+  "concision": 2,
+  "placement": 2,
+  "note": "(unchanged since baseline; grade carried over)"
+ },
+ "05ea284e51": {
+  "where": "shrimpl/src/main/java/com/valghora/shrimpl/ui/common/BuildController.kt:25",
+  "purpose": 2,
+  "accuracy": 2,
+  "concision": 2,
+  "placement": 2,
+  "note": "(unchanged since baseline; grade carried over)"
+ },
+ "05cf5f59bc": {
+  "where": "shrimpl/src/main/java/com/valghora/shrimpl/ui/common/BuildController.kt:124",
+  "purpose": 2,
+  "accuracy": 2,
+  "concision": 2,
+  "placement": 2,
+  "note": "(unchanged since baseline; grade carried over)"
+ },
+ "0f943b61d0": {
+  "where": "shrimpl/src/main/java/com/valghora/shrimpl/ui/common/Notice.kt:51",
+  "purpose": 2,
+  "accuracy": 2,
+  "concision": 2,
+  "placement": 2,
+  "note": "(unchanged since baseline; grade carried over)"
+ },
+ "072edb2d4b": {
+  "where": "shrimpl/src/main/java/com/valghora/shrimpl/ui/common/SettingsItems.kt:166",
+  "purpose": 2,
+  "accuracy": 2,
+  "concision": 2,
+  "placement": 2,
+  "note": "(unchanged since baseline; grade carried over)"
+ },
+ "11cd0f5ae4": {
+  "where": "shrimpl/src/main/java/com/valghora/shrimpl/ui/common/SettingsItems.kt:260",
+  "purpose": 2,
+  "accuracy": 2,
+  "concision": 2,
+  "placement": 2,
+  "note": ""
+ },
+ "0fd46153a9": {
+  "where": "shrimpl/src/main/java/com/valghora/shrimpl/ui/common/SettingsItems.kt:287",
+  "purpose": 2,
+  "accuracy": 2,
+  "concision": 2,
+  "placement": 2,
+  "note": ""
+ },
+ "07ea69834f": {
+  "where": "shrimpl/src/main/java/com/valghora/shrimpl/ui/create/CreateViewModel.kt:84",
+  "purpose": 2,
+  "accuracy": 2,
+  "concision": 2,
+  "placement": 2,
+  "note": "(unchanged since baseline; grade carried over)"
+ },
+ "11d0ba300a": {
+  "where": "shrimpl/src/main/java/com/valghora/shrimpl/ui/edit/EditViewModel.kt:31",
+  "purpose": 2,
+  "accuracy": 2,
+  "concision": 1,
+  "placement": 2,
+  "note": "'checked' doesn't say what is checked (whether the app is installed)"
+ },
+ "025b76bf6c": {
+  "where": "shrimpl/src/main/java/com/valghora/shrimpl/ui/home/HomeScreen.kt:336",
+  "purpose": 2,
+  "accuracy": 2,
+  "concision": 2,
+  "placement": 2,
+  "note": "(unchanged since baseline; grade carried over)"
+ },
+ "0cd9ac5651": {
+  "where": "shrimpl/src/main/java/com/valghora/shrimpl/ui/home/HomeScreen.kt:580",
+  "purpose": 2,
+  "accuracy": 2,
+  "concision": 2,
+  "placement": 2,
+  "note": "(unchanged since baseline; grade carried over)"
+ },
+ "0a3d0a5475": {
+  "where": "shrimpl/src/main/java/com/valghora/shrimpl/ui/home/HomeScreen.kt:648",
+  "purpose": 2,
+  "accuracy": 2,
+  "concision": 2,
+  "placement": 2,
+  "note": "(unchanged since baseline; grade carried over)"
+ },
+ "0b074e1250": {
+  "where": "shrimpl/src/main/java/com/valghora/shrimpl/ui/home/HomeScreen.kt:716",
+  "purpose": 2,
+  "accuracy": 2,
+  "concision": 2,
+  "placement": 2,
+  "note": "(unchanged since baseline; grade carried over)"
+ },
+ "02cbabc121": {
+  "where": "shrimpl/src/main/java/com/valghora/shrimpl/ui/settings/SettingsScreen.kt:203",
+  "purpose": 1,
+  "accuracy": 2,
+  "concision": 2,
+  "placement": 2,
+  "note": "a requirement anchor that mostly restates the item below it"
+ },
+ "014c734bfc": {
+  "where": "shrimpl/src/main/java/com/valghora/shrimpl/ui/settings/SettingsViewModel.kt:33",
+  "purpose": 2,
+  "accuracy": 2,
+  "concision": 2,
+  "placement": 2,
+  "note": "(unchanged since baseline; grade carried over)"
+ },
+ "09513b7465": {
+  "where": "shrimpl/src/main/java/com/valghora/shrimpl/ui/settings/SettingsViewModel.kt:47",
+  "purpose": 2,
+  "accuracy": 2,
+  "concision": 2,
+  "placement": 2,
+  "note": "(unchanged since baseline; grade carried over)"
+ },
+ "06c13c52c7": {
+  "where": "template/src/main/java/com/valghora/shrimpl/webapp/MainActivity.kt:166",
+  "purpose": 2,
+  "accuracy": 2,
+  "concision": 2,
+  "placement": 2,
+  "note": "(unchanged since baseline; grade carried over)"
+ },
+ "016dd09613": {
+  "where": "template/src/main/java/com/valghora/shrimpl/webapp/MainActivity.kt:253",
+  "purpose": 2,
+  "accuracy": 2,
+  "concision": 1,
+  "placement": 2,
+  "note": "cites T8.4 twice across two lines; could be one sentence"
+ },
+ "0fca125ef0": {
+  "where": "template/src/main/java/com/valghora/shrimpl/webapp/MainActivity.kt:661",
+  "purpose": 2,
+  "accuracy": 2,
+  "concision": 2,
+  "placement": 2,
+  "note": "(unchanged since baseline; grade carried over)"
+ },
+ "01687ed848": {
+  "where": "template/src/main/java/com/valghora/shrimpl/webapp/MainActivity.kt:851",
+  "purpose": 1,
+  "accuracy": 2,
+  "concision": 2,
+  "placement": 2,
+  "note": "section header: structure only"
+ },
+ "0eb9c81b81": {
+  "where": "template/src/main/java/com/valghora/shrimpl/webapp/MainActivity.kt:1112",
+  "purpose": 2,
+  "accuracy": 2,
+  "concision": 2,
+  "placement": 2,
+  "note": ""
+ },
+ "078b6e0fa2": {
+  "where": "template/src/main/java/com/valghora/shrimpl/webapp/PageColors.kt:17",
+  "purpose": 2,
+  "accuracy": 2,
+  "concision": 2,
+  "placement": 2,
+  "note": "(unchanged since baseline; grade carried over)"
+ },
+ "011be8c6ad": {
+  "where": "template/src/main/java/com/valghora/shrimpl/webapp/SessionPrefs.kt:29",
+  "purpose": 2,
+  "accuracy": 2,
+  "concision": 2,
+  "placement": 2,
+  "note": "(unchanged since baseline; grade carried over)"
+ },
+ "0e991f0d7c": {
+  "where": "template/src/main/java/com/valghora/shrimpl/webapp/SessionPrefs.kt:35",
+  "purpose": 2,
+  "accuracy": 2,
+  "concision": 2,
+  "placement": 2,
+  "note": "(unchanged since baseline; grade carried over)"
+ }
+}

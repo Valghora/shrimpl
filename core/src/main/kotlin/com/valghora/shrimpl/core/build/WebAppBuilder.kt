@@ -55,11 +55,10 @@ object WebAppBuilder {
     const val PACKAGE_PREFIX = "com.valghora.shrimpl.app"
     const val TEMPLATE_PACKAGE = "com.valghora.shrimpl.template"
 
-    /** Fixed paths inside the template APK (R7.4); the template build keeps resource paths unshortened. */
     /**
-     * Entries the builder replaces or checks (R7.4).
+     * Fixed paths inside the template APK (R7.4).
      *
-     * Invariant: the icon paths only stay fixed because the template's release build turns resource
+     * Invariant: the icon paths stay fixed only because the template's release build turns resource
      * path shortening off (`android.enableResourceOptimizations=false`, docs/BUILD_NOTES.md "Platform findings").
      */
     object Paths {
