@@ -31,13 +31,14 @@ rubric catches what they miss.
 The sample is the 40 main-source comment blocks with the lowest SHA-256 of `seed|path|text` (seed
 `comment-eval-v1`). The same comments are chosen as long as they are unchanged; a rewritten comment
 drops out and another takes its place, so a rerun grades the code as it is then. Each item is graded
-0-2 on four criteria (8 points; the rubric score is the share of points):
+0-2 on four criteria (8 points; the rubric score is the share of points). The grades file keeps the
+key `concision` for the third criterion:
 
 | | 2 | 1 | 0 |
 |---|---|---|---|
 | Purpose | Says what the code can't: why, a contract, a constraint, a platform quirk, where a rule comes from | Partly restates the code, or a section header (structure only) | Restates the code, narrates its history or the conversation, or says nothing |
 | Accuracy | Everything it says is true of the code beside it and of what it cites | A minor imprecision, or slightly out of date | False or stale |
-| Concision | Every clause carries information | Some padding; could be clearly shorter | Mostly padding, or repeats the spec at length |
+| Clarity and concision | Reads right the first time, in plain words, and every clause carries information | Needs a second read, or has some padding | Hard to follow, mostly padding, or repeats the spec at length |
 | Placement and anchoring | At the code it concerns; a rule from elsewhere (spec, platform bug, test) names its source in a searchable form | Right place but missing a source it clearly needs, or a little distant | Far from what it describes (a file header for a line-level rule) |
 
 Each grade records a one-line note for any score below 2, so a second grader can audit it.
