@@ -20,8 +20,9 @@ deviation gets a row here in the same commit. The adaptive skill's deviations ar
 - **Update.** `scripts/android_skills.sh update <name>` (or `--all`) copies the newest upstream
   version and rewrites `UPSTREAM.md`. Review `git diff .claude/skills` against the deviations below,
   adjust this file (or ADAPTIVE.md) where the guidance changed, and commit the update on its own.
-- **Adopt.** `scripts/android_skills.sh add <upstream path>` vendors another skill; add it to the
-  tables below, and remove it from "Not adopted".
+- **Adopt.** `scripts/android_skills.sh add <upstream path>` vendors another android/skills skill;
+  `add --repo <github url> --into <name> <file>...` vendors chosen files of another repository into
+  `.claude/references/<name>/`. Add it to the tables below, and remove it from "Not adopted".
 - **Never edit a vendored skill.** Record a departure here instead; `check` flags local edits.
 - `scripts/android_skills.sh list` shows each skill's upstream date and when it was copied.
 
@@ -98,6 +99,33 @@ every broad rule comes from a library or AGP's defaults.
 | Skill guidance | What this project does | Why |
 |---|---|---|
 | Prerequisite 3: Baseline Profiles | None. | Generating them needs a device or emulator (Macrobenchmark); none here. Revisit if cold start or the home list feels slow on devices. |
+
+## Other sources
+
+Community skills are weighed against Google's: they are adopted only where Google has nothing, and only
+the parts that fit. Their files are vendored unchanged like Google's, and `check` and `update` keep them
+current the same way; the version is the last upstream commit that touched them.
+
+| What | Upstream | Use it when |
+|---|---|---|
+| accessibility (this project's skill, `.claude/skills/accessibility/`) wrapping Drjacky's accessibility reference, `.claude/references/claude-android-ninja/` | [Drjacky/claude-android-ninja](https://github.com/Drjacky/claude-android-ninja) `references/android-accessibility.md` and `references/android-accessibility-quick.md` (Apache 2.0) | Every UI change; reviewing or auditing a screen; TalkBack, keyboard or contrast problems. Google's android/skills has no accessibility skill. |
+
+### accessibility (Drjacky's reference)
+
+| Guidance | What this project does | Why |
+|---|---|---|
+| The rest of claude-android-ninja (Hilt, Room 3, multi-module, Retrofit) | Only the two accessibility files are vendored, behind this project's own skill. | The full skill would apply to all Android work and contradict the architecture and the Google skills in use. |
+| Links to `INDEX-sections.md` and `android-i18n.md` | Not vendored; the table of contents in `android-accessibility.md` replaces the index. | Only accessibility is taken. |
+| Testing: Espresso accessibility checks, Accessibility Scanner | Robolectric semantics tests (labels, roles, toggle state, headings, touch size); TalkBack on the owner's devices. | No emulator here, and Google's Accessibility Test Framework doesn't run under Robolectric ([BUILD_NOTES.md](BUILD_NOTES.md)). |
+| Compose only | The template's own Views follow Android's View accessibility guidance; web content is the site's. | The template stays on Views (T1.1). |
+
+### Considered and not adopted
+
+| Source | Why not |
+|---|---|
+| [new-silvermoon/awesome-android-agent-skills](https://github.com/new-silvermoon/awesome-android-agent-skills) (17 skills, 2026-11-02) | Its accessibility checklist is 36 lines, much thinner than Drjacky's reference. `compose-navigation` pins a Navigation 3 alpha and contradicts Google's navigation-3; `compose-performance-audit` and `android-testing` overlap Google's skills; `android-architecture`, `android-data-layer`, `android-retrofit`, `android-viewmodel` and `android-coroutines` assume Hilt, Room, Retrofit, injected dispatchers or an experimental Kotlin flag; `kotlin-concurrency-expert` was declined (the code already follows its rules, except dispatcher injection, which the Robolectric tests don't need); the migration, Coil, emulator, Gradle convention plugin and build-performance skills don't apply. |
+| [aldefy/compose-skill](https://github.com/aldefy/compose-skill) | A good accessibility reference (489 lines, citing androidx sources) inside a broad Compose skill that overlaps Google's; kept as a second opinion, not vendored. |
+| Other community Compose skills (anhvt52, azlekov, krutikJain, hamen) | Smaller accessibility sections, or none. |
 
 ## Not adopted
 

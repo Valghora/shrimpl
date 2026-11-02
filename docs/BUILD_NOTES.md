@@ -187,3 +187,9 @@ thrown away.
   without a source location (Robolectric loads the app's classes itself) and leave out `jdk.internal`.
   There is no threshold for Shrimpl; the 95 % rule is for `:core`. The first report (2026-11-01)
   covered 34 % of Shrimpl's lines.
+- Google's Accessibility Test Framework checks for Compose (`enableAccessibilityChecks()` from
+  `androidx.compose.ui:ui-test-junit4-accessibility` 1.12.1, ATF 4.1.1) don't work under Robolectric:
+  with them enabled, an unlabelled, clickable 10 dp box with near-invisible text passes, whether the
+  checks are enabled before or after the content, with Robolectric's native graphics and with its
+  accessibility manager switched on. Accessibility is tested with semantics assertions instead
+  (docs/SKILLS.md); ATF needs a device or emulator.

@@ -26,7 +26,9 @@ that alters a requirement updates the spec in the same commit.
    - 48 dp touch targets, a tooltip on every icon-only button (`TooltipIconButton`), right-click
      menus where long press has one, keyboard shortcuts listed in the Keyboard Shortcuts Helper.
 
-   A deliberate exception gets a row in `docs/ADAPTIVE.md`'s deviations table.
+   A deliberate exception gets a row in `docs/ADAPTIVE.md`'s deviations table. Every UI change also
+   follows the accessibility skill (`.claude/skills/accessibility/`): labels, roles and state,
+   headings, touch targets and contrast.
 3. **No suppressions.** No Kotlin `@Suppress`, no `@SuppressLint` (the single exception:
    `SetJavaScriptEnabled` on the template's `applyWebSettings`), no lint baselines, disabled checks,
    lowered thresholds, or deleted or weakened tests. Lint must report 0 errors. After three failed
