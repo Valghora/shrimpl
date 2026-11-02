@@ -120,7 +120,8 @@ object Discovery {
     /**
      * Discovery's draft for [requestedUrl] from the collected [evidence] (R9.2): start URL, internal
      * domains, name, icon, brand color and capabilities, each with its source and confidence.
-     * [forcedId] keeps an existing app's ID. Throws [DiscoveryException] when the page never loaded.
+     * [forcedId] keeps an existing app's ID. Throws [DiscoveryException] when the page never loaded
+     * or its address has no host.
      */
     fun draft(
         evidence: Evidence,
