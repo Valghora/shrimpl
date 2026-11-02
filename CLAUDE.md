@@ -59,9 +59,10 @@ There is no emulator in the cloud container; UI changes are confirmed on the own
 - Commit work locally as it's done. Build, push and send the APK only when asked ("Build and push
   it, then send the APK"); then push the branch, check CI, and send `shrimpl-debug.apk`.
 - Never force-push. Branch from the default branch for new work.
-- User-facing sentences end with a period when they are two or more sentences, or when they contain
-  punctuation (a comma, apostrophe, hyphen, parentheses, a period); only a single sentence without
-  any of these goes without one. Labels and titles never take one. Follow the palette rules
+- Settings descriptions (the text under a setting) end with a period when they are two or more
+  sentences, or when they contain punctuation (a comma, apostrophe, hyphen, parentheses, a period);
+  a single sentence without any of these goes without one. All other text (labels, titles, errors,
+  notifications, toasts, dialogs) has no ending period. Follow the palette rules
   in `ui/common/Notice.kt` and the theme (Info follows the Material theme; Caution, Error and Success
   use pastel containers with dark text in both themes; status text on plain surfaces is pastel in
   dark theme and deep in light theme).

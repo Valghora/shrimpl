@@ -152,6 +152,9 @@ thrown away.
   "can't be downloaded" toast end with a period (CLAUDE.md: sentences with punctuation in them, or
   more than one sentence, end with one).
 
+- Template version 13 (2026-11-02): those two periods removed again: the period rule covers settings
+  descriptions only, and the template has none.
+
 - `ACCESS_NETWORK_STATE` (a normal permission) lets the search tell "No internet connection" apart
   from a site that can't be reached.
 
