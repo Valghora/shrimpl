@@ -81,7 +81,7 @@ object SigningKeys {
         val store = try {
             KeyStore.getInstance("PKCS12").apply { load(ByteArrayInputStream(pkcs12), password) }
         } catch (e: java.io.IOException) {
-            throw SigningKeyException("Wrong password, or not a PKCS12 key file", e)
+            throw SigningKeyException("Password or file format is incorrect", e)
         } catch (e: GeneralSecurityException) {
             throw SigningKeyException("Not a readable PKCS12 key file", e)
         }

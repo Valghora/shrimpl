@@ -68,7 +68,7 @@ class SigningKeyStore(context: Context) {
     private fun password(): CharArray = try {
         String(decrypt(passwordFile.readFully())).toCharArray()
     } catch (e: java.security.GeneralSecurityException) {
-        throw SigningKeyException("The signing key's password can't be decrypted (was the device's Keystore reset?)", e)
+        throw SigningKeyException("Signing key's password can't be decrypted", e)
     }
 
     private fun randomPassword(): CharArray {

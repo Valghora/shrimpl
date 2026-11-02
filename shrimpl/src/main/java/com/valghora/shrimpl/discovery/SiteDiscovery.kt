@@ -50,7 +50,7 @@ class SiteDiscovery(private val context: Context) {
     private val data by lazy { DiscoveryData.get(context) }
 
     suspend fun discover(input: String, onStage: suspend (Stage) -> Unit = {}): Discovered {
-        val url = normalizeUrl(input) ?: throw DiscoveryException("Enter a web address, like example.com")
+        val url = normalizeUrl(input) ?: throw DiscoveryException("Enter a valid web address")
         TestMode.search(url)?.let { playBack(it, onStage) }
         val desktopAgent = RenderedPass.desktopUserAgent(WebSettings.getDefaultUserAgent(context))
         val network = Network(desktopAgent)

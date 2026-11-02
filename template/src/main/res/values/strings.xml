@@ -29,8 +29,8 @@
     <string name="permission_title_microphone">Use your microphone?</string>
     <string name="permission_title_camera_microphone">Use your camera and microphone?</string>
     <string name="permission_title_location">Use your location?</string>
-    <string name="permission_explain_one">%1$s wants it for this page. Android will ask whether %2$s may use it</string>
-    <string name="permission_explain_many">%1$s wants them for this page. Android will ask whether %2$s may use them</string>
+    <string name="permission_explain_one">%1$s wants it for this page. Android will ask whether %2$s may use it.</string>
+    <string name="permission_explain_many">%1$s wants them for this page. Android will ask whether %2$s may use them.</string>
     <string name="permission_off_camera">Camera is off for %1$s</string>
     <string name="permission_off_microphone">Microphone is off for %1$s</string>
     <string name="permission_off_camera_microphone">Camera and microphone are off for %1$s</string>

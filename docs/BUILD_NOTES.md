@@ -155,6 +155,9 @@ thrown away.
 - Template version 13 (2026-11-02): those two periods removed again: the period rule covers settings
   descriptions only, and the template has none.
 
+- Template version 14 (2026-11-02): the permission explanation (two sentences) ends with a period
+  again, per the owner's review of all strings.
+
 - `ACCESS_NETWORK_STATE` (a normal permission) lets the search tell "No internet connection" apart
   from a site that can't be reached.
 

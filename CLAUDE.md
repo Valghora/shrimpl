@@ -61,9 +61,9 @@ There is no emulator in the cloud container; UI changes are confirmed on the own
 - Never force-push. Branch from the default branch for new work.
 - Settings descriptions (the text under a setting) end with a period when they are two or more
   sentences, or when they contain punctuation (a comma, apostrophe, hyphen, parentheses, a period);
-  a single sentence without any of these goes without one. All other text (labels, titles, errors,
-  notifications, toasts, dialogs) has no ending period. Follow the palette rules
-  in `ui/common/Notice.kt` and the theme (Info follows the Material theme; Caution, Error and Success
+  a single sentence without any of these goes without one. Other text (labels, titles, errors,
+  notifications, toasts, dialogs) has no ending period unless it is two or more sentences. Follow
+  the palette rules in `ui/common/Notice.kt` and the theme (Info follows the Material theme; Caution, Error and Success
   use pastel containers with dark text in both themes; status text on plain surfaces is pastel in
   dark theme and deep in light theme).
 - Shrimpl's Compose screens are tested with Robolectric in `shrimpl/src/test` (layout at the nine
