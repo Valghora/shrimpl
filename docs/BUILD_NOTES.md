@@ -207,3 +207,8 @@ thrown away.
   checks are enabled before or after the content, with Robolectric's native graphics and with its
   accessibility manager switched on. Accessibility is tested with semantics assertions instead
   (docs/SKILLS.md); ATF needs a device or emulator.
+- A Compose popup (a dropdown menu) is its own window under Robolectric, placed at the window's
+  origin, and its nodes' `boundsInWindow` are relative to that window. Where a menu opens on screen
+  can't be tested there. The tiles' long-press menu opened well below the tile on a device
+  (2026-11-02): a `DropdownMenu` opens below its anchor and its `offset` is added to the anchor's
+  bottom, so the menu is now anchored to an empty box at the pressed point.

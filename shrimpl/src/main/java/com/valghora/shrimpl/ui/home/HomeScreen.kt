@@ -85,6 +85,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.DpOffset
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.core.graphics.drawable.toBitmap
 import androidx.lifecycle.compose.LifecycleResumeEffect
@@ -378,9 +379,16 @@ private fun AppItem(
 ) {
     // R11.7: installed but signed with another key; it can only be fixed (uninstalled, then rebuilt) or removed.
     val locked = installed != null && otherKey
-    var menuAt by remember { mutableStateOf<DpOffset?>(null) }
+    // The menu opens where the item was pressed. Its place is kept after it closes, so it doesn't move
+    // while it fades out.
+    var menuOpen by remember { mutableStateOf(false) }
+    var menuAt by remember { mutableStateOf(DpOffset.Zero) }
+    val openMenu = { at: DpOffset ->
+        menuAt = at
+        menuOpen = true
+    }
     val showOptions = stringResource(R.string.action_show_options)
-    val showMenu = { at: Offset -> menuAt = with(density) { DpOffset(at.x.toDp(), at.y.toDp()) } }
+    val showMenu = { at: Offset -> openMenu(with(density) { DpOffset(at.x.toDp(), at.y.toDp()) }) }
     // A tap opens or edits the app, as chosen in Settings (R2.5). An uninstalled app, or one signed with
     // another key, does nothing on a tap, so it offers no tap to accessibility services either.
     val onTap = when {
@@ -390,19 +398,22 @@ private fun AppItem(
     }
     // Tiles have no ⋮ button or row buttons, so their menu also offers Fix (R2.6).
     val actions = menuActions(locked, installed != null, updateAvailable, withFix = tile, onOpen, onEdit, onRebuild, onUninstall, onFix, onRemove)
+    // A dropdown menu opens below its anchor, so the anchor is an empty box at the pressed point.
     val menu: @Composable () -> Unit = {
-        AppMenu(expanded = menuAt != null, onDismissRequest = { menuAt = null }, offset = menuAt ?: DpOffset.Zero) {
-            actions.forEach { (label, action) ->
-                AppMenuItem(text = { Text(stringResource(label)) }, onClick = {
-                    menuAt = null
-                    action()
-                })
+        Box(Modifier.offset { IntOffset(menuAt.x.roundToPx(), menuAt.y.roundToPx()) }) {
+            AppMenu(expanded = menuOpen, onDismissRequest = { menuOpen = false }) {
+                actions.forEach { (label, action) ->
+                    AppMenuItem(text = { Text(stringResource(label)) }, onClick = {
+                        menuOpen = false
+                        action()
+                    })
+                }
             }
         }
     }
     if (tile) {
         Box {
-            AppTile(record, installed, loadImage, updateAvailable, locked, selected, Modifier.appGestures(record.appId, onTap, showOptions, showMenu) { menuAt = DpOffset(16.dp, 64.dp) })
+            AppTile(record, installed, loadImage, updateAvailable, locked, selected, Modifier.appGestures(record.appId, onTap, showOptions, showMenu) { openMenu(DpOffset(16.dp, 64.dp)) })
             menu()
         }
         return
@@ -419,7 +430,7 @@ private fun AppItem(
             .background(if (selected) MaterialTheme.colorScheme.onSurface.copy(alpha = HOVER_ALPHA) else Color.Transparent)
             // In two panes the highlighted row is announced as selected.
             .semantics { if (selected) this.selected = true }
-            .appGestures(record.appId, onTap, showOptions, showMenu) { menuAt = DpOffset(24.dp, 48.dp) },
+            .appGestures(record.appId, onTap, showOptions, showMenu) { openMenu(DpOffset(24.dp, 48.dp)) },
     ) {
         Row(
             // With the inset, the icon is 16 dp from the edge and the ⋮ button's center 28 dp from it,
