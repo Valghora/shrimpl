@@ -32,7 +32,7 @@ that alters a requirement updates the spec in the same commit.
    lowered thresholds, or deleted or weakened tests. Lint must report 0 errors. After three failed
    fix attempts, stop and report the log.
 4. **`:core` is pure JVM.** No `android.*`, `androidx.*` or `com.google.android.*` imports; line
-   coverage stays at or above 85 %.
+   coverage stays at or above 95 %.
 5. **The template stays small.** AndroidX Views only (T1.1), no site values in its code or
    resources. Bump `shrimpl.templateVersion` in `gradle.properties` whenever template code or
    resources change.

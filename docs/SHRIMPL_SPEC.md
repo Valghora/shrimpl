@@ -211,7 +211,7 @@ binary translation) on any device.
   - the discovery rules (R9.2), icon geometry and SVG glyph handling (R10);
   - the web app records (R11);
   - `ManifestPatcher`, `WebAppBuilder` and `SigningKeys` (R5, R8).
-- R4.3 `:core` tests reach at least 85 % line coverage (JaCoCo, verified by `:core:check`); they
+- R4.3 `:core` tests reach at least 95 % line coverage (JaCoCo, verified by `:core:check`); they
   include the patcher and builder run against the real template release APK, and discovery on stored
   fixtures of four real sites.
 - R4.4 Dependencies, as in `gradle/libs.versions.toml`:

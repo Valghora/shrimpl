@@ -185,5 +185,5 @@ thrown away.
   `./gradlew :shrimpl:createDebugUnitTestCoverageReport` writes a JaCoCo report of the unit and
   Robolectric tests to `shrimpl/build/reports/coverage/test/debug/`. JaCoCo has to include classes
   without a source location (Robolectric loads the app's classes itself) and leave out `jdk.internal`.
-  There is no threshold for Shrimpl; the 85 % rule is for `:core`. The first report (2026-11-01)
+  There is no threshold for Shrimpl; the 95 % rule is for `:core`. The first report (2026-11-01)
   covered 34 % of Shrimpl's lines.

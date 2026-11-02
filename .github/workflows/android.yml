@@ -43,7 +43,7 @@ jobs:
         run: scripts/setup_android_sdk.sh
 
       # :core:check runs the core tests (including building real web apps from the template release
-      # APK) and the 85% line-coverage rule.
+      # APK) and the 95% line-coverage rule.
       - name: Tests, lint and builds
         run: >-
           ./gradlew --console=plain :core:check :core:jacocoTestReport

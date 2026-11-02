@@ -25,7 +25,7 @@ them.
 - `template/`: the web app (Kotlin, AndroidX Views, WebView). It reads its site from
   `assets/shrimpl/profile.json` and declares every capability any site may need. Its release APK is
   bundled inside Shrimpl.
-- `core/`: pure-JVM logic, unit tested with an 85% line-coverage rule: URL routing, zoom, keys, user
+- `core/`: pure-JVM logic, unit tested with a 95% line-coverage rule: URL routing, zoom, keys, user
   agent and wake state for the web app; the profile model and validator; discovery rules; and the
   builder that patches the template's manifest (package, label, versions, permissions, window
   sizes), replaces the profile and icons, and signs with apksig.
