@@ -148,6 +148,10 @@ thrown away.
   default text zoom already is 100 x the font scale, but the template set it to a fixed 100 %, so
   enlarged system text never reached web pages.
 
+- Template version 12 (2026-11-02): text punctuation only. The permission explanation and the
+  "can't be downloaded" toast end with a period (CLAUDE.md: sentences with punctuation in them, or
+  more than one sentence, end with one).
+
 - `ACCESS_NETWORK_STATE` (a normal permission) lets the search tell "No internet connection" apart
   from a site that can't be reached.
 

@@ -154,7 +154,7 @@ binary translation) on any device.
   "The site could not be found"; other 4xx "The site responded with an error"; 5xx "The site is
   unavailable"; no connection "No internet connection"; an unknown host also "The site could not be
   found"; no answer in 15 s "The site took too long to respond"; a certificate problem "The site's
-  certificate is invalid"; anything else "The site couldn't be loaded". A 403 continues to the
+  certificate is invalid."; anything else "The site couldn't be loaded.". A 403 continues to the
   rendered pass, since bot protection often refuses plain requests but lets a browser in; only if
   the rendered page is refused too does Researching permissions fail with "The site denied the
   request". On failure the heading reads "Search failed"; the search button beside the address
