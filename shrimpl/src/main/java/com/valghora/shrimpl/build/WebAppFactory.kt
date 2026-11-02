@@ -34,6 +34,9 @@ class BuildRequest(
     val existing: WebAppRecord?,
 )
 
+/**
+ * How a build ended (R3.4): installed and saved, waiting for "Install unknown apps", cancelled, or failed.
+ */
 sealed interface BuildOutcome {
     data class Installed(val record: WebAppRecord) : BuildOutcome
 
@@ -59,6 +62,10 @@ class WebAppFactory(
 ) {
     enum class Stage { RENDERING_ICON, BUILDING, SIGNING, VERIFYING, INSTALLING }
 
+    /**
+     * Builds [request] and installs it with [installer], reporting each stage. The record is
+     * saved only after the install succeeds (R11.3); the built APK is deleted either way.
+     */
     suspend fun build(request: BuildRequest, installer: Installer, onStage: (Stage) -> Unit): BuildOutcome {
         val stages = StagePacer(onStage)
         val profile = request.profile
@@ -134,11 +141,13 @@ class WebAppFactory(
 private class StagePacer(private val onStage: (WebAppFactory.Stage) -> Unit) {
     private var shownAt = 0L
 
+    /** Shows [stage] once the previous stage has been on screen long enough, suspending meanwhile. */
     suspend fun next(stage: WebAppFactory.Stage) {
         delay(remaining())
         show(stage)
     }
 
+    /** As [next], but blocks the calling thread: for stages the builder reports from its own thread. */
     fun nextBlocking(stage: WebAppFactory.Stage) {
         Thread.sleep(remaining())
         show(stage)

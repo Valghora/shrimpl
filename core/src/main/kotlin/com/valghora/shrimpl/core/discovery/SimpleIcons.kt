@@ -13,6 +13,7 @@ class SimpleIcon(val slug: String, val title: String, val hex: String, val svg: 
  * serves the glyph filled with the brand color, and answers 404 for unknown slugs.
  */
 object SimpleIcons {
+    /** The simple-icons CDN address of the glyph for [slug]. */
     fun url(slug: String) = "https://cdn.simpleicons.org/$slug"
 
     /** The brand for [slug] from a CDN response, or null if it isn't a simple-icons glyph. */

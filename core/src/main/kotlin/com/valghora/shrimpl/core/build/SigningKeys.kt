@@ -24,6 +24,7 @@ class SigningKey(val privateKey: PrivateKey, val certificate: X509Certificate) {
             .joinToString(":") { "%02X".format(it) }
 }
 
+/** The key or certificate can't be created, read or decrypted (a wrong password, or not a PKCS12 file). */
 class SigningKeyException(message: String, cause: Throwable? = null) : Exception(message, cause)
 
 /**
@@ -40,6 +41,7 @@ object SigningKeys {
     private const val OID_SHA256_WITH_RSA = "1.2.840.113549.1.1.11"
     private const val OID_COMMON_NAME = "2.5.4.3"
 
+    /** A new RSA 3072 key with a self-signed SHA-256 certificate valid for 30 years (R5.1). */
     fun generate(
         commonName: String = COMMON_NAME,
         now: ZonedDateTime = ZonedDateTime.now(ZoneOffset.UTC),
@@ -108,18 +110,25 @@ internal object Der {
 
     val NULL = byteArrayOf(0x05, 0x00)
 
+    /** A DER SEQUENCE of [parts], in order. */
     fun sequence(vararg parts: ByteArray) = tlv(SEQUENCE, parts.fold(ByteArray(0)) { acc, b -> acc + b })
 
+    /** A DER SET of [parts], kept in the order given. */
     fun set(vararg parts: ByteArray) = tlv(SET, parts.fold(ByteArray(0)) { acc, b -> acc + b })
 
+    /** An explicit context-specific tag `[tag]` around [content]. */
     fun explicit(tag: Int, content: ByteArray) = tlv(0xA0 or tag, content)
 
+    /** A DER INTEGER in two's complement, as [BigInteger.toByteArray] gives it. */
     fun integer(value: BigInteger) = tlv(INTEGER, value.toByteArray())
 
+    /** A DER UTF8String. */
     fun utf8(value: String) = tlv(UTF8_STRING, value.toByteArray(Charsets.UTF_8))
 
+    /** A DER BIT STRING with no unused bits. */
     fun bitString(bytes: ByteArray) = tlv(BIT_STRING, byteArrayOf(0) + bytes)
 
+    /** A DER OBJECT IDENTIFIER from its dotted form ("2.5.4.3"). */
     fun oid(dotted: String): ByteArray {
         val arcs = dotted.split('.').map { it.toLong() }
         val out = ByteArrayOutputStream()
@@ -146,6 +155,7 @@ internal object Der {
         }
     }
 
+    /** A DER element: [tag], the definite length (short or long form), then [content]. */
     fun tlv(tag: Int, content: ByteArray): ByteArray {
         val length = content.size
         val header = when {

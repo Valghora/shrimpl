@@ -83,6 +83,7 @@ class SessionInstaller(private val context: Context) : Installer {
 /** A system confirmation screen ([screen]) waiting for the user; [sessionId] is the install session, if any. */
 data class Confirmation(val id: Int, val sessionId: Int, val screen: Intent)
 
+/** [Confirmation.sessionId] for a confirmation that belongs to no install session. */
 internal const val NO_SESSION = -1
 
 /**

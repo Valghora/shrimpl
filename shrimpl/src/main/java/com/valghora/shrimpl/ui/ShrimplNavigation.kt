@@ -44,6 +44,7 @@ import kotlinx.serialization.Serializable
 // Destinations (docs/SHRIMPL_SPEC.md R2). The back stack is saved, so the open screen survives
 // rotation, folding, resizing and process death.
 
+/** The app list, the list pane in two panes. */
 @Serializable
 data object HomeKey : NavKey
 

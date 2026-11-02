@@ -43,6 +43,10 @@ data class ProfileForm(
         fun errorFor(field: String): String? = errors.firstOrNull { it.field == field }?.message
     }
 
+    /**
+     * The form as a profile, or its errors by field (R3.3): numbers that don't
+     * parse are reported as such, and every other field is still validated.
+     */
     fun result(): Result {
         // Values that don't parse get a placeholder so every other field is still validated; the
         // parse errors are reported instead of the placeholder's.

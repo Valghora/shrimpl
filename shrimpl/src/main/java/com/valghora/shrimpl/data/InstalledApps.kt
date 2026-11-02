@@ -8,7 +8,9 @@ import android.graphics.drawable.Drawable
 /** What Android says about an installed web app (docs/SHRIMPL_SPEC.md R2.2). */
 data class InstalledApp(val packageName: String, val versionCode: Long, val icon: Drawable)
 
+/** Installed web apps, as the package manager reports them. */
 object InstalledApps {
+    /** The installed app [packageName] with its version code and icon, or null when it isn't installed. */
     fun find(context: Context, packageName: String): InstalledApp? = try {
         val pm = context.packageManager
         val info = pm.getPackageInfo(packageName, 0)

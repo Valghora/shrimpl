@@ -20,6 +20,7 @@ object ProfileValidator {
     private const val MIN_WINDOW_DP = 200
     private const val MAX_WINDOW_DP = 10000
 
+    /** Every problem with [profile], by field; empty when it can be built. */
     fun validate(profile: Profile): List<FieldError> {
         val errors = mutableListOf<FieldError>()
         fun error(field: String, message: String) {

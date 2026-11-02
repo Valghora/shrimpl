@@ -29,6 +29,7 @@ class AppContainer(context: Context) {
     val recovery = WebAppRecovery(context, store, settings)
 }
 
+/** Shrimpl's application; it creates the [AppContainer] every screen uses. */
 class ShrimplApp : Application() {
     lateinit var container: AppContainer
         private set

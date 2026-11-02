@@ -40,14 +40,15 @@ enum class TestSearch(val host: String, val stage: Int) {
     NOT_LOADED("unloaded.test", 0),
 }
 
+/** Test tags in app names (R13.1), read in debug builds only. */
 object TestTags {
     /** A leading list of words separated by commas, optionally in square brackets, then a space or the end. */
     private val LEADING = Regex("""^\s*\[?\s*([A-Za-z-]+(?:\s*,\s*[A-Za-z-]+)*)\s*]?(?=\s|$)""")
 
     /**
-     * The tags at the start of [name] (docs/SHRIMPL_SPEC.md R13.1), separated by commas: "update,cert
-     * Gmail", "update, cert Gmail" or "[update,cert] Gmail". Every part must be a known tag, so an ordinary first word
-     * ("Example", "Updates") is never read as one.
+     * The tags at the start of [name] (docs/SHRIMPL_SPEC.md R13.1), separated by commas:
+     * "update,cert Gmail", "update, cert Gmail" or "[update,cert] Gmail". Every part must be a known
+     * tag, so an ordinary first word ("Example", "Updates") is never read as one.
      */
     fun parse(name: String): Set<TestTag> {
         val list = LEADING.find(name)?.groupValues?.get(1) ?: return emptySet()

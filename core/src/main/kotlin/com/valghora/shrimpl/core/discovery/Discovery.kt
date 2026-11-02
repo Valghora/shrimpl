@@ -5,6 +5,7 @@ import com.valghora.shrimpl.core.profile.Profile
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 
+/** How sure discovery is of a value; the form shows it next to the field. */
 enum class Confidence { HIGH, MEDIUM, LOW }
 
 /** A discovered value, where it came from, and how sure discovery is (shown next to the form field). */
@@ -47,6 +48,7 @@ data class Note(val level: Level, val text: String) {
     enum class Level { INFO, CAUTION }
 }
 
+/** The site couldn't be read at all, so there is no draft. */
 class DiscoveryException(message: String) : Exception(message)
 
 /** Color parsing: hex, rgb()/rgba() and a few names; transparent is null. */
@@ -58,6 +60,10 @@ object Colors {
     private val HEX = Regex("#([0-9a-f]{3,8})")
     private val RGB = Regex("rgba?\\(\\s*(\\d+)[,\\s]+(\\d+)[,\\s]+(\\d+)(?:[,\\s/]+([\\d.]+%?))?\\s*\\)")
 
+    /**
+     * [value] as `#RRGGBB`, or null when it is missing, unparsable or
+     * mostly transparent; short hex is expanded and alpha dropped.
+     */
     fun parse(value: String?): String? {
         if (value.isNullOrEmpty()) return null
         val v = value.trim().lowercase()
@@ -111,6 +117,11 @@ object Discovery {
     )
     private val TITLE_SEPARATOR = Regex("\\s+[|\\-–—:·•]\\s+")
 
+    /**
+     * Discovery's draft for [requestedUrl] from the collected [evidence] (R9.2): start URL, internal
+     * domains, name, icon, brand color and capabilities, each with its source and confidence.
+     * [forcedId] keeps an existing app's ID. Throws [DiscoveryException] when the page never loaded.
+     */
     fun draft(
         evidence: Evidence,
         requestedUrl: String,

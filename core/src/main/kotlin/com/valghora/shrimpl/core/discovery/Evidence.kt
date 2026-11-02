@@ -26,6 +26,10 @@ data class Evidence(
     }
 }
 
+/**
+ * One full page load in the rendered pass (R9.3): where it went, its
+ * headers, every request, API signals, the page's head and its web manifest.
+ */
 @Serializable
 data class Visit(
     val requestedUrl: String? = null,
@@ -48,9 +52,14 @@ data class Visit(
     val manifest: JsonObject? = null,
 )
 
+/** A request the page made; [type] is the resource type ("document", "script", "xhr" and so on). */
 @Serializable
 data class Request(val url: String, val type: String)
 
+/**
+ * What a page's head declares (title, meta tags, links, theme colors),
+ * and the color along the top of the rendered page.
+ */
 @Serializable
 data class PageInfo(
     val title: String = "",
@@ -73,12 +82,18 @@ data class BrandColor(val color: String, val source: String)
 @Serializable
 data class Meta(val name: String, val content: String, val media: String = "")
 
+/** A `<link>` element: its rel, absolute href, and the sizes and color some icon links carry. */
 @Serializable
 data class Link(val rel: String, val href: String, val sizes: String = "", val color: String = "")
 
+/** A `<meta name="theme-color">` value and the media query it applies to (empty for all). */
 @Serializable
 data class ThemeColor(val color: String, val media: String = "")
 
+/**
+ * A lighter page load (dark theme, or Android WebView): enough to
+ * compare colors and to spot a page that refuses WebViews.
+ */
 @Serializable
 data class SlimVisit(
     val status: Int? = null,

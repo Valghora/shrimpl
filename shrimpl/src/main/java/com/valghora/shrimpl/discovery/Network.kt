@@ -22,6 +22,10 @@ class Fetched(
  * a size cap per response, redirects followed by hand so the chain is known, and no cookies.
  */
 class Network(private val userAgent: String) {
+    /**
+     * Fetches [url], following up to 10 redirects. Throws [IOException] for a URL that
+     * isn't https, too many redirects, a body over [maxBytes], or a network failure.
+     */
     fun get(url: String, maxBytes: Int = MAX_BYTES): Fetched {
         var current = url
         val chain = mutableListOf<String>()

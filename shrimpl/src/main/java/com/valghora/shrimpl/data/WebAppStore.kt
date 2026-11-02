@@ -24,8 +24,10 @@ class WebAppStore(context: Context) {
     /** Every record, sorted by name. */
     val records: StateFlow<List<WebAppRecord>> = _records.asStateFlow()
 
+    /** The saved record of [appId], or null. */
     fun get(appId: String): WebAppRecord? = _records.value.firstOrNull { it.appId == appId }
 
+    /** The IDs of every saved record, so a new app's ID can be made unique. */
     fun takenIds(): Set<String> = _records.value.mapTo(mutableSetOf()) { it.appId }
 
     /** An image icon's stored image, by its file name (`IconRecord.image`). */
@@ -50,6 +52,7 @@ class WebAppStore(context: Context) {
         _records.value = (_records.value.filter { it.appId != record.appId } + record).sortedBy { it.profile.name.lowercase() }
     }
 
+    /** Deletes [appId]'s record and its stored images; the installed app, if any, stays. */
     suspend fun delete(appId: String) = withContext(Dispatchers.IO) {
         directory(appId).deleteRecursively()
         _records.value = _records.value.filter { it.appId != appId }

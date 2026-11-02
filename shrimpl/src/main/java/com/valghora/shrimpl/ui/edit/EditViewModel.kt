@@ -52,6 +52,7 @@ class EditViewModel(private val container: AppContainer, val appId: String) : Vi
     /** A stored icon image, by file name. */
     fun storedImage(file: String): ByteArray = container.store.image(appId, file)
 
+    /** Checks whether the app is installed now, off the main thread. */
     fun refresh(context: Context) {
         val record = _record.value ?: return
         viewModelScope.launch {
@@ -59,16 +60,18 @@ class EditViewModel(private val container: AppContainer, val appId: String) : Vi
         }
     }
 
+    /** Takes the form's changes, unsaved until Save (R2.3). */
     fun update(draft: WebAppDraft) {
         // The app id is fixed once the web app exists (R11.2).
         _draft.value = draft.copy(form = draft.form.copy(appId = appId))
     }
 
+    /** Discards unsaved changes: the form goes back to the saved settings (R2.3). */
     fun reset() {
         _draft.value = _record.value?.let(::draftOf)
     }
 
-    /** Saves by building the next version and installing it over the current one (R4.2); false on form errors. */
+    /** Saves by building the next version and installing it over the current one (R2.3); false on form errors. */
     fun save(): Boolean {
         val record = _record.value ?: return false
         val draft = _draft.value ?: return false
@@ -83,6 +86,7 @@ class EditViewModel(private val container: AppContainer, val appId: String) : Vi
         build.start(BuildRequest(record.profile, record.iconOptions, newImages = emptyMap(), existing = record))
     }
 
+    /** Uninstalls the app with the chosen method; after it, offers to remove the record too (R2.3). */
     fun uninstall() {
         val record = _record.value ?: return
         viewModelScope.launch {
@@ -106,10 +110,12 @@ class EditViewModel(private val container: AppContainer, val appId: String) : Vi
         }
     }
 
+    /** The offer to remove the record was answered. */
     fun dismissRemove() {
         _offerRemove.value = false
     }
 
+    /** The message was shown; it isn't shown again. */
     fun messageShown() {
         _message.value = null
     }

@@ -90,6 +90,10 @@ class BuildController(private val container: AppContainer, private val scope: Co
     /** Called with the record after each successful install. */
     var onInstalled: (WebAppRecord) -> Unit = {}
 
+    /**
+     * Builds and installs one app with [installer], or the method
+     * chosen in Settings; does nothing while a build runs.
+     */
     fun start(request: BuildRequest, installer: Installer? = null) {
         if (job?.isActive == true) return
         lastRequest = request
@@ -273,6 +277,7 @@ class BuildController(private val container: AppContainer, private val scope: Co
         _state.value = null
     }
 
+    /** Closes the build sheet once nothing is running; a running build keeps it. */
     fun dismiss() {
         if (job?.isActive != true) {
             pendingBatch = null

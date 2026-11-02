@@ -6,6 +6,7 @@ import javax.xml.parsers.DocumentBuilderFactory
 import org.w3c.dom.Element
 import org.w3c.dom.Node
 
+/** The SVG or image can't be used as an icon; the message says why. */
 class IconException(message: String, cause: Throwable? = null) : Exception(message, cause)
 
 /** An SVG viewBox. */

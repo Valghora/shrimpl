@@ -22,11 +22,17 @@ val Profile.allowedOriginRules: Set<String>
 /** The store-redirect fallback and the UA toggle only work without a user agent override. */
 val Profile.uaFeaturesActive: Boolean get() = userAgentOverride.isEmpty()
 
+/** The ID of the web app's notification channel (T7.4). */
 val Profile.notificationChannelId: String get() = "${appId}_notifications"
 
+/**
+ * The New window shortcut as the Keyboard Shortcuts Helper lists it
+ * (T5.4), or null when the profile sets none.
+ */
 val Profile.newWindowShortcutSpec: ShortcutSpec?
     get() = newWindowShortcut?.let { ShortcutSpec(NEW_WINDOW_LABEL, it.key, it.modifiers) }
 
+/** The values [DesktopSessionController] needs from this profile. */
 fun Profile.sessionConfig() = SessionConfig(
     internalDomains = internalDomains,
     oauthDomains = oauthDomains,
@@ -36,8 +42,10 @@ fun Profile.sessionConfig() = SessionConfig(
     newWindowShortcut = newWindowShortcutSpec,
 )
 
+/** The New window shortcut's label in the Keyboard Shortcuts Helper. */
 const val NEW_WINDOW_LABEL = "New Window"
 
+/** Web app IDs (R11.2): derived from the name, unique among Shrimpl's apps, and fixed once the app exists. */
 object AppIds {
     private val NON_ALNUM = Regex("[^a-z0-9]")
 

@@ -16,6 +16,9 @@ class DesktopWebView @JvmOverloads constructor(
 
     private var awake = true
 
+    /**
+     * Follows the workspace wake state (T8.2): asleep, the page reports itself hidden so it stops rendering.
+     */
     fun setWorkspaceAwake(awake: Boolean) {
         if (this.awake == awake) return
         this.awake = awake

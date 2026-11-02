@@ -19,6 +19,10 @@ internal object Urls {
             }
     }
 
+    /**
+     * [url] split into scheme (lowercase), netloc, path and query, as
+     * urllib's `urlsplit` does; an unparsable URL becomes all path.
+     */
     fun split(url: String): Parts {
         val m = SPLIT.matchEntire(url) ?: return Parts("", "", url, "")
         return Parts(
@@ -29,6 +33,7 @@ internal object Urls {
         )
     }
 
+    /** The lowercase host of [url], or null when there is none. */
     fun hostOf(url: String?): String? = url?.let { split(it).hostname }
 
     /** RFC 3986 reference resolution (urllib's `urljoin`); falls back to [ref] if either can't be parsed. */

@@ -27,6 +27,7 @@ class SigningKeyStore(context: Context) {
     private val passwordFile = AtomicFile(File(dir, "shrimpl.p12.password"))
     private var cached: SigningKey? = null
 
+    /** Whether a key exists: both its file and its encrypted password are stored. */
     fun exists(): Boolean = keyFile.baseFile.exists() && passwordFile.baseFile.exists()
 
     /** The key, created on first use (R5.1). Slow the first time: call off the main thread. */

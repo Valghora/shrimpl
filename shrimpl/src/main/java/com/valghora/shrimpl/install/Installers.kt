@@ -10,6 +10,7 @@ class Installers(context: Context, private val settings: AppSettings) {
     val shizuku = ShizukuInstaller(context)
     val root = RootInstaller()
 
+    /** The installer for [method]. */
     fun of(method: InstallMethod): Installer = when (method) {
         InstallMethod.SESSION -> session
         InstallMethod.SHIZUKU -> shizuku

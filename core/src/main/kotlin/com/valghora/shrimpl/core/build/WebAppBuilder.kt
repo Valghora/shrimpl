@@ -42,8 +42,13 @@ data class BuiltWebApp(
     val signerFingerprint: String,
 )
 
+/**
+ * The web app can't be built: invalid settings, a template without an
+ * expected entry, or a failed signature or manifest check.
+ */
 class BuildException(message: String, cause: Throwable? = null) : Exception(message, cause)
 
+/** The build was cancelled before it finished; the partial output is deleted. */
 class BuildCancelledException : Exception("Build cancelled")
 
 /**
@@ -77,6 +82,7 @@ object WebAppBuilder {
     private val V1_SIGNATURE = Regex("""META-INF/(MANIFEST\.MF|[^/]+\.(SF|RSA|DSA|EC))""")
     private val PACKAGE_NAME = Regex("""[a-z][a-z0-9_]*(\.[a-z][a-z0-9_]*)+""")
 
+    /** The installed package name for [appId] (R8.2). */
     fun packageNameFor(appId: String) = "$PACKAGE_PREFIX.$appId"
 
     /** Permissions and features to remove for capabilities the profile does not enable (R7.3). */
@@ -106,6 +112,11 @@ object WebAppBuilder {
             ?: throw BuildException("The template manifest has no versionCode")
     }
 
+    /**
+     * Builds [spec] from [template] into [output], signed with [key], reporting
+     * each [Stage]. Throws [BuildException] for invalid settings or a failed
+     * check, and [BuildCancelledException] when [isCancelled] turns true.
+     */
     fun build(
         template: File,
         output: File,

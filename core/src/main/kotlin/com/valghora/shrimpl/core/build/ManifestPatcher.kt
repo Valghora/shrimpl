@@ -41,6 +41,7 @@ data class ManifestInfo(
     val strings: List<String>,
 )
 
+/** The bytes aren't a compiled manifest this patcher can read, or lack an element it needs. */
 class ManifestFormatException(message: String) : RuntimeException(message)
 
 /**
@@ -83,6 +84,10 @@ object ManifestPatcher {
 
     const val MULTI_INSTANCE_PROPERTY = "android.window.PROPERTY_SUPPORTS_MULTI_INSTANCE_SYSTEM_UI"
 
+    /**
+     * The values a build sets, read back from a compiled manifest:
+     * package, label, versions, permissions, features and window values.
+     */
     fun read(manifest: ByteArray): ManifestInfo {
         val doc = Document.parse(manifest)
         val manifestElement = doc.single("manifest")
@@ -110,6 +115,10 @@ object ManifestPatcher {
         )
     }
 
+    /**
+     * A copy of [manifest] with [edits] applied (R8.2); throws
+     * [ManifestFormatException] if an element the edits need is missing.
+     */
     fun patch(manifest: ByteArray, edits: ManifestEdits): ByteArray {
         val doc = Document.parse(manifest)
         val strings = doc.pool.strings

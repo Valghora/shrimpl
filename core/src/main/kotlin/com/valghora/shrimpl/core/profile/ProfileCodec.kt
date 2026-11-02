@@ -6,6 +6,7 @@ import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 
+/** A profile can't be read: not JSON, an unknown field, or values that fail validation ([errors]). */
 class ProfileException(message: String, val errors: List<FieldError> = emptyList()) : Exception(message)
 
 /** Reads and writes profiles as JSON (docs/SHRIMPL_SPEC.md R7.1, R11.1). */
@@ -37,6 +38,7 @@ object ProfileCodec {
         return profile
     }
 
+    /** [profile] as JSON, every field written out. */
     fun encode(profile: Profile): String = json.encodeToString(Profile.serializer(), profile)
 
     /**

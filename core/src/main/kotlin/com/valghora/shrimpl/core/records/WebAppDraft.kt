@@ -9,6 +9,7 @@ import com.valghora.shrimpl.core.profile.ProfileForm
  * the stored record). The brand icon's colors live in the form.
  */
 data class WebAppDraft(val form: ProfileForm, val icons: IconOptions, val newImages: Map<String, ByteArray> = emptyMap()) {
+    /** Selects [option] as the icon. */
     fun select(option: IconOptions.Option) = copy(icons = icons.copy(selected = option))
 
     /** Uses [image] as the custom icon and selects it. */

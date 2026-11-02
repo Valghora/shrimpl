@@ -40,6 +40,7 @@ class HomeViewModel(private val container: AppContainer) : ViewModel() {
     /** Tapping an app with a pending action does that action (R2.5). */
     val resolveOnClick: StateFlow<Boolean> = container.settings.resolveOnClick
 
+    /** Switches between rows and tiles, and keeps the choice (R2.6). */
     fun setLayout(layout: HomeLayout) = container.settings.setHomeLayout(layout)
 
     val build = BuildController(container, viewModelScope)
@@ -54,6 +55,7 @@ class HomeViewModel(private val container: AppContainer) : ViewModel() {
         viewModelScope.launch { container.recovery.runOnce() }
     }
 
+    /** Reads which apps are installed and the current signing key again, off the main thread (R2.2). */
     fun refresh(context: Context) {
         viewModelScope.launch {
             _installed.value = withContext(Dispatchers.IO) {
@@ -92,6 +94,7 @@ class HomeViewModel(private val container: AppContainer) : ViewModel() {
     /** The apps the different-key notice was dismissed for (R11.7). */
     val keyNoticeDismissed: StateFlow<Set<String>> = container.settings.keyNoticeDismissed
 
+    /** Hides the different-key notice for [appIds] (R11.7). */
     fun dismissKeyNotice(appIds: Set<String>) = container.settings.dismissKeyNotice(appIds)
 
     /** Rebuilds [record] from its saved settings with the next build number: Reinstall, Update or Rebuild (R11.3, R11.4). */
@@ -113,6 +116,7 @@ class HomeViewModel(private val container: AppContainer) : ViewModel() {
 
     private fun requestFor(record: WebAppRecord) = BuildRequest(record.profile, record.iconOptions, newImages = emptyMap(), existing = record)
 
+    /** Removes [record] from Shrimpl; the installed app, if any, stays. */
     fun remove(record: WebAppRecord) {
         viewModelScope.launch { container.store.delete(record.appId) }
     }
@@ -133,6 +137,7 @@ class HomeViewModel(private val container: AppContainer) : ViewModel() {
         }
     }
 
+    /** The message was shown; it isn't shown again. */
     fun messageShown() {
         _message.value = null
     }

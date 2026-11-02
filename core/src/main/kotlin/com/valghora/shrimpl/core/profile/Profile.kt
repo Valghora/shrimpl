@@ -86,8 +86,10 @@ enum class HeaderMode {
     @SerialName("custom") CUSTOM,
 }
 
+/** A window size in dp. */
 @Serializable
 data class WindowSize(val width: Int, val height: Int)
 
+/** A key and its modifiers; [key] is an Android `KEYCODE_` name. */
 @Serializable
 data class KeyCombo(val key: String, val modifiers: Set<Modifier> = emptySet())

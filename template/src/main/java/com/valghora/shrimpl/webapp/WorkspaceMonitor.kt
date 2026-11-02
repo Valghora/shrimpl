@@ -42,6 +42,7 @@ class WorkspaceMonitor(
         }
     }
 
+    /** Starts watching the screen, the displays and battery saver (T8.3); a second call does nothing. */
     fun register() {
         if (registered) return
         displayManager.registerDisplayListener(displayListener, Handler(Looper.getMainLooper()))
@@ -55,6 +56,7 @@ class WorkspaceMonitor(
         isWorkspaceAwake(context)
     }
 
+    /** Stops watching; safe to call when not registered. */
     fun unregister() {
         if (!registered) return
         displayManager.unregisterDisplayListener(displayListener)

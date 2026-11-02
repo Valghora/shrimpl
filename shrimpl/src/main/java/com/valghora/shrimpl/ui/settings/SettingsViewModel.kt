@@ -62,11 +62,13 @@ class SettingsViewModel(private val container: AppContainer) : ViewModel() {
     var passwordRepeat by mutableStateOf("")
     private var exportPassword: CharArray? = null
 
+    /** Forgets the typed passwords once a dialog closes. */
     fun clearPasswordDrafts() {
         password = ""
         passwordRepeat = ""
     }
 
+    /** Holds the export password while the user picks where to save, wiping any held before. */
     fun holdExportPassword(value: CharArray) {
         exportPassword?.fill('\u0000')
         exportPassword = value
@@ -114,12 +116,19 @@ class SettingsViewModel(private val container: AppContainer) : ViewModel() {
         }
     }
 
+    /** Saves the theme (R2.5). */
     fun setTheme(theme: ThemeSetting) = container.settings.setTheme(theme)
 
+    /** Saves the default click action (R2.5). */
     fun setClickAction(action: ClickAction) = container.settings.setClickAction(action)
 
+    /** Saves the Resolve on click switch (R2.5). */
     fun setResolveOnClick(resolve: Boolean) = container.settings.setResolveOnClick(resolve)
 
+    /**
+     * Writes the key as a PKCS12 file protected by [password] to [uri]
+     * (R5.2); the password is wiped either way.
+     */
     fun export(resolver: ContentResolver, uri: Uri, password: CharArray) {
         viewModelScope.launch {
             _message.value = withContext(Dispatchers.IO) {
@@ -142,6 +151,11 @@ class SettingsViewModel(private val container: AppContainer) : ViewModel() {
         }
     }
 
+    /**
+     * Reads a key backup from [uri] (R5.2). The same key only counts as backed up; a
+     * different key while apps exist waits for the user to confirm ([pendingRestore]);
+     * otherwise it replaces the key. The password is wiped either way.
+     */
     fun restore(resolver: ContentResolver, uri: Uri, password: CharArray) {
         viewModelScope.launch {
             val outcome = withContext(Dispatchers.IO) {
@@ -193,10 +207,12 @@ class SettingsViewModel(private val container: AppContainer) : ViewModel() {
         }
     }
 
+    /** Keeps the current key; the backup that held another one is dropped. */
     fun cancelRestore() {
         _pendingRestore.value = null
     }
 
+    /** The message was shown; it isn't shown again. */
     fun messageShown() {
         _message.value = null
     }

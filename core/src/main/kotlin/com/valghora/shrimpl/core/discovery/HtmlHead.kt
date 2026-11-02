@@ -15,6 +15,11 @@ object HtmlHead {
     private val WHITESPACE = Regex("\\s+")
     private const val MAX_CHARS = 1_000_000
 
+    /**
+     * The head of static [html] fetched from [pageUrl] (R9.2): title, meta tags, theme
+     * colors and links, made absolute against `<base href>` or the page URL. Scripts,
+     * styles and comments are skipped; only the first million characters are read.
+     */
     fun parse(html: String, pageUrl: String): PageInfo {
         val text = RAW_TEXT.replace(COMMENT.replace(html.take(MAX_CHARS), ""), "")
         val head = text.substringBefore("</head", text)
@@ -63,6 +68,10 @@ object HtmlHead {
         return out
     }
 
+    /**
+     * [text] with HTML's named basics (`&amp;`, `&lt;`, `&nbsp;` and a
+     * few more) and numeric character references decoded.
+     */
     internal fun decode(text: String): String = ENTITY.replace(text) { m ->
         when (val entity = m.groupValues[1]) {
             "amp" -> "&"

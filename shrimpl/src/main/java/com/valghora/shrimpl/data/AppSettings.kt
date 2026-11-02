@@ -9,6 +9,7 @@ import kotlinx.coroutines.flow.asStateFlow
 /** How Shrimpl installs and uninstalls web apps (docs/SHRIMPL_SPEC.md R6). */
 enum class InstallMethod { SESSION, SHIZUKU, ROOT }
 
+/** Shrimpl's theme (R2.5): the system's light or dark setting, or always light or dark. */
 enum class ThemeSetting { SYSTEM, LIGHT, DARK }
 
 /** What tapping an app in the home list does (R2.5). */
@@ -43,6 +44,7 @@ class AppSettings(context: Context) {
     /** Tapping an app with a pending action (Update, Fix, Rebuild) does that action instead (R2.5); off by default. */
     val resolveOnClick: StateFlow<Boolean> = _resolveOnClick.asStateFlow()
 
+    /** Saves the Resolve on click switch (R2.5). */
     fun setResolveOnClick(resolve: Boolean) {
         prefs.edit { putBoolean(KEY_RESOLVE_ON_CLICK, resolve) }
         _resolveOnClick.value = resolve
@@ -53,6 +55,7 @@ class AppSettings(context: Context) {
     )
     val homeLayout: StateFlow<HomeLayout> = _homeLayout.asStateFlow()
 
+    /** Saves the home layout; the home screen switches at once (R2.6). */
     fun setHomeLayout(layout: HomeLayout) {
         prefs.edit { putString(KEY_HOME_LAYOUT, layout.name) }
         _homeLayout.value = layout
@@ -71,6 +74,10 @@ class AppSettings(context: Context) {
     /** The apps the different-key notice (R11.7) was dismissed for; another such app shows it again. */
     val keyNoticeDismissed: StateFlow<Set<String>> = _keyNoticeDismissed.asStateFlow()
 
+    /**
+     * Hides the different-key notice for [appIds]; another app signed
+     * with another key brings it back (R11.7).
+     */
     fun dismissKeyNotice(appIds: Set<String>) {
         prefs.edit { putStringSet(KEY_KEY_NOTICE_DISMISSED, appIds) }
         _keyNoticeDismissed.value = appIds
@@ -81,21 +88,28 @@ class AppSettings(context: Context) {
         get() = prefs.getBoolean(KEY_PROMPT_SHOWN, false)
         set(value) = prefs.edit { putBoolean(KEY_PROMPT_SHOWN, value) }
 
+    /** Saves the install method (R6.2). */
     fun setInstallMethod(method: InstallMethod) {
         prefs.edit { putString(KEY_INSTALL_METHOD, method.name) }
         _installMethod.value = method
     }
 
+    /** Saves the theme; Shrimpl's screens follow at once. */
     fun setTheme(theme: ThemeSetting) {
         prefs.edit { putString(KEY_THEME, theme.name) }
         _theme.value = theme
     }
 
+    /** Saves the default click action (R2.5). */
     fun setClickAction(action: ClickAction) {
         prefs.edit { putString(KEY_CLICK_ACTION, action.name) }
         _clickAction.value = action
     }
 
+    /**
+     * Records whether the signing key has been exported or imported;
+     * once it has, the backup prompt isn't shown (R5.3).
+     */
     fun setKeyBackedUp(backedUp: Boolean) {
         prefs.edit { putBoolean(KEY_BACKED_UP, backedUp) }
         _keyBackedUp.value = backedUp

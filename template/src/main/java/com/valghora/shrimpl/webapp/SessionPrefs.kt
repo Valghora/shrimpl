@@ -38,6 +38,7 @@ class SessionPrefs(context: Context) : ZoomStore, UaStore {
      */
     fun wasAsked(permission: String): Boolean = prefs.getBoolean(KEY_ASKED + permission, false)
 
+    /** Records that Android was asked for [permissions] (T6.5). */
     fun markAsked(permissions: List<String>) = prefs.edit { permissions.forEach { putBoolean(KEY_ASKED + it, true) } }
 
     /** A granted permission starts over: if it is revoked in Settings, Android asks again. */

@@ -231,6 +231,7 @@ private class Fields(
         }
     }
 
+    /** The Permissions section: microphone, camera, notifications and location. */
     @Composable
     fun Permissions() {
         SettingsSection(stringResource(R.string.section_permissions)) {
@@ -241,6 +242,7 @@ private class Fields(
         }
     }
 
+    /** The Appearance section: the header color, and the custom color when that is chosen. */
     @Composable
     fun Appearance() {
         SettingsSection(stringResource(R.string.section_appearance)) {
@@ -268,6 +270,10 @@ private class Fields(
         }
     }
 
+    /**
+     * The Behavior section: the user agent, the native context menu,
+     * running while hidden, and pausing in battery saver.
+     */
     @Composable
     fun Browser() {
         SettingsSection(stringResource(R.string.section_browser)) {
@@ -307,6 +313,7 @@ private class Fields(
         }
     }
 
+    /** The Window section: multi-window and the default and minimum window sizes. */
     @Composable
     fun Window() {
         var editing by rememberSaveable { mutableStateOf<Int?>(null) }

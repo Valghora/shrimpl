@@ -78,6 +78,7 @@ class CreateViewModel(private val container: AppContainer) : ViewModel() {
 
     private var discovery: Job? = null
 
+    /** Updates the address as typed; a failed search starts over, since its error no longer applies. */
     fun setUrl(value: String) {
         _url.value = value
         _urlInvalid.value = false
@@ -85,6 +86,10 @@ class CreateViewModel(private val container: AppContainer) : ViewModel() {
         if (_step.value is Step.Failed) _step.value = Step.EnterUrl
     }
 
+    /**
+     * Searches the address (R3.2), showing each step for at least half
+     * a second; flags an address that isn't one instead of searching.
+     */
     fun search() {
         if (SiteDiscovery.normalizeUrl(_url.value) == null) {
             _urlInvalid.value = true
@@ -111,6 +116,7 @@ class CreateViewModel(private val container: AppContainer) : ViewModel() {
         }
     }
 
+    /** Stops the search and goes back to the address. */
     fun cancelSearch() {
         discovery?.cancel()
         _step.value = Step.EnterUrl
@@ -131,6 +137,7 @@ class CreateViewModel(private val container: AppContainer) : ViewModel() {
         suspend fun finish() = delay(remaining())
     }
 
+    /** Goes back to the address from a failed search, keeping what was typed. */
     fun backToUrl() {
         _step.value = Step.EnterUrl
     }
@@ -181,6 +188,10 @@ class CreateViewModel(private val container: AppContainer) : ViewModel() {
         _step.value = Step.Review
     }
 
+    /**
+     * Takes the form's changes; the app ID follows the name, kept
+     * unique, until the app is created (R3.3, R11.2).
+     */
     fun update(draft: WebAppDraft) {
         val current = _draft.value ?: return
         val form = draft.form
@@ -197,6 +208,7 @@ class CreateViewModel(private val container: AppContainer) : ViewModel() {
         return true
     }
 
+    /** The backup prompt was answered or dismissed (R5.3). */
     fun backupPromptHandled() {
         _showBackupPrompt.value = false
     }

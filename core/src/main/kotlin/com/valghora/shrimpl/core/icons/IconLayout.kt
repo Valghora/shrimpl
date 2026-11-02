@@ -49,6 +49,10 @@ object IconLayout {
     /** Scale and translation that put a box into a square [canvasPx] wide, centered, its larger side [fraction] of it. */
     data class Fit(val scale: Double, val translateX: Double, val translateY: Double)
 
+    /**
+     * Fits the box at ([minX], [minY]), [width] by [height] into a square
+     * [canvasPx] wide: centered, its larger side [fraction] of the square.
+     */
     fun fit(minX: Double, minY: Double, width: Double, height: Double, canvasPx: Int, fraction: Double): Fit {
         require(width > 0 && height > 0) { "empty box" }
         val scale = canvasPx * fraction / maxOf(width, height)
@@ -56,6 +60,7 @@ object IconLayout {
         return Fit(scale, center - (minX + width / 2) * scale, center - (minY + height / 2) * scale)
     }
 
+    /** Fits [viewBox] into a square [canvasPx] wide, as the other [fit] does. */
     fun fit(viewBox: ViewBox, canvasPx: Int, fraction: Double) =
         fit(viewBox.minX, viewBox.minY, viewBox.width, viewBox.height, canvasPx, fraction)
 }

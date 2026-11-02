@@ -14,6 +14,7 @@ enum class Availability {
     UNAVAILABLE,
 }
 
+/** How an install or uninstall ended. */
 sealed interface InstallResult {
     data object Success : InstallResult
 
@@ -68,8 +69,13 @@ internal object PmShell {
         }
     }
 
+    /** `pm install` reading an APK of [size] bytes from standard input, replacing an installed copy. */
     fun installCommand(size: Long) = listOf("pm", "install", "-r", "-S", size.toString())
 
+    /**
+     * `pm uninstall` for [packageName]. Anything that isn't a package
+     * name is rejected, since the command runs in a shell.
+     */
     fun uninstallCommand(packageName: String): List<String> {
         require(PACKAGE.matches(packageName)) { "invalid package name" }
         return listOf("pm", "uninstall", packageName)

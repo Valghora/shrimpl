@@ -43,12 +43,21 @@ class SearchFailure(val stage: SiteDiscovery.Stage, message: String) : Exception
 /** Discovery's draft, and the site's own icon for the Website option (a PNG of at most 512 px), if it has one. */
 class Discovered(val draft: Draft, val websiteIcon: IconChoice.Raster?)
 
+/**
+ * Discovery on the device (R9): reads the site, renders it in a hidden
+ * WebView, and turns what it found into a draft.
+ */
 class SiteDiscovery(private val context: Context) {
     /** Stages shown while discovery runs (R3.2). */
     enum class Stage { FETCHING_PAGE, READING_MANIFEST, CHECKING_PAGE, FINDING_ICON }
 
     private val data by lazy { DiscoveryData.get(context) }
 
+    /**
+     * Discovers the site at [input] (https assumed), reporting each [Stage]. Throws
+     * [DiscoveryException] for an address that isn't one, and [SearchFailure] with
+     * the failed stage and a message for the user when the site can't be read.
+     */
     suspend fun discover(input: String, onStage: suspend (Stage) -> Unit = {}): Discovered {
         val url = normalizeUrl(input) ?: throw DiscoveryException("Enter a valid web address")
         TestMode.search(url)?.let { playBack(it, onStage) }

@@ -17,6 +17,10 @@ class DesktopSessionController(
 
     // ----- URL classification -----
 
+    /**
+     * Classifies [url] for routing (T2a): passthrough schemes, other non-http schemes, the internal domains,
+     * then the sign-in domains; anything else is external, and a URL without a scheme or host is blocked.
+     */
     fun classify(url: String): UrlClass {
         val trimmed = url.trim()
         val scheme = schemeOf(trimmed) ?: return UrlClass.BLOCKED
@@ -38,8 +42,10 @@ class DesktopSessionController(
     var textZoom: Int = snapZoom(zoomStore.load() ?: fontScaleZoom)
         private set
 
+    /** Zooms page text in by one step and saves it; returns the new zoom in percent. */
     fun zoomIn(): Int = setZoom(textZoom + ZOOM_STEP)
 
+    /** Zooms page text out by one step and saves it; returns the new zoom in percent. */
     fun zoomOut(): Int = setZoom(textZoom - ZOOM_STEP)
 
     /** Back to the system font size, which text then follows again. */
@@ -64,6 +70,10 @@ class DesktopSessionController(
 
     // ----- Key resolution -----
 
+    /**
+     * The built-in action for a key press (T5.3), or NONE to pass it to the
+     * page. Reload, New window and Print act once per press, not on key repeat.
+     */
     fun resolveKey(keyName: String, modifiers: Set<Modifier>, repeatCount: Int): KeyAction {
         val action = builtInAction(keyName, modifiers, includeNewWindow = true)
         val oncePerPress = action == KeyAction.RELOAD || action == KeyAction.NEW_WINDOW || action == KeyAction.PRINT
@@ -91,6 +101,7 @@ class DesktopSessionController(
 
     // ----- Context menu -----
 
+    /** The context menu items for what was pressed (T5.5): link actions on links, Save image on images. */
     fun contextMenuActions(hit: HitType): List<MenuAction> = when (hit) {
         HitType.ANCHOR -> listOf(MenuAction.COPY_LINK, MenuAction.OPEN_LINK)
         HitType.IMAGE_ANCHOR -> listOf(MenuAction.COPY_LINK, MenuAction.OPEN_LINK, MenuAction.SAVE_IMAGE)
@@ -103,9 +114,17 @@ class DesktopSessionController(
     var isAwake: Boolean = true
         private set
 
+    /**
+     * Whether the page should run: the device is interactive with a display
+     * on, and not in battery saver when the profile pauses for it (T8.3).
+     */
     fun computeAwake(interactive: Boolean, anyDisplayOn: Boolean, powerSaveMode: Boolean): Boolean =
         interactive && anyDisplayOn && !(config.pauseOnPowerSave && powerSaveMode)
 
+    /**
+     * Feeds the device state into the wake state machine; returns
+     * SLEEP or WAKE when the state changes, else NONE (T8.3).
+     */
     fun onWakeInput(interactive: Boolean, anyDisplayOn: Boolean, powerSaveMode: Boolean): WakeEvent {
         val awake = computeAwake(interactive, anyDisplayOn, powerSaveMode)
         if (awake == isAwake) return WakeEvent.NONE
@@ -115,6 +134,11 @@ class DesktopSessionController(
 
     // ----- User agent -----
 
+    /**
+     * The user agent mode and its reason (T6.12): the user's toggle, then a learned
+     * desktop preference, then the profile's mode, then desktop on large screens and
+     * PCs, else mobile. An [override] keeps the mode but is logged as the reason.
+     */
     fun resolveUa(
         configMode: UaMode,
         isLargeOrPc: Boolean,
@@ -133,9 +157,14 @@ class DesktopSessionController(
         return if (override.isNotEmpty()) resolution.copy(reason = UaReason.OVERRIDE) else resolution
     }
 
+    /** The mode of [resolveUa] without an override. */
     fun resolveUaMode(configMode: UaMode, isLargeOrPc: Boolean, userChoice: UaMode?, learnedDesktop: Boolean): UaMode =
         resolveUa(configMode, isLargeOrPc, userChoice, learnedDesktop, override = "").mode
 
+    /**
+     * The user agent string for [mode]: [override] if set; else the WebView's own without its
+     * WebView markers, or for desktop a Linux Chrome string with the same Chrome version.
+     */
     fun buildUserAgent(defaultUa: String, mode: UaMode, override: String): String {
         if (override.isNotEmpty()) return override
         val mobile = defaultUa.replace("; wv", "").replace(VERSION_TOKEN, "")
@@ -144,6 +173,10 @@ class DesktopSessionController(
         return "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/$chrome Safari/537.36"
     }
 
+    /**
+     * Whether [url] sends the user to the Play Store: `market:`, an `intent:` naming a
+     * package or falling back to a Play Store page, or a Play Store apps page (T6.10).
+     */
     fun isStoreRedirect(url: String): Boolean {
         val trimmed = url.trim()
         return when (schemeOf(trimmed)) {
@@ -154,6 +187,7 @@ class DesktopSessionController(
         }
     }
 
+    /** The mode the desktop/mobile toggle switches to from [current] (T6.11). */
     fun toggleTarget(current: UaMode): UaMode =
         if (current == UaMode.DESKTOP) UaMode.MOBILE else UaMode.DESKTOP
 
