@@ -226,6 +226,9 @@
     <string name="click_action">Default click action</string>
     <string name="click_action_open_detail">Launch the application on click</string>
     <string name="click_action_edit_detail">Edit the application on click</string>
+    <string name="resolve_on_click">Resolve on click</string>
+    <string name="resolve_on_click_on_detail">Clicking an app with a pending action (Update, Fix, etc.) automatically performs that action and overrides the default click action.</string>
+    <string name="resolve_on_click_off_detail">Clicking an app with a pending action (Update, Fix, etc.) always obeys your preferred default click action.</string>
     <string name="action_app_options">Options for %1$s</string>
     <string name="action_update_app">Update %1$s</string>
     <string name="action_fix_app">Fix %1$s</string>

@@ -28,6 +28,7 @@ class SettingsViewModel(private val container: AppContainer) : ViewModel() {
     val installMethod: StateFlow<InstallMethod> = container.settings.installMethod
     val theme: StateFlow<ThemeSetting> = container.settings.theme
     val clickAction: StateFlow<ClickAction> = container.settings.clickAction
+    val resolveOnClick: StateFlow<Boolean> = container.settings.resolveOnClick
 
     /** Where a root or Shizuku access request stands (the Request Access button's states). */
     enum class Access { NOT_REQUESTED, REQUESTING, GRANTED, FAILED }
@@ -116,6 +117,8 @@ class SettingsViewModel(private val container: AppContainer) : ViewModel() {
     fun setTheme(theme: ThemeSetting) = container.settings.setTheme(theme)
 
     fun setClickAction(action: ClickAction) = container.settings.setClickAction(action)
+
+    fun setResolveOnClick(resolve: Boolean) = container.settings.setResolveOnClick(resolve)
 
     fun export(resolver: ContentResolver, uri: Uri, password: CharArray) {
         viewModelScope.launch {

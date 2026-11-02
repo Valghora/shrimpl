@@ -66,6 +66,7 @@ import com.valghora.shrimpl.ui.common.DropdownItem
 import com.valghora.shrimpl.ui.common.NavigationItem
 import com.valghora.shrimpl.ui.common.SettingsItem
 import com.valghora.shrimpl.ui.common.SettingsSection
+import com.valghora.shrimpl.ui.common.SwitchItem
 import com.valghora.shrimpl.ui.common.Tone
 import com.valghora.shrimpl.ui.common.TooltipIconButton
 import com.valghora.shrimpl.ui.common.asHeading
@@ -80,6 +81,7 @@ fun SettingsScreen(inPane: Boolean, onBack: () -> Unit) {
     val method by model.installMethod.collectAsStateWithLifecycle()
     val theme by model.theme.collectAsStateWithLifecycle()
     val clickAction by model.clickAction.collectAsStateWithLifecycle()
+    val resolveOnClick by model.resolveOnClick.collectAsStateWithLifecycle()
     val rootAccess by model.rootAccess.collectAsStateWithLifecycle()
     val shizukuAccess by model.shizukuAccess.collectAsStateWithLifecycle()
     val fingerprint by model.fingerprint.collectAsStateWithLifecycle()
@@ -188,6 +190,12 @@ fun SettingsScreen(inPane: Boolean, onBack: () -> Unit) {
                                 ClickAction.EDIT -> R.string.click_action_edit_detail
                             },
                         ),
+                    )
+                    SwitchItem(
+                        stringResource(R.string.resolve_on_click),
+                        resolveOnClick,
+                        model::setResolveOnClick,
+                        summary = stringResource(if (resolveOnClick) R.string.resolve_on_click_on_detail else R.string.resolve_on_click_off_detail),
                     )
                 }
 

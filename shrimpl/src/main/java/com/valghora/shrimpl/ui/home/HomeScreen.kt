@@ -145,6 +145,7 @@ fun HomeScreen(
     val buildState by model.build.state.collectAsStateWithLifecycle()
     val message by model.message.collectAsStateWithLifecycle()
     val clickAction by model.clickAction.collectAsStateWithLifecycle()
+    val resolveOnClick by model.resolveOnClick.collectAsStateWithLifecycle()
     val method by model.installMethod.collectAsStateWithLifecycle()
     val signingKey by model.signingKey.collectAsStateWithLifecycle()
     val layout by model.layout.collectAsStateWithLifecycle()
@@ -298,6 +299,7 @@ fun HomeScreen(
                         otherKey = record.appId in otherKey,
                         selected = record.appId == selected,
                         clickAction = clickAction,
+                        resolveOnClick = resolveOnClick,
                         onOpen = { if (app != null) InstalledApps.open(context, record.packageName) else onEdit(record.appId) },
                         onEdit = { onEdit(record.appId) },
                         onRebuild = { model.rebuild(record) },
@@ -370,6 +372,7 @@ private fun AppItem(
     otherKey: Boolean,
     selected: Boolean,
     clickAction: ClickAction,
+    resolveOnClick: Boolean,
     onOpen: () -> Unit,
     onEdit: () -> Unit,
     onRebuild: () -> Unit,
@@ -389,13 +392,24 @@ private fun AppItem(
     }
     val showOptions = stringResource(R.string.action_show_options)
     val showMenu = { at: Offset -> openMenu(with(density) { DpOffset(at.x.toDp(), at.y.toDp()) }) }
-    // A tap opens or edits the app, as chosen in Settings (R2.5). An uninstalled app, or one signed with
-    // another key, does nothing on a tap, so it offers no tap to accessibility services either.
+    // The action its row button offers (R2.2, R11.7): Fix, Rebuild or Update, with its label.
+    val pending = when {
+        locked -> R.string.action_fix_app to onFix
+        installed == null && otherKey -> R.string.action_rebuild_app to onRebuild
+        installed != null && updateAvailable -> R.string.action_update_app to onRebuild
+        else -> null
+    }
+    // A tap opens or edits the app, as chosen in Settings (R2.5), or with Resolve on click does its
+    // pending action. Otherwise an uninstalled app, or one signed with another key, does nothing on a
+    // tap, so it offers no tap to accessibility services either.
+    val resolve = pending?.takeIf { resolveOnClick }
     val onTap = when {
+        resolve != null -> resolve.second
         locked || installed == null -> null
         clickAction == ClickAction.EDIT -> onEdit
         else -> onOpen
     }
+    val tapLabel = resolve?.let { stringResource(it.first, record.profile.name) }
     // Tiles have no ⋮ button or row buttons, so their menu also offers Fix (R2.6).
     val actions = menuActions(locked, installed != null, updateAvailable, withFix = tile, onOpen, onEdit, onRebuild, onUninstall, onFix, onRemove)
     // A dropdown menu opens below its anchor, so the anchor is an empty box at the pressed point.
@@ -413,7 +427,7 @@ private fun AppItem(
     }
     if (tile) {
         Box {
-            AppTile(record, installed, loadImage, updateAvailable, locked, selected, Modifier.appGestures(record.appId, onTap, showOptions, showMenu) { openMenu(DpOffset(16.dp, 64.dp)) })
+            AppTile(record, installed, loadImage, updateAvailable, locked, selected, Modifier.appGestures(record.appId, onTap, tapLabel, showOptions, showMenu) { openMenu(DpOffset(16.dp, 64.dp)) })
             menu()
         }
         return
@@ -430,7 +444,7 @@ private fun AppItem(
             .background(if (selected) MaterialTheme.colorScheme.onSurface.copy(alpha = HOVER_ALPHA) else Color.Transparent)
             // In two panes the highlighted row is announced as selected.
             .semantics { if (selected) this.selected = true }
-            .appGestures(record.appId, onTap, showOptions, showMenu) { openMenu(DpOffset(24.dp, 48.dp)) },
+            .appGestures(record.appId, onTap, tapLabel, showOptions, showMenu) { openMenu(DpOffset(24.dp, 48.dp)) },
     ) {
         Row(
             // With the inset, the icon is 16 dp from the edge and the ⋮ button's center 28 dp from it,
@@ -475,13 +489,15 @@ private fun AppItem(
 
 /**
  * Right-click (secondary mouse button or two-finger trackpad tap) opens the menu at the pointer;
- * a long press opens it there too, and [onTap] (null: the item does nothing on a tap) runs on a tap.
- * Accessibility services get the long press as "Show options", at [menuForAccessibility].
+ * a long press opens it there too, and [onTap] (null: the item does nothing on a tap) runs on a tap,
+ * named [tapLabel] for accessibility services when it isn't the usual open or edit. They get the
+ * long press as "Show options", at [menuForAccessibility].
  */
 @OptIn(ExperimentalFoundationApi::class)
 private fun Modifier.appGestures(
     key: String,
     onTap: (() -> Unit)?,
+    tapLabel: String?,
     showOptions: String,
     showMenu: (Offset) -> Unit,
     menuForAccessibility: () -> Unit,
@@ -503,7 +519,7 @@ private fun Modifier.appGestures(
             .pointerInput(key) { detectTapGestures(onLongPress = { showMenu(it) }) }
             .semantics(mergeDescendants = true) { onLongClick(showOptions) { menuForAccessibility(); true } }
     } else {
-        Modifier.combinedClickable(onClick = onTap, onLongClickLabel = showOptions, onLongClick = menuForAccessibility)
+        Modifier.combinedClickable(onClick = onTap, onClickLabel = tapLabel, onLongClickLabel = showOptions, onLongClick = menuForAccessibility)
     },
 )
 

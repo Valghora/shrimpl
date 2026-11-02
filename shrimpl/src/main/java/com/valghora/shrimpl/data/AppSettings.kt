@@ -38,6 +38,16 @@ class AppSettings(context: Context) {
     /** What tapping an app in the home list does; Edit unless the user picked Open. */
     val clickAction: StateFlow<ClickAction> = _clickAction.asStateFlow()
 
+    private val _resolveOnClick = MutableStateFlow(prefs.getBoolean(KEY_RESOLVE_ON_CLICK, false))
+
+    /** Tapping an app with a pending action (Update, Fix, Rebuild) does that action instead (R2.5); off by default. */
+    val resolveOnClick: StateFlow<Boolean> = _resolveOnClick.asStateFlow()
+
+    fun setResolveOnClick(resolve: Boolean) {
+        prefs.edit { putBoolean(KEY_RESOLVE_ON_CLICK, resolve) }
+        _resolveOnClick.value = resolve
+    }
+
     private val _homeLayout = MutableStateFlow(
         prefs.getString(KEY_HOME_LAYOUT, null)?.let { runCatching { HomeLayout.valueOf(it) }.getOrNull() } ?: HomeLayout.LIST,
     )
@@ -96,6 +106,7 @@ class AppSettings(context: Context) {
         const val KEY_THEME = "theme"
         const val KEY_CLICK_ACTION = "click_action"
         const val KEY_HOME_LAYOUT = "home_layout"
+        const val KEY_RESOLVE_ON_CLICK = "resolve_on_click"
         const val KEY_BACKED_UP = "key_backed_up"
         const val KEY_PROMPT_SHOWN = "backup_prompt_shown"
         const val KEY_RECOVERY_DONE = "recovery_done"
