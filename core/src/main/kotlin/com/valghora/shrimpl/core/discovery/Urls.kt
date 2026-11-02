@@ -64,7 +64,7 @@ class PublicSuffixList(text: String) {
         }
     }
 
-    /** eTLD+1 of [host], e.g. cdn.discordapp.com -> discordapp.com; null for a public suffix itself. */
+    /** eTLD+1 of [host], e.g. cdn.example.co.uk -> example.co.uk; null for a public suffix itself. */
     fun registrable(host: String): String? {
         val labels = host.lowercase().trimEnd('.').split('.')
         for (i in labels.indices) {

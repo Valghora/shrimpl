@@ -27,7 +27,7 @@ import org.robolectric.annotation.Config
 
 /**
  * Resolve on click (docs/SHRIMPL_SPEC.md R2.5): on, tapping an app with a pending action does it.
- * With [TestApps], Discord needs a fix and Squoosh a rebuild.
+ * With [TestApps], Example needs a fix and Squoosh a rebuild.
  */
 @Config(qualifiers = "w420dp-h900dp")
 @RunWith(RobolectricTestRunner::class)
@@ -54,7 +54,7 @@ class ResolveOnClickTest {
     fun rowsOfferTheirPendingActionOnATap() {
         home(HomeLayout.LIST)
         compose.awaitHome()
-        assertEquals(string(R.string.action_fix_app, "Discord"), tapLabel("Discord"))
+        assertEquals(string(R.string.action_fix_app, "Example"), tapLabel("Example"))
         assertEquals(string(R.string.action_rebuild_app, "Squoosh"), tapLabel("Squoosh"))
     }
 
@@ -62,7 +62,7 @@ class ResolveOnClickTest {
     fun tilesOfferTheirPendingActionOnATap() {
         home(HomeLayout.TILES)
         compose.waitUntil(LOAD_TIMEOUT_MS) { compose.onAllNodes(hasText(string(R.string.status_needs_fix))).fetchSemanticsNodes().isNotEmpty() }
-        assertEquals(string(R.string.action_fix_app, "Discord"), tapLabel("Discord"))
+        assertEquals(string(R.string.action_fix_app, "Example"), tapLabel("Example"))
     }
 
     @Test

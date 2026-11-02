@@ -29,7 +29,7 @@ import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
 
-/** The app tiles (docs/SHRIMPL_SPEC.md R2.6), with [TestApps]: Discord installed but signed with another key, Squoosh not installed. */
+/** The app tiles (docs/SHRIMPL_SPEC.md R2.6), with [TestApps]: Example installed but signed with another key, Squoosh not installed. */
 @Config(qualifiers = "w400dp-h900dp")
 @RunWith(RobolectricTestRunner::class)
 class HomeTilesTest {
@@ -43,7 +43,7 @@ class HomeTilesTest {
         compose.setContent {
             MaterialTheme { HomeScreen(selected = null, showCreateButton = true, onCreate = {}, onSettings = {}, onEdit = {}) }
         }
-        // Discord shows as installed: its tile says it needs a fix.
+        // Example shows as installed: its tile says it needs a fix.
         compose.waitUntil(LOAD_TIMEOUT_MS) { exists(string(R.string.status_needs_fix)) }
     }
 
@@ -61,20 +61,20 @@ class HomeTilesTest {
         compose.onNodeWithText(string(R.string.home_not_installed)).assertExists()
         assertTrue(
             "no ⋮ buttons",
-            compose.onAllNodes(hasContentDescription(string(R.string.action_app_options, "Discord"))).fetchSemanticsNodes().isEmpty(),
+            compose.onAllNodes(hasContentDescription(string(R.string.action_app_options, "Example"))).fetchSemanticsNodes().isEmpty(),
         )
         assertTrue(
             "no row buttons",
-            compose.onAllNodes(hasContentDescription(string(R.string.action_fix_app, "Discord"))).fetchSemanticsNodes().isEmpty(),
+            compose.onAllNodes(hasContentDescription(string(R.string.action_fix_app, "Example"))).fetchSemanticsNodes().isEmpty(),
         )
         // The uninstalled app follows in the same grid, beside the installed one on a 400 dp phone.
-        assertEquals("one line of tiles", bounds("Discord").top, bounds("Squoosh").top)
-        assertTrue("Squoosh comes after Discord", bounds("Squoosh").left > bounds("Discord").left)
+        assertEquals("one line of tiles", bounds("Example").top, bounds("Squoosh").top)
+        assertTrue("Squoosh comes after Example", bounds("Squoosh").left > bounds("Example").left)
     }
 
     @Test
     fun aTileSignedWithAnotherKeyOffersFixAndRemove() {
-        compose.onNodeWithText("Discord").performTouchInput { longClick() }
+        compose.onNodeWithText("Example").performTouchInput { longClick() }
         assertEquals(listOf(string(R.string.action_fix), string(R.string.action_remove)), menuItems())
     }
 
@@ -88,7 +88,7 @@ class HomeTilesTest {
     fun theSwitchGoesBackToTheListAndIsKept() {
         compose.onNodeWithContentDescription(string(R.string.action_show_list)).performClick()
         compose.waitUntil(LOAD_TIMEOUT_MS) {
-            compose.onAllNodes(hasContentDescription(string(R.string.action_app_options, "Discord"))).fetchSemanticsNodes().isNotEmpty()
+            compose.onAllNodes(hasContentDescription(string(R.string.action_app_options, "Example"))).fetchSemanticsNodes().isNotEmpty()
         }
         compose.onNodeWithContentDescription(string(R.string.action_show_tiles)).assertExists()
         assertEquals(HomeLayout.LIST, TestApps.app.container.settings.homeLayout.value)

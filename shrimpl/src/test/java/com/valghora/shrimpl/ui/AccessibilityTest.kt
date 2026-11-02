@@ -61,8 +61,8 @@ class AccessibilityTest {
     fun rowsThatOnlyOpenAMenuOfferNoTap() {
         home()
         val showOptions = string(R.string.action_show_options)
-        // Squoosh isn't installed; Discord is signed with another key (tests have no signing key).
-        for (name in listOf("Squoosh", "Discord")) {
+        // Squoosh isn't installed; Example is signed with another key (tests have no signing key).
+        for (name in listOf("Squoosh", "Example")) {
             val node = row(name)
             assertFalse("$name offers no tap", node.config.contains(SemanticsActions.OnClick))
             assertEquals("$name's long press is named", showOptions, node.config[SemanticsActions.OnLongClick].label)
@@ -73,7 +73,7 @@ class AccessibilityTest {
     fun theSelectedRowIsAnnouncedAsSelected() {
         home(selected = TestApps.squoosh.appId)
         assertEquals(true, row("Squoosh").config.getOrNull(SemanticsProperties.Selected))
-        assertEquals(null, row("Discord").config.getOrNull(SemanticsProperties.Selected))
+        assertEquals(null, row("Example").config.getOrNull(SemanticsProperties.Selected))
     }
 
     @Test

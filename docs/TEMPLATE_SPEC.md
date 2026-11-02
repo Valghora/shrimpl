@@ -50,7 +50,7 @@ Constructed with a `ZoomStore`, a `UaStore` and a `SessionConfig` built from the
 - h. `isDarkColor(hex)` (WCAG contrast against white >= against black) and `parseHex`.
 
 Unit tests cover every branch with a fixed fixture config, including look-alike hosts
-(`notdiscord.com`, `discord.com.evil.example`), user-info tricks and repeated key events.
+(`notexample.com`, `example.com.evil.example`), user-info tricks and repeated key events.
 
 ## T3 Window, insets and header
 

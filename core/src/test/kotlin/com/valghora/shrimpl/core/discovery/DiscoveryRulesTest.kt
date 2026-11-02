@@ -54,7 +54,7 @@ class DiscoveryRulesTest {
 
     @Test
     fun registrableDomains() {
-        assertEquals("discordapp.com", psl.registrable("cdn.discordapp.com"))
+        assertEquals("exampleapp.com", psl.registrable("cdn.exampleapp.com"))
         assertEquals("example.co.uk", psl.registrable("www.example.co.uk"))
         assertNull(psl.registrable("co.uk"))
         assertEquals("example.com", psl.registrable("Example.COM."))
@@ -83,7 +83,7 @@ class DiscoveryRulesTest {
 
     @Test
     fun titleToSlug() {
-        assertEquals("discord", SimpleIcons.titleToSlug("Discord"))
+        assertEquals("example", SimpleIcons.titleToSlug("Example"))
         assertEquals("dotnet", SimpleIcons.titleToSlug(".NET"))
         assertEquals("cplusplus", SimpleIcons.titleToSlug("C++"))
         assertEquals("pokemon", SimpleIcons.titleToSlug("Pokémon"))
@@ -352,15 +352,15 @@ class DiscoveryRulesTest {
 
     @Test
     fun cssBrandVariablesAreRanked() {
-        // A slice of discord.com/app's variables: a shade scale, persona colors and grays.
-        val discord = listOf(
+        // A slice of a chat app's CSS variables: a shade scale, persona colors and grays.
+        val chatApp = listOf(
             "--brand-760" to "#172354", "--logo-primary" to "#FFFFFF", "--primary-300" to "#C9CACE", "--brand-560" to "#4654C0",
             "--checkpoint-persona-eight-primary" to "#D9B777", "--brand-130" to "#E6EAFF", "--brand-345" to "#94A8FF",
             "--checkpoint-guilds-primary" to "#5EFDE2", "--checkpoint-persona-five-primary" to "#F75990", "--brand-430" to "#6C7FF6",
             "--checkpoint-persona-one-primary" to "#5EFDE2", "--brand-600" to "#3A48A3", "--brand-90a" to "#5865F2",
             "--brand-500" to "#5865F2", "--checkpoint-persona-four-primary" to "#F262D5", "--primary-800" to "#121214",
         ).map { (name, color) -> BrandColor(color, "CSS variable $name") } + BrandColor("#123456", "button background")
-        assertEquals("#5865F2", Discovery.cssBrandColor(discord)?.color)
+        assertEquals("#5865F2", Discovery.cssBrandColor(chatApp)?.color)
         assertEquals("CSS variable --color-primary", Discovery.cssBrandColor(listOf(
             BrandColor("#E91E63", "CSS variable --brand-accent-900"), BrandColor("#3F51B5", "CSS variable --color-primary"),
         ))?.source)

@@ -9,7 +9,7 @@ own launcher icon, task, window and sign-ins, and behaves like an installed PWA 
 ## Using it
 
 1. Install `shrimpl-release.apk` (from CI, or `./gradlew :shrimpl:assembleRelease`).
-2. Tap **+**, enter a website (`discord.com`, `squoosh.app`, ...) and tap **Search**.
+2. Tap **+**, enter a website (`example.com`, `squoosh.app`, ...) and tap **Search**.
 3. Check the suggested settings and tap **Create**. Android asks once to allow Shrimpl to install
    apps.
 4. The home list shows what you made. The edit button (or right-click) opens a web app's settings;

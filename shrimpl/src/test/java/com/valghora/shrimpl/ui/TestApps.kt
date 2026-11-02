@@ -17,14 +17,14 @@ import org.robolectric.RuntimeEnvironment
 import org.robolectric.Shadows.shadowOf
 
 /**
- * Two saved web apps for screen tests: Discord is installed, Squoosh isn't. Tests run without a
+ * Two saved web apps for screen tests: Example is installed, Squoosh isn't. Tests run without a
  * signing key (Robolectric has no Android Keystore), so both count as signed with another key
- * (R11.7): Discord offers Fix, Squoosh Rebuild.
+ * (R11.7): Example offers Fix, Squoosh Rebuild.
  */
 internal object TestApps {
     val app: ShrimplApp get() = RuntimeEnvironment.getApplication() as ShrimplApp
 
-    val discord = record("Discord")
+    val example = record("Example")
     val squoosh = record("Squoosh")
 
     private fun record(name: String): WebAppRecord {
@@ -34,29 +34,29 @@ internal object TestApps {
         return WebAppRecord.create(profile, icons, templateVersion = 1, signerFingerprint = "AA:BB", now = 0L)
     }
 
-    /** Saves both apps and fakes Discord's install. */
+    /** Saves both apps and fakes Example's install. */
     fun save() {
         runBlocking {
-            app.container.store.save(discord, emptyMap())
+            app.container.store.save(example, emptyMap())
             app.container.store.save(squoosh, emptyMap())
         }
         val installed = PackageInfo().apply {
-            packageName = discord.packageName
-            applicationInfo = ApplicationInfo().apply { packageName = discord.packageName }
+            packageName = example.packageName
+            applicationInfo = ApplicationInfo().apply { packageName = example.packageName }
         }
         shadowOf(app.packageManager).installPackage(installed)
         // Robolectric needs an icon registered for an installed package; Shrimpl reads it for the row.
-        shadowOf(app.packageManager).setApplicationIcon(discord.packageName, ColorDrawable(Color.BLUE))
+        shadowOf(app.packageManager).setApplicationIcon(example.packageName, ColorDrawable(Color.BLUE))
     }
 
     fun string(id: Int, vararg args: Any): String = app.getString(id, *args)
 
     /**
-     * Home reads the installed apps and the signing key off the main thread; waits until Discord
+     * Home reads the installed apps and the signing key off the main thread; waits until Example
      * shows as installed (its Fix button) before a test checks anything.
      */
     fun ComposeTestRule.awaitHome() = waitUntil(LOAD_TIMEOUT_MS) {
-        onAllNodes(hasContentDescription(string(R.string.action_fix_app, "Discord"))).fetchSemanticsNodes().isNotEmpty()
+        onAllNodes(hasContentDescription(string(R.string.action_fix_app, "Example"))).fetchSemanticsNodes().isNotEmpty()
     }
 
     private const val LOAD_TIMEOUT_MS = 5_000L

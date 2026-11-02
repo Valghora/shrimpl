@@ -7,7 +7,7 @@ import org.junit.Test
 class TestTagsTest {
     @Test
     fun readsTagsFromTheFirstWord() {
-        assertEquals(setOf(TestTag.UPDATE), TestTags.parse("update Discord"))
+        assertEquals(setOf(TestTag.UPDATE), TestTags.parse("update Example"))
         assertEquals(setOf(TestTag.UPDATE, TestTag.CERT), TestTags.parse("update,cert Gmail"))
         assertEquals(setOf(TestTag.UPDATE, TestTag.CERT), TestTags.parse("update,cert"))
         assertEquals(setOf(TestTag.CERT, TestTag.UNKNOWN_SOURCES), TestTags.parse("  Cert,unknown-sources  App"))
@@ -16,7 +16,7 @@ class TestTagsTest {
 
     @Test
     fun acceptsBracketsAndSpacesAfterCommas() {
-        assertEquals(setOf(TestTag.MISSING), TestTags.parse("[missing] Discord"))
+        assertEquals(setOf(TestTag.MISSING), TestTags.parse("[missing] Example"))
         assertEquals(setOf(TestTag.UPDATE, TestTag.CERT), TestTags.parse("update, cert Gmail"))
         assertEquals(setOf(TestTag.UPDATE, TestTag.CERT), TestTags.parse("[ update , cert ] Gmail"))
         assertEquals(setOf(TestTag.MISSING), TestTags.parse("Missing"))
@@ -24,13 +24,13 @@ class TestTagsTest {
 
     @Test
     fun ignoresOrdinaryNames() {
-        assertEquals(emptySet<TestTag>(), TestTags.parse("Discord"))
+        assertEquals(emptySet<TestTag>(), TestTags.parse("Example"))
         assertEquals(emptySet<TestTag>(), TestTags.parse("Updates"))
-        assertEquals(emptySet<TestTag>(), TestTags.parse("Discord update"))
-        assertEquals(emptySet<TestTag>(), TestTags.parse("update,nonsense Discord"))
-        assertEquals(emptySet<TestTag>(), TestTags.parse("update, Discord"))
-        assertEquals(emptySet<TestTag>(), TestTags.parse("missing-link Discord"))
-        assertEquals(emptySet<TestTag>(), TestTags.parse("update2 Discord"))
+        assertEquals(emptySet<TestTag>(), TestTags.parse("Example update"))
+        assertEquals(emptySet<TestTag>(), TestTags.parse("update,nonsense Example"))
+        assertEquals(emptySet<TestTag>(), TestTags.parse("update, Example"))
+        assertEquals(emptySet<TestTag>(), TestTags.parse("missing-link Example"))
+        assertEquals(emptySet<TestTag>(), TestTags.parse("update2 Example"))
         assertEquals(emptySet<TestTag>(), TestTags.parse(""))
     }
 

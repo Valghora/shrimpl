@@ -12,8 +12,8 @@ import org.junit.Test
 
 /** Profile validation, derived values and the JSON codec. */
 class ProfileTest {
-    private val discordJson = javaClass.getResource("/profiles/discord.json")!!.readText()
-    private val discord = ProfileCodec.decode(discordJson)
+    private val exampleJson = javaClass.getResource("/profiles/example.json")!!.readText()
+    private val example = ProfileCodec.decode(exampleJson)
 
     private val minimal = Profile(
         name = "Example",
@@ -32,20 +32,20 @@ class ProfileTest {
     // ---------- Codec ----------
 
     @Test
-    fun decodesDiscordFixture() {
-        assertEquals("Discord", discord.name)
-        assertEquals("discord", discord.appId)
-        assertEquals(5, discord.internalDomains.size)
-        assertEquals(UaMode.AUTO, discord.userAgentMode)
-        assertTrue(discord.allowMicrophone && discord.allowCamera)
-        assertEquals(ShortcutSpec("Toggle Mute", "KEYCODE_M", setOf(Modifier.CTRL, Modifier.SHIFT)), discord.appShortcuts[1])
-        assertEquals("#1E1F22", discord.headerColor)
-        assertEquals(HeaderMode.CUSTOM, discord.headerMode) // upgraded: a color without a mode was always used
+    fun decodesExampleFixture() {
+        assertEquals("Example", example.name)
+        assertEquals("example", example.appId)
+        assertEquals(5, example.internalDomains.size)
+        assertEquals(UaMode.AUTO, example.userAgentMode)
+        assertTrue(example.allowMicrophone && example.allowCamera)
+        assertEquals(ShortcutSpec("Toggle Mute", "KEYCODE_M", setOf(Modifier.CTRL, Modifier.SHIFT)), example.appShortcuts[1])
+        assertEquals("#1E1F22", example.headerColor)
+        assertEquals(HeaderMode.CUSTOM, example.headerMode) // upgraded: a color without a mode was always used
     }
 
     @Test
     fun roundTrips() {
-        assertEquals(discord, ProfileCodec.decode(ProfileCodec.encode(discord)))
+        assertEquals(example, ProfileCodec.decode(ProfileCodec.encode(example)))
         val full = minimal.copy(headerColor = "#121212", newWindowShortcut = KeyCombo("KEYCODE_N", setOf(Modifier.CTRL, Modifier.SHIFT)))
         assertEquals(full, ProfileCodec.decode(ProfileCodec.encode(full)))
     }
@@ -72,7 +72,7 @@ class ProfileTest {
     @Test
     fun rejectsUnknownKeys() {
         val e = assertThrows(ProfileException::class.java) {
-            ProfileCodec.decode(discordJson.replace("\"allowCamera\"", "\"allowCamra\""))
+            ProfileCodec.decode(exampleJson.replace("\"allowCamera\"", "\"allowCamra\""))
         }
         assertTrue(e.message!!, e.message!!.contains("allowCamra"))
     }
@@ -86,7 +86,7 @@ class ProfileTest {
     @Test
     fun rejectsBadEnumValueAndMalformedJson() {
         assertThrows(ProfileException::class.java) {
-            ProfileCodec.decode(discordJson.replace("\"userAgentMode\": \"auto\"", "\"userAgentMode\": \"tablet\""))
+            ProfileCodec.decode(exampleJson.replace("\"userAgentMode\": \"auto\"", "\"userAgentMode\": \"tablet\""))
         }
         assertThrows(ProfileException::class.java) { ProfileCodec.decode("{not json") }
     }
@@ -105,7 +105,7 @@ class ProfileTest {
     @Test
     fun validProfilesHaveNoErrors() {
         assertEquals(emptyList<FieldError>(), ProfileValidator.validate(minimal))
-        assertEquals(emptyList<FieldError>(), ProfileValidator.validate(discord))
+        assertEquals(emptyList<FieldError>(), ProfileValidator.validate(example))
     }
 
     @Test
@@ -196,12 +196,12 @@ class ProfileTest {
     // ---------- Derived values ----------
 
     @Test
-    fun derivedValuesForDiscord() {
-        assertEquals("#FFFFFF", discord.resolvedIconForeground)
-        assertEquals("discord_notifications", discord.notificationChannelId)
-        assertTrue(discord.uaFeaturesActive)
-        assertEquals(10, discord.allowedOriginRules.size)
-        assertTrue("https://*.discordapp.net" in discord.allowedOriginRules)
+    fun derivedValuesForExample() {
+        assertEquals("#FFFFFF", example.resolvedIconForeground)
+        assertEquals("example_notifications", example.notificationChannelId)
+        assertTrue(example.uaFeaturesActive)
+        assertEquals(10, example.allowedOriginRules.size)
+        assertTrue("https://*.exampleapp.net" in example.allowedOriginRules)
     }
 
     @Test
@@ -240,7 +240,7 @@ class ProfileTest {
 
     @Test
     fun sessionConfigCarriesProfileValues() {
-        val profile = discord.copy(pauseOnPowerSave = true, newWindowShortcut = KeyCombo("KEYCODE_N", setOf(Modifier.CTRL)))
+        val profile = example.copy(pauseOnPowerSave = true, newWindowShortcut = KeyCombo("KEYCODE_N", setOf(Modifier.CTRL)))
         val config = profile.sessionConfig()
         assertEquals(profile.internalDomains, config.internalDomains)
         assertEquals(profile.oauthDomains, config.oauthDomains)
@@ -255,7 +255,7 @@ class ProfileTest {
 
     @Test
     fun appIdFromName() {
-        assertEquals("discord", AppIds.fromName("Discord"))
+        assertEquals("example", AppIds.fromName("Example"))
         assertEquals("googlemaps", AppIds.fromName("Google Maps!"))
         assertEquals("app3dprint", AppIds.fromName("3D Print"))
         assertEquals("app", AppIds.fromName("日本"))
@@ -263,8 +263,8 @@ class ProfileTest {
 
     @Test
     fun uniqueAppIdAddsSuffix() {
-        assertEquals("discord", AppIds.unique("Discord", emptySet()))
-        assertEquals("discord2", AppIds.unique("Discord", setOf("discord")))
-        assertEquals("discord3", AppIds.unique("Discord", setOf("discord", "discord2")))
+        assertEquals("example", AppIds.unique("Example", emptySet()))
+        assertEquals("example2", AppIds.unique("Example", setOf("example")))
+        assertEquals("example3", AppIds.unique("Example", setOf("example", "example2")))
     }
 }

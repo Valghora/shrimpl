@@ -19,7 +19,7 @@ class SampleWebApps {
         val out = System.getenv("SHRIMPL_SAMPLES_OUT")?.let(::File)
         assumeTrue("set SHRIMPL_SAMPLES_OUT to build sample web apps", out != null)
         out!!.mkdirs()
-        val discord = ProfileCodec.decode(javaClass.getResource("/profiles/discord.json")!!.readText())
+        val example = ProfileCodec.decode(javaClass.getResource("/profiles/example.json")!!.readText())
         val github = Profile(
             name = "GitHub",
             appId = "github",
@@ -28,7 +28,7 @@ class SampleWebApps {
             iconBackground = "#181717",
             headerColor = "#0D1117",
         )
-        for (profile in listOf(discord, github)) {
+        for (profile in listOf(example, github)) {
             val built = WebAppBuilder.build(TemplateFixture.apk, File(out, "${profile.appId}.apk"), WebAppSpec(profile, 1), TemplateFixture.key)
             println("${built.apk}: ${built.packageName} ${built.versionName} signer ${built.signerFingerprint}")
         }

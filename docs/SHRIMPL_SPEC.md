@@ -139,7 +139,7 @@ binary translation) on any device.
     ("Launch the application on click"). Resolve on click (a switch, off by default): on, tapping an
     app with a pending action (the action its row button offers: Fix, Rebuild or Update, R2.2,
     R11.7) does that action instead of the default click action, in rows and tiles, and
-    accessibility services hear the tap named after it ("Fix Discord"); off, the default click
+    accessibility services hear the tap named after it ("Fix Example"); off, the default click
     action applies (and an app signed with another key, or not installed, still does nothing on a tap).
   - **Signing:** the certificate's SHA-256 fingerprint with a copy button, "Export…" and "Import…"
     (export and import the certificate, R5).
@@ -417,8 +417,8 @@ The template's behavior is docs/TEMPLATE_SPEC.md. What Shrimpl relies on:
 Debug builds can put the app list and the search into states that are hard to set up for real.
 Release builds never read tags or test addresses.
 
-- R13.1 An app whose name starts with a comma-separated list of tags, such as "update,cert Discord",
-  "update, cert Discord", "[update,cert] Discord" or just "update,cert", shows the states they name;
+- R13.1 An app whose name starts with a comma-separated list of tags, such as "update,cert Example",
+  "update, cert Example", "[update,cert] Example" or just "update,cert", shows the states they name;
   every part must be a known tag, so an ordinary first word is never read as one. The tags override
   what Home works out for each row (installed, update available, signed with another key) in one
   place, before the usual rules, so the list shows only states real users can reach: update,cert

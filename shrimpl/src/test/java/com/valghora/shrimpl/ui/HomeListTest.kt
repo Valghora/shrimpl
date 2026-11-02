@@ -25,7 +25,7 @@ import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
 
-/** The app list (docs/SHRIMPL_SPEC.md R2.2, R11.7), with [TestApps]: Discord installed, Squoosh not. */
+/** The app list (docs/SHRIMPL_SPEC.md R2.2, R11.7), with [TestApps]: Example installed, Squoosh not. */
 @Config(qualifiers = "w420dp-h900dp")
 @RunWith(RobolectricTestRunner::class)
 class HomeListTest {
@@ -52,14 +52,14 @@ class HomeListTest {
     fun uninstalledAppsSitBelowANotInstalledLabel() {
         val label = string(R.string.home_not_installed)
         compose.onNodeWithText(label).assertExists()
-        assertTrue("Discord is above the label", top("Discord") < top(label))
+        assertTrue("Example is above the label", top("Example") < top(label))
         assertTrue("Squoosh is below the label", top("Squoosh") > top(label))
     }
 
     @Test
     fun installedAppWithAnotherKeyOffersFixAndOnlyRemove() {
-        compose.onNodeWithContentDescription(string(R.string.action_fix_app, "Discord")).assertExists()
-        compose.onNodeWithContentDescription(string(R.string.action_app_options, "Discord")).performClick()
+        compose.onNodeWithContentDescription(string(R.string.action_fix_app, "Example")).assertExists()
+        compose.onNodeWithContentDescription(string(R.string.action_app_options, "Example")).performClick()
         assertEquals(listOf(string(R.string.action_remove)), menuItems())
     }
 

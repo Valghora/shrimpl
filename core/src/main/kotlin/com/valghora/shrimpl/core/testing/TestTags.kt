@@ -1,7 +1,7 @@
 package com.valghora.shrimpl.core.testing
 
 /**
- * Test tags for debug builds (docs/SHRIMPL_SPEC.md R13): an app named "update,cert Discord" shows
+ * Test tags for debug builds (docs/SHRIMPL_SPEC.md R13): an app named "update,cert Example" shows
  * the states and outcomes its tags name, so each case can be tried without setting it up for real.
  */
 enum class TestTag(val key: String) {
@@ -47,7 +47,7 @@ object TestTags {
     /**
      * The tags at the start of [name], separated by commas: "update,cert Gmail", "update, cert Gmail"
      * or "[update,cert] Gmail". Every part must be a known tag, so an ordinary first word
-     * ("Discord", "Updates") is never read as one.
+     * ("Example", "Updates") is never read as one.
      */
     fun parse(name: String): Set<TestTag> {
         val list = LEADING.find(name)?.groupValues?.get(1) ?: return emptySet()

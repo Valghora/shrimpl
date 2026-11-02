@@ -27,7 +27,7 @@ data class IconRecord(
     val maskable: Boolean = false,
     /** For [Kind.LETTER]: the letter or digit. */
     val letter: String? = null,
-    /** Where the icon came from ("simple-icons 'discord'", "web manifest icon", "Photo", ...). */
+    /** Where the icon came from ("simple-icons 'github'", "web manifest icon", "Photo", ...). */
     val origin: String = "",
 ) {
     @Serializable

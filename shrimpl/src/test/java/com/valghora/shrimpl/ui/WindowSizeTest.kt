@@ -57,7 +57,7 @@ class WindowSizeTest(private val width: Int, private val height: Int) {
     private fun existsDescribed(description: String) =
         compose.onAllNodes(hasContentDescription(description)).fetchSemanticsNodes().isNotEmpty()
 
-    private val listShown get() = existsDescribed(string(R.string.action_app_options, "Discord"))
+    private val listShown get() = existsDescribed(string(R.string.action_app_options, "Example"))
     private val placeholderShown get() = exists(string(R.string.home_pick_app))
     private val editShown get() = exists(string(R.string.field_name))
     private val backArrowShown get() = existsDescribed(string(R.string.action_back))

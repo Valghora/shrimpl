@@ -69,7 +69,7 @@ class FormTitleTest {
     fun besideTheListTheTitleLinesUpWithTheColumn() {
         open(1280, 800)
         // The list pane ends about a third of the way across (its ⋮ buttons sit at its end edge).
-        val listEnd = compose.onNode(hasContentDescription(string(R.string.action_app_options, "Discord"))).fetchSemanticsNode()
+        val listEnd = compose.onNode(hasContentDescription(string(R.string.action_app_options, "Example"))).fetchSemanticsNode()
             .boundsInRoot.right / density
         assertTrue("the list ends near a third of the window ($listEnd)", listEnd in 1280f / 3 - 48f..1280f / 3)
         assertTitleOverColumn(after = listEnd)

@@ -1,14 +1,14 @@
 {
   "schemaVersion": 1,
-  "name": "Discord",
-  "appId": "discord",
-  "startUrl": "https://discord.com/app",
+  "name": "Example",
+  "appId": "example",
+  "startUrl": "https://example.com/app",
   "internalDomains": [
-    "discord.com",
-    "discordapp.com",
-    "discord.gg",
-    "discord.net",
-    "discordapp.net"
+    "example.com",
+    "exampleapp.com",
+    "example.gg",
+    "example.net",
+    "exampleapp.net"
   ],
   "oauthDomains": [
     "accounts.google.com",
@@ -21,7 +21,7 @@
   "userAgentOverride": "",
   "uaStoreRedirectFallback": true,
   "uaUserToggle": true,
-  "iconBackground": "#5865F2",
+  "iconBackground": "#3367D6",
   "iconForeground": "#FFFFFF",
   "headerColor": "#1E1F22",
   "allowMicrophone": true,
@@ -42,7 +42,7 @@
   },
   "appShortcuts": [
     {
-      "label": "Quick Switcher",
+      "label": "Search",
       "key": "KEYCODE_K",
       "modifiers": [
         "CTRL"
@@ -57,7 +57,7 @@
       ]
     },
     {
-      "label": "Toggle Deafen",
+      "label": "Toggle Sound",
       "key": "KEYCODE_D",
       "modifiers": [
         "CTRL",

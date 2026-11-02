@@ -31,12 +31,12 @@ class DesktopSessionControllerTest {
 
     /** Fixed test data so these tests do not depend on which site is being built. */
     private val fixture = SessionConfig(
-        internalDomains = listOf("discord.com", "discordapp.com", "discord.gg", "discord.net", "discordapp.net"),
+        internalDomains = listOf("example.com", "exampleapp.com", "example.gg", "example.net", "exampleapp.net"),
         oauthDomains = listOf("accounts.google.com", "github.com"),
         pauseOnPowerSave = false,
         enableMultiWindow = true,
         appShortcuts = listOf(
-            ShortcutSpec("Quick Switcher", "KEYCODE_K", ctrl),
+            ShortcutSpec("Search", "KEYCODE_K", ctrl),
             ShortcutSpec("Toggle Mute", "KEYCODE_M", setOf(Modifier.CTRL, Modifier.SHIFT)),
         ),
         newWindowShortcut = null,
@@ -52,27 +52,27 @@ class DesktopSessionControllerTest {
     @Test
     fun classifiesInternalDomainsAndSubdomains() {
         val c = controller()
-        assertEquals(UrlClass.INTERNAL, c.classify("https://discord.com/app"))
-        assertEquals(UrlClass.INTERNAL, c.classify("https://cdn.discordapp.com/x.png"))
-        assertEquals(UrlClass.INTERNAL, c.classify("https://a.b.discord.net/"))
-        assertEquals(UrlClass.INTERNAL, c.classify("HTTPS://DISCORD.GG/invite"))
-        assertEquals(UrlClass.INTERNAL, c.classify("http://discord.com."))
-        assertEquals(UrlClass.INTERNAL, c.classify("  https://discord.com/  "))
+        assertEquals(UrlClass.INTERNAL, c.classify("https://example.com/app"))
+        assertEquals(UrlClass.INTERNAL, c.classify("https://cdn.exampleapp.com/x.png"))
+        assertEquals(UrlClass.INTERNAL, c.classify("https://a.b.example.net/"))
+        assertEquals(UrlClass.INTERNAL, c.classify("HTTPS://EXAMPLE.GG/invite"))
+        assertEquals(UrlClass.INTERNAL, c.classify("http://example.com."))
+        assertEquals(UrlClass.INTERNAL, c.classify("  https://example.com/  "))
     }
 
     @Test
     fun rejectsLookAlikeHosts() {
         val c = controller()
-        assertEquals(UrlClass.EXTERNAL, c.classify("https://notdiscord.com/"))
-        assertEquals(UrlClass.EXTERNAL, c.classify("https://discord.com.evil.example/"))
-        assertEquals(UrlClass.EXTERNAL, c.classify("https://discordxapp.com/"))
+        assertEquals(UrlClass.EXTERNAL, c.classify("https://notexample.com/"))
+        assertEquals(UrlClass.EXTERNAL, c.classify("https://example.com.evil.example/"))
+        assertEquals(UrlClass.EXTERNAL, c.classify("https://examplexapp.com/"))
     }
 
     @Test
     fun ignoresUserInfoWhenMatchingHosts() {
         val c = controller()
-        assertEquals(UrlClass.EXTERNAL, c.classify("https://discord.com@evil.example/"))
-        assertEquals(UrlClass.INTERNAL, c.classify("https://evil.example@discord.com/"))
+        assertEquals(UrlClass.EXTERNAL, c.classify("https://example.com@evil.example/"))
+        assertEquals(UrlClass.INTERNAL, c.classify("https://evil.example@example.com/"))
     }
 
     @Test
@@ -80,9 +80,9 @@ class DesktopSessionControllerTest {
         val c = controller()
         assertEquals(UrlClass.OAUTH, c.classify("https://accounts.google.com/o/oauth2"))
         assertEquals(UrlClass.OAUTH, c.classify("https://github.com/login/oauth/authorize"))
-        assertEquals(UrlClass.EXTERNAL, c.classify("https://example.com/"))
+        assertEquals(UrlClass.EXTERNAL, c.classify("https://elsewhere.example/"))
         assertEquals(UrlClass.PASSTHROUGH, c.classify("about:blank"))
-        assertEquals(UrlClass.PASSTHROUGH, c.classify("blob:https://discord.com/1234"))
+        assertEquals(UrlClass.PASSTHROUGH, c.classify("blob:https://example.com/1234"))
         assertEquals(UrlClass.PASSTHROUGH, c.classify("data:text/plain,hi"))
         assertEquals(UrlClass.PASSTHROUGH, c.classify("javascript:void(0)"))
         assertEquals(UrlClass.SPECIAL_SCHEME, c.classify("intent://scan/#Intent;scheme=zxing;end"))
@@ -334,22 +334,22 @@ class DesktopSessionControllerTest {
     @Test
     fun storeRedirectPositives() {
         val c = controller()
-        assertTrue(c.isStoreRedirect("market://details?id=com.discord"))
-        assertTrue(c.isStoreRedirect("intent://open#Intent;scheme=discord;package=com.discord;end"))
+        assertTrue(c.isStoreRedirect("market://details?id=com.example"))
+        assertTrue(c.isStoreRedirect("intent://open#Intent;scheme=example;package=com.example;end"))
         assertTrue(
             c.isStoreRedirect(
-                "intent://open#Intent;scheme=discord;" +
-                    "S.browser_fallback_url=https%3A%2F%2Fplay.google.com%2Fstore%2Fapps%2Fdetails%3Fid%3Dcom.discord;end",
+                "intent://open#Intent;scheme=example;" +
+                    "S.browser_fallback_url=https%3A%2F%2Fplay.google.com%2Fstore%2Fapps%2Fdetails%3Fid%3Dcom.example;end",
             ),
         )
-        assertTrue(c.isStoreRedirect("https://play.google.com/store/apps/details?id=com.discord"))
+        assertTrue(c.isStoreRedirect("https://play.google.com/store/apps/details?id=com.example"))
         assertTrue(c.isStoreRedirect("http://PLAY.google.com/store/apps"))
     }
 
     @Test
     fun storeRedirectNegatives() {
         val c = controller()
-        assertFalse(c.isStoreRedirect("intent://open#Intent;scheme=discord;end"))
+        assertFalse(c.isStoreRedirect("intent://open#Intent;scheme=example;end"))
         assertFalse(
             c.isStoreRedirect("intent://open#Intent;S.browser_fallback_url=https%3A%2F%2Fexample.com%2F;end"),
         )
@@ -357,7 +357,7 @@ class DesktopSessionControllerTest {
         assertFalse(c.isStoreRedirect("https://play.google.com/store/books/details?id=1"))
         assertFalse(c.isStoreRedirect("https://play.google.com/store/movies"))
         assertFalse(c.isStoreRedirect("https://play.google.com/store/appsfoo"))
-        assertFalse(c.isStoreRedirect("https://discord.com/app"))
+        assertFalse(c.isStoreRedirect("https://example.com/app"))
         assertFalse(c.isStoreRedirect("https://exa mple.com/"))
         assertFalse(c.isStoreRedirect("mailto:a@b.c"))
         assertFalse(c.isStoreRedirect("not a url"))

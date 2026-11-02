@@ -172,7 +172,7 @@ class SiteDiscovery(private val context: Context) {
         return capabilities?.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET) != true
     }
 
-    /** The simple-icons brand named [name] ("Discord" -> `discord`), or null; for "Continue without discovery" (R3.2). */
+    /** The simple-icons brand named [name] ("GitHub" -> `github`), or null; for "Continue without discovery" (R3.2). */
     suspend fun simpleIcon(name: String): SimpleIcon? = withContext(Dispatchers.IO) {
         runInterruptible {
             val network = Network(WebSettings.getDefaultUserAgent(context))
