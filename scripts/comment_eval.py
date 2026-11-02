@@ -26,6 +26,7 @@ SPEC_DEFINITION = re.compile(r"^(?:#+\s+|\s*-\s+)([RT]\d+(?:\.\d+)*)\b")
 DOC_ONLY = "docs/comment-eval/doc-only-requirements.txt"  # requirements met outside Kotlin, one ID per line with a reason
 OUT = ROOT / "docs/comment-eval"
 SEED = "comment-eval-v1"
+VERSION = 2  # 2: source packages named "build" are measured (v1 skipped them with Gradle output)
 SAMPLE_SIZE = 40
 WEIGHTS = {
     "reference_integrity": 15,
@@ -53,7 +54,8 @@ DECLARATION = re.compile(
 def files(globs):
     seen = []
     for g in globs:
-        seen += sorted(p for p in ROOT.glob(g) if "/build/" not in str(p))
+        # Skip Gradle output (<module>/build/...), not source packages named "build".
+        seen += sorted(p for p in ROOT.glob(g) if p.relative_to(ROOT).parts[1:2] != ("build",))
     return seen
 
 
@@ -172,7 +174,8 @@ def evaluate(label):
 
     # 1. Reference integrity: requirement IDs, docs/ paths and source paths named in comments exist.
     refs, broken = 0, []
-    all_paths = {str(p.relative_to(ROOT)) for p in ROOT.rglob("*") if p.is_file() and "/build/" not in str(p) and "/.git/" not in str(p)}
+    all_paths = {str(p.relative_to(ROOT)) for p in ROOT.rglob("*")
+                 if p.is_file() and p.relative_to(ROOT).parts[1:2] != ("build",) and p.relative_to(ROOT).parts[0] != ".git"}
     for b in main_blocks + test_blocks:
         for rid in cited(b["raw"]):
             refs += 1
@@ -249,6 +252,7 @@ def evaluate(label):
     return {
         "label": label,
         "seed": SEED,
+        "version": VERSION,
         "counts": {
             "comment_blocks_main": len(main_blocks),
             "comment_blocks_test": len(test_blocks),

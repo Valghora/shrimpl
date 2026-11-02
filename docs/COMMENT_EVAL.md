@@ -43,6 +43,14 @@ key `concision` for the third criterion:
 
 Each grade records a one-line note for any score below 2, so a second grader can audit it.
 
+## Versions
+
+- **v1** (the baseline commit): skipped every path containing `/build/`, meant for Gradle output, which
+  also skipped the source packages named `build` (the manifest patcher, the web app builder, the
+  signing keys, `WebAppFactory` and their tests).
+- **v2**: skips only `<module>/build/`. Runs are compared within one version; both runs were scored
+  again with v2, the baseline from its own commit.
+
 ## Limits
 
 - The rubric is graded by one person (or agent); grades are recorded per item for audit, not
