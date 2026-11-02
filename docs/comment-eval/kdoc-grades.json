@@ -1,0 +1,322 @@
+{
+ "0d55cc9683": {
+  "where": "core/src/main/kotlin/com/valghora/shrimpl/core/CoreTypes.kt:47",
+  "purpose": 2,
+  "accuracy": 2,
+  "concision": 2,
+  "placement": 2,
+  "note": ""
+ },
+ "051e17f836": {
+  "where": "core/src/main/kotlin/com/valghora/shrimpl/core/DesktopSessionController.kt:176",
+  "purpose": 2,
+  "accuracy": 2,
+  "concision": 2,
+  "placement": 2,
+  "note": ""
+ },
+ "0735104fe2": {
+  "where": "core/src/main/kotlin/com/valghora/shrimpl/core/build/ManifestPatcher.kt:44",
+  "purpose": 2,
+  "accuracy": 2,
+  "concision": 2,
+  "placement": 2,
+  "note": ""
+ },
+ "022c644978": {
+  "where": "core/src/main/kotlin/com/valghora/shrimpl/core/build/SigningKeys.kt:74",
+  "purpose": 2,
+  "accuracy": 2,
+  "concision": 2,
+  "placement": 2,
+  "note": ""
+ },
+ "00c5049dc7": {
+  "where": "core/src/main/kotlin/com/valghora/shrimpl/core/build/WebAppBuilder.kt:51",
+  "purpose": 2,
+  "accuracy": 2,
+  "concision": 2,
+  "placement": 2,
+  "note": ""
+ },
+ "04e390db6e": {
+  "where": "core/src/main/kotlin/com/valghora/shrimpl/core/discovery/Discovery.kt:63",
+  "purpose": 2,
+  "accuracy": 2,
+  "concision": 2,
+  "placement": 2,
+  "note": ""
+ },
+ "06fc21b98b": {
+  "where": "core/src/main/kotlin/com/valghora/shrimpl/core/discovery/Discovery.kt:216",
+  "purpose": 1,
+  "accuracy": 2,
+  "concision": 2,
+  "placement": 2,
+  "note": "section header: structure only"
+ },
+ "0d10010b09": {
+  "where": "core/src/main/kotlin/com/valghora/shrimpl/core/discovery/Evidence.kt:45",
+  "purpose": 2,
+  "accuracy": 2,
+  "concision": 2,
+  "placement": 2,
+  "note": ""
+ },
+ "0021515b3f": {
+  "where": "core/src/main/kotlin/com/valghora/shrimpl/core/discovery/HtmlHead.kt:18",
+  "purpose": 2,
+  "accuracy": 2,
+  "concision": 2,
+  "placement": 2,
+  "note": ""
+ },
+ "08a58060d9": {
+  "where": "core/src/main/kotlin/com/valghora/shrimpl/core/discovery/Urls.kt:13",
+  "purpose": 2,
+  "accuracy": 2,
+  "concision": 2,
+  "placement": 2,
+  "note": ""
+ },
+ "020d5d79c9": {
+  "where": "core/src/main/kotlin/com/valghora/shrimpl/core/profile/Profile.kt:72",
+  "purpose": 2,
+  "accuracy": 2,
+  "concision": 2,
+  "placement": 2,
+  "note": ""
+ },
+ "069e9381c5": {
+  "where": "core/src/main/kotlin/com/valghora/shrimpl/core/profile/Profile.kt:89",
+  "purpose": 2,
+  "accuracy": 2,
+  "concision": 2,
+  "placement": 2,
+  "note": ""
+ },
+ "00d79e5084": {
+  "where": "core/src/main/kotlin/com/valghora/shrimpl/core/profile/ProfileCodec.kt:9",
+  "purpose": 2,
+  "accuracy": 2,
+  "concision": 2,
+  "placement": 2,
+  "note": ""
+ },
+ "03de46c0c8": {
+  "where": "core/src/main/kotlin/com/valghora/shrimpl/core/testing/TestTags.kt:26",
+  "purpose": 2,
+  "accuracy": 2,
+  "concision": 2,
+  "placement": 2,
+  "note": ""
+ },
+ "0b494f2902": {
+  "where": "shrimpl/src/main/java/com/valghora/shrimpl/build/WebAppFactory.kt:51",
+  "purpose": 2,
+  "accuracy": 2,
+  "concision": 2,
+  "placement": 2,
+  "note": ""
+ },
+ "0262be7c8e": {
+  "where": "shrimpl/src/main/java/com/valghora/shrimpl/build/WebAppFactory.kt:96",
+  "purpose": 2,
+  "accuracy": 2,
+  "concision": 2,
+  "placement": 2,
+  "note": ""
+ },
+ "0021bb4042": {
+  "where": "shrimpl/src/main/java/com/valghora/shrimpl/data/AppSettings.kt:29",
+  "purpose": 2,
+  "accuracy": 2,
+  "concision": 2,
+  "placement": 2,
+  "note": ""
+ },
+ "040eec425a": {
+  "where": "shrimpl/src/main/java/com/valghora/shrimpl/data/WebAppStore.kt:27",
+  "purpose": 1,
+  "accuracy": 2,
+  "concision": 2,
+  "placement": 2,
+  "note": "mostly restates the signature"
+ },
+ "03a529f3c7": {
+  "where": "shrimpl/src/main/java/com/valghora/shrimpl/discovery/SiteDiscovery.kt:226",
+  "purpose": 2,
+  "accuracy": 2,
+  "concision": 2,
+  "placement": 2,
+  "note": ""
+ },
+ "07e4939995": {
+  "where": "shrimpl/src/main/java/com/valghora/shrimpl/install/Installer.kt:21",
+  "purpose": 2,
+  "accuracy": 2,
+  "concision": 2,
+  "placement": 2,
+  "note": ""
+ },
+ "00d1cec73c": {
+  "where": "shrimpl/src/main/java/com/valghora/shrimpl/install/SessionInstaller.kt:83",
+  "purpose": 2,
+  "accuracy": 2,
+  "concision": 2,
+  "placement": 2,
+  "note": ""
+ },
+ "063a3408f1": {
+  "where": "shrimpl/src/main/java/com/valghora/shrimpl/install/ShellService.kt:6",
+  "purpose": 2,
+  "accuracy": 2,
+  "concision": 2,
+  "placement": 2,
+  "note": ""
+ },
+ "00b5e9ccfd": {
+  "where": "shrimpl/src/main/java/com/valghora/shrimpl/install/ShizukuInstaller.kt:25",
+  "purpose": 2,
+  "accuracy": 2,
+  "concision": 2,
+  "placement": 2,
+  "note": ""
+ },
+ "05ea284e51": {
+  "where": "shrimpl/src/main/java/com/valghora/shrimpl/ui/common/BuildController.kt:25",
+  "purpose": 2,
+  "accuracy": 2,
+  "concision": 2,
+  "placement": 2,
+  "note": ""
+ },
+ "05cf5f59bc": {
+  "where": "shrimpl/src/main/java/com/valghora/shrimpl/ui/common/BuildController.kt:128",
+  "purpose": 2,
+  "accuracy": 2,
+  "concision": 2,
+  "placement": 2,
+  "note": ""
+ },
+ "072edb2d4b": {
+  "where": "shrimpl/src/main/java/com/valghora/shrimpl/ui/common/SettingsItems.kt:166",
+  "purpose": 2,
+  "accuracy": 2,
+  "concision": 2,
+  "placement": 2,
+  "note": ""
+ },
+ "07ea69834f": {
+  "where": "shrimpl/src/main/java/com/valghora/shrimpl/ui/create/CreateViewModel.kt:85",
+  "purpose": 2,
+  "accuracy": 2,
+  "concision": 2,
+  "placement": 2,
+  "note": ""
+ },
+ "067eabaaea": {
+  "where": "shrimpl/src/main/java/com/valghora/shrimpl/ui/edit/EditViewModel.kt:89",
+  "purpose": 2,
+  "accuracy": 2,
+  "concision": 2,
+  "placement": 2,
+  "note": ""
+ },
+ "025b76bf6c": {
+  "where": "shrimpl/src/main/java/com/valghora/shrimpl/ui/home/HomeScreen.kt:336",
+  "purpose": 2,
+  "accuracy": 2,
+  "concision": 2,
+  "placement": 2,
+  "note": ""
+ },
+ "0cd9ac5651": {
+  "where": "shrimpl/src/main/java/com/valghora/shrimpl/ui/home/HomeScreen.kt:580",
+  "purpose": 2,
+  "accuracy": 2,
+  "concision": 2,
+  "placement": 2,
+  "note": ""
+ },
+ "0a3d0a5475": {
+  "where": "shrimpl/src/main/java/com/valghora/shrimpl/ui/home/HomeScreen.kt:648",
+  "purpose": 2,
+  "accuracy": 2,
+  "concision": 2,
+  "placement": 2,
+  "note": ""
+ },
+ "0b074e1250": {
+  "where": "shrimpl/src/main/java/com/valghora/shrimpl/ui/home/HomeScreen.kt:716",
+  "purpose": 2,
+  "accuracy": 2,
+  "concision": 2,
+  "placement": 2,
+  "note": ""
+ },
+ "02cbabc121": {
+  "where": "shrimpl/src/main/java/com/valghora/shrimpl/ui/settings/SettingsScreen.kt:203",
+  "purpose": 1,
+  "accuracy": 2,
+  "concision": 2,
+  "placement": 2,
+  "note": "a requirement anchor that mostly restates the item below it"
+ },
+ "014c734bfc": {
+  "where": "shrimpl/src/main/java/com/valghora/shrimpl/ui/settings/SettingsViewModel.kt:33",
+  "purpose": 2,
+  "accuracy": 2,
+  "concision": 2,
+  "placement": 2,
+  "note": ""
+ },
+ "09513b7465": {
+  "where": "shrimpl/src/main/java/com/valghora/shrimpl/ui/settings/SettingsViewModel.kt:47",
+  "purpose": 2,
+  "accuracy": 2,
+  "concision": 2,
+  "placement": 2,
+  "note": ""
+ },
+ "06c13c52c7": {
+  "where": "template/src/main/java/com/valghora/shrimpl/webapp/MainActivity.kt:166",
+  "purpose": 2,
+  "accuracy": 2,
+  "concision": 2,
+  "placement": 2,
+  "note": ""
+ },
+ "016dd09613": {
+  "where": "template/src/main/java/com/valghora/shrimpl/webapp/MainActivity.kt:253",
+  "purpose": 2,
+  "accuracy": 2,
+  "concision": 1,
+  "placement": 2,
+  "note": "cites T8.4 twice across two lines; could be one sentence"
+ },
+ "01687ed848": {
+  "where": "template/src/main/java/com/valghora/shrimpl/webapp/MainActivity.kt:851",
+  "purpose": 1,
+  "accuracy": 2,
+  "concision": 2,
+  "placement": 2,
+  "note": "section header: structure only"
+ },
+ "078b6e0fa2": {
+  "where": "template/src/main/java/com/valghora/shrimpl/webapp/PageColors.kt:17",
+  "purpose": 2,
+  "accuracy": 2,
+  "concision": 2,
+  "placement": 2,
+  "note": ""
+ },
+ "011be8c6ad": {
+  "where": "template/src/main/java/com/valghora/shrimpl/webapp/SessionPrefs.kt:29",
+  "purpose": 2,
+  "accuracy": 2,
+  "concision": 2,
+  "placement": 2,
+  "note": ""
+ }
+}

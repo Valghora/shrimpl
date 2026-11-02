@@ -1,0 +1,41 @@
+{
+ "label": "kdoc",
+ "seed": "comment-eval-v1",
+ "version": 2,
+ "counts": {
+  "comment_blocks_main": 860,
+  "comment_blocks_test": 103,
+  "requirement_refs": 413,
+  "leaf_requirements": 108,
+  "declarations": 409,
+  "requirements_cited_in_main": 91,
+  "rubric_items_graded": 40
+ },
+ "metrics": {
+  "reference_integrity": 100.0,
+  "requirement_traceability": 100.0,
+  "kdoc_coverage": 100.0,
+  "noise": 100.0,
+  "anchoring": 89.0,
+  "rubric": 98.4
+ },
+ "combined": 97.8,
+ "details": {
+  "broken_references": [],
+  "untraced_requirements": [],
+  "undocumented_declarations": [],
+  "noise": [],
+  "cited_in_main_not_in_kdoc": [
+   "R1.1",
+   "R5.4",
+   "R7.2",
+   "T1.3",
+   "T4.5",
+   "T5",
+   "T6",
+   "T6.4",
+   "T6.8",
+   "T8.4"
+  ]
+ }
+}
