@@ -67,8 +67,8 @@ binary translation) on any device.
     app-wide keyboard shortcuts (Ctrl+N new web app, Ctrl+, settings) listed in the Keyboard
     Shortcuts Helper.
   - When the window has room for two panes (expanded width, 840 dp and up), the home list sits
-    beside a detail pane as rounded cards on the window background: the list a fixed 360 dp, the
-    detail the rest, 16 dp apart, with no drag handle. On a separating hinge (a dual-screen phone, a
+    beside a detail pane as rounded cards on the window background: the list a third of the window,
+    the detail the rest, 16 dp apart, with no drag handle. On a separating hinge (a dual-screen phone, a
     foldable half-open like a book) the panes split along the hinge, one on each side. The detail pane shows a web app's edit page, the configuration page
     (R3) or Shrimpl's settings (R2.5), each replacing the previous one, so the list is always one
     Back away: Back closes what the detail pane shows and leaves the empty detail pane, it doesn't
@@ -191,11 +191,13 @@ binary translation) on any device.
   success, Open and Done (no build number: build numbers are internal, R11.3); a new app from the
   Create app page instead drops the user back on the app list (after the one-time backup prompt,
   R5.3).
-- R3.5 The form is one column. When its pane leaves room, the column is at most 600 dp wide and
+- R3.5 The form is one column. When its pane leaves room, the column is at most 680 dp wide and
   centred; if centring would put it under the floating button (Save, Create) at the bottom right, it
   moves left as far as needed (at least 24 dp from the left edge), so the button never covers an
   option. In a pane too narrow for a 360 dp column beside the button (a phone), the form takes the
-  full width and the button floats over it, with room below the last section.
+  full width and the button floats over it, with room below the last section. Beside the list (two
+  panes), the page's title (the app's name, or Create app while reviewing) starts where the section
+  labels do, so it sits over the column; with one pane it keeps its place after the back arrow.
 
 ## R4 Modules and core
 

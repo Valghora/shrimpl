@@ -40,6 +40,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.core.graphics.toColorInt
@@ -98,25 +99,24 @@ fun ProfileFormFields(
         fields.Permissions()
     }
     BoxWithConstraints(modifier.fillMaxSize()) {
-        val width = minOf(MAX_COLUMN, maxWidth - FAB_CLEARANCE - SIDE_MARGIN)
+        val column = formColumn(maxWidth)
         val scroll = Modifier.fillMaxSize().verticalScroll(rememberScrollState())
-        if (width < MIN_COLUMN) {
+        if (column == null) {
             // Narrow (a phone): the full width; the floating button floats over it, and the end clears it.
             Column(scroll.padding(horizontal = 16.dp).padding(bottom = 96.dp + bottomInset)) { sections() }
         } else {
             // Centred, unless that would put the column under the floating button at the bottom right.
-            val start = minOf((maxWidth - width) / 2, maxWidth - FAB_CLEARANCE - width)
             // The scroll area fills the pane; the column inside it gets its own width (a width set after
             // fillMaxSize on the same modifier can't shrink it).
             Column(scroll) {
-                Column(Modifier.padding(start = start, bottom = 32.dp + bottomInset).width(width)) { sections() }
+                Column(Modifier.padding(start = column.start, bottom = 32.dp + bottomInset).width(column.width)) { sections() }
             }
         }
     }
 }
 
 /** The widest the form's column grows (R3.5). */
-private val MAX_COLUMN = 600.dp
+private val MAX_COLUMN = 680.dp
 
 /** Narrower than this, the form takes the full width instead. */
 private val MIN_COLUMN = 360.dp
@@ -480,3 +480,33 @@ private fun SizeDialog(title: String, width: String, height: String, onDone: (St
         dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.action_cancel)) } },
     )
 }
+
+/** Where the form's column sits in a pane: [start] from the pane's start edge, [width] wide (R3.5). */
+data class FormColumn(val start: Dp, val width: Dp)
+
+/**
+ * The form's column in a pane [paneWidth] wide: at most 680 dp, centred, or moved left so the floating
+ * button never covers it. Null when the pane is too narrow (a phone): the form then takes the full width.
+ */
+fun formColumn(paneWidth: Dp): FormColumn? {
+    val width = minOf(MAX_COLUMN, paneWidth - FAB_CLEARANCE - SIDE_MARGIN)
+    if (width < MIN_COLUMN) return null
+    return FormColumn(minOf((paneWidth - width) / 2, paneWidth - FAB_CLEARANCE - width), width)
+}
+
+/**
+ * A top bar title that starts where the form's section labels do in a pane [paneWidth] wide (R3.5),
+ * so the page name lines up with the sections below it; [afterIcon] when a navigation icon comes before it.
+ */
+@Composable
+fun FormTitle(text: String, paneWidth: Dp, afterIcon: Boolean) {
+    val titleStart = if (afterIcon) TITLE_AFTER_ICON else TITLE_START
+    // The section labels sit 4 dp in from the column's edge (SettingsSection); the title lines up with them.
+    val shift = formColumn(paneWidth)?.let { (it.start + SECTION_LABEL_INSET - titleStart).coerceAtLeast(0.dp) } ?: 0.dp
+    Text(text, Modifier.padding(start = shift), maxLines = 1, overflow = TextOverflow.Ellipsis)
+}
+
+/** Where Material's top bar puts its title in the pane, without and with a navigation icon. */
+private val TITLE_START = 16.dp
+private val TITLE_AFTER_ICON = 56.dp
+private val SECTION_LABEL_INSET = 4.dp

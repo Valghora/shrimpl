@@ -13,6 +13,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -72,10 +74,12 @@ enum class AppShortcut { NEW_WEB_APP, SETTINGS }
 @Composable
 fun ShrimplNavigation(shortcuts: Flow<AppShortcut>) {
     val backStack = rememberNavBackStack(HomeKey)
-    // R1.1: a fixed 360 dp list pane, the rest for the detail; no drag handle. On a dual-screen phone
-    // or a foldable half-open like a book, the default hinge policy splits the panes along the hinge.
+    // R1.1: the list pane takes a third of the window, the detail the rest; no drag handle. On a
+    // dual-screen phone or a foldable half-open like a book, the default hinge policy splits the panes
+    // along the hinge.
+    val windowWidth = with(LocalDensity.current) { LocalWindowInfo.current.containerSize.width.toDp() }
     val directive = calculatePaneScaffoldDirective(currentWindowAdaptiveInfoV2()).copy(
-        defaultPanePreferredWidth = LIST_PANE_WIDTH,
+        defaultPanePreferredWidth = windowWidth / 3,
         horizontalPartitionSpacerSize = PANE_GAP,
     )
     // Back closes what the detail pane shows, even when both panes stay on screen (Material's default
@@ -181,9 +185,6 @@ private fun DetailPlaceholder(onCreate: () -> Unit) {
         if (empty) PitchText() else EmptyStateText(stringResource(R.string.home_pick_app))
     }
 }
-
-/** The list pane's width beside a detail pane (Material's default list pane width). */
-private val LIST_PANE_WIDTH = 360.dp
 
 /** The gap between the two panes, without a drag handle in it. */
 private val PANE_GAP = 16.dp

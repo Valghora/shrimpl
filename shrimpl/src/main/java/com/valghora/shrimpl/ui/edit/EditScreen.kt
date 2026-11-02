@@ -3,6 +3,7 @@ package com.valghora.shrimpl.ui.edit
 import androidx.activity.compose.LocalActivity
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -47,6 +48,7 @@ import com.valghora.shrimpl.ui.common.Notice
 import com.valghora.shrimpl.ui.common.PillButton
 import com.valghora.shrimpl.ui.common.TooltipIconButton
 import com.valghora.shrimpl.ui.common.withoutBottom
+import com.valghora.shrimpl.ui.form.FormTitle
 import com.valghora.shrimpl.ui.form.ProfileFormFields
 import kotlinx.coroutines.launch
 
@@ -94,70 +96,73 @@ fun EditScreen(appId: String, showBack: Boolean, onBack: () -> Unit) {
         return
     }
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text(current.profile.name) },
-                navigationIcon = {
-                    if (showBack) {
-                        TooltipIconButton(stringResource(R.string.action_back), onBack) {
-                            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.action_back))
+    BoxWithConstraints(Modifier.fillMaxSize()) {
+        val paneWidth = maxWidth
+        Scaffold(
+            topBar = {
+                TopAppBar(
+                    title = { FormTitle(current.profile.name, paneWidth, afterIcon = showBack) },
+                    navigationIcon = {
+                        if (showBack) {
+                            TooltipIconButton(stringResource(R.string.action_back), onBack) {
+                                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.action_back))
+                            }
                         }
-                    }
-                },
-                actions = {
-                    TooltipIconButton(stringResource(R.string.action_more), { menu = true }) {
-                        Icon(Icons.Filled.MoreVert, contentDescription = stringResource(R.string.action_more))
-                    }
-                    AppMenu(expanded = menu, onDismissRequest = { menu = false }) {
-                        if (installed == true) {
-                            AppMenuItem(text = { Text(stringResource(R.string.action_open)) }, onClick = {
-                                menu = false
-                                InstalledApps.open(context, current.packageName)
-                            })
+                    },
+                    actions = {
+                        TooltipIconButton(stringResource(R.string.action_more), { menu = true }) {
+                            Icon(Icons.Filled.MoreVert, contentDescription = stringResource(R.string.action_more))
                         }
-                        AppMenuItem(
-                            text = { Text(stringResource(if (installed == false) R.string.action_reinstall else R.string.action_rebuild)) },
-                            onClick = {
-                                menu = false
-                                model.rebuild()
-                            },
-                        )
-                        if (installed == true) {
-                            AppMenuItem(text = { Text(stringResource(R.string.action_uninstall)) }, onClick = {
-                                menu = false
-                                confirmUninstall = true
-                            })
-                        } else {
-                            AppMenuItem(text = { Text(stringResource(R.string.action_remove)) }, onClick = {
-                                menu = false
-                                model.remove(onBack)
-                            })
+                        AppMenu(expanded = menu, onDismissRequest = { menu = false }) {
+                            if (installed == true) {
+                                AppMenuItem(text = { Text(stringResource(R.string.action_open)) }, onClick = {
+                                    menu = false
+                                    InstalledApps.open(context, current.packageName)
+                                })
+                            }
+                            AppMenuItem(
+                                text = { Text(stringResource(if (installed == false) R.string.action_reinstall else R.string.action_rebuild)) },
+                                onClick = {
+                                    menu = false
+                                    model.rebuild()
+                                },
+                            )
+                            if (installed == true) {
+                                AppMenuItem(text = { Text(stringResource(R.string.action_uninstall)) }, onClick = {
+                                    menu = false
+                                    confirmUninstall = true
+                                })
+                            } else {
+                                AppMenuItem(text = { Text(stringResource(R.string.action_remove)) }, onClick = {
+                                    menu = false
+                                    model.remove(onBack)
+                                })
+                            }
                         }
-                    }
-                },
-            )
-        },
-        floatingActionButton = {
-            if (model.dirty) {
-                PillButton(
-                    text = stringResource(R.string.action_save),
-                    icon = Icons.Filled.Check,
-                    onClick = { if (!model.save()) scope.launch { snackbar.showSnackbar(invalidMessage) } },
+                    },
+                )
+            },
+            floatingActionButton = {
+                if (model.dirty) {
+                    PillButton(
+                        text = stringResource(R.string.action_save),
+                        icon = Icons.Filled.Check,
+                        onClick = { if (!model.save()) scope.launch { snackbar.showSnackbar(invalidMessage) } },
+                    )
+                }
+            },
+            snackbarHost = { SnackbarHost(snackbar) },
+        ) { padding ->
+            Box(Modifier.padding(padding.withoutBottom()).fillMaxSize()) {
+                ProfileFormFields(
+                    draft = form,
+                    onChange = model::update,
+                    hints = emptyMap(),
+                    notes = if (installed == false) listOf(Notice(Notice.Kind.INFO, stringResource(R.string.edit_not_installed))) else emptyList(),
+                    storedImage = model::storedImage,
+                    bottomInset = padding.calculateBottomPadding(),
                 )
             }
-        },
-        snackbarHost = { SnackbarHost(snackbar) },
-    ) { padding ->
-        Box(Modifier.padding(padding.withoutBottom()).fillMaxSize()) {
-            ProfileFormFields(
-                draft = form,
-                onChange = model::update,
-                hints = emptyMap(),
-                notes = if (installed == false) listOf(Notice(Notice.Kind.INFO, stringResource(R.string.edit_not_installed))) else emptyList(),
-                storedImage = model::storedImage,
-                bottomInset = padding.calculateBottomPadding(),
-            )
         }
     }
 

@@ -5,6 +5,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -72,6 +73,7 @@ import com.valghora.shrimpl.ui.common.Tone
 import com.valghora.shrimpl.ui.common.TooltipIconButton
 import com.valghora.shrimpl.ui.common.WithTooltip
 import com.valghora.shrimpl.ui.common.withoutBottom
+import com.valghora.shrimpl.ui.form.FormTitle
 import com.valghora.shrimpl.ui.form.ProfileFormFields
 import kotlinx.coroutines.launch
 
@@ -92,54 +94,60 @@ fun CreateScreen(onClose: () -> Unit, onBackUpKey: () -> Unit) {
     val reviewing = step == CreateViewModel.Step.Review
     BackHandler(enabled = reviewing) { model.backToUrl() }
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text(stringResource(R.string.create_title)) },
-                navigationIcon = {
-                    if (reviewing) {
-                        TooltipIconButton(stringResource(R.string.action_back), model::backToUrl) {
-                            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.action_back))
+    BoxWithConstraints(Modifier.fillMaxSize()) {
+        val paneWidth = maxWidth
+        Scaffold(
+            topBar = {
+                TopAppBar(
+                    // On the review step the title lines up with the form's column (R3.5).
+                    title = {
+                        if (reviewing) FormTitle(stringResource(R.string.create_title), paneWidth, afterIcon = true) else Text(stringResource(R.string.create_title))
+                    },
+                    navigationIcon = {
+                        if (reviewing) {
+                            TooltipIconButton(stringResource(R.string.action_back), model::backToUrl) {
+                                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.action_back))
+                            }
+                        } else {
+                            TooltipIconButton(stringResource(R.string.action_close), onClose) { Icon(Icons.Filled.Close, contentDescription = stringResource(R.string.action_close)) }
                         }
-                    } else {
-                        TooltipIconButton(stringResource(R.string.action_close), onClose) { Icon(Icons.Filled.Close, contentDescription = stringResource(R.string.action_close)) }
-                    }
-                },
-            )
-        },
-        floatingActionButton = {
-            if (reviewing) {
-                PillButton(
-                    text = stringResource(R.string.action_create),
-                    icon = Icons.Filled.Check,
-                    onClick = { if (!model.create()) scope.launch { snackbar.showSnackbar(invalidMessage) } },
+                    },
                 )
-            } else if (step is CreateViewModel.Step.Failed) {
-                // R3.2: after a failed search, Continue is the one next step (Retry is the search button).
-                PillButton(
-                    text = stringResource(R.string.action_continue),
-                    icon = Icons.AutoMirrored.Filled.ArrowForward,
-                    onClick = model::continueWithoutDiscovery,
-                )
+            },
+            floatingActionButton = {
+                if (reviewing) {
+                    PillButton(
+                        text = stringResource(R.string.action_create),
+                        icon = Icons.Filled.Check,
+                        onClick = { if (!model.create()) scope.launch { snackbar.showSnackbar(invalidMessage) } },
+                    )
+                } else if (step is CreateViewModel.Step.Failed) {
+                    // R3.2: after a failed search, Continue is the one next step (Retry is the search button).
+                    PillButton(
+                        text = stringResource(R.string.action_continue),
+                        icon = Icons.AutoMirrored.Filled.ArrowForward,
+                        onClick = model::continueWithoutDiscovery,
+                    )
+                }
+            },
+            snackbarHost = { SnackbarHost(snackbar) },
+        ) { padding ->
+            val current = draft
+            if (reviewing && current != null) {
+                Box(Modifier.padding(padding.withoutBottom()).fillMaxSize()) {
+                    ProfileFormFields(
+                        draft = current,
+                        onChange = model::update,
+                        hints = model.hints,
+                        notes = model.notes,
+                        // Nothing is stored yet: every image is in the draft.
+                        storedImage = null,
+                        bottomInset = padding.calculateBottomPadding(),
+                    )
+                }
+            } else {
+                UrlStep(model, step, padding)
             }
-        },
-        snackbarHost = { SnackbarHost(snackbar) },
-    ) { padding ->
-        val current = draft
-        if (reviewing && current != null) {
-            Box(Modifier.padding(padding.withoutBottom()).fillMaxSize()) {
-                ProfileFormFields(
-                    draft = current,
-                    onChange = model::update,
-                    hints = model.hints,
-                    notes = model.notes,
-                    // Nothing is stored yet: every image is in the draft.
-                    storedImage = null,
-                    bottomInset = padding.calculateBottomPadding(),
-                )
-            }
-        } else {
-            UrlStep(model, step, padding)
         }
     }
 
