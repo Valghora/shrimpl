@@ -14,6 +14,9 @@ enum class ThemeSetting { SYSTEM, LIGHT, DARK }
 /** What tapping an app in the home list does (R2.5). */
 enum class ClickAction { OPEN, EDIT }
 
+/** How the home screen shows the apps (R2.2): rows, or tiles. */
+enum class HomeLayout { LIST, TILES }
+
 /** Shrimpl's own settings (R2.5), in private SharedPreferences. */
 class AppSettings(context: Context) {
     private val prefs = context.getSharedPreferences("shrimpl_settings", Context.MODE_PRIVATE)
@@ -34,6 +37,16 @@ class AppSettings(context: Context) {
 
     /** What tapping an app in the home list does; Edit unless the user picked Open. */
     val clickAction: StateFlow<ClickAction> = _clickAction.asStateFlow()
+
+    private val _homeLayout = MutableStateFlow(
+        prefs.getString(KEY_HOME_LAYOUT, null)?.let { runCatching { HomeLayout.valueOf(it) }.getOrNull() } ?: HomeLayout.LIST,
+    )
+    val homeLayout: StateFlow<HomeLayout> = _homeLayout.asStateFlow()
+
+    fun setHomeLayout(layout: HomeLayout) {
+        prefs.edit { putString(KEY_HOME_LAYOUT, layout.name) }
+        _homeLayout.value = layout
+    }
 
     private val _keyBackedUp = MutableStateFlow(prefs.getBoolean(KEY_BACKED_UP, false))
     val keyBackedUp: StateFlow<Boolean> = _keyBackedUp.asStateFlow()
@@ -82,6 +95,7 @@ class AppSettings(context: Context) {
         const val KEY_INSTALL_METHOD = "install_method"
         const val KEY_THEME = "theme"
         const val KEY_CLICK_ACTION = "click_action"
+        const val KEY_HOME_LAYOUT = "home_layout"
         const val KEY_BACKED_UP = "key_backed_up"
         const val KEY_PROMPT_SHOWN = "backup_prompt_shown"
         const val KEY_RECOVERY_DONE = "recovery_done"

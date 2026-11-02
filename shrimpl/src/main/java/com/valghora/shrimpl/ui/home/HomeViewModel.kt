@@ -8,6 +8,7 @@ import com.valghora.shrimpl.build.BuildRequest
 import com.valghora.shrimpl.core.records.WebAppRecord
 import com.valghora.shrimpl.core.testing.TestTag
 import com.valghora.shrimpl.data.ClickAction
+import com.valghora.shrimpl.data.HomeLayout
 import com.valghora.shrimpl.data.InstallMethod
 import com.valghora.shrimpl.data.InstalledApp
 import com.valghora.shrimpl.data.InstalledApps
@@ -34,6 +35,9 @@ class HomeViewModel(private val container: AppContainer) : ViewModel() {
 
     /** What tapping an app does (R2.5). */
     val clickAction: StateFlow<ClickAction> = container.settings.clickAction
+    val layout: StateFlow<HomeLayout> = container.settings.homeLayout
+
+    fun setLayout(layout: HomeLayout) = container.settings.setHomeLayout(layout)
 
     val build = BuildController(container, viewModelScope)
 

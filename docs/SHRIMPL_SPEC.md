@@ -91,7 +91,8 @@ binary translation) on any device.
 ## R2 Home
 
 - R2.1 A top app bar titled with the shrimp glyph (in the theme's primary color) and "Shrimpl"
-  (hides on scroll down, returns on scroll up) with a settings button, over an adaptive grid of
+  (hides on scroll down, returns on scroll up) with a layout switch ("Show as tiles" / "Show as
+  list", R2.6) and a settings button, over an adaptive grid of
   the web apps Shrimpl created (one column on phones, more on wide windows). Each app is a
   borderless row on the page background; the settings items' rounded shape shows only as its press
   and hover highlight, and in two panes as the selection (the hover tint, so a tonal button on it stays visible): the installed icon
@@ -139,6 +140,18 @@ binary translation) on any device.
   - **Signing:** the certificate's SHA-256 fingerprint with a copy button, "Export…" and "Import…"
     (export and import the certificate, R5).
   - **About:** "App Version: x.y" and "Template Version: N.0".
+- R2.6 Tiles: the layout switch shows the apps as tiles instead of rows, and the choice is kept.
+  Tiles flow three across on phones (at least 100 dp wide, 8 dp apart, 12 dp in from the sides),
+  more on wide windows. Each tile is a rounded card (22 dp corners) in the theme's container color,
+  with no tint or color of its own: the icon (56 dp), the name, and a status line in the theme's
+  variant text color: "Needs fix" (R11.7), "Update ready" (R11.4) or "Not installed". A round badge
+  on the icon's corner, ringed in the tile's color, marks an app that needs something: a wrench in
+  the theme's error color (Needs fix) or a refresh arrow in its primary color (Update ready); it
+  repeats the status line, so accessibility services skip it. Uninstalled apps follow the installed
+  ones in the same grid, greyed out as in rows, with no label. Tiles have no ⋮ button or row
+  buttons: tapping one does what tapping a row does, and right-click or long press opens the
+  row's menu, which for an app signed with another key offers Fix before Remove. In two panes the
+  selected tile takes the highest container color.
 
 ## R3 Configuration page
 
@@ -373,7 +386,8 @@ The template's behavior is docs/TEMPLATE_SPEC.md. What Shrimpl relies on:
   list stay removed. Apps signed with another key are handled by R11.7.
 - R11.7 An app last signed with a key other than Shrimpl's current one keeps its record either way.
   Installed, its row offers only Fix (a yellow icon-only pill with a wrench, R2.2), tapping the row
-  does nothing, and its menus offer only Remove; Update all skips it. Fix uninstalls the app (the
+  does nothing, and its menus offer only Remove (a tile's menu offers Fix, then Remove, R2.6);
+  Update all skips it. Fix uninstalls the app (the
   system asks), then rebuilds it from the saved settings signed with the current key (the system
   asks again); the build sheet adds an Uninstalling step before the build's stages, and turning the
   uninstall down stops with nothing changed. With two or more such apps, Fix all (a pill above New

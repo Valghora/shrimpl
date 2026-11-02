@@ -151,6 +151,7 @@
     <string name="build_waiting_for_user">Android is waiting for you to confirm the install</string>
     <string name="build_waiting_for_uninstall">Android is waiting for you to confirm the uninstall</string>
     <string name="stage_uninstalling">Uninstalling</string>
+    <string name="action_fix">Fix</string>
     <string name="action_fix_all">Fix all</string>
     <string name="action_show_installer">Show installer</string>
     <string name="stage_rendering_icon">Drawing</string>
@@ -267,4 +268,10 @@
     <string name="color_grey">Grey</string>
     <string name="color_dark_grey">Dark grey</string>
     <string name="color_black">Black</string>
+    <!-- The home screen's layout switch (R2.2). -->
+    <string name="action_show_tiles">Show as tiles</string>
+    <string name="action_show_list">Show as list</string>
+    <!-- An app tile's status line (R2.2). -->
+    <string name="status_needs_fix">Needs fix</string>
+    <string name="status_update_ready">Update ready</string>
 </resources>
