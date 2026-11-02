@@ -144,6 +144,10 @@ thrown away.
   Android's `shouldShowRequestPermissionRationale` is false both before the first request and after
   "Don't allow" twice, so the template keeps an "asked" flag per permission in its preferences.
 
+- Template version 11 (2026-11-02): page text follows the system font size (T5.7). WebView's own
+  default text zoom already is 100 x the font scale, but the template set it to a fixed 100 %, so
+  enlarged system text never reached web pages.
+
 - `ACCESS_NETWORK_STATE` (a normal permission) lets the search tell "No internet connection" apart
   from a site that can't be reached.
 

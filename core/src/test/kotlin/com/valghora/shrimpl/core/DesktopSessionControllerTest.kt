@@ -15,6 +15,10 @@ class DesktopSessionControllerTest {
             stored = value
             saves += value
         }
+
+        override fun clear() {
+            stored = null
+        }
     }
 
     private class FakeUaStore(
@@ -111,7 +115,26 @@ class DesktopSessionControllerTest {
         assertEquals(100, c.zoomOut())
         assertEquals(90, c.zoomOut())
         assertEquals(100, c.resetZoom())
-        assertEquals(listOf(110, 100, 90, 100), store.saves)
+        assertEquals(listOf(110, 100, 90), store.saves)
+        assertEquals("reset forgets the zoom", null, store.stored)
+    }
+
+    @Test
+    fun textFollowsTheSystemFontSizeUntilTheUserZooms() {
+        val store = FakeZoomStore()
+        val c = DesktopSessionController(store, FakeUaStore(), fixture, fontScalePercent = 130)
+        assertEquals("starts at the font size", 130, c.textZoom)
+        assertEquals("follows a change", 150, c.fontScaleChanged(150))
+        assertEquals("115 % snaps to the nearest step", 120, c.fontScaleChanged(115))
+        assertEquals(130, c.zoomIn())
+        assertEquals("a zoom the user chose wins", 130, c.fontScaleChanged(200))
+        assertEquals("reset goes back to the font size", 200, c.resetZoom())
+        assertEquals("and follows it again", 100, c.fontScaleChanged(100))
+    }
+
+    @Test
+    fun aSavedZoomWinsOverTheFontSize() {
+        assertEquals(90, DesktopSessionController(FakeZoomStore(90), FakeUaStore(), fixture, fontScalePercent = 150).textZoom)
     }
 
     @Test

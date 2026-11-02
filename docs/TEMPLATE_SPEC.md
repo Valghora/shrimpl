@@ -109,7 +109,9 @@ Unit tests cover every branch with a fixed fixture config, including look-alike 
 - T5.6 Back goes back in the page history while it can (`OnBackPressedCallback` kept in sync in
   `doUpdateVisitedHistory`); full-screen video takes Back first.
 - T5.7 Zoom: pinch zoom on touch (built-in controls, no on-screen buttons), and Ctrl + scroll wheel or
-  trackpad scroll zooms text like Ctrl+= and Ctrl+-.
+  trackpad scroll zooms text like Ctrl+= and Ctrl+-. Page text starts at the system font size (font
+  scale 1.3 is a text zoom of 130 %, to the nearest 10 %) and follows it when it changes, until the
+  user zooms; their zoom is kept, and Ctrl+0 returns to following the system font size.
 
 ## T6 WebView, routing and media
 

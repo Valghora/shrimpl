@@ -87,6 +87,7 @@ import java.util.Collections
 import java.util.WeakHashMap
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
+import kotlin.math.roundToInt
 
 class MainActivity : AppCompatActivity() {
 
@@ -177,7 +178,8 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         prefs = SessionPrefs(this)
-        controller = DesktopSessionController(prefs, prefs, WebApp.profile.sessionConfig())
+        // T5.7: page text starts at the system font size (accessibility skill), not a fixed 100 %.
+        controller = DesktopSessionController(prefs, prefs, WebApp.profile.sessionConfig(), fontScalePercent())
 
         isLargeOrPc = packageManager.hasSystemFeature(PackageManager.FEATURE_PC) ||
             resources.configuration.smallestScreenWidthDp >= 600
@@ -262,6 +264,7 @@ class MainActivity : AppCompatActivity() {
 
     override fun onConfigurationChanged(newConfig: Configuration) {
         super.onConfigurationChanged(newConfig)
+        if (webViewAlive) webView.settings.textZoom = controller.fontScaleChanged(fontScalePercent())
         val newNightMode = newConfig.uiMode and Configuration.UI_MODE_NIGHT_MASK
         if (newNightMode != nightMode) {
             nightMode = newNightMode
@@ -1204,6 +1207,9 @@ class MainActivity : AppCompatActivity() {
         val cookies = CookieManager.getInstance()
         cookieWriter.execute { cookies.flush() }
     }
+
+    /** The system font size as a percentage (1.3 is 130). */
+    private fun fontScalePercent(): Int = (resources.configuration.fontScale * 100).roundToInt()
 
     private fun toast(message: Int) {
         Toast.makeText(this, message, Toast.LENGTH_SHORT).show()

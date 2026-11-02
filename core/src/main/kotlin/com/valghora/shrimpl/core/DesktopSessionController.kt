@@ -12,6 +12,7 @@ class DesktopSessionController(
     private val zoomStore: ZoomStore,
     val uaStore: UaStore,
     private val config: SessionConfig,
+    fontScalePercent: Int = ZOOM_DEFAULT,
 ) {
 
     // ---------- a. URL classification ----------
@@ -31,14 +32,29 @@ class DesktopSessionController(
 
     // ---------- b. Text zoom ----------
 
-    var textZoom: Int = snapZoom(zoomStore.load())
+    /** The system font size as a text zoom: what page text follows until the user zooms (T5.7). */
+    private var fontScaleZoom = fontScalePercent
+
+    var textZoom: Int = snapZoom(zoomStore.load() ?: fontScaleZoom)
         private set
 
     fun zoomIn(): Int = setZoom(textZoom + ZOOM_STEP)
 
     fun zoomOut(): Int = setZoom(textZoom - ZOOM_STEP)
 
-    fun resetZoom(): Int = setZoom(ZOOM_DEFAULT)
+    /** Back to the system font size, which text then follows again. */
+    fun resetZoom(): Int {
+        zoomStore.clear()
+        textZoom = snapZoom(fontScaleZoom)
+        return textZoom
+    }
+
+    /** The system font size changed to [percent]; text follows it unless the user zoomed. */
+    fun fontScaleChanged(percent: Int): Int {
+        fontScaleZoom = percent
+        if (zoomStore.load() == null) textZoom = snapZoom(percent)
+        return textZoom
+    }
 
     private fun setZoom(value: Int): Int {
         textZoom = snapZoom(value)

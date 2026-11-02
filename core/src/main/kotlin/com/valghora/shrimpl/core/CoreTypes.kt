@@ -45,6 +45,9 @@ data class UaResolution(val mode: UaMode, val reason: UaReason)
 interface ZoomStore {
     fun load(): Int?
     fun save(value: Int)
+
+    /** Forgets the saved zoom, so text follows the system font size again. */
+    fun clear() {}
 }
 
 interface UaStore {

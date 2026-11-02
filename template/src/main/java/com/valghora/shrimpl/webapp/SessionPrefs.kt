@@ -16,6 +16,8 @@ class SessionPrefs(context: Context) : ZoomStore, UaStore {
 
     override fun save(value: Int) = prefs.edit { putInt(KEY_TEXT_ZOOM, value) }
 
+    override fun clear() = prefs.edit { remove(KEY_TEXT_ZOOM) }
+
     override var userChoice: UaMode?
         get() = prefs.getString(KEY_UA_CHOICE, null)?.let { name -> UaMode.entries.firstOrNull { it.name == name } }
         set(value) = prefs.edit { if (value == null) remove(KEY_UA_CHOICE) else putString(KEY_UA_CHOICE, value.name) }
