@@ -55,3 +55,4 @@ Each grade records a one-line note for any score below 2, so a second grader can
 
 | Run | Commit | Integrity | Traceability | KDoc | Noise | Anchoring | Rubric | Combined |
 |---|---|---|---|---|---|---|---|---|
+| baseline | 0400b7d | 99.7 | 48.1 | 66.7 | 100.0 | 78.9 | 97.2 | **85.6** |
