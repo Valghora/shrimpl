@@ -47,7 +47,6 @@ import com.valghora.shrimpl.ui.common.BuildSheet
 import com.valghora.shrimpl.ui.common.Notice
 import com.valghora.shrimpl.ui.common.PillButton
 import com.valghora.shrimpl.ui.common.TooltipIconButton
-import com.valghora.shrimpl.ui.common.asHeading
 import com.valghora.shrimpl.ui.common.withoutBottom
 import com.valghora.shrimpl.ui.form.FormActions
 import com.valghora.shrimpl.ui.form.FormTitle
