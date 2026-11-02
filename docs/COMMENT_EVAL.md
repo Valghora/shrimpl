@@ -75,4 +75,10 @@ requirement traceability through code comments (OpenFastTrace, StrictDoc, Doorst
 
 | Run | Commit | Integrity | Traceability | KDoc | Noise | Anchoring | Rubric | Combined |
 |---|---|---|---|---|---|---|---|---|
-| baseline | 0400b7d | 99.7 | 48.1 | 66.7 | 100.0 | 78.9 | 97.2 | **85.6** |
+| baseline, v1 | 0400b7d | 99.7 | 48.1 | 66.7 | 100.0 | 78.9 | 97.2 | **85.6** |
+| after, v1 | c7fa96b | 100.0 | 91.7 | 68.0 | 100.0 | 86.6 | 98.4 | **91.8** |
+| baseline, v2 | 0400b7d | 99.7 | 52.8 | 64.8 | 100.0 | 80.6 | 97.2 | **86.1** |
+| after, v2 | 3bae287 | 100.0 | 100.0 | 66.0 | 100.0 | 87.8 | 98.8 | **92.6** |
+
+Rubric grades for comments unchanged between runs are carried over; only new or rewritten comments
+are graded again (one grader, the agent that made the changes; see Limits).

@@ -1,0 +1,322 @@
+{
+ "0d55cc9683": {
+  "where": "core/src/main/kotlin/com/valghora/shrimpl/core/CoreTypes.kt:33",
+  "purpose": 2,
+  "accuracy": 2,
+  "concision": 2,
+  "placement": 2,
+  "note": ""
+ },
+ "022c644978": {
+  "where": "core/src/main/kotlin/com/valghora/shrimpl/core/build/SigningKeys.kt:72",
+  "purpose": 2,
+  "accuracy": 2,
+  "concision": 2,
+  "placement": 2,
+  "note": ""
+ },
+ "06fc21b98b": {
+  "where": "core/src/main/kotlin/com/valghora/shrimpl/core/discovery/Discovery.kt:204",
+  "purpose": 1,
+  "accuracy": 2,
+  "concision": 2,
+  "placement": 2,
+  "note": "section header: structure only"
+ },
+ "0d10010b09": {
+  "where": "core/src/main/kotlin/com/valghora/shrimpl/core/discovery/Evidence.kt:41",
+  "purpose": 2,
+  "accuracy": 2,
+  "concision": 2,
+  "placement": 2,
+  "note": ""
+ },
+ "08a58060d9": {
+  "where": "core/src/main/kotlin/com/valghora/shrimpl/core/discovery/Urls.kt:13",
+  "purpose": 2,
+  "accuracy": 2,
+  "concision": 2,
+  "placement": 2,
+  "note": ""
+ },
+ "020d5d79c9": {
+  "where": "core/src/main/kotlin/com/valghora/shrimpl/core/profile/Profile.kt:72",
+  "purpose": 2,
+  "accuracy": 2,
+  "concision": 2,
+  "placement": 2,
+  "note": ""
+ },
+ "0f8c104357": {
+  "where": "core/src/main/kotlin/com/valghora/shrimpl/core/records/EmbeddedRecord.kt:10",
+  "purpose": 2,
+  "accuracy": 2,
+  "concision": 2,
+  "placement": 2,
+  "note": ""
+ },
+ "0f0c70b6a5": {
+  "where": "core/src/main/kotlin/com/valghora/shrimpl/core/records/WebAppDraft.kt:45",
+  "purpose": 2,
+  "accuracy": 2,
+  "concision": 1,
+  "placement": 2,
+  "note": "three clauses with nested parentheses; needs a second read"
+ },
+ "0d71da1a80": {
+  "where": "core/src/main/kotlin/com/valghora/shrimpl/core/records/WebAppRecord.kt:130",
+  "purpose": 2,
+  "accuracy": 2,
+  "concision": 2,
+  "placement": 2,
+  "note": ""
+ },
+ "03de46c0c8": {
+  "where": "core/src/main/kotlin/com/valghora/shrimpl/core/testing/TestTags.kt:26",
+  "purpose": 2,
+  "accuracy": 2,
+  "concision": 2,
+  "placement": 2,
+  "note": ""
+ },
+ "0262be7c8e": {
+  "where": "shrimpl/src/main/java/com/valghora/shrimpl/build/WebAppFactory.kt:88",
+  "purpose": 2,
+  "accuracy": 2,
+  "concision": 2,
+  "placement": 2,
+  "note": ""
+ },
+ "0021bb4042": {
+  "where": "shrimpl/src/main/java/com/valghora/shrimpl/data/AppSettings.kt:28",
+  "purpose": 2,
+  "accuracy": 2,
+  "concision": 2,
+  "placement": 2,
+  "note": ""
+ },
+ "01a232c6a7": {
+  "where": "shrimpl/src/main/java/com/valghora/shrimpl/data/AppSettings.kt:64",
+  "purpose": 2,
+  "accuracy": 2,
+  "concision": 1,
+  "placement": 2,
+  "note": "word order ('web apps a previous install of Shrimpl built ... has run') needs a second read"
+ },
+ "0eb6658c87": {
+  "where": "shrimpl/src/main/java/com/valghora/shrimpl/data/SigningKeyStore.kt:19",
+  "purpose": 2,
+  "accuracy": 2,
+  "concision": 2,
+  "placement": 2,
+  "note": ""
+ },
+ "0771991058": {
+  "where": "shrimpl/src/main/java/com/valghora/shrimpl/data/TemplateProvider.kt:13",
+  "purpose": 1,
+  "accuracy": 2,
+  "concision": 2,
+  "placement": 2,
+  "note": "omits the non-obvious part: copied from assets once per template version, older copies deleted"
+ },
+ "05ef7adbbc": {
+  "where": "shrimpl/src/main/java/com/valghora/shrimpl/discovery/SiteDiscovery.kt:79",
+  "purpose": 2,
+  "accuracy": 2,
+  "concision": 1,
+  "placement": 2,
+  "note": "a timing contract packed into a section-header banner"
+ },
+ "03a529f3c7": {
+  "where": "shrimpl/src/main/java/com/valghora/shrimpl/discovery/SiteDiscovery.kt:216",
+  "purpose": 2,
+  "accuracy": 2,
+  "concision": 2,
+  "placement": 2,
+  "note": ""
+ },
+ "07e4939995": {
+  "where": "shrimpl/src/main/java/com/valghora/shrimpl/install/Installer.kt:20",
+  "purpose": 2,
+  "accuracy": 2,
+  "concision": 2,
+  "placement": 2,
+  "note": ""
+ },
+ "00d1cec73c": {
+  "where": "shrimpl/src/main/java/com/valghora/shrimpl/install/SessionInstaller.kt:83",
+  "purpose": 2,
+  "accuracy": 2,
+  "concision": 2,
+  "placement": 2,
+  "note": ""
+ },
+ "0ef25d54d7": {
+  "where": "shrimpl/src/main/java/com/valghora/shrimpl/install/SessionInstaller.kt:135",
+  "purpose": 2,
+  "accuracy": 2,
+  "concision": 2,
+  "placement": 2,
+  "note": ""
+ },
+ "063a3408f1": {
+  "where": "shrimpl/src/main/java/com/valghora/shrimpl/install/ShellService.kt:6",
+  "purpose": 2,
+  "accuracy": 2,
+  "concision": 2,
+  "placement": 2,
+  "note": ""
+ },
+ "00b5e9ccfd": {
+  "where": "shrimpl/src/main/java/com/valghora/shrimpl/install/ShizukuInstaller.kt:25",
+  "purpose": 2,
+  "accuracy": 2,
+  "concision": 2,
+  "placement": 2,
+  "note": ""
+ },
+ "0440a32f52": {
+  "where": "shrimpl/src/main/java/com/valghora/shrimpl/ui/ShrimplNavigation.kt:91",
+  "purpose": 2,
+  "accuracy": 2,
+  "concision": 2,
+  "placement": 1,
+  "note": "describes showBack and PaneCard set ~40 lines below, not the code it sits on"
+ },
+ "05ea284e51": {
+  "where": "shrimpl/src/main/java/com/valghora/shrimpl/ui/common/BuildController.kt:25",
+  "purpose": 2,
+  "accuracy": 2,
+  "concision": 2,
+  "placement": 2,
+  "note": ""
+ },
+ "05cf5f59bc": {
+  "where": "shrimpl/src/main/java/com/valghora/shrimpl/ui/common/BuildController.kt:124",
+  "purpose": 2,
+  "accuracy": 2,
+  "concision": 2,
+  "placement": 2,
+  "note": ""
+ },
+ "0d1a2ecc69": {
+  "where": "shrimpl/src/main/java/com/valghora/shrimpl/ui/common/SettingsItems.kt:137",
+  "purpose": 2,
+  "accuracy": 2,
+  "concision": 1,
+  "placement": 2,
+  "note": "'In a section the section clips it' needs a second read"
+ },
+ "072edb2d4b": {
+  "where": "shrimpl/src/main/java/com/valghora/shrimpl/ui/common/SettingsItems.kt:166",
+  "purpose": 2,
+  "accuracy": 2,
+  "concision": 2,
+  "placement": 2,
+  "note": ""
+ },
+ "07ea69834f": {
+  "where": "shrimpl/src/main/java/com/valghora/shrimpl/ui/create/CreateViewModel.kt:84",
+  "purpose": 2,
+  "accuracy": 2,
+  "concision": 2,
+  "placement": 2,
+  "note": ""
+ },
+ "025b76bf6c": {
+  "where": "shrimpl/src/main/java/com/valghora/shrimpl/ui/home/HomeScreen.kt:336",
+  "purpose": 2,
+  "accuracy": 2,
+  "concision": 2,
+  "placement": 2,
+  "note": ""
+ },
+ "0cd9ac5651": {
+  "where": "shrimpl/src/main/java/com/valghora/shrimpl/ui/home/HomeScreen.kt:577",
+  "purpose": 2,
+  "accuracy": 2,
+  "concision": 2,
+  "placement": 2,
+  "note": ""
+ },
+ "0a3d0a5475": {
+  "where": "shrimpl/src/main/java/com/valghora/shrimpl/ui/home/HomeScreen.kt:645",
+  "purpose": 2,
+  "accuracy": 2,
+  "concision": 2,
+  "placement": 2,
+  "note": ""
+ },
+ "0b074e1250": {
+  "where": "shrimpl/src/main/java/com/valghora/shrimpl/ui/home/HomeScreen.kt:713",
+  "purpose": 2,
+  "accuracy": 2,
+  "concision": 2,
+  "placement": 2,
+  "note": ""
+ },
+ "0c6021d400": {
+  "where": "shrimpl/src/main/java/com/valghora/shrimpl/ui/home/HomeViewModel.kt:97",
+  "purpose": 2,
+  "accuracy": 2,
+  "concision": 1,
+  "placement": 2,
+  "note": "'the same settings as the next build' is ambiguous"
+ },
+ "014c734bfc": {
+  "where": "shrimpl/src/main/java/com/valghora/shrimpl/ui/settings/SettingsViewModel.kt:33",
+  "purpose": 2,
+  "accuracy": 2,
+  "concision": 2,
+  "placement": 2,
+  "note": ""
+ },
+ "09513b7465": {
+  "where": "shrimpl/src/main/java/com/valghora/shrimpl/ui/settings/SettingsViewModel.kt:47",
+  "purpose": 2,
+  "accuracy": 2,
+  "concision": 2,
+  "placement": 2,
+  "note": ""
+ },
+ "06c13c52c7": {
+  "where": "template/src/main/java/com/valghora/shrimpl/webapp/MainActivity.kt:161",
+  "purpose": 2,
+  "accuracy": 2,
+  "concision": 2,
+  "placement": 2,
+  "note": ""
+ },
+ "084ee52c6f": {
+  "where": "template/src/main/java/com/valghora/shrimpl/webapp/MainActivity.kt:310",
+  "purpose": 2,
+  "accuracy": 1,
+  "concision": 2,
+  "placement": 2,
+  "note": "bars fade only without a caption bar; the comment says they always do"
+ },
+ "078b6e0fa2": {
+  "where": "template/src/main/java/com/valghora/shrimpl/webapp/PageColors.kt:17",
+  "purpose": 2,
+  "accuracy": 2,
+  "concision": 2,
+  "placement": 2,
+  "note": ""
+ },
+ "011be8c6ad": {
+  "where": "template/src/main/java/com/valghora/shrimpl/webapp/SessionPrefs.kt:29",
+  "purpose": 2,
+  "accuracy": 2,
+  "concision": 2,
+  "placement": 2,
+  "note": ""
+ },
+ "0e991f0d7c": {
+  "where": "template/src/main/java/com/valghora/shrimpl/webapp/SessionPrefs.kt:35",
+  "purpose": 2,
+  "accuracy": 2,
+  "concision": 2,
+  "placement": 2,
+  "note": ""
+ }
+}
