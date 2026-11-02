@@ -17,10 +17,16 @@ import org.junit.Assert.assertEquals
 import org.junit.Test
 
 /**
- * Whole drafts for four real sites. The fixtures were recorded from the original Python discovery tool,
- * before it was replaced by these rules: the evidence its collector saw, every response it fetched, and its draft. The
- * expectations have since moved with the rules: brand colors for the icon background, simple-icons
- * looked up by name, and no header color.
+ * Whole drafts for three real sites and a made-up one. The real fixtures were recorded from the
+ * original Python discovery tool, before it was replaced by these rules: the evidence its collector
+ * saw, every response it fetched, and its draft. The expectations have since moved with the rules:
+ * brand colors for the icon background, simple-icons looked up by name, and no header color.
+ *
+ * Chatterbox (chatterbox.example) is written by hand in the same format: a chat app with no web
+ * manifest, a simple-icons brand (a made-up entry in simple-icons.json, with its own glyph), a
+ * logged-out redirect from /app to /login, related domains (chatterbox.test, chatterboxcdn.example)
+ * beside a third-party one, camera, microphone and notification signals, and a Permissions-Policy
+ * that turns location off.
  */
 class DiscoveryFixturesTest {
     private val psl = PublicSuffixList(resource("public_suffix_list.dat"))
@@ -32,7 +38,7 @@ class DiscoveryFixturesTest {
     private fun resource(name: String) = javaClass.getResource("/discovery/$name")!!.readText()
 
     /**
-     * Replays recorded fetches in order, and fails on any URL Python did not fetch. simple-icons
+     * Replays recorded fetches in order, and fails on any URL the fixture does not record. simple-icons
      * lookups answer from the recorded glyph files and the brand list, as cdn.simpleicons.org would.
      */
     private inner class Recorded(json: JsonObject) : IconSources {
@@ -49,11 +55,11 @@ class DiscoveryFixturesTest {
 
         override fun fetch(url: String): ByteArray? {
             fetched += url
-            check(url in responses) { "fetched $url, which the Python version did not" }
+            check(url in responses) { "fetched $url, which the fixture does not record" }
             return responses[url]
         }
 
-        /** What Python fetched, in order, except simple-icons glyphs; data: URLs are decoded locally. */
+        /** What the fixture records as fetched, in order, except simple-icons glyphs; data: URLs are decoded locally. */
         fun recordInOrder() = responses.keys.filterNot { it.startsWith("data:") || it.startsWith(GLYPHS) }
     }
 
@@ -125,5 +131,5 @@ class DiscoveryFixturesTest {
     fun squoosh() = check("squoosh")
 
     @Test
-    fun discord() = check("discord")
+    fun chatterbox() = check("chatterbox")
 }

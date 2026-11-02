@@ -1,0 +1,112 @@
+{
+ "desktop": {
+  "requestedUrl": "https://chatterbox.example/app",
+  "finalUrl": "https://chatterbox.example/login",
+  "status": 200,
+  "error": null,
+  "headers": {
+   "content-type": "text/html; charset=utf-8",
+   "permissions-policy": "geolocation=(), interest-cohort=()"
+  },
+  "redirectChain": [
+   "https://chatterbox.example/app"
+  ],
+  "requests": [
+   {
+    "url": "https://chatterbox.example/app",
+    "type": "document"
+   },
+   {
+    "url": "https://chatterbox.example/assets/app.4f1c.js",
+    "type": "script"
+   },
+   {
+    "url": "https://chatterbox.example/assets/app.4f1c.css",
+    "type": "stylesheet"
+   },
+   {
+    "url": "https://media.chatterboxcdn.example/avatars/1.png",
+    "type": "image"
+   },
+   {
+    "url": "https://gateway.chatterbox.test/?v=1",
+    "type": "xhr"
+   },
+   {
+    "url": "https://captcha.thirdparty.example/api.js",
+    "type": "script"
+   },
+   {
+    "url": "data:image/png;base64,AAAA",
+    "type": "image"
+   }
+  ],
+  "signals": {
+   "getUserMedia": true,
+   "notificationPermission": false,
+   "showNotification": true,
+   "pushManager": false,
+   "serviceWorker": false,
+   "webRtc": true
+  },
+  "manifestUrl": null,
+  "manifest": null,
+  "page": {
+   "title": "Chatterbox",
+   "metas": [
+    {
+     "name": "viewport",
+     "content": "width=device-width, initial-scale=1.0",
+     "media": ""
+    },
+    {
+     "name": "og:type",
+     "content": "website",
+     "media": ""
+    },
+    {
+     "name": "og:site_name",
+     "content": "Chatterbox",
+     "media": ""
+    },
+    {
+     "name": "og:title",
+     "content": "Chatterbox - Group chat for everyone",
+     "media": ""
+    }
+   ],
+   "links": [
+    {
+     "rel": "preconnect",
+     "href": "https://media.chatterboxcdn.example/",
+     "sizes": "",
+     "color": ""
+    }
+   ],
+   "themeColors": [],
+   "topColor": "#121214"
+  }
+ },
+ "dark": {
+  "status": 200,
+  "error": null,
+  "finalUrl": "https://chatterbox.example/login",
+  "title": "Chatterbox",
+  "topColor": "#121214",
+  "text": "Welcome back!\nEmail or Phone Number*\nPassword*\nForgot your password?\nLog In\nNeed an account?\nRegister",
+  "navigations": [
+   "https://chatterbox.example/login"
+  ]
+ },
+ "webview": {
+  "status": 200,
+  "error": null,
+  "finalUrl": "https://chatterbox.example/login",
+  "title": "Chatterbox",
+  "topColor": "#121214",
+  "text": "Welcome back!\nEmail or Phone Number*\nPassword*\nForgot your password?\nLog In\nNeed an account?\nRegister",
+  "navigations": [
+   "https://chatterbox.example/app"
+  ]
+ }
+}

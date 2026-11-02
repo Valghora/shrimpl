@@ -231,7 +231,7 @@ binary translation) on any device.
   - `ManifestPatcher`, `WebAppBuilder` and `SigningKeys` (R5, R8).
 - R4.3 `:core` tests reach at least 95 % line coverage (JaCoCo, verified by `:core:check`); they
   include the patcher and builder run against the real template release APK, and discovery on stored
-  fixtures of four real sites.
+  fixtures of three real sites and a made-up one.
 - R4.4 Dependencies, as in `gradle/libs.versions.toml`:
   - `:core`: kotlinx-serialization-json, apksig.
   - `:template`: T1.1.

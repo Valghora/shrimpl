@@ -1,28 +1,29 @@
 {
-  "requestedUrl": "https://discord.com/app",
-  "appId": "discord",
+  "requestedUrl": "https://chatterbox.example/app",
+  "appId": "chatterbox",
   "fields": {
     "START_URL": {
-      "value": "https://discord.com/app",
+      "value": "https://chatterbox.example/app",
       "source": "requested URL",
       "confidence": "high"
     },
     "INTERNAL_DOMAINS": {
       "value": [
-        "discord.com",
-        "discord.gg"
+        "chatterbox.example",
+        "chatterbox.test",
+        "chatterboxcdn.example"
       ],
-      "source": "site domain + observed domains containing 'discord'",
+      "source": "site domain + observed domains containing 'chatterbox'",
       "confidence": "medium"
     },
     "APP_NAME": {
-      "value": "Discord",
+      "value": "Chatterbox",
       "source": "simple-icons brand title",
       "confidence": "high"
     },
     "ICON_BACKGROUND_HEX": {
-      "value": "#5865F2",
-      "source": "simple-icons brand color (Discord)",
+      "value": "#4F46E5",
+      "source": "simple-icons brand color (Chatterbox)",
       "confidence": "high"
     },
     "ALLOW_MICROPHONE": {
@@ -49,11 +50,11 @@
   "icon": {
     "mode": "svg",
     "ext": "svg",
-    "color": "#5865F2",
-    "color_source": "simple-icons brand color (Discord)",
-    "source": "simple-icons 'discord'",
+    "color": "#4F46E5",
+    "color_source": "simple-icons brand color (Chatterbox)",
+    "source": "simple-icons 'chatterbox'",
     "confidence": "high",
-    "sha256": "1d364b72c9eaf1fe37d17ca88cd8fb541308dc0f3b09e2ab3b824f380b3493d5"
+    "sha256": "52570e0e5938e350c1b3453334240b0d7b1c375e42d711485931b36702199309"
   },
   "notes": [
     {
