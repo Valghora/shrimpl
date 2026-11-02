@@ -212,7 +212,7 @@
     <string name="notice_info">Information</string>
     <string name="notice_caution">Caution</string>
     <string name="notice_error">Error</string>
-    <string name="field_pause_power_save_detail">Pauses the site while battery saver is enabled. Saves battery, but notifications will not arrive until resuming the app</string>
+    <string name="field_pause_power_save_detail">Pauses the site while battery saver is enabled. Saves battery, but notifications will not arrive until resuming the app.</string>
     <string name="request_root">Request Root</string>
     <string name="request_shizuku">Request Shizuku</string>
     <string name="request_root_failed">Failed to acquire root</string>
