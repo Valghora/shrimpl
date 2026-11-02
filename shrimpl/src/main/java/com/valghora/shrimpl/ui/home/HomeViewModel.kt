@@ -94,7 +94,7 @@ class HomeViewModel(private val container: AppContainer) : ViewModel() {
 
     fun dismissKeyNotice(appIds: Set<String>) = container.settings.dismissKeyNotice(appIds)
 
-    /** Reinstall or update: the same settings as the next build (R11.3, R11.4). */
+    /** Rebuilds [record] from its saved settings with the next build number: Reinstall, Update or Rebuild (R11.3, R11.4). */
     fun rebuild(record: WebAppRecord) {
         build.start(requestFor(record))
     }

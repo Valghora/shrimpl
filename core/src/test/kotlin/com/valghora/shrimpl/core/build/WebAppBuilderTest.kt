@@ -97,6 +97,7 @@ class WebAppBuilderTest {
         )
     }
 
+    /** R0.4: the core test that checks every web app it builds for native code. */
     @Test
     fun webAppsHaveNoNativeCode() {
         // R0: generated web apps are dex and resources only, so they run natively on every ARM and

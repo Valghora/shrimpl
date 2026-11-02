@@ -27,14 +27,17 @@ sealed interface InstallResult {
     data class Failure(val message: String, val methodUnavailable: Boolean = false) : InstallResult
 }
 
-/** One way to install and uninstall web apps (R6.1). */
+/** One way to install and uninstall web apps (R1.4, R6.1): the system installer, Shizuku or root. */
 interface Installer {
     val method: InstallMethod
 
+    /** Whether this method can be used now (Shizuku running and permitted, root granted). */
     suspend fun availability(): Availability
 
+    /** Installs or updates [apk]; the system installer may wait for the user to confirm (R6.5). */
     suspend fun install(apk: File): InstallResult
 
+    /** Uninstalls [packageName] with this method; the system installer shows its own dialog (R6.4). */
     suspend fun uninstall(packageName: String): InstallResult
 }
 

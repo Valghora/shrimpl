@@ -44,7 +44,9 @@ data class ManifestInfo(
 class ManifestFormatException(message: String) : RuntimeException(message)
 
 /**
- * Reads and rewrites a compiled (binary XML) AndroidManifest.xml, the form it takes inside an APK.
+ * Reads and rewrites a compiled (binary XML) AndroidManifest.xml, the form it takes inside an APK
+ * (docs/SHRIMPL_SPEC.md R8.2): the package, label, versions, permissions and features, and the window
+ * values the profile sets (R7.5).
  *
  * Renaming the package also renames every string that starts with the old package name followed by
  * ".": permissions and provider authorities derived from it would otherwise make a copy fail to
@@ -157,7 +159,7 @@ object ManifestPatcher {
         return (value shl 8) or COMPLEX_UNIT_DIP
     }
 
-    // ---------- Binary XML model ----------
+    // ----- Binary XML model -----
 
     private class StringPool(
         val strings: MutableList<String>,

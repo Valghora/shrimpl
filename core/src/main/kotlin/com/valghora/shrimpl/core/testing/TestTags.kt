@@ -45,8 +45,8 @@ object TestTags {
     private val LEADING = Regex("""^\s*\[?\s*([A-Za-z-]+(?:\s*,\s*[A-Za-z-]+)*)\s*]?(?=\s|$)""")
 
     /**
-     * The tags at the start of [name], separated by commas: "update,cert Gmail", "update, cert Gmail"
-     * or "[update,cert] Gmail". Every part must be a known tag, so an ordinary first word
+     * The tags at the start of [name] (docs/SHRIMPL_SPEC.md R13.1), separated by commas: "update,cert
+     * Gmail", "update, cert Gmail" or "[update,cert] Gmail". Every part must be a known tag, so an ordinary first word
      * ("Example", "Updates") is never read as one.
      */
     fun parse(name: String): Set<TestTag> {

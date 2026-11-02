@@ -198,7 +198,7 @@ class BuildController(private val container: AppContainer, private val scope: Co
     }
 
     /**
-     * R13: the test tags of a build that plays back instead of building: an existing app whose name
+     * R13.2: the test tags of a build that plays back instead of building: an existing app whose name
      * has tags and keeps them. Creating an app, or saving one with its tags removed, builds for real.
      */
     private fun simulated(request: BuildRequest): Set<TestTag>? {
@@ -208,7 +208,7 @@ class BuildController(private val container: AppContainer, private val scope: Co
     }
 
     /**
-     * R13: walks the sheet for [record] through the stages ([uninstallFirst] adds Uninstalling) at the usual pace
+     * R13.2: walks the sheet for [record] through the stages ([uninstallFirst] adds Uninstalling) at the usual pace
      * without touching the app or its record, then ends as the [tags] say: "Install unknown apps",
      * waiting for confirmation (until Cancel), turned down, failed, or installed.
      */

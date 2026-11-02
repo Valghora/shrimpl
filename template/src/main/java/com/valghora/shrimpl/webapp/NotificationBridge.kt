@@ -23,7 +23,10 @@ import java.util.concurrent.atomic.AtomicInteger
 import org.json.JSONException
 import org.json.JSONObject
 
-/** Web Notification API bridge: page polyfill -> WebMessageListener -> system notification (docs/TEMPLATE_SPEC.md T7). */
+/**
+ * Web Notification API bridge (docs/TEMPLATE_SPEC.md T7): a document-start polyfill (T7.3) posts to a
+ * `WebMessageListener` limited to the internal origins (T7.2), which shows a system notification (T7.4).
+ */
 class NotificationBridge(context: Context, private val controller: DesktopSessionController) {
 
     private val appContext = context.applicationContext
@@ -35,7 +38,10 @@ class NotificationBridge(context: Context, private val controller: DesktopSessio
         }
     }
 
+    /** Installs the listener and polyfill before the first load, if the WebView supports both (T7.1); else logs once. */
     fun install(webView: WebView) {
+        // Invariant: each androidx.webkit call sits directly inside its own isFeatureSupported check,
+        // nested, never `a && b`: lint's RequiresFeature check can't follow anything else (T1.3).
         if (WebViewFeature.isFeatureSupported(WebViewFeature.WEB_MESSAGE_LISTENER)) {
             if (WebViewFeature.isFeatureSupported(WebViewFeature.DOCUMENT_START_SCRIPT)) {
                 createChannel()
@@ -68,6 +74,7 @@ class NotificationBridge(context: Context, private val controller: DesktopSessio
         post(json.optString("title").take(200), json.optString("body").take(1000), json.optString("tag"))
     }
 
+    /** Posts on the channel named after the app; the ID comes from [tag], else a counter (T7.4). */
     private fun post(title: String, body: String, tag: String) {
         if (ContextCompat.checkSelfPermission(appContext, Manifest.permission.POST_NOTIFICATIONS) !=
             PackageManager.PERMISSION_GRANTED

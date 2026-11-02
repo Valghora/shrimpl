@@ -134,7 +134,7 @@ fun SettingsItem(
     Row(
         modifier
             .fillMaxWidth()
-            // In a section the section clips it to its place in the group.
+            // Inside a SettingsSection, the section clips each item to its place in the group.
             .then(if (LocalInGroup.current) Modifier else Modifier.clip(ItemShape))
             .background(MaterialTheme.colorScheme.surfaceContainer)
             .then(if (onClick != null) Modifier.clickable(enabled = enabled, role = role, onClick = onClick) else Modifier)

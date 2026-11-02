@@ -88,8 +88,8 @@ fun ShrimplNavigation(shortcuts: Flow<AppShortcut>) {
         backNavigationBehavior = BackNavigationBehavior.PopUntilContentChange,
         directive = directive,
     )
-    // With two panes the detail has no back arrow (adaptive skill: detail screens in a list-detail
-    // layout must not show one), and both panes are cards on the window background.
+    // Two panes: both are cards on the window background, and the detail has no back arrow (adaptive
+    // skill: detail screens in a list-detail layout must not show one), as the entries below set.
     val twoPane = directive.maxHorizontalPartitions > 1
     val currentTwoPane by rememberUpdatedState(twoPane)
     val show: (NavKey) -> Unit = { key -> backStack.showDetail(key, replace = currentTwoPane) }

@@ -32,7 +32,7 @@ class RecordsAndFormTest {
     )
     private val svg = """<svg viewBox="0 0 24 24"><path d="M0 0h24v24H0z"/></svg>""".toByteArray()
 
-    // ---------- Records ----------
+    // ----- Records -----
 
     @Test
     fun recordRoundTripAndBuildNumbers() {
@@ -119,7 +119,7 @@ class RecordsAndFormTest {
         assertThrows(IllegalArgumentException::class.java) { IconRecord(IconRecord.Kind.LETTER).toSource { ByteArray(0) } }
     }
 
-    // ---------- Drafts ----------
+    // ----- Drafts -----
 
     private val raster = IconChoice.Raster(byteArrayOf(9, 9), "png", 512, true, "web manifest icon (maskable 512px png)", Confidence.MEDIUM)
 
@@ -173,7 +173,7 @@ class RecordsAndFormTest {
         assertFalse(custom.equals(form))
     }
 
-    // ---------- Form ----------
+    // ----- Form -----
 
     @Test
     fun formRoundTripsAProfile() {

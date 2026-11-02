@@ -40,6 +40,10 @@ that alters a requirement updates the spec in the same commit.
    resources change.
 6. SDK checks: minSdk is 37, so never guard APIs at or below 37. Each androidx.webkit call sits
    directly inside its own nested `WebViewFeature.isFeatureSupported` check.
+7. **Comments stay true.** Write and edit comments by the code-comments skill
+   (`.claude/skills/code-comments/SKILL.md`): why, not what; no history; requirement IDs in the KDoc of
+   the implementing declaration; `Invariant:` markers kept true. Before changing behavior a
+   requirement covers, run `scripts/spec_map.sh <ID>`.
 
 ## Verify
 
@@ -50,6 +54,7 @@ that alters a requirement updates the spec in the same commit.
 scripts/check_native_code.sh --none template/build/outputs/apk/release/template-release.apk
 scripts/check_native_code.sh --all-abis shrimpl/build/outputs/apk/debug/shrimpl-debug.apk \
   shrimpl/build/outputs/apk/release/shrimpl-release.apk
+scripts/check_comments.sh --diff origin/main
 ```
 
 There is no emulator in the cloud container; UI changes are confirmed on the owner's devices.

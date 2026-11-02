@@ -10,7 +10,10 @@ class TemplateProvider(private val context: Context) {
         context.assets.open("template/version").bufferedReader().use { it.readText().trim().toInt() }
     }
 
-    /** The template APK as a file (the builder reads it as a zip). */
+    /**
+     * The bundled template APK as a file, since the builder reads it as a zip. It is copied out of the
+     * assets once per template version; older copies are deleted.
+     */
     @Synchronized
     fun file(): File {
         val dir = File(context.noBackupFilesDir, "template")

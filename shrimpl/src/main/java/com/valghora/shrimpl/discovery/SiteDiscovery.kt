@@ -76,7 +76,8 @@ class SiteDiscovery(private val context: Context) {
         var manifestUrl = HtmlHead.manifestUrl(staticPage)
         var manifest = manifestUrl?.let { fetchManifest(network, it) }
 
-        // ----- Rendered pass (R9.3): at most 20 seconds over three visits; the static result stands otherwise -----
+        // ----- Rendered pass (R9.3) -----
+        // At most 20 seconds over three visits; if they fail, the static result stands.
         onStage(Stage.CHECKING_PAGE)
         val rendered = RenderedPass(context)
         val desktop = rendered.visit(url, RenderedPass.Mode.DESKTOP_LIGHT, DESKTOP_TIMEOUT_MS)
@@ -133,7 +134,7 @@ class SiteDiscovery(private val context: Context) {
         }
     }
 
-    /** R13: a test search address goes through the steps up to its failing one, offline, and fails there. */
+    /** A test search address goes through the steps up to its failing one, offline, and fails there (R13.3). */
     private suspend fun playBack(test: TestSearch, onStage: suspend (Stage) -> Unit): Nothing {
         Stage.entries.take(test.stage + 1).forEach { onStage(it) }
         val message = when (test) {

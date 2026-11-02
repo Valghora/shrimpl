@@ -30,7 +30,7 @@ class DiscoveryRulesTest {
 
     private val glyphSvg = """<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M0 0h24v24H0z"/></svg>""".toByteArray()
 
-    // ---------- URLs and the Public Suffix List ----------
+    // ----- URLs and the Public Suffix List -----
 
     @Test
     fun urlParts() {
@@ -64,7 +64,7 @@ class DiscoveryRulesTest {
         assertEquals("b.example", tiny.registrable("a.b.example"))
     }
 
-    // ---------- Colors, slugs and titles ----------
+    // ----- Colors, slugs and titles -----
 
     @Test
     fun colors() {
@@ -119,7 +119,7 @@ class DiscoveryRulesTest {
         assertEquals(SimpleIcons.MAX_LOOKUPS, many.fetched.size)
     }
 
-    // ---------- Raster headers ----------
+    // ----- Raster headers -----
 
     private fun png(width: Int, height: Int): ByteArray {
         val out = ByteArrayOutputStream()
@@ -150,7 +150,7 @@ class DiscoveryRulesTest {
         assertThrows(IconException::class.java) { RasterInfo.of("RIFF....WEBPVP8X".toByteArray()) }
     }
 
-    // ---------- Icon choice ----------
+    // ----- Icon choice -----
 
     private fun manifest(json: String): JsonObject = Json.parseToJsonElement(json).jsonObject
 
@@ -232,7 +232,7 @@ class DiscoveryRulesTest {
         assertTrue(none.fetched.isEmpty())
     }
 
-    // ---------- Whole drafts ----------
+    // ----- Whole drafts -----
 
     private fun visit(page: PageInfo?, manifest: String? = null, extra: Visit.() -> Visit = { this }) = Visit(
         requestedUrl = "https://app.example.com/start",
@@ -394,7 +394,7 @@ class DiscoveryRulesTest {
         assertEquals(evidence, Evidence.decode(Evidence.encode(evidence)))
     }
 
-    // ---------- Static HTML pass ----------
+    // ----- Static HTML pass -----
 
     @Test
     fun parsesHtmlHead() {

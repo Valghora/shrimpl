@@ -95,8 +95,10 @@ data class SvgGlyph(val viewBox: ViewBox, val pathData: String, val evenOdd: Boo
 
 /**
  * SVG path data rewritten so Android's PathParser reads it correctly.
- * Minified path data trips PathParser: arc flags written without separators ("00-4.88") and chained
- * decimals ("-1.51.074") make it miscount parameters and silently draw nothing.
+ *
+ * Invariant: every number is written out separately. Minified path data trips PathParser: arc flags
+ * written without separators ("00-4.88") and chained decimals ("-1.51.074") make it miscount
+ * parameters and silently draw nothing (`SvgGlyphTest.simpleIconsGlyphNormalizes`).
  */
 object PathData {
     private val ARITY = mapOf('M' to 2, 'L' to 2, 'H' to 1, 'V' to 1, 'C' to 6, 'S' to 4, 'Q' to 4, 'T' to 2, 'A' to 7, 'Z' to 0)

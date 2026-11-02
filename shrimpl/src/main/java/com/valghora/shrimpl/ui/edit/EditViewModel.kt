@@ -18,7 +18,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
-/** A web app's settings page (docs/SHRIMPL_SPEC.md R2.3, R4): edits rebuild and update in place. */
+/** A web app's settings page (docs/SHRIMPL_SPEC.md R2.3): edits rebuild and update in place. */
 class EditViewModel(private val container: AppContainer, val appId: String) : ViewModel() {
     private val _record = MutableStateFlow(container.store.get(appId))
     val record: StateFlow<WebAppRecord?> = _record.asStateFlow()

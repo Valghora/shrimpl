@@ -29,7 +29,7 @@ class ProfileTest {
 
     private fun messages(profile: Profile) = ProfileValidator.validate(profile).joinToString("\n") { "${it.field}: ${it.message}" }
 
-    // ---------- Codec ----------
+    // ----- Codec -----
 
     @Test
     fun decodesExampleFixture() {
@@ -100,7 +100,7 @@ class ProfileTest {
         assertTrue(e.message!!.contains("iconBackground: must be #RRGGBB"))
     }
 
-    // ---------- Validation ----------
+    // ----- Validation -----
 
     @Test
     fun validProfilesHaveNoErrors() {
@@ -193,7 +193,7 @@ class ProfileTest {
         assertEquals(listOf("appShortcuts"), fields(sameAsNewWindow))
     }
 
-    // ---------- Derived values ----------
+    // ----- Derived values -----
 
     @Test
     fun derivedValuesForExample() {
@@ -251,7 +251,7 @@ class ProfileTest {
         assertNull(minimal.newWindowShortcutSpec)
     }
 
-    // ---------- App ids ----------
+    // ----- App ids -----
 
     @Test
     fun appIdFromName() {

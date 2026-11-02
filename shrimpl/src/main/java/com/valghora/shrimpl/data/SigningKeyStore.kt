@@ -76,7 +76,7 @@ class SigningKeyStore(context: Context) {
         return Base64.getEncoder().withoutPadding().encodeToString(bytes).toCharArray()
     }
 
-    // ---------- Android Keystore AES-GCM ----------
+    // ----- Android Keystore AES-GCM -----
 
     private fun secretKey(): SecretKey {
         val keyStore = KeyStore.getInstance(ANDROID_KEYSTORE).apply { load(null) }

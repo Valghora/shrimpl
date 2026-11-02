@@ -382,8 +382,9 @@ private fun AppItem(
 ) {
     // R11.7: installed but signed with another key; it can only be fixed (uninstalled, then rebuilt) or removed.
     val locked = installed != null && otherKey
-    // The menu opens where the item was pressed. Its place is kept after it closes, so it doesn't move
-    // while it fades out.
+    // The menu opens where the item was pressed.
+    // Invariant: the menu keeps its place after it closes, so it doesn't jump while it fades out
+    // (found on a device, docs/BUILD_NOTES.md "Robolectric").
     var menuOpen by remember { mutableStateOf(false) }
     var menuAt by remember { mutableStateOf(DpOffset.Zero) }
     val openMenu = { at: DpOffset ->
@@ -412,7 +413,9 @@ private fun AppItem(
     val tapLabel = resolve?.let { stringResource(it.first, record.profile.name) }
     // Tiles have no ⋮ button or row buttons, so their menu also offers Fix (R2.6).
     val actions = menuActions(locked, installed != null, updateAvailable, withFix = tile, onOpen, onEdit, onRebuild, onUninstall, onFix, onRemove)
-    // A dropdown menu opens below its anchor, so the anchor is an empty box at the pressed point.
+    // Invariant: the anchor is an empty box at the pressed point. A dropdown menu opens below its anchor
+    // and adds its offset to the anchor's bottom, so offsetting the menu itself put it far below a tile
+    // (found on a device, docs/BUILD_NOTES.md "Robolectric").
     val menu: @Composable () -> Unit = {
         Box(Modifier.offset { IntOffset(menuAt.x.roundToPx(), menuAt.y.roundToPx()) }) {
             AppMenu(expanded = menuOpen, onDismissRequest = { menuOpen = false }) {

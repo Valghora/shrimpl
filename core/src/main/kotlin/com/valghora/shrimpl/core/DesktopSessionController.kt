@@ -15,7 +15,7 @@ class DesktopSessionController(
     fontScalePercent: Int = ZOOM_DEFAULT,
 ) {
 
-    // ---------- a. URL classification ----------
+    // ----- URL classification -----
 
     fun classify(url: String): UrlClass {
         val trimmed = url.trim()
@@ -30,7 +30,7 @@ class DesktopSessionController(
         }
     }
 
-    // ---------- b. Text zoom ----------
+    // ----- Text zoom -----
 
     /** The system font size as a text zoom: what page text follows until the user zooms (T5.7). */
     private var fontScaleZoom = fontScalePercent
@@ -62,7 +62,7 @@ class DesktopSessionController(
         return textZoom
     }
 
-    // ---------- c. Key resolution ----------
+    // ----- Key resolution -----
 
     fun resolveKey(keyName: String, modifiers: Set<Modifier>, repeatCount: Int): KeyAction {
         val action = builtInAction(keyName, modifiers, includeNewWindow = true)
@@ -89,7 +89,7 @@ class DesktopSessionController(
         return config.enableMultiWindow && shortcut.keyName == keyName && shortcut.modifiers == modifiers
     }
 
-    // ---------- d. Context menu ----------
+    // ----- Context menu -----
 
     fun contextMenuActions(hit: HitType): List<MenuAction> = when (hit) {
         HitType.ANCHOR -> listOf(MenuAction.COPY_LINK, MenuAction.OPEN_LINK)
@@ -98,7 +98,7 @@ class DesktopSessionController(
         HitType.OTHER -> emptyList()
     }
 
-    // ---------- e. Wake state machine ----------
+    // ----- Wake state machine -----
 
     var isAwake: Boolean = true
         private set
@@ -113,7 +113,7 @@ class DesktopSessionController(
         return if (awake) WakeEvent.WAKE else WakeEvent.SLEEP
     }
 
-    // ---------- f. User agent ----------
+    // ----- User agent -----
 
     fun resolveUa(
         configMode: UaMode,
@@ -157,7 +157,7 @@ class DesktopSessionController(
     fun toggleTarget(current: UaMode): UaMode =
         if (current == UaMode.DESKTOP) UaMode.MOBILE else UaMode.DESKTOP
 
-    // ---------- g. Shortcut validation ----------
+    // ----- Shortcut validation -----
 
     /** Errors for invalid key names, empty labels, and collisions with built-in bindings. */
     fun validateShortcuts(): List<String> {
@@ -198,7 +198,7 @@ class DesktopSessionController(
             return (clamped - ZOOM_MIN + ZOOM_STEP / 2) / ZOOM_STEP * ZOOM_STEP + ZOOM_MIN
         }
 
-        // ---------- h. Colors ----------
+        // ----- Colors -----
 
         /** Returns 0xRRGGBB for a valid "#RRGGBB" string, otherwise null. */
         fun parseHex(hex: String): Int? = if (HEX_COLOR.matches(hex)) hex.substring(1).toInt(16) else null

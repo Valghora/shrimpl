@@ -1,0 +1,24 @@
+# Requirements met outside the Kotlin code, so no code cites them (.claude/skills/code-comments/SKILL.md).
+# One ID per line, then where it is met. scripts/check_comments.sh and scripts/comment_eval.py read this.
+R0.1 template build files and dependencies; checked by scripts/check_native_code.sh in CI
+R0.2 Shrimpl's dependencies; checked by scripts/check_native_code.sh in CI
+R0.3 the build pipeline uses apksig and the manifest patcher only (R8); no native tools are bundled
+R0.5 a rule about the build host, not the APKs
+R1.2 a language rule for the whole repository
+R4.1 settings.gradle.kts and each module's build file
+R4.3 core/build.gradle.kts (JaCoCo verification in :core:check)
+R4.4 gradle/libs.versions.toml and the modules' build files
+R7.6 template/build.gradle.kts (applicationId and namespace)
+R11.5 a rule that no code reads web apps' data; nothing to cite
+R12.1 the repository layout and scripts/
+R12.2 .github/workflows/android.yml
+R12.3 shrimpl/build.gradle.kts (release build type)
+T1.1 template/build.gradle.kts dependencies
+T1.2 template/build.gradle.kts release optimization
+T1.3 lint (RequiresFeature) and the rule in CLAUDE.md
+T3.4 template resources; lint's UnusedResources at 0
+T4.1 template/src/main/AndroidManifest.xml
+T4.2 template/src/main/AndroidManifest.xml
+T4.3 template/src/main/AndroidManifest.xml and res/xml/data_extraction_rules.xml
+T4.4 template/src/main/AndroidManifest.xml
+T7.6 a rule that no JavaScript interface exists; nothing to cite

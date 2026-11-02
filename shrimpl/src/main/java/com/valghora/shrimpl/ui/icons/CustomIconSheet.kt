@@ -169,6 +169,7 @@ private const val ACTION_PICK_ICON = "org.adw.launcher.icons.ACTION_PICK_ICON"
 
 private val SOURCE_SIZE = 56.dp
 
+/** Installed icon packs (R10.2): apps that answer [ACTION_PICK_ICON], with their own icon and name. */
 private fun iconPacks(context: Context): List<IconPackApp> {
     val pm = context.packageManager
     return pm.queryIntentActivities(Intent(ACTION_PICK_ICON), PackageManager.ResolveInfoFlags.of(0))

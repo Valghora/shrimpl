@@ -89,6 +89,10 @@ import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 import kotlin.math.roundToInt
 
+/**
+ * The web app's one activity (docs/TEMPLATE_SPEC.md T3.1): a root FrameLayout built in code, holding one
+ * [DesktopWebView], edge to edge (T3.2), with no action bar or XML layout.
+ */
 class MainActivity : AppCompatActivity() {
 
     private lateinit var prefs: SessionPrefs
@@ -126,13 +130,14 @@ class MainActivity : AppCompatActivity() {
     private var pendingPermissionRequest: PermissionRequest? = null
     private var pendingPermissionResources: List<String> = emptyList()
 
+    /** Back goes back in the page history while it can (T5.6); kept in sync in `doUpdateVisitedHistory`. */
     private val backCallback = object : OnBackPressedCallback(false) {
         override fun handleOnBackPressed() {
             webView.goBack()
         }
     }
 
-    // ---------- Full-screen video (docs/ADAPTIVE.md: desktop Request_Fullscreen_Mode, Keyboard_Exit) ----------
+    // ----- Full-screen video (docs/ADAPTIVE.md: desktop Request_Fullscreen_Mode, Keyboard_Exit) -----
 
     /** The page's full-screen element (a video, usually) while it is shown over the window. */
     private var fullscreenView: View? = null
@@ -173,7 +178,7 @@ class MainActivity : AppCompatActivity() {
     private val notificationPermissionLauncher =
         registerForActivityResult(ActivityResultContracts.RequestPermission()) { }
 
-    // ---------- Lifecycle ----------
+    // ----- Lifecycle -----
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -201,6 +206,7 @@ class MainActivity : AppCompatActivity() {
         nightMode = resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK
         root.background = barsBackground
         applyHeaderColors()
+        // T3.2: pad for the system bars, caption bar, display cutout and IME, and consume them.
         ViewCompat.setOnApplyWindowInsetsListener(root) { view, insets ->
             val bars = insets.getInsets(
                 WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.captionBar() or
@@ -229,6 +235,7 @@ class MainActivity : AppCompatActivity() {
         publishToggleShortcut()
 
         if (!handleToggleIntent(intent)) {
+            // T6.8: the start URL loads only when no history was restored.
             val restored = savedInstanceState?.getBundle(STATE_WEBVIEW)?.let { webView.restoreState(it) }
             if (restored == null) webView.loadUrl(WebApp.profile.startUrl)
         }
@@ -243,7 +250,8 @@ class MainActivity : AppCompatActivity() {
 
     override fun onStart() {
         super.onStart()
-        // T8.4: only when the page should not keep running while hidden. Never pauseTimers() here.
+        // T8.4: only when the page should not keep running while hidden.
+        // Invariant: lifecycle methods never call pauseTimers() or resumeTimers(); they are process-wide (T8.4).
         if (!WebApp.profile.keepAliveWhenHidden && webViewAlive) webView.onResume()
     }
 
@@ -272,6 +280,7 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    /** Every WebView is removed from its parent and destroyed (T6.9); pending page requests are turned down. */
     override fun onDestroy() {
         workspaceMonitor.unregister()
         popups.toList().forEach { it.destroy() }
@@ -291,7 +300,7 @@ class MainActivity : AppCompatActivity() {
         webView.destroy()
     }
 
-    // ---------- Window, insets and theme (docs/TEMPLATE_SPEC.md T3) ----------
+    // ----- Window, insets and theme (docs/TEMPLATE_SPEC.md T3) -----
 
     /**
      * The window and caption bar color: the custom color, else the system surface color for the
@@ -307,7 +316,7 @@ class MainActivity : AppCompatActivity() {
 
     private fun barStyle(color: Int) = if (isDark(color)) SystemBarStyle.dark(TRANSPARENT) else SystemBarStyle.light(TRANSPARENT, TRANSPARENT)
 
-    /** Dynamic header: the page's edge colors arrived or changed; the bars fade to them. */
+    /** Dynamic header: the page's edge colors arrived or changed; without a caption bar, the bars fade to them. */
     private fun onPageColors(top: Int, bottom: Int) {
         if (pageColors == top to bottom) return
         pageColors = top to bottom
@@ -370,6 +379,7 @@ class MainActivity : AppCompatActivity() {
             isAppearanceLightNavigationBars = !isDark(bottom)
         }
 
+        // R7.2: the task's label is the profile's name.
         setTaskDescription(
             ActivityManager.TaskDescription.Builder()
                 .setLabel(WebApp.profile.name)
@@ -379,8 +389,9 @@ class MainActivity : AppCompatActivity() {
         )
     }
 
-    // ---------- WebView setup (T5, T6) ----------
+    // ----- WebView setup (T5, T6) -----
 
+    /** Settings, clients and input for the main WebView: focusable at start (T5.1), drops allowed (T5.2). */
     private fun configureMainWebView() {
         applyWebSettings(webView, resolvedMode)
         configureCookies(webView)
@@ -481,9 +492,9 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    // ---------- Navigation routing (T6.6, T6.10) ----------
+    // ----- Navigation routing (T6.6, T6.10) -----
 
-    /** Returns true when the main-frame navigation is handled here instead of loading in place. */
+    /** Returns true when the main-frame navigation is handled here instead of loading in place (T6.6, T6.10). */
     private fun routeMainFrame(url: String): Boolean {
         if (applyStoreRedirectFallback(url)) return true
         return when (controller.classify(url)) {
@@ -573,6 +584,7 @@ class MainActivity : AppCompatActivity() {
             backCallback.isEnabled = view.canGoBack()
         }
 
+        /** T6.7: the crashed WebView is removed and destroyed, and the activity recreated. */
         override fun onRenderProcessGone(view: WebView, detail: RenderProcessGoneDetail): Boolean {
             Log.w(WebApp.profile.appId, "Renderer gone (crashed=${detail.didCrash()}); recreating")
             destroyMainWebView()
@@ -581,7 +593,7 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    // ---------- Popups (T6.6) ----------
+    // ----- Popups (T6.6) -----
 
     private inner class Popup(private val isDialog: Boolean) {
         val view = WebView(this@MainActivity)
@@ -686,7 +698,7 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    // ---------- Chrome client: popups, permissions, file chooser (T6.4–T6.6) ----------
+    // ----- Chrome client: popups, permissions, file chooser (T6.4–T6.6) -----
 
     private inner class AppChromeClient(private val popup: Popup?) : WebChromeClient() {
 
@@ -836,7 +848,7 @@ class MainActivity : AppCompatActivity() {
         callback.invoke(origin, hasLocationPermission(), false)
     }
 
-    // ---------- Android permissions for a page (T6.5, android-permissions-security skill) ----------
+    // ----- Android permissions for a page (T6.5, android-permissions-security skill) -----
 
     /**
      * Gets Android's [missing] permissions for a page on [host], then [finish]es its request. The first
@@ -919,14 +931,16 @@ class MainActivity : AppCompatActivity() {
         return uris.takeIf { it.isNotEmpty() }?.toTypedArray()
     }
 
+    /** Asks for POST_NOTIFICATIONS on a fresh launch when it isn't granted (T7.5). */
     private fun requestNotificationPermissionIfNeeded() {
         if (!isGranted(Manifest.permission.POST_NOTIFICATIONS)) {
             notificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
         }
     }
 
-    // ---------- Downloads (T6.3) ----------
+    // ----- Downloads (T6.3) -----
 
+    /** Hands an http(s) download to the system download manager (T6.3); other schemes get a toast. */
     private fun enqueueDownload(url: String, userAgent: String, contentDisposition: String?, mimeType: String?) {
         if (!isHttpUrl(url)) {
             toast(R.string.toast_download_unsupported)
@@ -949,8 +963,9 @@ class MainActivity : AppCompatActivity() {
         return scheme == "http" || scheme == "https"
     }
 
-    // ---------- Context menu (T5.5) ----------
+    // ----- Context menu (T5.5) -----
 
+    /** The native context menu on links and images (T5.5), when the profile turns it on. */
     override fun onCreateContextMenu(menu: ContextMenu, v: View, menuInfo: ContextMenu.ContextMenuInfo?) {
         super.onCreateContextMenu(menu, v, menuInfo)
         if (v !== webView) return
@@ -1004,8 +1019,9 @@ class MainActivity : AppCompatActivity() {
         webView.requestFocusNodeHref(handler.obtainMessage())
     }
 
-    // ---------- Keyboard (T5.3, T5.4) ----------
+    // ----- Keyboard (T5.3, T5.4) -----
 
+    /** Keys reach the page unchanged unless they are the app's own shortcuts (T5.3); Esc first leaves full-screen video. */
     override fun dispatchKeyEvent(event: KeyEvent): Boolean {
         // Esc leaves full-screen video (Tier 2 Keyboard_Exit).
         if (fullscreenView != null && event.keyCode == KeyEvent.KEYCODE_ESCAPE) {
@@ -1028,6 +1044,7 @@ class MainActivity : AppCompatActivity() {
             KeyAction.ZOOM_IN -> webView.settings.textZoom = controller.zoomIn()
             KeyAction.ZOOM_OUT -> webView.settings.textZoom = controller.zoomOut()
             KeyAction.ZOOM_RESET -> webView.settings.textZoom = controller.resetZoom()
+            // T4.5: another window in its own task; the manifest's launch mode allows several.
             KeyAction.NEW_WINDOW -> startActivity(
                 Intent(this, MainActivity::class.java)
                     .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_MULTIPLE_TASK),
@@ -1037,15 +1054,15 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    /** Ctrl+P: the system print dialog for the page, which can also save it as a PDF (desktop Printing_Support). */
+    /** Ctrl+P: the system print dialog for the page, which can also save it as a PDF (T6.14; desktop Printing_Support). */
     private fun printPage() {
         val name = webView.title?.takeIf(String::isNotBlank) ?: WebApp.profile.name
         getSystemService(PrintManager::class.java).print(name, webView.createPrintDocumentAdapter(name), PrintAttributes.Builder().build())
     }
 
     /**
-     * Shows the page's full-screen element over the whole window with the system bars hidden. A
-     * desktop or split-screen window first asks to become full screen itself, so the video isn't
+     * Shows the page's full-screen element over the whole window with the system bars hidden (T6.13).
+     * A desktop or split-screen window first asks to become full screen itself, so the video isn't
      * confined to the window (desktop Request_Fullscreen_Mode).
      */
     private fun enterFullscreen(view: View, callback: WebChromeClient.CustomViewCallback) {
@@ -1092,6 +1109,7 @@ class MainActivity : AppCompatActivity() {
         if (event.isMetaPressed) add(Modifier.META)
     }
 
+    /** The Keyboard Shortcuts Helper's two groups: the site's shortcuts and Window (T5.4). */
     override fun onProvideKeyboardShortcuts(data: MutableList<KeyboardShortcutGroup>, menu: Menu?, deviceId: Int) {
         super.onProvideKeyboardShortcuts(data, menu, deviceId)
         val appShortcuts = WebApp.profile.appShortcuts.map {
@@ -1131,7 +1149,7 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    // ---------- Desktop/mobile toggle (T6.11) ----------
+    // ----- Desktop/mobile toggle (T6.11) -----
 
     private val uaToggleEnabled: Boolean
         get() = WebApp.profile.uaUserToggle && WebApp.profile.uaFeaturesActive
@@ -1178,8 +1196,9 @@ class MainActivity : AppCompatActivity() {
         return true
     }
 
-    // ---------- Power and visibility (T8.3) ----------
+    // ----- Power and visibility (T8.3) -----
 
+    /** Pauses the page and its timers while the workspace sleeps, and resumes them on wake (T8.3). */
     private fun onWakeEvent(event: WakeEvent) {
         if (!webViewAlive) return
         when (event) {

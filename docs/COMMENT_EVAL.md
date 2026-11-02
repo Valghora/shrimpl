@@ -51,6 +51,18 @@ Each grade records a one-line note for any score below 2, so a second grader can
   templates are handled, but unusual formatting may be missed.
 - The doc-only list can raise traceability; each entry needs a reason and is reviewed like code.
 
+## Sources
+
+The metrics and the code-comments skill draw on:
+[AndroidX KDoc guidelines](https://android.googlesource.com/platform/frameworks/support/+/refs/heads/androidx-main/docs/kdoc_guidelines.md);
+the agent-facing KDoc rules in Google's AppFunctions skill (android/skills,
+`device-ai/appfunctions/references/kdoc-refinement-optimization.md`);
+[detekt's comments rules](https://detekt.dev/docs/next/rules/comments);
+requirement traceability through code comments (OpenFastTrace, StrictDoc, Doorstop);
+[stale instruction files override the code](https://www.emergentmind.com/papers/2610.30571);
+[comments placed at the code they constrain](https://caiopizzol-com.pages.dev/writing/comments-matter-when-the-code-does-not);
+[inaccurate generated comments](https://arxiv.org/abs/2406.14836v1).
+
 ## Results
 
 | Run | Commit | Integrity | Traceability | KDoc | Noise | Anchoring | Rubric | Combined |

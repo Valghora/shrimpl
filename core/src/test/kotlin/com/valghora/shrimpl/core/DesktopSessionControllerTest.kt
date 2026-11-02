@@ -47,7 +47,7 @@ class DesktopSessionControllerTest {
         config: SessionConfig = fixture,
     ) = DesktopSessionController(zoom, FakeUaStore(), config)
 
-    // ---------- a. URL classification ----------
+    // ----- URL classification -----
 
     @Test
     fun classifiesInternalDomainsAndSubdomains() {
@@ -104,7 +104,7 @@ class DesktopSessionControllerTest {
         assertEquals(UrlClass.BLOCKED, c.classify("https:///path-only"))
     }
 
-    // ---------- b. Text zoom ----------
+    // ----- Text zoom -----
 
     @Test
     fun zoomDefaultsAndSteps() {
@@ -154,7 +154,7 @@ class DesktopSessionControllerTest {
         assertEquals(100, DesktopSessionController.snapZoom(null))
     }
 
-    // ---------- c. Key resolution ----------
+    // ----- Key resolution -----
 
     @Test
     fun resolvesBuiltInKeys() {
@@ -207,7 +207,7 @@ class DesktopSessionControllerTest {
         assertEquals(KeyAction.NONE, unset.resolveKey("KEYCODE_N", ctrl, 0))
     }
 
-    // ---------- d. Context menu ----------
+    // ----- Context menu -----
 
     @Test
     fun mapsHitTypesToMenuActions() {
@@ -221,7 +221,7 @@ class DesktopSessionControllerTest {
         assertTrue(c.contextMenuActions(HitType.OTHER).isEmpty())
     }
 
-    // ---------- e. Wake state machine ----------
+    // ----- Wake state machine -----
 
     @Test
     fun wakeEventsOnlyOnStateChange() {
@@ -245,7 +245,7 @@ class DesktopSessionControllerTest {
         assertTrue(ignoring.computeAwake(interactive = true, anyDisplayOn = true, powerSaveMode = true))
     }
 
-    // ---------- f. User agent ----------
+    // ----- User agent -----
 
     @Test
     fun userChoiceHasTopPriority() {
@@ -370,7 +370,7 @@ class DesktopSessionControllerTest {
         assertEquals(UaMode.DESKTOP, c.toggleTarget(UaMode.MOBILE))
     }
 
-    // ---------- g. Shortcut validation ----------
+    // ----- Shortcut validation -----
 
     @Test
     fun configuredShortcutsAreValid() {
@@ -409,7 +409,7 @@ class DesktopSessionControllerTest {
         assertEquals(listOf("APP_SHORTCUTS 'Window clash' collides with built-in NEW_WINDOW"), errors)
     }
 
-    // ---------- h. Colors ----------
+    // ----- Colors -----
 
     @Test
     fun parsesHexColors() {

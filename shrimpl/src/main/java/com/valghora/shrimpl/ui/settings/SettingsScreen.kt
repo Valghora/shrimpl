@@ -200,6 +200,7 @@ fun SettingsScreen(inPane: Boolean, onBack: () -> Unit) {
                 }
 
                 SettingsSection(stringResource(R.string.settings_signing)) {
+                    // R5.4: the certificate's SHA-256 fingerprint, with a copy button.
                     SettingsItem(
                         stringResource(R.string.signing_certificate),
                         summary = if (fingerprint == null) stringResource(R.string.signing_none) else null,

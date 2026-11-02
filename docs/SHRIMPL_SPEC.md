@@ -217,6 +217,9 @@ binary translation) on any device.
   with the column. With one pane (a phone, or any window too narrow for two panes), or in a pane too
   narrow for a 360 dp column beside the button, the form takes the full width and the button floats
   over it, with room below the last section; the title and ⋮ keep their usual places.
+
+## R4 Modules
+
 - R4.1 Three Gradle modules: `:core` (Kotlin JVM), `:template` (Android app, the web app) and
   `:shrimpl` (Android app, the manager). Both apps depend on `:core`; `:shrimpl` bundles the
   template's release APK (R8.1).

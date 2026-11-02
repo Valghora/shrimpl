@@ -43,9 +43,9 @@ data class WebAppDraft(val form: ProfileForm, val icons: IconOptions, val newIma
 
     companion object {
         /**
-         * A new web app's draft (R10.1): Brand from [brand] when there is a brand glyph, Website from
-         * the site's own image [website] (stored as [IconOptions.WEBSITE_IMAGE]) or else a letter of
-         * the name; Brand is selected when present.
+         * A new web app's draft (R10.1). The Brand option is [brand], when the site has a brand glyph,
+         * and is selected. The Website option is the site's own image [website] (stored as
+         * [IconOptions.WEBSITE_IMAGE]), or else a letter of the name.
          */
         fun create(form: ProfileForm, brand: IconRecord?, website: IconChoice.Raster?): WebAppDraft = WebAppDraft(
             form = form,

@@ -48,13 +48,20 @@ class BuildCancelledException : Exception("Build cancelled")
 
 /**
  * Builds a web app on the device from the template APK (docs/SHRIMPL_SPEC.md R8): patches the
- * manifest, replaces the profile and icons, signs with Shrimpl's key, and verifies the result.
+ * manifest, replaces the profile and the icons at their fixed paths (R7.4) and keeps every other entry
+ * (R8.3), signs with Shrimpl's key, and verifies the signature, package and label (R8.4).
  */
 object WebAppBuilder {
     const val PACKAGE_PREFIX = "com.valghora.shrimpl.app"
     const val TEMPLATE_PACKAGE = "com.valghora.shrimpl.template"
 
     /** Fixed paths inside the template APK (R7.4); the template build keeps resource paths unshortened. */
+    /**
+     * Entries the builder replaces or checks (R7.4).
+     *
+     * Invariant: the icon paths only stay fixed because the template's release build turns resource
+     * path shortening off (`android.enableResourceOptimizations=false`, docs/BUILD_NOTES.md "Platform findings").
+     */
     object Paths {
         const val MANIFEST = "AndroidManifest.xml"
         const val PROFILE = "assets/shrimpl/profile.json"

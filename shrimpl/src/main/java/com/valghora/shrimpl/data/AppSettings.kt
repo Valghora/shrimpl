@@ -61,7 +61,7 @@ class AppSettings(context: Context) {
     private val _keyBackedUp = MutableStateFlow(prefs.getBoolean(KEY_BACKED_UP, false))
     val keyBackedUp: StateFlow<Boolean> = _keyBackedUp.asStateFlow()
 
-    /** The one-time search for web apps a previous install of Shrimpl built (R11.6) has run. */
+    /** Whether the one-time search has run for web apps that an earlier install of Shrimpl built (R11.6). */
     var recoveryDone: Boolean
         get() = prefs.getBoolean(KEY_RECOVERY_DONE, false)
         set(value) = prefs.edit { putBoolean(KEY_RECOVERY_DONE, value) }

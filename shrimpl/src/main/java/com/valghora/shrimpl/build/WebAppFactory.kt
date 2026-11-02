@@ -48,7 +48,8 @@ sealed interface BuildOutcome {
 /**
  * Makes and installs a web app (docs/SHRIMPL_SPEC.md R8, R6): renders the icon, builds and signs from
  * the template, installs, and only then saves the record, so a failed install never uses up a build
- * number (R11.3).
+ * number (R11.3). It runs off the main thread, can be cancelled before the install, and reports each
+ * stage (R8.6).
  */
 class WebAppFactory(
     private val context: Context,
