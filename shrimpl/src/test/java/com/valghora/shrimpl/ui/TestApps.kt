@@ -35,6 +35,11 @@ internal object TestApps {
     }
 
     /** Saves both apps and fakes Example's install. */
+    /** Saves [count] more apps, none installed, so the list is long enough to scroll. */
+    fun saveMany(count: Int) {
+        runBlocking { repeat(count) { app.container.store.save(record("Filler${'a' + it}"), emptyMap()) } }
+    }
+
     fun save() {
         runBlocking {
             app.container.store.save(example, emptyMap())

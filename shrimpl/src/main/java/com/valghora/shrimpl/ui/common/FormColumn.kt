@@ -127,16 +127,40 @@ fun PageTopBar(
     val collapsed by remember(scroll, distance, collapsing) {
         derivedStateOf { if (collapsing && scroll != null) (scroll.value / distance).coerceIn(0f, 1f) else 0f }
     }
+    LargeTitleBar(
+        title = title,
+        collapsed = collapsed,
+        navigation = navigation,
+        modifier = modifier,
+        start = column?.let { (it.start + SECTION_LABEL_INSET - GLYPH_INSET).coerceAtLeast(0.dp) } ?: BAR_EDGE,
+        // A 48 dp button centred over the chevrons, 32 dp in from the column's end, ends 8 dp before it.
+        end = column?.let { (paneWidth - (it.start + it.width) + CHEVRON_INSET - BUTTON_HALF).coerceAtLeast(0.dp) } ?: BAR_EDGE,
+        actions = actions,
+    )
+}
+
+/**
+ * The large-title bar every Shrimpl page uses (Home and the settings pages, R2.1, R3.5): [navigation]
+ * (a back arrow, or Home's glyph), the [title] in large type, and [actions] at the end. [collapsed] runs
+ * from 0 (large title on the page's background) to 1 (the usual title size on the container color),
+ * as the page scrolls; a bar that stays put passes 0.
+ */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun LargeTitleBar(
+    title: String,
+    collapsed: Float,
+    navigation: @Composable () -> Unit,
+    modifier: Modifier = Modifier,
+    start: Dp = BAR_EDGE,
+    end: Dp = BAR_EDGE,
+    actions: @Composable RowScope.() -> Unit = {},
+) {
     val typography = MaterialTheme.typography
-    val style = lerp(typography.headlineLarge, typography.titleLarge, collapsed)
-    val background = lerp(MaterialTheme.colorScheme.surface, MaterialTheme.colorScheme.surfaceContainer, collapsed)
-    val start = column?.let { (it.start + SECTION_LABEL_INSET - GLYPH_INSET).coerceAtLeast(0.dp) } ?: BAR_EDGE
-    // A 48 dp button centred over the chevrons, 32 dp in from the column's end, ends 8 dp before it.
-    val end = column?.let { (paneWidth - (it.start + it.width) + CHEVRON_INSET - BUTTON_HALF).coerceAtLeast(0.dp) } ?: BAR_EDGE
     Row(
         modifier
             .fillMaxWidth()
-            .background(if (column == null) background else MaterialTheme.colorScheme.surface)
+            .background(lerp(MaterialTheme.colorScheme.surface, MaterialTheme.colorScheme.surfaceContainer, collapsed))
             .windowInsetsPadding(TopAppBarDefaults.windowInsets)
             .heightIn(min = lerp(EXPANDED_HEIGHT, COLLAPSED_HEIGHT, collapsed))
             .padding(start = start, end = end),
@@ -145,7 +169,7 @@ fun PageTopBar(
         navigation()
         Text(
             title,
-            style = style,
+            style = lerp(typography.headlineLarge, typography.titleLarge, collapsed),
             color = MaterialTheme.colorScheme.onSurface,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
@@ -155,8 +179,9 @@ fun PageTopBar(
     }
 }
 
-/** How far the page scrolls before a one-pane bar has fully collapsed. */
-private val COLLAPSE_DISTANCE = 56.dp
+/** How far a list must scroll before a collapsing bar is fully collapsed. */
+val COLLAPSE_DISTANCE = 56.dp
+
 private val EXPANDED_HEIGHT = 72.dp
 private val COLLAPSED_HEIGHT = 64.dp
 

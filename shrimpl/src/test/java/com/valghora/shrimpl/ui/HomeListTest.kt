@@ -1,17 +1,23 @@
 package com.valghora.shrimpl.ui
 
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.ui.semantics.SemanticsActions
 import androidx.compose.ui.semantics.SemanticsProperties
 import androidx.compose.ui.semantics.getOrNull
 import androidx.compose.ui.test.hasAnyAncestor
 import androidx.compose.ui.test.hasClickAction
+import androidx.compose.ui.test.hasScrollAction
+import androidx.compose.ui.test.hasText
+import androidx.compose.ui.test.isHeading
 import androidx.compose.ui.test.isPopup
 import androidx.compose.ui.test.junit4.v2.createComposeRule
 import androidx.compose.ui.test.longClick
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performScrollToIndex
 import androidx.compose.ui.test.performTouchInput
+import androidx.compose.ui.text.TextLayoutResult
 import com.valghora.shrimpl.R
 import com.valghora.shrimpl.ui.TestApps.awaitHome
 import com.valghora.shrimpl.ui.TestApps.string
@@ -77,5 +83,23 @@ class HomeListTest {
         compose.onNodeWithText(string(R.string.action_edit)).performClick()
         compose.onNodeWithText("Squoosh").performTouchInput { longClick() }
         assertEquals("the long-press menu", expected, menuItems())
+    }
+
+    /** R2.1: with one pane the large title shrinks to the usual bar size as the list scrolls. */
+    @Test
+    fun theLargeTitleShrinksAsTheListScrolls() {
+        TestApps.saveMany(20)
+        compose.waitUntil(5_000) { compose.onAllNodes(hasText("Fillera")).fetchSemanticsNodes().isNotEmpty() }
+        // The title's font size, from its text layout (Robolectric's text heights don't follow it).
+        fun titleSize(): Float {
+            val results = mutableListOf<TextLayoutResult>()
+            compose.onNode(hasText(string(R.string.home_title)) and isHeading()).fetchSemanticsNode()
+                .config[SemanticsActions.GetTextLayoutResult].action?.invoke(results)
+            return results.single().layoutInput.style.fontSize.value
+        }
+        val expanded = titleSize()
+        compose.onNode(hasScrollAction()).performScrollToIndex(15)
+        compose.waitForIdle()
+        assertTrue("the title is smaller once scrolled (${titleSize()} sp < $expanded sp)", titleSize() < expanded - 6f)
     }
 }

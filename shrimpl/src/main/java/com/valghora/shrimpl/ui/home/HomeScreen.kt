@@ -3,6 +3,7 @@ package com.valghora.shrimpl.ui.home
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
@@ -11,7 +12,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.calculateEndPadding
 import androidx.compose.foundation.layout.calculateStartPadding
 import androidx.compose.foundation.layout.fillMaxSize
@@ -25,9 +25,9 @@ import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.border
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Build
 import androidx.compose.material.icons.filled.MoreVert
@@ -44,10 +44,9 @@ import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -67,7 +66,6 @@ import androidx.compose.ui.graphics.Paint
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.input.pointer.PointerEventType
 import androidx.compose.ui.input.pointer.isSecondaryPressed
 import androidx.compose.ui.input.pointer.pointerInput
@@ -103,9 +101,11 @@ import com.valghora.shrimpl.data.InstalledApps
 import com.valghora.shrimpl.ui.common.AppMenu
 import com.valghora.shrimpl.ui.common.AppMenuItem
 import com.valghora.shrimpl.ui.common.BuildSheet
+import com.valghora.shrimpl.ui.common.COLLAPSE_DISTANCE
 import com.valghora.shrimpl.ui.common.CenteredEmptyState
 import com.valghora.shrimpl.ui.common.EmptyStateText
 import com.valghora.shrimpl.ui.common.ItemShape
+import com.valghora.shrimpl.ui.common.LargeTitleBar
 import com.valghora.shrimpl.ui.common.LocalInPane
 import com.valghora.shrimpl.ui.common.NEW_APP_BUTTON_HEIGHT
 import com.valghora.shrimpl.ui.common.NewWebAppButton
@@ -161,11 +161,20 @@ fun HomeScreen(
     var confirmUpdateAll by rememberSaveable { mutableStateOf(false) }
     var confirmUninstall by rememberSaveable { mutableStateOf<String?>(null) }
     val snackbar = remember { SnackbarHostState() }
-    // In a pane card the top bar takes the card's color; full screen it matches Settings.
     val inPane = LocalInPane.current
-    val barColor = if (inPane) MaterialTheme.colorScheme.surface else MaterialTheme.colorScheme.surfaceContainer
-    // The app bar slides away while scrolling down and returns on scroll up (adaptive skill step 5).
-    val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
+    // R2.1: with one pane the large title shrinks to the usual bar size as the list scrolls, as on the
+    // settings pages; beside the detail pane it stays put while the list scrolls under it.
+    val grid = rememberLazyGridState()
+    val distance = with(density) { COLLAPSE_DISTANCE.toPx() }
+    val collapsed by remember(grid, distance, inPane) {
+        derivedStateOf {
+            when {
+                inPane -> 0f
+                grid.firstVisibleItemIndex > 0 -> 1f
+                else -> (grid.firstVisibleItemScrollOffset / distance).coerceIn(0f, 1f)
+            }
+        }
+    }
 
     LifecycleResumeEffect(Unit) {
         model.refresh(context)
@@ -180,24 +189,20 @@ fun HomeScreen(
     }
 
     Scaffold(
-        modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         containerColor = MaterialTheme.colorScheme.surface,
         topBar = {
-            TopAppBar(
-                title = {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        // The theme's primary color, so it follows the user's Material You palette.
-                        Icon(
-                            painterResource(R.drawable.ic_shrimpl_glyph),
-                            contentDescription = null,
-                            modifier = Modifier.size(28.dp),
-                            tint = MaterialTheme.colorScheme.primary,
-                        )
-                        Spacer(Modifier.width(12.dp))
-                        Text(stringResource(R.string.home_title), Modifier.asHeading())
-                    }
+            LargeTitleBar(
+                title = stringResource(R.string.home_title),
+                collapsed = collapsed,
+                navigation = {
+                    // The theme's primary color, so it follows the user's Material You palette.
+                    Icon(
+                        painterResource(R.drawable.ic_shrimpl_glyph),
+                        contentDescription = null,
+                        modifier = Modifier.padding(start = 12.dp).size(28.dp),
+                        tint = MaterialTheme.colorScheme.primary,
+                    )
                 },
-                scrollBehavior = scrollBehavior,
                 actions = {
                     // R2.1: switches between rows and tiles; the choice is kept.
                     val switchLabel = stringResource(if (tiles) R.string.action_show_list else R.string.action_show_tiles)
@@ -208,7 +213,6 @@ fun HomeScreen(
                         Icon(Icons.Filled.Settings, contentDescription = stringResource(R.string.settings_title))
                     }
                 },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = barColor, scrolledContainerColor = barColor),
             )
         },
         floatingActionButton = {
@@ -261,6 +265,7 @@ fun HomeScreen(
             // Tiles sit 12 dp in from the sides; rows run edge to edge with their own inset.
             val gridInset = if (tiles) TILE_INSET else 0.dp
             LazyVerticalGrid(
+                state = grid,
                 columns = GridCells.Adaptive(if (tiles) MIN_TILE_WIDTH else MIN_CELL_WIDTH),
                 // The sides keep clear of a side navigation bar or camera cutout (landscape phones), and
                 // the bottom leaves room so the last card can scroll clear of the floating buttons.
