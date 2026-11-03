@@ -119,15 +119,19 @@ class FormTitleTest {
         assertEquals("the column is centred in the pane", (paneStart + paneEnd) / 2, itemCenter, 3f)
     }
 
-    /** R3.5: with one pane the large title shrinks to the usual bar size as the page scrolls. */
+    /** R3.5: with one pane the large title shrinks to the usual bar size as the page scrolls; the arrow stays put. */
     @Test
     fun onAPhoneTheTitleShrinksAsThePageScrolls() {
         open(420, 900)
         fun titleHeight() = compose.onAllNodes(hasText("Squoosh")).fetchSemanticsNodes()
             .minBy { it.boundsInRoot.top }.boundsInRoot.height / density
+        fun arrow() = compose.onNode(hasContentDescription(string(R.string.action_back))).fetchSemanticsNode().boundsInRoot
         val expanded = titleHeight()
+        val arrowBefore = arrow()
         compose.onNodeWithText(string(R.string.field_location)).performScrollTo()
         compose.waitForIdle()
         assertTrue("the title is smaller once scrolled (${titleHeight()} < $expanded)", titleHeight() < expanded - 4f)
+        // Found on a device: the bar shrank as it collapsed and moved the arrow up with it.
+        assertEquals("the back arrow stays where it was", arrowBefore, arrow())
     }
 }

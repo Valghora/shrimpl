@@ -6,6 +6,7 @@ import androidx.compose.ui.semantics.SemanticsProperties
 import androidx.compose.ui.semantics.getOrNull
 import androidx.compose.ui.test.hasAnyAncestor
 import androidx.compose.ui.test.hasClickAction
+import androidx.compose.ui.test.hasContentDescription
 import androidx.compose.ui.test.hasScrollAction
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.isHeading
@@ -97,9 +98,12 @@ class HomeListTest {
                 .config[SemanticsActions.GetTextLayoutResult].action?.invoke(results)
             return results.single().layoutInput.style.fontSize.value
         }
+        fun settings() = compose.onNode(hasContentDescription(string(R.string.settings_title))).fetchSemanticsNode().boundsInRoot
         val expanded = titleSize()
+        val settingsBefore = settings()
         compose.onNode(hasScrollAction()).performScrollToIndex(15)
         compose.waitForIdle()
         assertTrue("the title is smaller once scrolled (${titleSize()} sp < $expanded sp)", titleSize() < expanded - 6f)
+        assertEquals("the bar's buttons stay where they were", settingsBefore, settings())
     }
 }

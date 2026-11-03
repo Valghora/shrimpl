@@ -31,7 +31,6 @@ import androidx.compose.ui.text.lerp
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.lerp
 
 // The settings column (docs/SHRIMPL_SPEC.md R3.5), shared by every page of settings items: an app's
 // settings, the configuration page and Shrimpl's own settings. Beside the list the page is one column,
@@ -143,7 +142,11 @@ fun PageTopBar(
  * The large-title bar every Shrimpl page uses (Home and the settings pages, R2.1, R3.5): [navigation]
  * (a back arrow, or Home's glyph), the [title] in large type, and [actions] at the end. [collapsed] runs
  * from 0 (large title on the page's background) to 1 (the usual title size on the container color),
- * as the page scrolls; a bar that stays put passes 0.
+ * as the page scrolls; a bar that stays put passes 0. The bar keeps one height, so only the title
+ * moves.
+ *
+ * Invariant: [navigation] and [actions] don't move as the bar collapses (found on a device, 2026-11-03:
+ * a bar that shrank from 72 to 64 dp moved the back arrow up 4 dp).
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -162,7 +165,9 @@ fun LargeTitleBar(
             .fillMaxWidth()
             .background(lerp(MaterialTheme.colorScheme.surface, MaterialTheme.colorScheme.surfaceContainer, collapsed))
             .windowInsetsPadding(TopAppBarDefaults.windowInsets)
-            .heightIn(min = lerp(EXPANDED_HEIGHT, COLLAPSED_HEIGHT, collapsed))
+            // One height whether expanded or collapsed: only the title changes size, so the arrow and
+            // the actions centred beside it stay where they are as the page scrolls.
+            .heightIn(min = BAR_HEIGHT)
             .padding(start = start, end = end),
         verticalAlignment = Alignment.CenterVertically,
     ) {
@@ -182,8 +187,8 @@ fun LargeTitleBar(
 /** How far a list must scroll before a collapsing bar is fully collapsed. */
 val COLLAPSE_DISTANCE = 56.dp
 
-private val EXPANDED_HEIGHT = 72.dp
-private val COLLAPSED_HEIGHT = 64.dp
+/** The bar's height; the large title's 40 dp line fits in it. */
+private val BAR_HEIGHT = 64.dp
 
 /** The bar's start and end padding with one pane, as Material's top app bar has. */
 private val BAR_EDGE = 4.dp
