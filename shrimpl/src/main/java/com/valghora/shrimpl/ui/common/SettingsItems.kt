@@ -62,6 +62,9 @@ private val ITEM_GAP = 3.dp
 /** The rounded rectangle of settings items, also used for the app list's cards. */
 val ItemShape = RoundedCornerShape(OUTER_RADIUS)
 
+/** The widest a settings item's description grows before it wraps (R3.3). */
+val DESCRIPTION_MAX_WIDTH = 480.dp
+
 /** Whether an item sits in a [SettingsSection], which shapes it by its place in the group. */
 val LocalInGroup = staticCompositionLocalOf { false }
 
@@ -147,13 +150,17 @@ fun SettingsItem(
         leading?.invoke()
         Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
             Text(title, style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onSurface)
+            // Descriptions wrap at a fixed width, so a long one doesn't run up against the value or
+            // switch at the end of a wide item (R3.3).
+            val description = Modifier.widthIn(max = DESCRIPTION_MAX_WIDTH)
             summary?.takeIf(String::isNotEmpty)?.let {
-                Text(it, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text(it, description, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
             when {
-                error != null -> Text(error, style = MaterialTheme.typography.bodyMedium, color = errorColor)
+                error != null -> Text(error, description, style = MaterialTheme.typography.bodyMedium, color = errorColor)
                 hint != null -> Text(
                     stringResource(R.string.hint_discovered, hint),
+                    description,
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.tertiary,
                 )

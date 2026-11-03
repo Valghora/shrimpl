@@ -3,6 +3,7 @@ package com.valghora.shrimpl.ui
 import androidx.compose.ui.semantics.SemanticsNode
 import androidx.compose.ui.test.hasContentDescription
 import androidx.compose.ui.test.hasText
+import androidx.compose.ui.test.isRoot
 import androidx.compose.ui.test.junit4.v2.createEmptyComposeRule
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
@@ -51,7 +52,7 @@ class FormTitleTest {
         compose.waitUntil(5_000) { compose.onAllNodes(hasText(string(R.string.section_identity))).fetchSemanticsNodes().isNotEmpty() }
     }
 
-    private val density get() = compose.onNodeWithText(string(R.string.section_identity)).fetchSemanticsNode().layoutInfo.density.density
+    private val density get() = compose.onAllNodes(isRoot()).fetchSemanticsNodes().first().layoutInfo.density.density
 
     private fun SemanticsNode.left() = boundsInRoot.left / density
 
@@ -83,5 +84,24 @@ class FormTitleTest {
             .maxBy { it.boundsInRoot.width }.boundsInRoot.right / density
         val more = compose.onNode(hasContentDescription(string(R.string.action_more))).fetchSemanticsNode().boundsInRoot.center.x / density
         assertEquals("⋮ over the chevrons", columnEnd - 32f, more, 1f)
+    }
+
+    /** R3.5: Shrimpl's Settings uses the same column, title and button placement as an app's settings page. */
+    @Test
+    fun settingsMatchesTheAppSettingsPage() {
+        open(1280, 800)
+        val appColumn = compose.onNodeWithText(string(R.string.section_identity)).fetchSemanticsNode().left()
+        val appMore = compose.onNode(hasContentDescription(string(R.string.action_more))).fetchSemanticsNode().boundsInRoot.center.x / density
+
+        compose.onNodeWithContentDescription(string(R.string.settings_title)).performClick()
+        compose.waitUntil(5_000) { compose.onAllNodes(hasText(string(R.string.settings_appearance))).fetchSemanticsNodes().isNotEmpty() }
+        val sections = compose.onNodeWithText(string(R.string.settings_appearance)).fetchSemanticsNode().left()
+        assertEquals("the same column as an app's settings", appColumn, sections, 1f)
+        val title = compose.onAllNodes(hasText(string(R.string.settings_title))).fetchSemanticsNodes()
+            .filter { it.left() > sections - 8f }
+            .minBy { it.boundsInRoot.top }
+        assertEquals("the title starts where the sections do", sections, title.left(), 1f)
+        val close = compose.onNode(hasContentDescription(string(R.string.action_close))).fetchSemanticsNode().boundsInRoot.center.x / density
+        assertEquals("Close where the app page's ⋮ is", appMore, close, 1f)
     }
 }

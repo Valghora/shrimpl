@@ -7,15 +7,12 @@ import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.widthIn
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Close
@@ -41,7 +38,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
@@ -63,13 +59,15 @@ import com.valghora.shrimpl.data.InstallMethod
 import com.valghora.shrimpl.data.ThemeSetting
 import com.valghora.shrimpl.ui.common.AppTextField
 import com.valghora.shrimpl.ui.common.DropdownItem
+import com.valghora.shrimpl.ui.common.FormActions
+import com.valghora.shrimpl.ui.common.FormColumnLayout
+import com.valghora.shrimpl.ui.common.FormTitle
 import com.valghora.shrimpl.ui.common.NavigationItem
 import com.valghora.shrimpl.ui.common.SettingsItem
 import com.valghora.shrimpl.ui.common.SettingsSection
 import com.valghora.shrimpl.ui.common.SwitchItem
 import com.valghora.shrimpl.ui.common.Tone
 import com.valghora.shrimpl.ui.common.TooltipIconButton
-import com.valghora.shrimpl.ui.common.asHeading
 import com.valghora.shrimpl.ui.common.withoutBottom
 
 /** Shrimpl's settings page (docs/SHRIMPL_SPEC.md R2.5). */
@@ -105,32 +103,38 @@ fun SettingsScreen(inPane: Boolean, onBack: () -> Unit) {
         }
     }
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text(stringResource(R.string.settings_title), Modifier.asHeading()) },
-                navigationIcon = {
-                    // Beside the list there is nothing to go back to; Close returns the pane to its prompt.
-                    if (inPane) {
-                        TooltipIconButton(stringResource(R.string.action_close), onBack) { Icon(Icons.Filled.Close, contentDescription = stringResource(R.string.action_close)) }
-                    } else {
-                        TooltipIconButton(stringResource(R.string.action_back), onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.action_back)) }
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = if (inPane) MaterialTheme.colorScheme.surface else MaterialTheme.colorScheme.surfaceContainer,
-                ),
-            )
-        },
-        snackbarHost = { SnackbarHost(snackbar) },
-    ) { padding ->
-        Column(
-            Modifier.padding(padding.withoutBottom()).fillMaxSize().verticalScroll(rememberScrollState()),
-            horizontalAlignment = Alignment.CenterHorizontally,
-        ) {
-            Column(
-                Modifier.widthIn(max = 720.dp).fillMaxWidth().padding(horizontal = 16.dp)
-                    .padding(bottom = 32.dp + padding.calculateBottomPadding()),
+    // The same column, title and top bar layout as an app's settings page (R2.5, R3.5).
+    BoxWithConstraints(Modifier.fillMaxSize()) {
+        val paneWidth = maxWidth
+        Scaffold(
+            topBar = {
+                TopAppBar(
+                    title = { FormTitle(stringResource(R.string.settings_title), paneWidth, afterIcon = !inPane) },
+                    navigationIcon = {
+                        if (!inPane) {
+                            TooltipIconButton(stringResource(R.string.action_back), onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.action_back)) }
+                        }
+                    },
+                    actions = {
+                        // Beside the list there is nothing to go back to; Close returns the pane to its prompt,
+                        // over the column's end like the app settings page's ⋮ button.
+                        if (inPane) {
+                            FormActions(paneWidth) {
+                                TooltipIconButton(stringResource(R.string.action_close), onBack) { Icon(Icons.Filled.Close, contentDescription = stringResource(R.string.action_close)) }
+                            }
+                        }
+                    },
+                    colors = TopAppBarDefaults.topAppBarColors(
+                        containerColor = if (inPane) MaterialTheme.colorScheme.surface else MaterialTheme.colorScheme.surfaceContainer,
+                    ),
+                )
+            },
+            snackbarHost = { SnackbarHost(snackbar) },
+        ) { padding ->
+            FormColumnLayout(
+                Modifier.padding(padding.withoutBottom()),
+                fullWidthBottom = 32.dp + padding.calculateBottomPadding(),
+                columnBottom = 32.dp + padding.calculateBottomPadding(),
             ) {
                 SettingsSection(stringResource(R.string.settings_appearance)) {
                     DropdownItem(

@@ -183,7 +183,9 @@ binary translation) on any device.
   of tonal items 3 dp apart, each group rounded on the outside (20 dp) and tight where items meet (4
   dp): the first item rounded at the top, the last at the bottom, a lone item all round (Settings,
   R2.5, uses the same sections); each showing its value (summary, switch, menu value or color
-  swatch); text, color, domain and window size values open dialogs. Nothing is collapsed. The
+  swatch); text, color, domain and window size values open dialogs. An item's description (and an
+  error or discovery hint under it) wraps at 480 dp at most, so it never runs up against the value or
+  switch at the end of a wide item; the icon options are not items and are exempt. Nothing is collapsed. The
   sections, in order:
   - **Identity:** the name, Address (the start address) and Domains (the internal domains).
   - **Icon:** the icon options as preview tiles, then the selected option's settings (R10.1):
@@ -211,12 +213,13 @@ binary translation) on any device.
   success, Open and Done (no build number: build numbers are internal, R11.3); a new app from the
   Create app page instead drops the user back on the app list (after the one-time backup prompt,
   R5.3).
-- R3.5 The form is one column. Beside the list (two panes), the column is at most 680 dp wide and
+- R3.5 The form is one column, and Shrimpl's Settings (R2.5) uses the same column, title and top bar
+  layout from the same code, so the two always match. Beside the list (two panes), the column is at most 680 dp wide and
   centred; if centring would put it under the floating button (Save, Create) at the bottom right, it
   moves left as far as needed (at least 24 dp from the left edge), so the button never covers an
   option. The page's title (the app's name, or Create app while reviewing) starts where the section
-  labels do, and the edit page's ⋮ button sits over the items' trailing chevrons, so both line up
-  with the column. With one pane (a phone, or any window too narrow for two panes), or in a pane too
+  labels do, and the edit page's ⋮ button (Settings' Close) sits over the items' trailing chevrons,
+  so both line up with the column. With one pane (a phone, or any window too narrow for two panes), or in a pane too
   narrow for a 360 dp column beside the button, the form takes the full width and the button floats
   over it, with room below the last section; the title and ⋮ keep their usual places.
 
