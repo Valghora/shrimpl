@@ -29,8 +29,12 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.staticCompositionLocalOf
@@ -41,6 +45,8 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.layout.Layout
+import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.semantics
@@ -62,8 +68,31 @@ private val ITEM_GAP = 3.dp
 /** The rounded rectangle of settings items, also used for the app list's cards. */
 val ItemShape = RoundedCornerShape(OUTER_RADIUS)
 
-/** The widest a settings item's description grows before it wraps (R3.3). */
-val DESCRIPTION_MAX_WIDTH = 480.dp
+/**
+ * A section's wrap line (R3.3): its items report the width of what they show at their end, and every
+ * item's text wraps [TEXT_GAP] before the widest of them, so descriptions keep clear of values and
+ * switches and the section's text has one right edge. Measured, not fixed: a longer value or a larger
+ * font moves the line.
+ */
+private class WrapLine {
+    private val widths = mutableStateMapOf<Any, Int>()
+
+    /** The widest trailing element in the section, in px. */
+    val widest: Int get() = widths.values.maxOrNull() ?: 0
+
+    fun report(item: Any, width: Int) {
+        if (widths[item] != width) widths[item] = width
+    }
+
+    fun forget(item: Any) {
+        widths.remove(item)
+    }
+}
+
+private val LocalWrapLine = staticCompositionLocalOf<WrapLine?> { null }
+
+/** The space between an item's text and the widest trailing element of its section. */
+private val TEXT_GAP = 24.dp
 
 /** Whether an item sits in a [SettingsSection], which shapes it by its place in the group. */
 val LocalInGroup = staticCompositionLocalOf { false }
@@ -82,7 +111,8 @@ fun SettingsSection(title: String, modifier: Modifier = Modifier, content: @Comp
             color = MaterialTheme.colorScheme.primary,
             modifier = Modifier.padding(start = 4.dp, top = 24.dp, bottom = 12.dp).asHeading(),
         )
-        Layout(content = { CompositionLocalProvider(LocalInGroup provides true, content) }) { measurables, constraints ->
+        val wrapLine = remember { WrapLine() }
+        Layout(content = { CompositionLocalProvider(LocalInGroup provides true, LocalWrapLine provides wrapLine, content = content) }) { measurables, constraints ->
             val placeables = measurables.map { it.measure(constraints.copy(minHeight = 0)) }
             // Dialogs and popups an item opens leave empty nodes; they take no place in the group.
             val count = placeables.count { it.height > 0 }
@@ -134,6 +164,22 @@ fun SettingsItem(
     leading: (@Composable () -> Unit)? = null,
     trailing: (@Composable () -> Unit)? = null,
 ) {
+    val wrapLine = LocalWrapLine.current
+    val key = remember { Any() }
+    var ownTrailing by remember { mutableIntStateOf(0) }
+    if (wrapLine != null) {
+        DisposableEffect(wrapLine, key) { onDispose { wrapLine.forget(key) } }
+    }
+    // The text wraps TEXT_GAP before the section's widest trailing element (its own trailing element
+    // already takes its own width); outside a section, TEXT_GAP before its own.
+    val widest = with(LocalDensity.current) { (wrapLine?.widest ?: ownTrailing).toDp() }
+    val own = with(LocalDensity.current) { ownTrailing.toDp() }
+    val textEnd = when {
+        // The row already keeps ROW_GAP between the text and the item's own trailing element.
+        trailing != null -> (widest - own).coerceAtLeast(0.dp) + TEXT_GAP - ROW_GAP
+        widest > 0.dp -> widest + TEXT_GAP
+        else -> 0.dp
+    }
     Row(
         modifier
             .fillMaxWidth()
@@ -145,30 +191,36 @@ fun SettingsItem(
             .padding(horizontal = 20.dp, vertical = 14.dp)
             .alpha(if (enabled) 1f else DISABLED_ALPHA),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(16.dp),
+        horizontalArrangement = Arrangement.spacedBy(ROW_GAP),
     ) {
         leading?.invoke()
-        Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+        Column(Modifier.weight(1f).padding(end = textEnd), verticalArrangement = Arrangement.spacedBy(2.dp)) {
             Text(title, style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onSurface)
-            // Descriptions wrap at a fixed width, so a long one doesn't run up against the value or
-            // switch at the end of a wide item (R3.3).
-            val description = Modifier.widthIn(max = DESCRIPTION_MAX_WIDTH)
             summary?.takeIf(String::isNotEmpty)?.let {
-                Text(it, description, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text(it, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
             when {
-                error != null -> Text(error, description, style = MaterialTheme.typography.bodyMedium, color = errorColor)
+                error != null -> Text(error, style = MaterialTheme.typography.bodyMedium, color = errorColor)
                 hint != null -> Text(
                     stringResource(R.string.hint_discovered, hint),
-                    description,
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.tertiary,
                 )
             }
         }
-        trailing?.invoke()
+        trailing?.let {
+            Box(
+                Modifier.onSizeChanged { size ->
+                    ownTrailing = size.width
+                    wrapLine?.report(key, size.width)
+                },
+            ) { it() }
+        }
     }
 }
+
+/** The space between an item's leading icon, text and trailing element. */
+private val ROW_GAP = 16.dp
 
 /** An on/off item; the switch shows a check or a cross, as in the system settings. */
 @Composable

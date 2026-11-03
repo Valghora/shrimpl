@@ -8,6 +8,7 @@ import androidx.compose.ui.test.junit4.v2.createEmptyComposeRule
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performScrollTo
 import androidx.test.core.app.ActivityScenario
 import com.valghora.shrimpl.MainActivity
 import com.valghora.shrimpl.R
@@ -62,9 +63,19 @@ class FormTitleTest {
         .filter { it.left() > after }
         .minBy { it.boundsInRoot.top }
 
-    private fun assertTitleOverColumn(after: Float) {
-        val sections = compose.onNodeWithText(string(R.string.section_identity)).fetchSemanticsNode().left()
-        assertEquals("the title starts where the sections do", sections, title(after).left(), 1f)
+    /**
+     * The back arrow's glyph (24 dp, centred in its button) starts where the section labels [sections]
+     * do, and the large title follows the arrow on the same line.
+     */
+    private fun assertArrowAndTitleOverColumn(sections: Float, title: String) {
+        val back = compose.onNode(hasContentDescription(string(R.string.action_back))).fetchSemanticsNode()
+        assertEquals("the arrow's glyph starts where the sections do", sections, back.boundsInRoot.center.x / density - 12f, 1f)
+        val heading = compose.onAllNodes(hasText(title)).fetchSemanticsNodes()
+            .filter { it.left() > back.left() }
+            .minBy { it.boundsInRoot.top }
+        assertTrue("the title follows the arrow", heading.left() >= back.boundsInRoot.right / density - 0.5f)
+        val arrowMiddle = back.boundsInRoot.center.y
+        assertEquals("on the arrow's line", arrowMiddle / density, heading.boundsInRoot.center.y / density, 4f)
     }
 
     @Test
@@ -76,7 +87,9 @@ class FormTitleTest {
             .boundsInRoot.right / density
         val fourTiles = 16f + tilesWidth(4).value
         assertTrue("the list ends where four tiles fit ($listEnd)", listEnd in fourTiles - 8f..fourTiles - 6f + 0.5f)
-        assertTitleOverColumn(after = listEnd)
+        val sections = compose.onNodeWithText(string(R.string.section_identity)).fetchSemanticsNode().left()
+        assertTrue("the column is beside the list", sections > listEnd)
+        assertArrowAndTitleOverColumn(sections, "Squoosh")
 
         // The ⋮ icon sits over the items' trailing chevrons (32 dp in from the column's end), not at the
         // window's edge.
@@ -86,22 +99,35 @@ class FormTitleTest {
         assertEquals("⋮ over the chevrons", columnEnd - 32f, more, 1f)
     }
 
-    /** R3.5: Shrimpl's Settings uses the same column, title and button placement as an app's settings page. */
+    /**
+     * R3.5: Shrimpl's Settings has the same bar as an app's settings page, and having no floating
+     * button, its column is centred in the detail pane.
+     */
     @Test
-    fun settingsMatchesTheAppSettingsPage() {
+    fun settingsHasTheSameBarWithItsColumnCentred() {
         open(1280, 800)
-        val appColumn = compose.onNodeWithText(string(R.string.section_identity)).fetchSemanticsNode().left()
-        val appMore = compose.onNode(hasContentDescription(string(R.string.action_more))).fetchSemanticsNode().boundsInRoot.center.x / density
-
         compose.onNodeWithContentDescription(string(R.string.settings_title)).performClick()
         compose.waitUntil(5_000) { compose.onAllNodes(hasText(string(R.string.settings_appearance))).fetchSemanticsNodes().isNotEmpty() }
         val sections = compose.onNodeWithText(string(R.string.settings_appearance)).fetchSemanticsNode().left()
-        assertEquals("the same column as an app's settings", appColumn, sections, 1f)
-        val title = compose.onAllNodes(hasText(string(R.string.settings_title))).fetchSemanticsNodes()
-            .filter { it.left() > sections - 8f }
-            .minBy { it.boundsInRoot.top }
-        assertEquals("the title starts where the sections do", sections, title.left(), 1f)
-        val close = compose.onNode(hasContentDescription(string(R.string.action_close))).fetchSemanticsNode().boundsInRoot.center.x / density
-        assertEquals("Close where the app page's ⋮ is", appMore, close, 1f)
+        assertArrowAndTitleOverColumn(sections, string(R.string.settings_title))
+
+        // The detail pane runs from the list pane's end plus the 24 dp gap to 16 dp from the window's edge.
+        val paneStart = 16f + tilesWidth(4).value + 2f + 24f
+        val paneEnd = 1280f - 16f
+        val item = compose.onAllNodes(hasText(string(R.string.theme_mode))).fetchSemanticsNodes().maxBy { it.boundsInRoot.width }
+        val itemCenter = item.boundsInRoot.center.x / density
+        assertEquals("the column is centred in the pane", (paneStart + paneEnd) / 2, itemCenter, 3f)
+    }
+
+    /** R3.5: with one pane the large title shrinks to the usual bar size as the page scrolls. */
+    @Test
+    fun onAPhoneTheTitleShrinksAsThePageScrolls() {
+        open(420, 900)
+        fun titleHeight() = compose.onAllNodes(hasText("Squoosh")).fetchSemanticsNodes()
+            .minBy { it.boundsInRoot.top }.boundsInRoot.height / density
+        val expanded = titleHeight()
+        compose.onNodeWithText(string(R.string.field_location)).performScrollTo()
+        compose.waitForIdle()
+        assertTrue("the title is smaller once scrolled (${titleHeight()} < $expanded)", titleHeight() < expanded - 4f)
     }
 }

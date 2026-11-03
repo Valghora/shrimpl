@@ -40,7 +40,6 @@ import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -68,14 +67,13 @@ import com.valghora.shrimpl.ui.common.AppTextField
 import com.valghora.shrimpl.ui.common.BuildSheet
 import com.valghora.shrimpl.ui.common.BuildState
 import com.valghora.shrimpl.ui.common.FieldShape
+import com.valghora.shrimpl.ui.common.PageTopBar
 import com.valghora.shrimpl.ui.common.PillButton
 import com.valghora.shrimpl.ui.common.Tone
 import com.valghora.shrimpl.ui.common.TooltipIconButton
 import com.valghora.shrimpl.ui.common.WithTooltip
-import com.valghora.shrimpl.ui.common.asHeading
 import com.valghora.shrimpl.ui.common.progressStep
 import com.valghora.shrimpl.ui.common.withoutBottom
-import com.valghora.shrimpl.ui.common.FormTitle
 import com.valghora.shrimpl.ui.form.ProfileFormFields
 import kotlinx.coroutines.launch
 
@@ -98,14 +96,14 @@ fun CreateScreen(onClose: () -> Unit, onBackUpKey: () -> Unit) {
 
     BoxWithConstraints(Modifier.fillMaxSize()) {
         val paneWidth = maxWidth
+        val scroll = rememberScrollState()
         Scaffold(
             topBar = {
-                TopAppBar(
-                    // On the review step the title lines up with the form's column (R3.5).
-                    title = {
-                        if (reviewing) FormTitle(stringResource(R.string.create_title), paneWidth, afterIcon = true) else Text(stringResource(R.string.create_title), Modifier.asHeading())
-                    },
-                    navigationIcon = {
+                PageTopBar(
+                    title = stringResource(R.string.create_title),
+                    paneWidth = paneWidth,
+                    scroll = if (reviewing) scroll else null,
+                    navigation = {
                         if (reviewing) {
                             TooltipIconButton(stringResource(R.string.action_back), model::backToUrl) {
                                 Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.action_back))
@@ -145,6 +143,7 @@ fun CreateScreen(onClose: () -> Unit, onBackUpKey: () -> Unit) {
                         // Nothing is stored yet: every image is in the draft.
                         storedImage = null,
                         bottomInset = padding.calculateBottomPadding(),
+                        scrollState = scroll,
                     )
                 }
             } else {

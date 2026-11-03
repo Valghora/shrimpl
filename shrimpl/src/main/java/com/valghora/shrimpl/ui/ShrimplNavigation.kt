@@ -156,7 +156,6 @@ fun ShrimplNavigation(shortcuts: Flow<AppShortcut>) {
                 PaneCard(twoPane, PaneSide.END) {
                     EditScreen(
                         appId = key.appId,
-                        showBack = !twoPane,
                         onBack = { backStack.remove(key) },
                     )
                 }

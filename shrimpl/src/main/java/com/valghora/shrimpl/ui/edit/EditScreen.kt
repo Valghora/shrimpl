@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Check
@@ -20,7 +21,6 @@ import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -44,18 +44,17 @@ import com.valghora.shrimpl.ui.common.AppMenu
 import com.valghora.shrimpl.ui.common.AppMenuItem
 import com.valghora.shrimpl.ui.common.BuildSheet
 import com.valghora.shrimpl.ui.common.Notice
+import com.valghora.shrimpl.ui.common.PageTopBar
 import com.valghora.shrimpl.ui.common.PillButton
 import com.valghora.shrimpl.ui.common.TooltipIconButton
 import com.valghora.shrimpl.ui.common.withoutBottom
-import com.valghora.shrimpl.ui.common.FormActions
-import com.valghora.shrimpl.ui.common.FormTitle
 import com.valghora.shrimpl.ui.form.ProfileFormFields
 import kotlinx.coroutines.launch
 
 /** A web app's settings (docs/SHRIMPL_SPEC.md R2.3): change, save as the next build, uninstall. */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun EditScreen(appId: String, showBack: Boolean, onBack: () -> Unit) {
+fun EditScreen(appId: String, onBack: () -> Unit) {
     val context = LocalContext.current
     val model = viewModel(key = "edit-$appId") { EditViewModel(context.container, appId) }
     val record by model.record.collectAsStateWithLifecycle()
@@ -98,19 +97,20 @@ fun EditScreen(appId: String, showBack: Boolean, onBack: () -> Unit) {
 
     BoxWithConstraints(Modifier.fillMaxSize()) {
         val paneWidth = maxWidth
+        val scroll = rememberScrollState()
         Scaffold(
             topBar = {
-                TopAppBar(
-                    title = { FormTitle(current.profile.name, paneWidth, afterIcon = showBack) },
-                    navigationIcon = {
-                        if (showBack) {
-                            TooltipIconButton(stringResource(R.string.action_back), onBack) {
-                                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.action_back))
-                            }
+                PageTopBar(
+                    title = current.profile.name,
+                    paneWidth = paneWidth,
+                    scroll = scroll,
+                    // Beside the list the arrow closes the detail pane (docs/ADAPTIVE.md deviations).
+                    navigation = {
+                        TooltipIconButton(stringResource(R.string.action_back), onBack) {
+                            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.action_back))
                         }
                     },
                     actions = {
-                        FormActions(paneWidth) {
                             TooltipIconButton(stringResource(R.string.action_more), { menu = true }) {
                                 Icon(Icons.Filled.MoreVert, contentDescription = stringResource(R.string.action_more))
                             }
@@ -140,7 +140,6 @@ fun EditScreen(appId: String, showBack: Boolean, onBack: () -> Unit) {
                                     })
                                 }
                             }
-                        }
                     },
                 )
             },
@@ -163,6 +162,7 @@ fun EditScreen(appId: String, showBack: Boolean, onBack: () -> Unit) {
                     notes = if (installed == false) listOf(Notice(Notice.Kind.INFO, stringResource(R.string.edit_not_installed))) else emptyList(),
                     storedImage = model::storedImage,
                     bottomInset = padding.calculateBottomPadding(),
+                    scrollState = scroll,
                 )
             }
         }

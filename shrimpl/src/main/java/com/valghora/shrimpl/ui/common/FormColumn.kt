@@ -1,22 +1,37 @@
 package com.valghora.shrimpl.ui.common
 
+import androidx.compose.foundation.ScrollState
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.lerp
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.text.lerp
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.lerp
 
 // The settings column (docs/SHRIMPL_SPEC.md R3.5), shared by every page of settings items: an app's
 // settings, the configuration page and Shrimpl's own settings. Beside the list the page is one column,
@@ -26,19 +41,22 @@ import androidx.compose.ui.unit.dp
 /**
  * A scrolling page of settings sections in the settings column. With one pane, or in a pane too narrow
  * for the column, the sections take the full width with a 16 dp margin and [fullWidthBottom] below them;
- * beside the list they form the column, with [columnBottom] below it.
+ * beside the list they form the column, with [columnBottom] below it. [scrollState] is shared with the
+ * page's [PageTopBar], which collapses as the page scrolls.
  */
 @Composable
 fun FormColumnLayout(
     modifier: Modifier = Modifier,
+    scrollState: ScrollState = rememberScrollState(),
+    floatingButton: Boolean = true,
     fullWidthBottom: Dp = 32.dp,
     columnBottom: Dp = 32.dp,
     content: @Composable ColumnScope.() -> Unit,
 ) {
     val inPane = LocalInPane.current
     BoxWithConstraints(modifier.fillMaxSize()) {
-        val column = formColumn(maxWidth, inPane)
-        val scroll = Modifier.fillMaxSize().verticalScroll(rememberScrollState())
+        val column = formColumn(maxWidth, inPane, floatingButton)
+        val scroll = Modifier.fillMaxSize().verticalScroll(scrollState)
         if (column == null) {
             Column(scroll.padding(horizontal = 16.dp).padding(bottom = fullWidthBottom), content = content)
         } else {
@@ -67,47 +85,93 @@ private val SIDE_MARGIN = 24.dp
 data class FormColumn(val start: Dp, val width: Dp)
 
 /**
- * The form's column in a pane [paneWidth] wide beside the list ([inPane]): at most 680 dp, centred, or
- * moved left so the floating button never covers it. Null with one pane, or a pane too narrow: the
- * form then takes the full width and the button floats over it.
+ * The form's column in a pane [paneWidth] wide beside the list ([inPane]): at most 680 dp, centred, or,
+ * on a page with a [floatingButton] (Save, Create), moved left so the button never covers it. Null with
+ * one pane, or a pane too narrow: the form then takes the full width and the button floats over it.
  */
-fun formColumn(paneWidth: Dp, inPane: Boolean): FormColumn? {
+fun formColumn(paneWidth: Dp, inPane: Boolean, floatingButton: Boolean = true): FormColumn? {
     if (!inPane) return null
-    val width = minOf(MAX_COLUMN, paneWidth - FAB_CLEARANCE - SIDE_MARGIN)
+    val clearance = if (floatingButton) FAB_CLEARANCE else SIDE_MARGIN
+    val width = minOf(MAX_COLUMN, paneWidth - clearance - SIDE_MARGIN)
     if (width < MIN_COLUMN) return null
-    return FormColumn(minOf((paneWidth - width) / 2, paneWidth - FAB_CLEARANCE - width), width)
+    return FormColumn(minOf((paneWidth - width) / 2, paneWidth - clearance - width), width)
 }
 
 /**
- * A top bar title that starts where the form's section labels do in a pane [paneWidth] wide (R3.5),
- * so the page name lines up with the sections below it; [afterIcon] when a navigation icon comes before it.
+ * The top bar of every settings page (R3.5): the back arrow and the page's large [title] on one line,
+ * with [actions] at its end.
+ *
+ * With one pane the arrow sits at the bar's start and the title follows; as [scroll] moves the page,
+ * the title shrinks to the usual top bar size and the bar takes the container color, as Material's
+ * large top app bar does. Beside the list the bar stays as it is while the page scrolls under it: the
+ * arrow's glyph starts where the section labels do, the title follows it, and the last action sits
+ * over the items' trailing chevrons ([floatingButton] as for [formColumn]).
  */
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun FormTitle(text: String, paneWidth: Dp, afterIcon: Boolean) {
-    val titleStart = if (afterIcon) TITLE_AFTER_ICON else TITLE_START
-    // The section labels sit 4 dp in from the column's edge (SettingsSection); the title lines up with them.
-    val shift = formColumn(paneWidth, LocalInPane.current)?.let { (it.start + SECTION_LABEL_INSET - titleStart).coerceAtLeast(0.dp) } ?: 0.dp
-    Text(text, Modifier.padding(start = shift).asHeading(), maxLines = 1, overflow = TextOverflow.Ellipsis)
+fun PageTopBar(
+    title: String,
+    paneWidth: Dp,
+    navigation: @Composable () -> Unit,
+    modifier: Modifier = Modifier,
+    scroll: ScrollState? = null,
+    floatingButton: Boolean = true,
+    actions: @Composable RowScope.() -> Unit = {},
+) {
+    val column = formColumn(paneWidth, LocalInPane.current, floatingButton)
+    val density = LocalDensity.current
+    // 0 at the top of the page, 1 once it has scrolled by COLLAPSE_DISTANCE (one pane only). Derived, so
+    // the bar recomposes only while the title is between sizes, not on every scrolled pixel.
+    val distance = with(density) { COLLAPSE_DISTANCE.toPx() }
+    val collapsing = column == null && scroll != null
+    val collapsed by remember(scroll, distance, collapsing) {
+        derivedStateOf { if (collapsing && scroll != null) (scroll.value / distance).coerceIn(0f, 1f) else 0f }
+    }
+    val typography = MaterialTheme.typography
+    val style = lerp(typography.headlineLarge, typography.titleLarge, collapsed)
+    val background = lerp(MaterialTheme.colorScheme.surface, MaterialTheme.colorScheme.surfaceContainer, collapsed)
+    val start = column?.let { (it.start + SECTION_LABEL_INSET - GLYPH_INSET).coerceAtLeast(0.dp) } ?: BAR_EDGE
+    // A 48 dp button centred over the chevrons, 32 dp in from the column's end, ends 8 dp before it.
+    val end = column?.let { (paneWidth - (it.start + it.width) + CHEVRON_INSET - BUTTON_HALF).coerceAtLeast(0.dp) } ?: BAR_EDGE
+    Row(
+        modifier
+            .fillMaxWidth()
+            .background(if (column == null) background else MaterialTheme.colorScheme.surface)
+            .windowInsetsPadding(TopAppBarDefaults.windowInsets)
+            .heightIn(min = lerp(EXPANDED_HEIGHT, COLLAPSED_HEIGHT, collapsed))
+            .padding(start = start, end = end),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        navigation()
+        Text(
+            title,
+            style = style,
+            color = MaterialTheme.colorScheme.onSurface,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+            modifier = Modifier.weight(1f).padding(start = TITLE_GAP).asHeading(),
+        )
+        actions()
+    }
 }
 
-/**
- * The top bar's action buttons, moved in from the pane's end so the last icon sits over the items'
- * trailing chevrons, 32 dp in from the form column's end (two panes only).
- */
-@Composable
-fun FormActions(paneWidth: Dp, content: @Composable RowScope.() -> Unit) {
-    val column = formColumn(paneWidth, LocalInPane.current)
-    val end = column?.let { (paneWidth - (it.start + it.width) + ACTIONS_INSET).coerceAtLeast(0.dp) } ?: 0.dp
-    Row(Modifier.padding(end = end), verticalAlignment = Alignment.CenterVertically, content = content)
-}
+/** How far the page scrolls before a one-pane bar has fully collapsed. */
+private val COLLAPSE_DISTANCE = 56.dp
+private val EXPANDED_HEIGHT = 72.dp
+private val COLLAPSED_HEIGHT = 64.dp
 
-/**
- * Material's top bar ends its actions 4 dp from the pane's edge and the last button (40 dp) is centred
- * 24 dp in from there; padding by the column's end distance plus 4 dp puts it 32 dp in from the column's end.
- */
-private val ACTIONS_INSET = 4.dp
+/** The bar's start and end padding with one pane, as Material's top app bar has. */
+private val BAR_EDGE = 4.dp
 
-/** Where Material's top bar puts its title in the pane, without and with a navigation icon. */
-private val TITLE_START = 16.dp
-private val TITLE_AFTER_ICON = 56.dp
+/** Between the back arrow's button and the title. */
+private val TITLE_GAP = 8.dp
+
+/** The section labels sit 4 dp in from the column's edge (SettingsSection). */
 private val SECTION_LABEL_INSET = 4.dp
+
+/** An icon button's glyph (24 dp) sits 12 dp inside its 48 dp touch target. */
+private val GLYPH_INSET = 12.dp
+private val BUTTON_HALF = 24.dp
+
+/** The items' trailing chevrons are centred this far in from the column's end. */
+private val CHEVRON_INSET = 32.dp

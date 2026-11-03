@@ -74,7 +74,7 @@ binary translation) on any device.
     detail pane shows a web app's edit page, the configuration page
     (R3) or Shrimpl's settings (R2.5), each replacing the previous one, so the list is always one
     Back away: Back closes what the detail pane shows and leaves the empty detail pane, it doesn't
-    leave Shrimpl. Settings has Close instead of a back arrow there; the edit page has neither. With
+    leave Shrimpl. Every page in the detail pane has a back arrow, which closes it (R3.5). With
     nothing open, the detail pane says to pick a web app (or, with none yet, "Provide a website, get
     a custom app." with *Shrimpl as that!* in italics on its own line) and offers New app. Empty-state text is exactly centered in
     each pane, so the two panes line up. With one pane, "No apps yet" and that line are centered
@@ -122,7 +122,7 @@ binary translation) on any device.
   installed) and Uninstall (confirmed; then offers to remove the record), or Remove. Once something
   is changed, a Save button rebuilds with the next build number and installs it as an update (same
   package and key, so the app keeps its data). Changes not saved are discarded on leaving the page;
-  recreating the window (rotation, resize) keeps them. In two panes the edit page has no back arrow.
+  recreating the window (rotation, resize) keeps them. Its back arrow leaves the page, in two panes too.
 - R2.4 "New app" opens the configuration page (R3), titled "Create app". It is one design everywhere, shared by the
   other main-action buttons (Create, Save, Update all): a fully rounded filled button
   with an icon in the theme's primary color (Update all in its secondary container color); New
@@ -183,9 +183,11 @@ binary translation) on any device.
   of tonal items 3 dp apart, each group rounded on the outside (20 dp) and tight where items meet (4
   dp): the first item rounded at the top, the last at the bottom, a lone item all round (Settings,
   R2.5, uses the same sections); each showing its value (summary, switch, menu value or color
-  swatch); text, color, domain and window size values open dialogs. An item's description (and an
-  error or discovery hint under it) wraps at 480 dp at most, so it never runs up against the value or
-  switch at the end of a wide item; the icon options are not items and are exempt. Nothing is collapsed. The
+  swatch); text, color, domain and window size values open dialogs. Each section has one wrap line
+  for its items' text (description, error, discovery hint): 24 dp before the widest value, switch or
+  chevron at the end of any of its items, so no description runs up against one and the section's
+  text has one right edge. The line is measured, not fixed, so a longer value or a larger font moves
+  it; the icon options are not items and are exempt. Nothing is collapsed. The
   sections, in order:
   - **Identity:** the name, Address (the start address) and Domains (the internal domains).
   - **Icon:** the icon options as preview tiles, then the selected option's settings (R10.1):
@@ -213,15 +215,19 @@ binary translation) on any device.
   success, Open and Done (no build number: build numbers are internal, R11.3); a new app from the
   Create app page instead drops the user back on the app list (after the one-time backup prompt,
   R5.3).
-- R3.5 The form is one column, and Shrimpl's Settings (R2.5) uses the same column, title and top bar
-  layout from the same code, so the two always match. Beside the list (two panes), the column is at most 680 dp wide and
-  centred; if centring would put it under the floating button (Save, Create) at the bottom right, it
-  moves left as far as needed (at least 24 dp from the left edge), so the button never covers an
-  option. The page's title (the app's name, or Create app while reviewing) starts where the section
-  labels do, and the edit page's ⋮ button (Settings' Close) sits over the items' trailing chevrons,
-  so both line up with the column. With one pane (a phone, or any window too narrow for two panes), or in a pane too
-  narrow for a 360 dp column beside the button, the form takes the full width and the button floats
-  over it, with room below the last section; the title and ⋮ keep their usual places.
+- R3.5 The form is one column, and Shrimpl's Settings (R2.5) uses the same column and top bar from
+  the same code, so the pages always match. Beside the list (two panes), the column is at most 680 dp
+  wide and centred; on a page with a floating button (Save, Create), if centring would put the column
+  under the button at the bottom right, it moves left as far as needed (at least 24 dp from the left
+  edge), so the button never covers an option. With one pane (a phone, or any window too narrow for
+  two panes), or in a pane too narrow for a 360 dp column, the form takes the full width and the
+  button floats over it, with room below the last section.
+  The top bar holds a back arrow and the page's title (the app's name, Settings, or Create app) in
+  large type on one line, with the edit page's ⋮ at the end. With one pane the arrow starts the bar
+  and, as the page scrolls, the title shrinks to the usual size and the bar takes the container color.
+  Beside the list the bar stays put while the page scrolls under it, with no divider: the arrow's glyph
+  starts where the section labels do, the title follows it, and ⋮ sits over the items' trailing
+  chevrons. There the arrow closes the detail pane.
 
 ## R4 Modules
 

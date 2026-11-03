@@ -12,10 +12,10 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -28,8 +28,6 @@ import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -59,10 +57,9 @@ import com.valghora.shrimpl.data.InstallMethod
 import com.valghora.shrimpl.data.ThemeSetting
 import com.valghora.shrimpl.ui.common.AppTextField
 import com.valghora.shrimpl.ui.common.DropdownItem
-import com.valghora.shrimpl.ui.common.FormActions
 import com.valghora.shrimpl.ui.common.FormColumnLayout
-import com.valghora.shrimpl.ui.common.FormTitle
 import com.valghora.shrimpl.ui.common.NavigationItem
+import com.valghora.shrimpl.ui.common.PageTopBar
 import com.valghora.shrimpl.ui.common.SettingsItem
 import com.valghora.shrimpl.ui.common.SettingsSection
 import com.valghora.shrimpl.ui.common.SwitchItem
@@ -106,33 +103,29 @@ fun SettingsScreen(inPane: Boolean, onBack: () -> Unit) {
     // The same column, title and top bar layout as an app's settings page (R2.5, R3.5).
     BoxWithConstraints(Modifier.fillMaxSize()) {
         val paneWidth = maxWidth
+        val scroll = rememberScrollState()
         Scaffold(
+            containerColor = MaterialTheme.colorScheme.surface,
             topBar = {
-                TopAppBar(
-                    title = { FormTitle(stringResource(R.string.settings_title), paneWidth, afterIcon = !inPane) },
-                    navigationIcon = {
-                        if (!inPane) {
-                            TooltipIconButton(stringResource(R.string.action_back), onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.action_back)) }
+                PageTopBar(
+                    title = stringResource(R.string.settings_title),
+                    paneWidth = paneWidth,
+                    scroll = scroll,
+                    floatingButton = false,
+                    // Beside the list the arrow closes the detail pane (docs/ADAPTIVE.md deviations).
+                    navigation = {
+                        TooltipIconButton(stringResource(R.string.action_back), onBack) {
+                            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.action_back))
                         }
                     },
-                    actions = {
-                        // Beside the list there is nothing to go back to; Close returns the pane to its prompt,
-                        // over the column's end like the app settings page's ⋮ button.
-                        if (inPane) {
-                            FormActions(paneWidth) {
-                                TooltipIconButton(stringResource(R.string.action_close), onBack) { Icon(Icons.Filled.Close, contentDescription = stringResource(R.string.action_close)) }
-                            }
-                        }
-                    },
-                    colors = TopAppBarDefaults.topAppBarColors(
-                        containerColor = if (inPane) MaterialTheme.colorScheme.surface else MaterialTheme.colorScheme.surfaceContainer,
-                    ),
                 )
             },
             snackbarHost = { SnackbarHost(snackbar) },
         ) { padding ->
             FormColumnLayout(
                 Modifier.padding(padding.withoutBottom()),
+                scrollState = scroll,
+                floatingButton = false,
                 fullWidthBottom = 32.dp + padding.calculateBottomPadding(),
                 columnBottom = 32.dp + padding.calculateBottomPadding(),
             ) {

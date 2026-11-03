@@ -1,5 +1,6 @@
 package com.valghora.shrimpl.ui.form
 
+import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -10,6 +11,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
@@ -51,8 +53,8 @@ import com.valghora.shrimpl.core.records.IconRecord
 import com.valghora.shrimpl.core.records.WebAppDraft
 import com.valghora.shrimpl.ui.common.AppTextField
 import com.valghora.shrimpl.ui.common.ColorSwatch
-import com.valghora.shrimpl.ui.common.FormColumnLayout
 import com.valghora.shrimpl.ui.common.DropdownItem
+import com.valghora.shrimpl.ui.common.FormColumnLayout
 import com.valghora.shrimpl.ui.common.NavigationItem
 import com.valghora.shrimpl.ui.common.Notice
 import com.valghora.shrimpl.ui.common.NoticeCard
@@ -82,6 +84,7 @@ fun ProfileFormFields(
     storedImage: ((String) -> ByteArray)?,
     modifier: Modifier = Modifier,
     bottomInset: Dp = 0.dp,
+    scrollState: ScrollState = rememberScrollState(),
 ) {
     val result = draft.form.result()
     val fields = Fields(draft.form, { onChange(draft.withForm(it)) }, result::errorFor, hints)
@@ -98,7 +101,7 @@ fun ProfileFormFields(
         fields.Permissions()
     }
     // With one pane the floating button (Save, Create) floats over the form; leave room below it.
-    FormColumnLayout(modifier, fullWidthBottom = 96.dp + bottomInset, columnBottom = 32.dp + bottomInset) { sections() }
+    FormColumnLayout(modifier, scrollState, fullWidthBottom = 96.dp + bottomInset, columnBottom = 32.dp + bottomInset) { sections() }
 }
 
 

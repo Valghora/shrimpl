@@ -84,7 +84,7 @@ class WindowSizeTest(private val width: Int, private val height: Int) {
         compose.waitUntil(LOAD_TIMEOUT_MS) { editShown }
 
         assertEquals("the list stays beside the app's settings", twoPanes, listShown)
-        assertEquals("a back arrow only when the settings fill the window", !twoPanes, backArrowShown)
+        assertTrue("a back arrow in every layout (beside the list it closes the pane)", backArrowShown)
 
         // Back closes the app's settings, in two panes too (Shrimpl stays open: R1.1).
         scenario.onActivity { activity ->
