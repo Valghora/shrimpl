@@ -224,3 +224,9 @@ shorten a run to about 6 minutes, but each pays about 45 s of setup and rebuilds
 in this private repository they cost 1.5 to 2 times the runner minutes; the workflow keeps one
 Build job with a step per stage instead, and skips Build for a commit that already passed.
 
+Shrimpl's own release build (R8, about 3.5 minutes clean) is left out of CI and local checks: the
+owner tests debug builds. It runs in a manual CI run with Release build ticked, or when the owner
+asks for a release APK. A problem that only shows after shrinking (such as a class R8 strips that is
+loaded by reflection) is then found at that build, not on every change. The template's release
+build stays in every run: debug Shrimpl bundles it, and the core tests build web apps from it.
+

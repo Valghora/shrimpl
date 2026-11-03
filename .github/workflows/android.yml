@@ -4,6 +4,11 @@ on:
   push:
   pull_request:
   workflow_dispatch:
+    inputs:
+      release:
+        description: Release build (Shrimpl's release APK and its R0 check)
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -95,17 +100,24 @@ jobs:
       - name: Shrimpl lint
         run: ./gradlew --console=plain :shrimpl:lintRelease -x :template:lintVitalRelease
 
-      - name: Shrimpl APKs
-        run: >-
-          ./gradlew --console=plain :shrimpl:assembleDebug :shrimpl:assembleRelease
-          -x :template:lintVitalRelease -x :shrimpl:lintVitalRelease
+      # Shrimpl is tested as a debug build; its release APK is built only when a manual run asks for
+      # it (R12.2). The template's release APK is always built: Shrimpl bundles it in every build.
+      - name: Shrimpl APK
+        run: ./gradlew --console=plain :shrimpl:assembleDebug -x :template:lintVitalRelease
+
+      - name: Shrimpl release APK
+        if: inputs.release
+        run: ./gradlew --console=plain :shrimpl:assembleRelease -x :template:lintVitalRelease -x :shrimpl:lintVitalRelease
 
       # R0: no APK may need a translation layer on ARM or x86 devices. The template (and so every web
       # app built from it) has no native code; Shrimpl's third-party libraries must cover all four ABIs.
       - name: Architecture-neutral APKs
         run: |
           scripts/check_native_code.sh --none template/build/outputs/apk/release/template-release.apk
-          scripts/check_native_code.sh --all-abis shrimpl/build/outputs/apk/debug/shrimpl-debug.apk shrimpl/build/outputs/apk/release/shrimpl-release.apk
+          scripts/check_native_code.sh --all-abis shrimpl/build/outputs/apk/debug/shrimpl-debug.apk
+          if [[ -f shrimpl/build/outputs/apk/release/shrimpl-release.apk ]]; then
+            scripts/check_native_code.sh --all-abis shrimpl/build/outputs/apk/release/shrimpl-release.apk
+          fi
 
       - name: Upload template and Shrimpl APKs
         uses: actions/upload-artifact@v7
@@ -115,6 +127,7 @@ jobs:
             template/build/outputs/apk/release/template-release.apk
             shrimpl/build/outputs/apk/debug/shrimpl-debug.apk
             shrimpl/build/outputs/apk/release/shrimpl-release.apk
+          if-no-files-found: warn
 
       - name: Upload reports
         if: always()

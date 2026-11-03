@@ -49,11 +49,9 @@ that alters a requirement updates the spec in the same commit.
 
 ```bash
 ./gradlew $GRADLE_FLAGS --console=plain :core:check :template:testDebugUnitTest :template:lintRelease \
-  :template:assembleRelease :shrimpl:testDebugUnitTest :shrimpl:lintRelease :shrimpl:assembleDebug \
-  :shrimpl:assembleRelease
+  :template:assembleRelease :shrimpl:testDebugUnitTest :shrimpl:lintRelease :shrimpl:assembleDebug
 scripts/check_native_code.sh --none template/build/outputs/apk/release/template-release.apk
-scripts/check_native_code.sh --all-abis shrimpl/build/outputs/apk/debug/shrimpl-debug.apk \
-  shrimpl/build/outputs/apk/release/shrimpl-release.apk
+scripts/check_native_code.sh --all-abis shrimpl/build/outputs/apk/debug/shrimpl-debug.apk
 scripts/check_comments.sh --diff origin/main
 ```
 
@@ -62,7 +60,9 @@ There is no emulator in the cloud container; UI changes are confirmed on the own
 ## Working practice
 
 - Commit work locally as it's done. Build, push and send the APK only when asked ("Build and push
-  it, then send the APK"); then push the branch, check CI, and send `shrimpl-debug.apk`.
+  it, then send the APK"); then push the branch, check CI, and send `shrimpl-debug.apk`. Build
+  Shrimpl's release APK (`:shrimpl:assembleRelease`, then the R0 check on it) only when the owner
+  asks for a release build; in CI, run the workflow by hand with Release build ticked.
 - Never force-push. Branch from the default branch for new work.
 - Settings descriptions (the text under a setting) end with a period when they are two or more
   sentences, or when they contain punctuation (a comma, apostrophe, hyphen, parentheses, a period);
