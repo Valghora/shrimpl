@@ -232,7 +232,6 @@
     <string name="action_app_options">Options for %1$s</string>
     <string name="action_update_app">Update %1$s</string>
     <string name="action_fix_app">Fix %1$s</string>
-    <string name="action_rebuild_app">Rebuild %1$s</string>
     <string name="icon_option_brand">Brand</string>
     <string name="icon_option_website">Website</string>
     <string name="icon_option_custom">Custom</string>

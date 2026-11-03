@@ -113,7 +113,6 @@ import com.valghora.shrimpl.ui.common.Notice
 import com.valghora.shrimpl.ui.common.NoticeCard
 import com.valghora.shrimpl.ui.common.PillButton
 import com.valghora.shrimpl.ui.common.PitchText
-import com.valghora.shrimpl.ui.common.Tone
 import com.valghora.shrimpl.ui.common.TooltipIconButton
 import com.valghora.shrimpl.ui.common.WithTooltip
 import com.valghora.shrimpl.ui.common.asHeading
@@ -152,12 +151,12 @@ fun HomeScreen(
     val tiles = layout == HomeLayout.TILES
     // R13: test tags are applied here, once; everything below sees the states they name.
     val installed = model.shownInstalled(records, installedApps)
-    val otherKey = model.otherKey(records, signingKey)
+    val otherKey = model.otherKey(records, installed, signingKey)
     val outdated = model.outdated(records, installed, otherKey)
     // R11.7: the notice shows until dismissed, and again when another such app turns up.
     val keyNoticeDismissed by model.keyNoticeDismissed.collectAsStateWithLifecycle()
     val showKeyNotice = otherKey.isNotEmpty() && !keyNoticeDismissed.containsAll(otherKey)
-    val toFix = records.filter { it.appId in otherKey && it.packageName in installed }
+    val toFix = records.filter { it.appId in otherKey }
     var confirmUpdateAll by rememberSaveable { mutableStateOf(false) }
     var confirmUninstall by rememberSaveable { mutableStateOf<String?>(null) }
     val snackbar = remember { SnackbarHostState() }
@@ -386,7 +385,7 @@ private fun AppItem(
     onRemove: () -> Unit,
 ) {
     // R11.7: installed but signed with another key; it can only be fixed (uninstalled, then rebuilt) or removed.
-    val locked = installed != null && otherKey
+    val locked = otherKey
     // The menu opens where the item was pressed.
     // Invariant: the menu keeps its place after it closes, so it doesn't jump while it fades out
     // (found on a device, docs/BUILD_NOTES.md "Robolectric").
@@ -398,10 +397,9 @@ private fun AppItem(
     }
     val showOptions = stringResource(R.string.action_show_options)
     val showMenu = { at: Offset -> openMenu(with(density) { DpOffset(at.x.toDp(), at.y.toDp()) }) }
-    // The action its row button offers (R2.2, R11.7): Fix, Rebuild or Update, with its label.
+    // The action its row button offers (R2.2, R11.7): Fix or Update, with its label.
     val pending = when {
         locked -> R.string.action_fix_app to onFix
-        installed == null && otherKey -> R.string.action_rebuild_app to onRebuild
         installed != null && updateAvailable -> R.string.action_update_app to onRebuild
         else -> null
     }
@@ -468,12 +466,10 @@ private fun AppItem(
                 Text(record.profile.name, style = MaterialTheme.typography.titleMedium, modifier = if (greyed) Modifier.alpha(GREYED_ALPHA) else Modifier)
             }
             // R2.2: a newer template is bundled; Update rebuilds this app with it. R11.7: an app signed
-            // with another key offers Fix (uninstall, then rebuild with the current key); Rebuild is
-            // left for one whose Fix stopped after the uninstall.
+            // with another key offers Fix (uninstall, then rebuild with the current key).
             val rowAction = when {
-                locked -> RowAction(R.string.action_fix_app, Icons.Filled.Build, Tone.CAUTION, onFix)
-                installed == null && otherKey -> RowAction(R.string.action_rebuild_app, Icons.Filled.Refresh, Tone.SUCCESS, onRebuild)
-                installed != null && updateAvailable -> RowAction(R.string.action_update_app, Icons.Filled.Refresh, null, onRebuild)
+                locked -> RowAction(R.string.action_fix_app, Icons.Filled.Build, urgent = true, onFix)
+                installed != null && updateAvailable -> RowAction(R.string.action_update_app, Icons.Filled.Refresh, urgent = false, onRebuild)
                 else -> null
             }
             rowAction?.let { RowActionButton(it, record.profile.name) }
@@ -721,19 +717,25 @@ private fun menuActions(
     }
 }
 
-/** A row's action (R2.2): its label (taking the app's name), icon, and status tone (null: the theme's tonal color). */
-private class RowAction(val label: Int, val icon: ImageVector, val tone: Tone?, val onClick: () -> Unit)
+/** A row's action (R2.2): its label (taking the app's name), icon, and whether it is [urgent] (Fix). */
+private class RowAction(val label: Int, val icon: ImageVector, val urgent: Boolean, val onClick: () -> Unit)
 
 /**
  * R2.2: a small icon-only pill (48 x 32 dp, a full 48 dp touch target) with a tooltip naming the
- * action. Update is in the theme's tonal color; Fix in the Caution yellow and Rebuild in the Success
- * green, as in the notices.
+ * action. Update is in the theme's tonal color; Fix in the theme's error color.
+ *
+ * Invariant: Fix matches the Needs fix badge on a tile ([AppTile]), so the state looks the same in
+ * both layouts.
  */
 @Composable
 private fun RowActionButton(action: RowAction, appName: String) {
     val label = stringResource(action.label, appName)
-    val colors = action.tone?.let { IconButtonDefaults.filledTonalIconButtonColors(containerColor = it.container, contentColor = it.content) }
-        ?: IconButtonDefaults.filledTonalIconButtonColors()
+    val scheme = MaterialTheme.colorScheme
+    val colors = if (action.urgent) {
+        IconButtonDefaults.filledTonalIconButtonColors(containerColor = scheme.error, contentColor = scheme.onError)
+    } else {
+        IconButtonDefaults.filledTonalIconButtonColors()
+    }
     WithTooltip(label) {
         FilledTonalIconButton(
             onClick = action.onClick,

@@ -19,7 +19,7 @@ import org.robolectric.Shadows.shadowOf
 /**
  * Two saved web apps for screen tests: Example is installed, Squoosh isn't. Tests run without a
  * signing key (Robolectric has no Android Keystore), so both count as signed with another key
- * (R11.7): Example offers Fix, Squoosh Rebuild.
+ * (R11.7): Example offers Fix; Squoosh, not installed, is shown as just not installed.
  */
 internal object TestApps {
     val app: ShrimplApp get() = RuntimeEnvironment.getApplication() as ShrimplApp
@@ -34,12 +34,12 @@ internal object TestApps {
         return WebAppRecord.create(profile, icons, templateVersion = 1, signerFingerprint = "AA:BB", now = 0L)
     }
 
-    /** Saves both apps and fakes Example's install. */
     /** Saves [count] more apps, none installed, so the list is long enough to scroll. */
     fun saveMany(count: Int) {
         runBlocking { repeat(count) { app.container.store.save(record("Filler${'a' + it}"), emptyMap()) } }
     }
 
+    /** Saves both apps and fakes Example's install. */
     fun save() {
         runBlocking {
             app.container.store.save(example, emptyMap())

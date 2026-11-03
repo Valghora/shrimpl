@@ -66,14 +66,16 @@ class HomeViewModel(private val container: AppContainer) : ViewModel() {
     }
 
     /**
-     * The apps last signed with a key other than Shrimpl's current one (none until the key is read,
-     * R11.7): installed, they can't be updated, only uninstalled; uninstalled, they rebuild with the
-     * current key.
+     * The [installed] apps last signed with a key other than Shrimpl's current one (none until the key
+     * is read, R11.7): they can't be updated, only uninstalled and rebuilt. An app that isn't installed
+     * is left out, since any build installs fresh with the current key.
      */
-    fun otherKey(records: List<WebAppRecord>, key: SigningKeyCheck): Set<String> {
+    fun otherKey(records: List<WebAppRecord>, installed: Map<String, InstalledApp>, key: SigningKeyCheck): Set<String> {
         val real = if (key is SigningKeyCheck.Read) records.filter { it.signerFingerprint != key.fingerprint } else emptyList()
         // R13: apps tagged cert behave as if signed with another key.
-        return (real + records.filter { TestTag.CERT in TestMode.tags(it.profile.name) }).mapTo(mutableSetOf()) { it.appId }
+        return (real + records.filter { TestTag.CERT in TestMode.tags(it.profile.name) })
+            .filter { it.packageName in installed }
+            .mapTo(mutableSetOf()) { it.appId }
     }
 
     /** R13: the installed apps as the list shows them; apps tagged missing count as not installed. */
