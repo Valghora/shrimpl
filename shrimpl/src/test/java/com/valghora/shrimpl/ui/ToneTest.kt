@@ -3,6 +3,7 @@ package com.valghora.shrimpl.ui
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.test.junit4.v2.createComposeRule
 import com.valghora.shrimpl.ui.common.Tone
@@ -49,7 +50,26 @@ class ToneTest {
     @Test
     fun cautionAndErrorStayFixed() {
         val seen = tones(Color(0xFF1B6EF3))
-        assertEquals(Color(0xFF6B4E00), seen.getValue("caution"))
+        assertEquals(Color(0xFF664A00), seen.getValue("caution"))
         assertEquals(Color(0xFFFFDAD6), seen.getValue("error"))
+    }
+
+    @Test
+    fun everyStatusShadeMeetsTheHighContrastTarget() {
+        fun contrast(a: Color, b: Color): Float {
+            val (hi, lo) = listOf(a.luminance(), b.luminance()).sortedDescending()
+            return (hi + 0.05f) / (lo + 0.05f)
+        }
+        val seen = mutableMapOf<String, Pair<Color, Color>>()
+        compose.setContent {
+            MaterialTheme(colorScheme = lightColorScheme(primary = Color(0xFFB3261E))) {
+                listOf(Tone.CAUTION, Tone.ERROR, Tone.SUCCESS).forEach { seen[it.name] = it.content to it.container }
+            }
+        }
+        compose.waitForIdle()
+        seen.forEach { (tone, colors) ->
+            val ratio = contrast(colors.first, colors.second)
+            assertTrue("$tone text on its container is $ratio:1", ratio >= 7f)
+        }
     }
 }

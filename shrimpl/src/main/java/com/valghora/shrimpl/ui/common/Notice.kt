@@ -41,6 +41,9 @@ import com.valghora.shrimpl.core.discovery.Note
  * Status text on ordinary surfaces (a failure description) is pastel in dark theme and deep in light
  * theme, so it stays readable.
  *
+ * Invariant: each deep shade has at least 7:1 contrast on its pastel, Material's high-contrast
+ * target, since these shades don't follow the system's contrast setting.
+ *
  * Success is harmonized with the theme: its hue turns up to 15 degrees toward the theme's primary
  * color, keeping tone and chroma, so it still reads as green and keeps its contrast. Caution and error
  * stay fixed, since turned toward a purple, blue or red theme caution becomes peach, too close to
@@ -48,7 +51,7 @@ import com.valghora.shrimpl.core.discovery.Note
  */
 enum class Tone(private val pastel: Color?, private val deep: Color?, private val harmonized: Boolean = false) {
     INFO(null, null),
-    CAUTION(Color(0xFFFFF1BF), Color(0xFF6B4E00)),
+    CAUTION(Color(0xFFFFF1BF), Color(0xFF664A00)),
     ERROR(Color(0xFFFFDAD6), Color(0xFF8C1D18)),
     SUCCESS(Color(0xFFD4F5DC), Color(0xFF0F5223), harmonized = true),
     ;
