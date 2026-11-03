@@ -18,16 +18,19 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.luminance
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.graphics.vector.PathParser
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import com.google.android.material.color.MaterialColors
 import com.valghora.shrimpl.R
 import com.valghora.shrimpl.core.discovery.Note
 
@@ -37,22 +40,34 @@ import com.valghora.shrimpl.core.discovery.Note
  * as one whatever the wallpaper: pastel notifications and buttons with deep text in both themes.
  * Status text on ordinary surfaces (a failure description) is pastel in dark theme and deep in light
  * theme, so it stays readable.
+ *
+ * Success is harmonized with the theme: its hue turns up to 15 degrees toward the theme's primary
+ * color, keeping tone and chroma, so it still reads as green and keeps its contrast. Caution and error
+ * stay fixed, since turned toward a purple, blue or red theme caution becomes peach, too close to
+ * error's pink to tell apart.
  */
-enum class Tone(private val pastel: Color?, private val deep: Color?) {
+enum class Tone(private val pastel: Color?, private val deep: Color?, private val harmonized: Boolean = false) {
     INFO(null, null),
     CAUTION(Color(0xFFFFF1BF), Color(0xFF6B4E00)),
     ERROR(Color(0xFFFFDAD6), Color(0xFF8C1D18)),
-    SUCCESS(Color(0xFFD4F5DC), Color(0xFF0F5223)),
+    SUCCESS(Color(0xFFD4F5DC), Color(0xFF0F5223), harmonized = true),
     ;
 
     /** The background of a notification or button in this tone. */
-    val container: Color @Composable get() = pastel ?: MaterialTheme.colorScheme.secondaryContainer
+    val container: Color @Composable get() = pastel?.let { themed(it) } ?: MaterialTheme.colorScheme.secondaryContainer
 
     /** Text and icons on [container]. */
-    val content: Color @Composable get() = deep ?: MaterialTheme.colorScheme.onSecondaryContainer
+    val content: Color @Composable get() = deep?.let { themed(it) } ?: MaterialTheme.colorScheme.onSecondaryContainer
 
     /** Status text on ordinary surfaces, such as a failure description. */
-    val text: Color @Composable get() = (if (isDarkTheme()) pastel else deep) ?: MaterialTheme.colorScheme.secondary
+    val text: Color @Composable get() = (if (isDarkTheme()) pastel else deep)?.let { themed(it) } ?: MaterialTheme.colorScheme.secondary
+
+    @Composable
+    private fun themed(color: Color): Color {
+        if (!harmonized) return color
+        val primary = MaterialTheme.colorScheme.primary
+        return remember(color, primary) { Color(MaterialColors.harmonize(color.toArgb(), primary.toArgb())) }
+    }
 }
 
 /** Whether the app is showing its dark theme (set in Settings or by the system). */
