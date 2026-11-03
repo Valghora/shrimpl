@@ -210,7 +210,8 @@ binary translation) on any device.
   a profile keeps any it already has.
 
   Values discovered with low or medium confidence say where they came from; discovery's notes appear
-  as Info, Caution or Error notices. Every field is validated as the user types, by the core
+  as Info, Caution or Error notices. Every dismissable notice in Shrimpl has a Dismiss button at
+  the end of its button row (never an X) and is also dismissed by swiping it left or right. Every field is validated as the user types, by the core
   validator (R4.2).
 - R3.4 Create builds, signs and installs (R8, R6). A bottom sheet titled "Creating an app for
   <name>…" ("Updating <name>…" for an update, "Reinstalling <name>…" for a known app that isn't
@@ -417,7 +418,7 @@ The template's behavior is docs/TEMPLATE_SPEC.md. What Shrimpl relies on:
   Not installed (say, its Fix stopped after the uninstall), the key no longer matters: it is shown
   and reinstalled like any app that isn't installed (R2.2). Home shows a Caution notice
   explaining both ways out (import the certificate backup, R5.2, or Fix, keeping the settings but
-  not the site data), with Open settings at the start and Dismiss at the end. Dismiss hides it for
+  not the site data), with Open settings at the start and Dismiss at the end (or a swipe, R3.3). Dismiss hides it for
   the apps it covered; another such app shows it again. Only installed apps count for the notice
   and Fix all.
 

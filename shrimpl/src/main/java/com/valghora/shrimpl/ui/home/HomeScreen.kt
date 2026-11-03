@@ -283,8 +283,8 @@ fun HomeScreen(
                         NoticeCard(
                             Notice(Notice.Kind.CAUTION, stringResource(R.string.other_key_notice)),
                             modifier = Modifier.padding(horizontal = 16.dp - gridInset, vertical = 8.dp),
+                            onDismiss = { model.dismissKeyNotice(otherKey) },
                             action = stringResource(R.string.action_open_settings) to onSettings,
-                            endAction = stringResource(R.string.action_dismiss) to { model.dismissKeyNotice(otherKey) },
                         )
                     }
                 }

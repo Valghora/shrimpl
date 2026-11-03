@@ -10,13 +10,14 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.SwipeToDismissBox
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -92,9 +93,10 @@ data class Notice(val kind: Kind, val text: String) {
 }
 
 /**
- * A notification card: the kind's icon and text, an optional [action] button (such as Retry) under
- * the text, an optional [endAction] (such as Dismiss) at the other end of that row, inset as far from
- * the card's end as [action] is from its start, and a dismiss button when [onDismiss] is set.
+ * A notification card: the kind's icon and text, and under the text an optional [action] button
+ * (such as Open settings) and, when [onDismiss] is set, Dismiss at the other end of that row, inset
+ * as far from the card's end as [action] is from its start. A dismissable card also goes when
+ * swiped left or right; the Dismiss button is the way for keyboards, mice and accessibility services.
  */
 @Composable
 fun NoticeCard(
@@ -102,15 +104,29 @@ fun NoticeCard(
     modifier: Modifier = Modifier,
     onDismiss: (() -> Unit)? = null,
     action: Pair<String, () -> Unit>? = null,
-    endAction: Pair<String, () -> Unit>? = null,
 ) {
+    if (onDismiss == null) {
+        NoticeContent(notice, modifier, null, action)
+        return
+    }
+    val swipe = rememberSwipeToDismissBoxState()
+    SwipeToDismissBox(
+        state = swipe,
+        backgroundContent = {},
+        modifier = modifier,
+        onDismiss = { onDismiss() },
+    ) { NoticeContent(notice, Modifier, onDismiss, action) }
+}
+
+@Composable
+private fun NoticeContent(notice: Notice, modifier: Modifier, onDismiss: (() -> Unit)?, action: Pair<String, () -> Unit>?) {
     val color = notice.kind.tone.content
     Row(
         modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(20.dp))
             .background(notice.kind.tone.container)
-            .padding(start = 16.dp, top = 12.dp, bottom = 12.dp, end = if (onDismiss != null) 4.dp else 16.dp),
+            .padding(horizontal = 16.dp, vertical = 12.dp),
         horizontalArrangement = Arrangement.spacedBy(12.dp),
         verticalAlignment = Alignment.Top,
     ) {
@@ -120,23 +136,18 @@ fun NoticeCard(
             Column(verticalArrangement = Arrangement.spacedBy(PARAGRAPH_GAP)) {
                 notice.text.split("\n\n").forEach { Text(it, style = MaterialTheme.typography.bodyMedium, color = color) }
             }
-            if (action != null || endAction != null) {
+            if (action != null || onDismiss != null) {
                 // The icon column's width (24 dp icon and 12 dp gap) mirrored at the end.
                 Row(
-                    Modifier.fillMaxWidth().padding(top = 10.dp, end = if (endAction != null) 36.dp else 0.dp),
+                    Modifier.fillMaxWidth().padding(top = 10.dp, end = if (onDismiss != null) 36.dp else 0.dp),
                     horizontalArrangement = Arrangement.SpaceBetween,
                 ) {
                     action?.let { (label, onClick) -> TextButton(onClick = onClick) { Text(label, color = color, style = MaterialTheme.typography.labelLarge) } }
                     Spacer(Modifier.weight(1f))
-                    endAction?.let { (label, onClick) -> TextButton(onClick = onClick) { Text(label, color = color, style = MaterialTheme.typography.labelLarge) } }
+                    onDismiss?.let {
+                        TextButton(onClick = it) { Text(stringResource(R.string.action_dismiss), color = color, style = MaterialTheme.typography.labelLarge) }
+                    }
                 }
-            }
-        }
-        if (onDismiss != null) {
-            // A full 48 dp target (Tier 2 Touch_Targets), with a tooltip for mouse users.
-            val label = stringResource(R.string.action_dismiss)
-            TooltipIconButton(label, onDismiss) {
-                Icon(Icons.Filled.Close, contentDescription = label, tint = color, modifier = Modifier.size(20.dp))
             }
         }
     }

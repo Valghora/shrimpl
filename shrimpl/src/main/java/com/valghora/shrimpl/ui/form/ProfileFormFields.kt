@@ -29,6 +29,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
@@ -110,7 +111,8 @@ fun ProfileFormFields(
 private fun Notes(notes: List<Notice>) {
     var dismissed by rememberSaveable(notes, stateSaver = NoticeSetSaver) { mutableStateOf(emptySet<Notice>()) }
     notes.filter { it !in dismissed }.forEach { note ->
-        NoticeCard(note, Modifier.padding(top = 12.dp), onDismiss = { dismissed = dismissed + note })
+        // Keyed, so a card's swipe state stays with its note when an earlier one goes.
+        key(note) { NoticeCard(note, Modifier.padding(top = 12.dp), onDismiss = { dismissed = dismissed + note }) }
     }
 }
 
