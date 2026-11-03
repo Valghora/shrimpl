@@ -17,6 +17,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.semantics.error
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.input.VisualTransformation
@@ -24,8 +25,8 @@ import androidx.compose.ui.unit.dp
 import com.valghora.shrimpl.ui.theme.AppShapes
 
 /**
- * Shrimpl's text field (docs/SHRIMPL_SPEC.md R3.1): filled, with tight corners ([AppShapes.Input]) and no outline, like the
- * settings items. Typing in it draws a primary edge, an error a red one; [supportingText] sits below,
+ * Shrimpl's text field (docs/SHRIMPL_SPEC.md R3.1): filled, with [AppShapes.Input] corners unless
+ * [shape] says otherwise, and no outline, like the settings items. Typing in it draws a primary edge, an error a red one; [supportingText] sits below,
  * in red when [isError]. In a dialog ([inDialog]) the fill is one step lighter so it stands out.
  */
 @Composable
@@ -35,6 +36,7 @@ fun AppTextField(
     label: String,
     modifier: Modifier = Modifier,
     inDialog: Boolean = false,
+    shape: Shape = AppShapes.Input,
     isError: Boolean = false,
     supportingText: String? = null,
     placeholder: String? = null,
@@ -60,7 +62,7 @@ fun AppTextField(
             value = value,
             onValueChange = onValueChange,
             // The message below is the field's error for accessibility services, read with the field.
-            modifier = Modifier.fillMaxWidth().border(2.dp, edge, AppShapes.Input)
+            modifier = Modifier.fillMaxWidth().border(2.dp, edge, shape)
                 .semantics { if (isError && supportingText != null) error(supportingText) },
             enabled = enabled,
             label = { Text(label) },
@@ -72,7 +74,7 @@ fun AppTextField(
             keyboardOptions = keyboardOptions,
             keyboardActions = keyboardActions,
             singleLine = true,
-            shape = AppShapes.Input,
+            shape = shape,
             interactionSource = interaction,
             colors = TextFieldDefaults.colors(
                 focusedContainerColor = fill,

@@ -2,6 +2,7 @@ package com.valghora.shrimpl.ui.common
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -18,7 +19,6 @@ import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.luminance
@@ -138,9 +138,14 @@ private fun NoticeContent(notice: Notice, modifier: Modifier, onDismiss: (() -> 
             },
             { action?.let { (label, onClick) -> button(label, onClick) } },
             { onDismiss?.let { button(dismissLabel, it) } },
+            // Both backgrounds are composed; layout draws the one for the notice's shape, decided there.
+            { Box(Modifier.background(notice.kind.tone.container, AppShapes.NoticeOneLine)) },
+            { Box(Modifier.background(notice.kind.tone.container, AppShapes.Notice)) },
         ),
-        modifier = modifier.fillMaxWidth().clip(AppShapes.Notice).background(notice.kind.tone.container),
-    ) { (iconSlot, textSlot, actionSlot, dismissSlot), constraints ->
+        modifier = modifier.fillMaxWidth(),
+    ) { slots, constraints ->
+        val (iconSlot, textSlot, actionSlot, dismissSlot) = slots
+        val (pillBackground, roundedBackground) = slots[4].single() to slots[5].single()
         val width = constraints.maxWidth
         val icon = iconSlot.single().measure(Constraints())
         val dismiss = dismissSlot.singleOrNull()?.measure(Constraints())
@@ -155,6 +160,7 @@ private fun NoticeContent(notice: Notice, modifier: Modifier, onDismiss: (() -> 
             val inner = maxOf(icon.height, placedText.height, dismiss!!.height)
             val height = inner + INLINE_VERTICAL.roundToPx() * 2
             layout(width, height) {
+                pillBackground.measure(Constraints.fixed(width, height)).place(0, 0)
                 val mid = height / 2
                 icon.place(SIDE.roundToPx(), mid - icon.height / 2)
                 placedText.place(textStart, mid - placedText.height / 2)
@@ -169,6 +175,7 @@ private fun NoticeContent(notice: Notice, modifier: Modifier, onDismiss: (() -> 
             val bottom = if (buttonsHeight > 0) buttonsTop + buttonsHeight else textTop + placedText.height
             val height = maxOf(bottom, VERTICAL.roundToPx() + ICON_TOP.roundToPx() + icon.height) + VERTICAL.roundToPx()
             layout(width, height) {
+                roundedBackground.measure(Constraints.fixed(width, height)).place(0, 0)
                 icon.place(SIDE.roundToPx(), VERTICAL.roundToPx() + ICON_TOP.roundToPx())
                 placedText.place(textStart, textTop)
                 actionButton?.place(textStart, buttonsTop)
@@ -210,4 +217,5 @@ private val BUTTONS_GAP = 10.dp
 
 /** On one line: Dismiss's own 12 dp padding plus this puts its label 16 dp from the end, like the icon at the start. */
 private val INLINE_END = 4.dp
+/** With Dismiss's 48 dp target, makes a one-line notice 56 dp tall. */
 private val INLINE_VERTICAL = 4.dp

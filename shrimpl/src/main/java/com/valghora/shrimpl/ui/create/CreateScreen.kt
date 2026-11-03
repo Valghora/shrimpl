@@ -211,13 +211,14 @@ private fun UrlStep(model: CreateViewModel, step: CreateViewModel.Step, padding:
     ) {
         Column(Modifier.widthIn(max = 560.dp).fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(16.dp)) {
             Text(stringResource(R.string.create_url_intro), style = MaterialTheme.typography.bodyLarge)
-            // R3.2: the address, with the search button beside it in the same shape and height.
+            // R3.1: the address in a pill, like Material's search bars, with a round search button of the same height.
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.Top) {
                 AppTextField(
                     value = url,
                     onValueChange = model::setUrl,
                     label = stringResource(R.string.field_website),
                     placeholder = "example.com",
+                    shape = AppShapes.Search,
                     enabled = !busy,
                     isError = invalid,
                     supportingText = if (invalid) stringResource(R.string.search_invalid_url) else null,

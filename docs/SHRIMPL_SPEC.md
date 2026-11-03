@@ -89,17 +89,18 @@ binary translation) on any device.
   icon, font scaling supported. The template stays on Views (T1.1).
 - R1.4 Three install methods behind one interface (R6): System (the platform installer), Shizuku and
   Root.
-- R1.5 Shapes: tight corners from Material's shape scale, one size per role, all defined in one place
-  (`ui/theme/Shapes.kt`, which also sets Material's theme shapes so dialogs, sheets, chips, tooltips
-  and snackbars follow):
-  - Input, 4 dp: text fields.
-  - Control, 8 dp: buttons with a container (New app, Create, Save, Update all, Fix all, row
-    buttons, the search button, buttons in sheets and settings) and chips.
-  - Item, 8 dp outside and 2 dp where grouped items meet: home rows and tiles, settings groups.
-  - Notice, 8 dp: notices (R3.3).
-  - Menu, 8 dp, with 4 dp for an item's highlight inside it (also the press highlight of icon option
-    tiles and custom icon sources).
-  - Surface, 12 dp: the two-pane cards, bottom sheets and dialogs.
+- R1.5 Shapes: rounded corners from Material's shape scale, one size per role, all defined in one
+  place (`ui/theme/Shapes.kt`, which also sets Material's theme shapes so dialogs, sheets, chips,
+  tooltips and snackbars follow):
+  - Input, 12 dp: text fields. Search, fully round: the website field on Create (R3.1).
+  - Control, fully round: buttons with a container (New app, Create, Save, Update all, Fix all, row
+    buttons, the search button, buttons in sheets and settings). Chips take Material's 8 dp.
+  - Item, 20 dp outside and 4 dp where grouped items meet: home rows and tiles, settings groups.
+  - Notice: a one-line notice is a pill at any text size; a taller one has 28 dp corners (R3.3).
+  - Menu, 16 dp, with 12 dp for an item's highlight inside it (also the press highlight of icon
+    option tiles and custom icon sources).
+  - Pane, 16 dp: the two-pane cards, tighter than sheets and dialogs so the desktop layout stays crisp.
+  - Surface, 28 dp: bottom sheets and dialogs.
   - Round: app icons, badges, color swatches, progress marks and icon-only buttons without a
     container.
 
@@ -179,9 +180,9 @@ binary translation) on any device.
 ## R3 Configuration page
 
 - R3.1 Address: a Website field (URI keyboard, `https://` assumed without a scheme) with a search
-  button beside it, also from the IME action. Text fields everywhere are filled, with Input corners (R1.5)
+  button beside it, also from the IME action. Text fields everywhere are filled, with Input corners (the website field a Search pill, R1.5)
   and no outline; typing draws a primary edge, an error a red one with the message below. The search
-  button matches the field's height, with Control corners, in the tonal container color. Input that isn't a web
+  button is a circle of the field's height, in the tonal container color. Input that isn't a web
   address shows an error under the field, before any search.
 - R3.2 Discovery (R9) shows a checklist under "Searching…": Loading the site, Consulting the
   manifest, Researching permissions, Searching for icon. Finished steps get a check, the current one
@@ -197,7 +198,7 @@ binary translation) on any device.
   becomes Retry (a refresh icon) until the address is edited, and a Continue button (defaults for the
   address) floats at the bottom right.
 - R3.3 Review: a form prefilled from discovery, laid out like the system settings: titled sections
-  of tonal items 3 dp apart, each group with Item corners (R1.5): 8 dp on the outside and 2 dp where
+  of tonal items 3 dp apart, each group with Item corners (R1.5): 20 dp on the outside and 4 dp where
   items meet: the first item rounded at the top, the last at the bottom, a lone item all round (Settings,
   R2.5, uses the same sections); each showing its value (summary, switch, menu value or color
   swatch); text, color, domain and window size values open dialogs. Each section has one wrap line
@@ -223,7 +224,7 @@ binary translation) on any device.
   a profile keeps any it already has.
 
   Values discovered with low or medium confidence say where they came from; discovery's notes appear
-  as Info, Caution or Error notices. Notices have Notice corners (R1.5). Every dismissable notice has a Dismiss button (never an X)
+  as Info, Caution or Error notices. Notices have Notice corners (R1.5), so one-line notices are pills. Every dismissable notice has a Dismiss button (never an X)
   and is also dismissed by swiping it left or right. A one-paragraph notice with no other button
   that fits on one line beside Dismiss keeps Dismiss on that line, so short notices stay one line
   tall; otherwise the buttons sit in a row under the text, Dismiss at its end. Every field is validated as the user types, by the core

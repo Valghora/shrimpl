@@ -55,7 +55,7 @@ fun PaneCard(twoPane: Boolean, side: PaneSide, content: @Composable () -> Unit) 
         // Pads for this pane's own edges; the inner edge's insets are consumed, not padded twice.
         Box(Modifier.windowInsetsPadding(insets).consumeWindowInsets(WindowInsets.safeDrawing).padding(margins)) {
             Surface(
-                shape = AppShapes.Surface,
+                shape = AppShapes.Pane,
                 color = MaterialTheme.colorScheme.surface,
                 modifier = Modifier.fillMaxSize(),
             ) {
