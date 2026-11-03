@@ -49,7 +49,7 @@ that alters a requirement updates the spec in the same commit.
 
 ```bash
 ./gradlew $GRADLE_FLAGS --console=plain :core:check :template:testDebugUnitTest :template:lintRelease \
-  :template:assembleRelease :shrimpl:testDebugUnitTest :shrimpl:lintDebug :shrimpl:assembleDebug \
+  :template:assembleRelease :shrimpl:testDebugUnitTest :shrimpl:lintRelease :shrimpl:assembleDebug \
   :shrimpl:assembleRelease
 scripts/check_native_code.sh --none template/build/outputs/apk/release/template-release.apk
 scripts/check_native_code.sh --all-abis shrimpl/build/outputs/apk/debug/shrimpl-debug.apk \

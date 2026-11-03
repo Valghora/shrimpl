@@ -212,3 +212,15 @@ thrown away.
   can't be tested there. The tiles' long-press menu opened well below the tile on a device
   (2026-11-02): a `DropdownMenu` opens below its anchor and its `offset` is added to the anchor's
   bottom, so the menu is now anchored to an empty box at the pressed point.
+
+## CI timing (2026-11)
+
+A clean profile of the full CI build on 4 cores: Shrimpl R8 209 s, Shrimpl lint 196 s, Shrimpl
+Robolectric tests 110 s, template R8 79 s, template lint 63 s, and lint vital for both release
+builds 95 s. Lint vital checks a subset of what the full release lint finds on the same variant, so
+CI excludes `lintVitalRelease` (`-x`) and runs `lintRelease` for both apps; no check stops running.
+`org.gradle.parallel=true` took the clean build from 6:24 to 5:47 locally. Parallel CI jobs would
+shorten a run to about 6 minutes, but each pays about 45 s of setup and rebuilds the template, so
+in this private repository they cost 1.5 to 2 times the runner minutes; the workflow keeps one
+Build job with a step per stage instead, and skips Build for a commit that already passed.
+

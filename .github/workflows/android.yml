@@ -7,6 +7,7 @@ on:
 
 permissions:
   contents: read
+  actions: read
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -16,8 +17,39 @@ env:
   ANDROID_HOME: /home/runner/android-sdk
 
 jobs:
+  checks:
+    name: Checks
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      verified: ${{ steps.verified.outputs.verified }}
+    steps:
+      - uses: actions/checkout@v7
+
+      # Merging fast-forwards main to a commit that already passed on its branch; building it again
+      # would repeat the same work, so Build is skipped for a commit this workflow already passed.
+      - name: Already verified?
+        id: verified
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          passed=$(gh api "repos/${{ github.repository }}/actions/runs?head_sha=${{ github.sha }}&status=success&per_page=100" \
+            --jq '[.workflow_runs[] | select(.name == "${{ github.workflow }}" and .id != ${{ github.run_id }})] | length')
+          if [[ "${{ github.event_name }}" != "workflow_dispatch" && "$passed" -gt 0 ]]; then
+            echo "::notice::${{ github.sha }} already passed this workflow; skipping Build"
+            echo "verified=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "verified=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      # Comments: requirement IDs and doc paths resolve, TODOs are tracked (code-comments skill).
+      - name: Comment references
+        run: scripts/check_comments.sh
+
   build:
-    name: Core, template and Shrimpl
+    name: Build
+    needs: checks
+    if: needs.checks.outputs.verified != 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
@@ -42,13 +74,31 @@ jobs:
       - name: Set up Android SDK and check tools
         run: scripts/setup_android_sdk.sh
 
-      # :core:check runs the core tests (including building real web apps from the template release
-      # APK) and the 95% line-coverage rule.
-      - name: Tests, lint and builds
+      # Lint vital, which each release build runs, is a subset of the full release lint run below on
+      # the same variant, so these steps skip it rather than lint the same code twice.
+
+      # The core tests build real web apps from the template release APK; check includes the 95 %
+      # line-coverage rule.
+      - name: Core
+        run: ./gradlew --console=plain :core:check :core:jacocoTestReport -x :template:lintVitalRelease
+
+      - name: Template
         run: >-
-          ./gradlew --console=plain :core:check :core:jacocoTestReport
-          :template:testDebugUnitTest :template:lintRelease :template:assembleRelease
-          :shrimpl:testDebugUnitTest :shrimpl:lintDebug :shrimpl:assembleDebug :shrimpl:assembleRelease
+          ./gradlew --console=plain :template:testDebugUnitTest :template:lintRelease :template:assembleRelease
+          -x :template:lintVitalRelease
+
+      - name: Shrimpl tests
+        run: ./gradlew --console=plain :shrimpl:testDebugUnitTest -x :template:lintVitalRelease
+
+      # Release lint covers all of Shrimpl's code: it has no debug-only sources (test tags switch off
+      # at run time, R13).
+      - name: Shrimpl lint
+        run: ./gradlew --console=plain :shrimpl:lintRelease -x :template:lintVitalRelease
+
+      - name: Shrimpl APKs
+        run: >-
+          ./gradlew --console=plain :shrimpl:assembleDebug :shrimpl:assembleRelease
+          -x :template:lintVitalRelease -x :shrimpl:lintVitalRelease
 
       # R0: no APK may need a translation layer on ARM or x86 devices. The template (and so every web
       # app built from it) has no native code; Shrimpl's third-party libraries must cover all four ABIs.
@@ -56,10 +106,6 @@ jobs:
         run: |
           scripts/check_native_code.sh --none template/build/outputs/apk/release/template-release.apk
           scripts/check_native_code.sh --all-abis shrimpl/build/outputs/apk/debug/shrimpl-debug.apk shrimpl/build/outputs/apk/release/shrimpl-release.apk
-
-      # Comments: requirement IDs and doc paths resolve, TODOs are tracked (code-comments skill).
-      - name: Comment references
-        run: scripts/check_comments.sh
 
       - name: Upload template and Shrimpl APKs
         uses: actions/upload-artifact@v7

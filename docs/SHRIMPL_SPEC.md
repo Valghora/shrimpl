@@ -444,9 +444,14 @@ The template's behavior is docs/TEMPLATE_SPEC.md. What Shrimpl relies on:
   and `:shrimpl`. Developer scripts: `scripts/setup_android_sdk.sh` (SDK and tool check),
   `scripts/check_native_code.sh` (R0), and `scripts/dev/` (placeholder icons, Public Suffix List
   refresh).
-- R12.2 CI (`.github/workflows/android.yml`) on every push and pull request runs `:core:check`
-  (tests and coverage), the template and Shrimpl unit tests, lint for both apps (0 errors), the
-  template release build, both Shrimpl builds and the R0 check, and uploads the APKs and reports.
+- R12.2 CI (`.github/workflows/android.yml`) on every push and pull request runs two jobs. Checks
+  (no Gradle, seconds) runs the comment check and asks whether this commit already passed the
+  workflow, as it has when main is fast-forwarded to a tested branch; if so, Build is skipped.
+  Build, one step per stage, runs Core (`:core:check`, tests and coverage), Template (unit tests,
+  release lint, release build), Shrimpl tests, Shrimpl lint (release lint, which covers all its code)
+  and Shrimpl APKs (debug and release), then the R0 check, and uploads the APKs and reports. Lint
+  for both apps reports 0 errors. Release builds skip lint vital, a subset of the release lint
+  already run on the same variant.
 - R12.3 Shrimpl release builds use R8 and are signed with the debug key, for personal sideloading.
 
 ## R13 Test tags (debug builds only)
