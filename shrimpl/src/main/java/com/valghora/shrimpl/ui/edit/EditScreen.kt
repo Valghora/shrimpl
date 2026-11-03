@@ -111,6 +111,10 @@ fun EditScreen(appId: String, onBack: () -> Unit) {
                         }
                     },
                     actions = {
+                        // Invariant: the menu sits in a Box with its button, so it opens under the button. A
+                        // DropdownMenu anchors to its parent; in the bar's Row that is the whole bar, which put
+                        // the menu at the bar's start (found on a device, 2026-11-03).
+                        Box {
                             TooltipIconButton(stringResource(R.string.action_more), { menu = true }) {
                                 Icon(Icons.Filled.MoreVert, contentDescription = stringResource(R.string.action_more))
                             }
@@ -140,6 +144,7 @@ fun EditScreen(appId: String, onBack: () -> Unit) {
                                     })
                                 }
                             }
+                        }
                     },
                 )
             },
