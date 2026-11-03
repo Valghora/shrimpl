@@ -145,7 +145,7 @@ fun HomeScreen(
     val buildState by model.build.state.collectAsStateWithLifecycle()
     val message by model.message.collectAsStateWithLifecycle()
     val clickAction by model.clickAction.collectAsStateWithLifecycle()
-    val resolveOnClick by model.resolveOnClick.collectAsStateWithLifecycle()
+    val resolveOnTap by model.resolveOnTap.collectAsStateWithLifecycle()
     val method by model.installMethod.collectAsStateWithLifecycle()
     val signingKey by model.signingKey.collectAsStateWithLifecycle()
     val layout by model.layout.collectAsStateWithLifecycle()
@@ -304,7 +304,7 @@ fun HomeScreen(
                         otherKey = record.appId in otherKey,
                         selected = record.appId == selected,
                         clickAction = clickAction,
-                        resolveOnClick = resolveOnClick,
+                        resolveOnTap = resolveOnTap,
                         onOpen = { if (app != null) InstalledApps.open(context, record.packageName) else onEdit(record.appId) },
                         onEdit = { onEdit(record.appId) },
                         onRebuild = { model.rebuild(record) },
@@ -377,7 +377,7 @@ private fun AppItem(
     otherKey: Boolean,
     selected: Boolean,
     clickAction: ClickAction,
-    resolveOnClick: Boolean,
+    resolveOnTap: Boolean,
     onOpen: () -> Unit,
     onEdit: () -> Unit,
     onRebuild: () -> Unit,
@@ -405,10 +405,10 @@ private fun AppItem(
         installed != null && updateAvailable -> R.string.action_update_app to onRebuild
         else -> null
     }
-    // A tap opens or edits the app, as chosen in Settings (R2.5), or with Resolve on click does its
-    // pending action. Otherwise an uninstalled app, or one signed with another key, does nothing on a
-    // tap, so it offers no tap to accessibility services either.
-    val resolve = pending?.takeIf { resolveOnClick }
+    // A tap opens or edits the app, as chosen in Settings (R2.5), or with Resolve on tap does its
+    // pending action, unless the app isn't installed. Otherwise an uninstalled app, or one signed with
+    // another key, does nothing on a tap, so it offers no tap to accessibility services either.
+    val resolve = pending?.takeIf { resolveOnTap && installed != null }
     val onTap = when {
         resolve != null -> resolve.second
         locked || installed == null -> null

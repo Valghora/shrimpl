@@ -39,15 +39,15 @@ class AppSettings(context: Context) {
     /** What tapping an app in the home list does; Edit unless the user picked Open. */
     val clickAction: StateFlow<ClickAction> = _clickAction.asStateFlow()
 
-    private val _resolveOnClick = MutableStateFlow(prefs.getBoolean(KEY_RESOLVE_ON_CLICK, false))
+    private val _resolveOnTap = MutableStateFlow(prefs.getBoolean(KEY_RESOLVE_ON_CLICK, false))
 
-    /** Tapping an app with a pending action (Update, Fix, Rebuild) does that action instead (R2.5); off by default. */
-    val resolveOnClick: StateFlow<Boolean> = _resolveOnClick.asStateFlow()
+    /** Tapping an installed app with a pending action (Update or Fix) does that action instead (R2.5); off by default. */
+    val resolveOnTap: StateFlow<Boolean> = _resolveOnTap.asStateFlow()
 
-    /** Saves the Resolve on click switch (R2.5). */
-    fun setResolveOnClick(resolve: Boolean) {
+    /** Saves the Resolve on tap switch (R2.5). */
+    fun setResolveOnTap(resolve: Boolean) {
         prefs.edit { putBoolean(KEY_RESOLVE_ON_CLICK, resolve) }
-        _resolveOnClick.value = resolve
+        _resolveOnTap.value = resolve
     }
 
     private val _homeLayout = MutableStateFlow(
@@ -120,6 +120,7 @@ class AppSettings(context: Context) {
         const val KEY_THEME = "theme"
         const val KEY_CLICK_ACTION = "click_action"
         const val KEY_HOME_LAYOUT = "home_layout"
+        // Invariant: the key keeps the switch's old name, so a saved choice survives the rename.
         const val KEY_RESOLVE_ON_CLICK = "resolve_on_click"
         const val KEY_BACKED_UP = "key_backed_up"
         const val KEY_PROMPT_SHOWN = "backup_prompt_shown"

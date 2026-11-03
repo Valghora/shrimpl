@@ -76,7 +76,7 @@ fun SettingsScreen(inPane: Boolean, onBack: () -> Unit) {
     val method by model.installMethod.collectAsStateWithLifecycle()
     val theme by model.theme.collectAsStateWithLifecycle()
     val clickAction by model.clickAction.collectAsStateWithLifecycle()
-    val resolveOnClick by model.resolveOnClick.collectAsStateWithLifecycle()
+    val resolveOnTap by model.resolveOnTap.collectAsStateWithLifecycle()
     val rootAccess by model.rootAccess.collectAsStateWithLifecycle()
     val shizukuAccess by model.shizukuAccess.collectAsStateWithLifecycle()
     val fingerprint by model.fingerprint.collectAsStateWithLifecycle()
@@ -189,10 +189,10 @@ fun SettingsScreen(inPane: Boolean, onBack: () -> Unit) {
                         ),
                     )
                     SwitchItem(
-                        stringResource(R.string.resolve_on_click),
-                        resolveOnClick,
-                        model::setResolveOnClick,
-                        summary = stringResource(if (resolveOnClick) R.string.resolve_on_click_on_detail else R.string.resolve_on_click_off_detail),
+                        stringResource(R.string.resolve_on_tap),
+                        resolveOnTap,
+                        model::setResolveOnTap,
+                        summary = stringResource(if (resolveOnTap) R.string.resolve_on_tap_on_detail else R.string.resolve_on_tap_off_detail),
                     )
                 }
 

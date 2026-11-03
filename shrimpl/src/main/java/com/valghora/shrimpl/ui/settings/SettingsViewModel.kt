@@ -28,7 +28,7 @@ class SettingsViewModel(private val container: AppContainer) : ViewModel() {
     val installMethod: StateFlow<InstallMethod> = container.settings.installMethod
     val theme: StateFlow<ThemeSetting> = container.settings.theme
     val clickAction: StateFlow<ClickAction> = container.settings.clickAction
-    val resolveOnClick: StateFlow<Boolean> = container.settings.resolveOnClick
+    val resolveOnTap: StateFlow<Boolean> = container.settings.resolveOnTap
 
     /** Where a root or Shizuku access request stands (the Request Access button's states). */
     enum class Access { NOT_REQUESTED, REQUESTING, GRANTED, FAILED }
@@ -122,8 +122,8 @@ class SettingsViewModel(private val container: AppContainer) : ViewModel() {
     /** Saves the default click action (R2.5). */
     fun setClickAction(action: ClickAction) = container.settings.setClickAction(action)
 
-    /** Saves the Resolve on click switch (R2.5). */
-    fun setResolveOnClick(resolve: Boolean) = container.settings.setResolveOnClick(resolve)
+    /** Saves the Resolve on tap switch (R2.5). */
+    fun setResolveOnTap(resolve: Boolean) = container.settings.setResolveOnTap(resolve)
 
     /**
      * Writes the key as a PKCS12 file protected by [password] to [uri]

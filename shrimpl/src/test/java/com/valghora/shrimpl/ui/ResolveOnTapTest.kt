@@ -26,12 +26,13 @@ import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
 
 /**
- * Resolve on click (docs/SHRIMPL_SPEC.md R2.5): on, tapping an app with a pending action does it.
+ * Resolve on tap (docs/SHRIMPL_SPEC.md R2.5): on, tapping an installed app with a pending action does
+ * it; an app that isn't installed ignores the switch.
  * With [TestApps], Example needs a fix and Squoosh a rebuild.
  */
 @Config(qualifiers = "w420dp-h900dp")
 @RunWith(RobolectricTestRunner::class)
-class ResolveOnClickTest {
+class ResolveOnTapTest {
     @get:Rule
     val compose = createComposeRule()
 
@@ -39,7 +40,7 @@ class ResolveOnClickTest {
 
     private fun home(layout: HomeLayout) {
         TestApps.save()
-        settings.setResolveOnClick(true)
+        settings.setResolveOnTap(true)
         settings.setHomeLayout(layout)
         compose.setContent {
             MaterialTheme { HomeScreen(selected = null, showCreateButton = true, onCreate = {}, onSettings = {}, onEdit = {}) }
@@ -55,7 +56,15 @@ class ResolveOnClickTest {
         home(HomeLayout.LIST)
         compose.awaitHome()
         assertEquals(string(R.string.action_fix_app, "Example"), tapLabel("Example"))
-        assertEquals(string(R.string.action_rebuild_app, "Squoosh"), tapLabel("Squoosh"))
+    }
+
+    @Test
+    fun anAppThatIsNotInstalledIgnoresTheSwitch() {
+        home(HomeLayout.LIST)
+        compose.awaitHome()
+        // Squoosh isn't installed and would need a rebuild; a tap still does nothing.
+        assertEquals(null, tapLabel("Squoosh"))
+        assertTrue("no tap is offered", compose.onAllNodes(hasText("Squoosh") and SemanticsMatcher.keyIsDefined(SemanticsActions.OnClick)).fetchSemanticsNodes().isEmpty())
     }
 
     @Test
@@ -68,13 +77,13 @@ class ResolveOnClickTest {
     @Test
     fun theSwitchIsOffByDefaultAndSaysWhatItDoes() {
         compose.setContent { MaterialTheme { SettingsScreen(inPane = false, onBack = {}) } }
-        val switch = compose.onNode(hasText(string(R.string.resolve_on_click)) and SemanticsMatcher.keyIsDefined(SemanticsProperties.ToggleableState))
+        val switch = compose.onNode(hasText(string(R.string.resolve_on_tap)) and SemanticsMatcher.keyIsDefined(SemanticsProperties.ToggleableState))
         switch.performScrollTo().assertIsOff()
-        compose.onNodeWithText(string(R.string.resolve_on_click_off_detail)).assertExists()
+        compose.onNodeWithText(string(R.string.resolve_on_tap_off_detail)).assertExists()
         switch.performClick()
         switch.assertIsOn()
-        compose.onNodeWithText(string(R.string.resolve_on_click_on_detail)).assertExists()
-        assertTrue("the choice is saved", settings.resolveOnClick.value)
+        compose.onNodeWithText(string(R.string.resolve_on_tap_on_detail)).assertExists()
+        assertTrue("the choice is saved", settings.resolveOnTap.value)
     }
 
     private companion object {

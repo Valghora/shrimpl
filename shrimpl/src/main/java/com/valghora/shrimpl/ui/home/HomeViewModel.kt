@@ -37,8 +37,8 @@ class HomeViewModel(private val container: AppContainer) : ViewModel() {
     val clickAction: StateFlow<ClickAction> = container.settings.clickAction
     val layout: StateFlow<HomeLayout> = container.settings.homeLayout
 
-    /** Tapping an app with a pending action does that action (R2.5). */
-    val resolveOnClick: StateFlow<Boolean> = container.settings.resolveOnClick
+    /** Tapping an installed app with a pending action does that action (R2.5). */
+    val resolveOnTap: StateFlow<Boolean> = container.settings.resolveOnTap
 
     /** Switches between rows and tiles, and keeps the choice (R2.6). */
     fun setLayout(layout: HomeLayout) = container.settings.setHomeLayout(layout)

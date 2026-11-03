@@ -109,7 +109,7 @@ binary translation) on any device.
 - R2.2 The list comes from Shrimpl's records (R11) joined with the installed state, re-read on
   resume. A record whose app isn't installed sits at the bottom of the list under a "Not installed"
   label (each group in name order), its icon and name greyed out (65 % opacity, so the name keeps
-  4.5:1 contrast in both themes); tapping it does nothing (unless Resolve on click, R2.5), and accessibility services aren't offered a
+  4.5:1 contrast in both themes); tapping it does nothing (Resolve on tap doesn't apply to it, R2.5), and accessibility services aren't offered a
   tap, but its ⋮ menu, long press ("Show options"), right-click menu and Rebuild button work as usual. An installed app built from
   an older template (R11.4) shows an Update button to the right of its name, which rebuilds it with
   the bundled template. Row buttons are small icon-only pills (48 x 32 dp, a 48 dp touch target)
@@ -139,11 +139,14 @@ binary translation) on any device.
   - **Appearance:** Theme: System (dynamic color from the wallpaper), Light or Dark.
   - **Installation:** Method (R6.2), and the Request Root / Request Shizuku item when one is chosen.
   - **Behavior:** Default click action: Edit (the default; "Edit the application on click") or Open
-    ("Launch the application on click"). Resolve on click (a switch, off by default): on, tapping an
-    app with a pending action (the action its row button offers: Fix, Rebuild or Update, R2.2,
-    R11.7) does that action instead of the default click action, in rows and tiles, and
-    accessibility services hear the tap named after it ("Fix Example"); off, the default click
-    action applies (and an app signed with another key, or not installed, still does nothing on a tap).
+    ("Launch the application on click"). Resolve on tap (a switch, off by default; "Override default tap
+    preference and automatically perform pending actions" / "Always respect default tap
+    preference"): on, tapping an installed app with a pending action (the action its row button
+    offers: Fix or Update, R2.2, R11.7) does that action instead of the default click action, in
+    rows and tiles, and accessibility services hear the tap named after it ("Fix Example"); off,
+    the default click action applies (and an app signed with another key still does nothing on a
+    tap). An app that isn't installed ignores the switch: tapping it does nothing, and its Rebuild
+    stays on its row button and menus.
   - **Signing:** the certificate's SHA-256 fingerprint with a copy button, "Export…" and "Import…"
     (export and import the certificate, R5).
   - **About:** "App Version: x.y" and "Template Version: N.0".
@@ -405,7 +408,7 @@ The template's behavior is docs/TEMPLATE_SPEC.md. What Shrimpl relies on:
   list stay removed. Apps signed with another key are handled by R11.7.
 - R11.7 An app last signed with a key other than Shrimpl's current one keeps its record either way.
   Installed, its row offers only Fix (a yellow icon-only pill with a wrench, R2.2), tapping the row
-  does nothing (it fixes the app with Resolve on click, R2.5), and its menus offer only Remove (a tile's menu offers Fix, then Remove, R2.6);
+  does nothing (it fixes the app with Resolve on tap, R2.5), and its menus offer only Remove (a tile's menu offers Fix, then Remove, R2.6);
   Update all skips it. Fix uninstalls the app (the
   system asks), then rebuilds it from the saved settings signed with the current key (the system
   asks again); the build sheet adds an Uninstalling step before the build's stages, and turning the
