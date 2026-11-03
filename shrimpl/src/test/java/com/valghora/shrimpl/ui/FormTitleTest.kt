@@ -12,6 +12,7 @@ import com.valghora.shrimpl.MainActivity
 import com.valghora.shrimpl.R
 import com.valghora.shrimpl.ui.TestApps.awaitHome
 import com.valghora.shrimpl.ui.TestApps.string
+import com.valghora.shrimpl.ui.home.tilesWidth
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
@@ -22,7 +23,7 @@ import org.robolectric.RobolectricTestRunner
 import org.robolectric.RuntimeEnvironment
 
 /**
- * R1.1 and R3.5: beside the list, which takes a third of the window, an app's settings page puts its
+ * R1.1 and R3.5: beside the list, which starts wide enough for four tiles, an app's settings page puts its
  * name over the form's column, starting where the section labels start, and its ⋮ button over the
  * column's end. With one pane (below 840 dp)
  * the column sits 24 dp from the edge to clear the floating button, so the title keeps its place after
@@ -68,10 +69,12 @@ class FormTitleTest {
     @Test
     fun besideTheListTheTitleLinesUpWithTheColumn() {
         open(1280, 800)
-        // The list pane ends about a third of the way across (its ⋮ buttons sit at its end edge).
+        // The list pane starts wide enough for four tiles beside its 16 dp margin. Its ⋮ buttons end
+        // 8 dp inside the card (the rows' inset), at most 2 dp of rounding slack past four tiles.
         val listEnd = compose.onNode(hasContentDescription(string(R.string.action_app_options, "Example"))).fetchSemanticsNode()
             .boundsInRoot.right / density
-        assertTrue("the list ends near a third of the window ($listEnd)", listEnd in 1280f / 3 - 48f..1280f / 3)
+        val fourTiles = 16f + tilesWidth(4).value
+        assertTrue("the list ends where four tiles fit ($listEnd)", listEnd in fourTiles - 8f..fourTiles - 6f + 0.5f)
         assertTitleOverColumn(after = listEnd)
 
         // The ⋮ icon sits over the items' trailing chevrons (32 dp in from the column's end), not at the

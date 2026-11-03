@@ -1,20 +1,30 @@
 package com.valghora.shrimpl.ui
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.WindowInsetsSides
+import androidx.compose.foundation.layout.asPaddingValues
+import androidx.compose.foundation.layout.calculateStartPadding
+import androidx.compose.foundation.layout.only
+import androidx.compose.foundation.layout.safeDrawing
+import androidx.compose.material3.LocalMinimumInteractiveComponentSize
+import androidx.compose.material3.VerticalDragHandle
 import androidx.compose.material3.adaptive.ExperimentalMaterial3AdaptiveApi
 import androidx.compose.material3.adaptive.currentWindowAdaptiveInfoV2
 import androidx.compose.material3.adaptive.layout.calculatePaneScaffoldDirective
+import androidx.compose.material3.adaptive.layout.rememberPaneExpansionState
 import androidx.compose.material3.adaptive.navigation.BackNavigationBehavior
 import androidx.compose.material3.adaptive.navigation3.ListDetailSceneStrategy
 import androidx.compose.material3.adaptive.navigation3.rememberListDetailSceneStrategy
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.platform.LocalWindowInfo
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -30,6 +40,7 @@ import com.valghora.shrimpl.container
 import com.valghora.shrimpl.ui.common.CenteredEmptyState
 import com.valghora.shrimpl.ui.common.EmptyStateText
 import com.valghora.shrimpl.ui.common.NewWebAppButton
+import com.valghora.shrimpl.ui.common.PANE_MARGIN
 import com.valghora.shrimpl.ui.common.PaneCard
 import com.valghora.shrimpl.ui.common.PaneSide
 import com.valghora.shrimpl.ui.common.PitchText
@@ -37,6 +48,7 @@ import com.valghora.shrimpl.ui.common.paneBackground
 import com.valghora.shrimpl.ui.create.CreateScreen
 import com.valghora.shrimpl.ui.edit.EditScreen
 import com.valghora.shrimpl.ui.home.HomeScreen
+import com.valghora.shrimpl.ui.home.tilesWidth
 import com.valghora.shrimpl.ui.settings.SettingsScreen
 import kotlinx.coroutines.flow.Flow
 import kotlinx.serialization.Serializable
@@ -75,19 +87,29 @@ enum class AppShortcut { NEW_WEB_APP, SETTINGS }
 @Composable
 fun ShrimplNavigation(shortcuts: Flow<AppShortcut>) {
     val backStack = rememberNavBackStack(HomeKey)
-    // R1.1: the list pane takes a third of the window, the detail the rest; no drag handle. On a
-    // dual-screen phone or a foldable half-open like a book, the default hinge policy splits the panes
-    // along the hinge.
-    val windowWidth = with(LocalDensity.current) { LocalWindowInfo.current.containerSize.width.toDp() }
+    // R1.1: the list pane starts just wide enough for four tiles (with the card's margin and the start
+    // inset), and the detail takes the rest. On a dual-screen phone or a foldable half-open like a book,
+    // the default hinge policy splits the panes along the hinge.
+    val startInset = WindowInsets.safeDrawing.only(WindowInsetsSides.Start).asPaddingValues()
+        .calculateStartPadding(LocalLayoutDirection.current)
     val directive = calculatePaneScaffoldDirective(currentWindowAdaptiveInfoV2()).copy(
-        defaultPanePreferredWidth = windowWidth / 3,
+        defaultPanePreferredWidth = startInset + PANE_MARGIN + tilesWidth(DEFAULT_LIST_TILES) + ROUNDING_SLACK,
         horizontalPartitionSpacerSize = PANE_GAP,
     )
     // Back closes what the detail pane shows, even when both panes stay on screen (Material's default
-    // pops until the panes change, which would leave Shrimpl from two panes).
+    // pops until the panes change, which would leave Shrimpl from two panes). The drag handle in the gap
+    // resizes the panes (R1.1); its width is saved with the screen's state.
     val listDetail = rememberListDetailSceneStrategy<NavKey>(
         backNavigationBehavior = BackNavigationBehavior.PopUntilContentChange,
         directive = directive,
+        paneExpansionState = rememberPaneExpansionState(),
+        paneExpansionDragHandle = { state ->
+            val interactionSource = remember { MutableInteractionSource() }
+            VerticalDragHandle(
+                modifier = Modifier.paneExpansionDraggable(state, LocalMinimumInteractiveComponentSize.current, interactionSource),
+                interactionSource = interactionSource,
+            )
+        },
     )
     // Two panes: both are cards on the window background, and the detail has no back arrow (adaptive
     // skill: detail screens in a list-detail layout must not show one), as the entries below set.
@@ -187,5 +209,11 @@ private fun DetailPlaceholder(onCreate: () -> Unit) {
     }
 }
 
-/** The gap between the two panes, without a drag handle in it. */
-private val PANE_GAP = 16.dp
+/** The gap between the two panes, which holds the drag handle (Material's default spacer). */
+private val PANE_GAP = 24.dp
+
+/** How many tiles fit across the list pane at its default width. */
+private const val DEFAULT_LIST_TILES = 4
+
+/** Keeps the fourth tile from wrapping when dp to px rounding shaves a fraction off the pane. */
+private val ROUNDING_SLACK = 2.dp

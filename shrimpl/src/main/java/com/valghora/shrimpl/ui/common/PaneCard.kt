@@ -21,8 +21,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 
 // Two-pane layouts show each pane as a rounded card on the window's surfaceContainer background,
-// separated by a 16 dp gap (or the hinge of a dual-screen or book-posture device), as Material 3's
-// list-detail layouts do. With one pane, screens stay edge to edge. docs/ADAPTIVE.md.
+// separated by a 24 dp gap holding a drag handle (or the hinge of a dual-screen or book-posture
+// device), as Material 3's list-detail layouts do. With one pane, screens stay edge to edge. docs/ADAPTIVE.md.
 
 /** True inside a [PaneCard]: screens use the pane's color for their top bars. */
 val LocalInPane = staticCompositionLocalOf { false }
@@ -65,6 +65,7 @@ fun PaneCard(twoPane: Boolean, side: PaneSide, content: @Composable () -> Unit) 
     }
 }
 
-private val PANE_MARGIN = 16.dp
+/** The space between a pane card and the window's edges. */
+internal val PANE_MARGIN = 16.dp
 private val PANE_TOP_MARGIN = 8.dp
 private val PANE_CORNER = 24.dp

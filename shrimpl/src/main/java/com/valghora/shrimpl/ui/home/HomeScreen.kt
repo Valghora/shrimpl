@@ -270,7 +270,7 @@ fun HomeScreen(
                     end = padding.calculateEndPadding(layoutDirection) + gridInset,
                     bottom = 168.dp,
                 ),
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                horizontalArrangement = Arrangement.spacedBy(GRID_GAP),
                 verticalArrangement = Arrangement.spacedBy(if (tiles) 8.dp else 0.dp),
             ) {
                 // R11.6, R11.7: apps from a previous install, signed with a key Shrimpl no longer has.
@@ -637,6 +637,12 @@ private val MIN_TILE_WIDTH = 100.dp
 
 /** How far the tiles sit in from the sides of the list. */
 private val TILE_INSET = 12.dp
+
+/** The space between columns of rows or tiles. */
+private val GRID_GAP = 8.dp
+
+/** The list's width that fits exactly [columns] tiles across, so a pane can be sized for them (R1.1). */
+internal fun tilesWidth(columns: Int): Dp = TILE_INSET * 2 + MIN_TILE_WIDTH * columns + GRID_GAP * (columns - 1)
 
 private val TileShape = RoundedCornerShape(22.dp)
 
