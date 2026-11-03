@@ -2,7 +2,6 @@ package com.valghora.shrimpl.ui.common
 
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.MaterialTheme
@@ -11,6 +10,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
+import com.valghora.shrimpl.ui.theme.AppShapes
 
 /**
  * Shrimpl's menus (the ⋮ and right-click menus, and dropdown items): rounded like the rest of the app,
@@ -29,7 +29,7 @@ fun AppMenu(
         onDismissRequest = onDismissRequest,
         modifier = modifier,
         offset = offset,
-        shape = MENU_SHAPE,
+        shape = AppShapes.Menu,
         containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
         shadowElevation = 8.dp,
         content = content,
@@ -47,10 +47,8 @@ fun AppMenuItem(
     DropdownMenuItem(
         text = text,
         onClick = onClick,
-        modifier = modifier.padding(horizontal = 6.dp).clip(ITEM_SHAPE),
+        modifier = modifier.padding(horizontal = 6.dp).clip(AppShapes.MenuItem),
         trailingIcon = trailingIcon,
     )
 }
 
-private val MENU_SHAPE = RoundedCornerShape(16.dp)
-private val ITEM_SHAPE = RoundedCornerShape(12.dp)

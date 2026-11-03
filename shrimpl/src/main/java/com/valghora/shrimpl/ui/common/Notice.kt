@@ -3,12 +3,9 @@ package com.valghora.shrimpl.ui.common
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Warning
@@ -20,7 +17,6 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
@@ -29,11 +25,14 @@ import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.graphics.vector.PathParser
+import androidx.compose.ui.layout.Layout
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.dp
 import com.google.android.material.color.MaterialColors
 import com.valghora.shrimpl.R
 import com.valghora.shrimpl.core.discovery.Note
+import com.valghora.shrimpl.ui.theme.AppShapes
 
 /**
  * Status colors. Info follows the Material theme (the secondary container, like tonal buttons), since
@@ -93,10 +92,12 @@ data class Notice(val kind: Kind, val text: String) {
 }
 
 /**
- * A notification card: the kind's icon and text, and under the text an optional [action] button
- * (such as Open settings) and, when [onDismiss] is set, Dismiss at the other end of that row, inset
- * as far from the card's end as [action] is from its start. A dismissable card also goes when
- * swiped left or right; the Dismiss button is the way for keyboards, mice and accessibility services.
+ * A notification card (docs/SHRIMPL_SPEC.md R3.3): the kind's icon and text, an optional [action]
+ * button (such as Open settings), and Dismiss when [onDismiss] is set. A one-paragraph note that fits
+ * on one line beside Dismiss keeps it on that line, so short notes stay one line tall; otherwise the
+ * buttons sit in a row under the text, Dismiss at its end, inset as far from the card's end as
+ * [action] is from its start. A dismissable card also goes when swiped left or right; the Dismiss
+ * button is the way for keyboards, mice and accessibility services.
  */
 @Composable
 fun NoticeCard(
@@ -121,33 +122,58 @@ fun NoticeCard(
 @Composable
 private fun NoticeContent(notice: Notice, modifier: Modifier, onDismiss: (() -> Unit)?, action: Pair<String, () -> Unit>?) {
     val color = notice.kind.tone.content
-    Row(
-        modifier
-            .fillMaxWidth()
-            .clip(RoundedCornerShape(20.dp))
-            .background(notice.kind.tone.container)
-            .padding(horizontal = 16.dp, vertical = 12.dp),
-        horizontalArrangement = Arrangement.spacedBy(12.dp),
-        verticalAlignment = Alignment.Top,
-    ) {
-        Icon(notice.kind.icon(), contentDescription = stringResource(notice.kind.label()), tint = color, modifier = Modifier.padding(top = 2.dp).size(24.dp))
-        Column(Modifier.weight(1f).padding(top = 3.dp)) {
-            // Paragraphs (split at blank lines) sit closer together than a whole blank line would.
-            Column(verticalArrangement = Arrangement.spacedBy(PARAGRAPH_GAP)) {
-                notice.text.split("\n\n").forEach { Text(it, style = MaterialTheme.typography.bodyMedium, color = color) }
-            }
-            if (action != null || onDismiss != null) {
-                // The icon column's width (24 dp icon and 12 dp gap) mirrored at the end.
-                Row(
-                    Modifier.fillMaxWidth().padding(top = 10.dp, end = if (onDismiss != null) 36.dp else 0.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                ) {
-                    action?.let { (label, onClick) -> TextButton(onClick = onClick) { Text(label, color = color, style = MaterialTheme.typography.labelLarge) } }
-                    Spacer(Modifier.weight(1f))
-                    onDismiss?.let {
-                        TextButton(onClick = it) { Text(stringResource(R.string.action_dismiss), color = color, style = MaterialTheme.typography.labelLarge) }
-                    }
+    val button: @Composable (String, () -> Unit) -> Unit = { label, onClick ->
+        TextButton(onClick = onClick) { Text(label, color = color, style = MaterialTheme.typography.labelLarge) }
+    }
+    val dismissLabel = stringResource(R.string.action_dismiss)
+    // Paragraphs (split at blank lines) sit closer together than a whole blank line would.
+    val paragraphs = notice.text.split("\n\n")
+    Layout(
+        contents = listOf(
+            { Icon(notice.kind.icon(), contentDescription = stringResource(notice.kind.label()), tint = color, modifier = Modifier.size(ICON_SIZE)) },
+            {
+                Column(verticalArrangement = Arrangement.spacedBy(PARAGRAPH_GAP)) {
+                    paragraphs.forEach { Text(it, style = MaterialTheme.typography.bodyMedium, color = color) }
                 }
+            },
+            { action?.let { (label, onClick) -> button(label, onClick) } },
+            { onDismiss?.let { button(dismissLabel, it) } },
+        ),
+        modifier = modifier.fillMaxWidth().clip(AppShapes.Notice).background(notice.kind.tone.container),
+    ) { (iconSlot, textSlot, actionSlot, dismissSlot), constraints ->
+        val width = constraints.maxWidth
+        val icon = iconSlot.single().measure(Constraints())
+        val dismiss = dismissSlot.singleOrNull()?.measure(Constraints())
+        val actionButton = actionSlot.singleOrNull()?.measure(Constraints())
+        val textStart = SIDE.roundToPx() + icon.width + GAP.roundToPx()
+        val text = textSlot.single()
+        val inlineRoom = width - textStart - INLINE_END.roundToPx() - (dismiss?.width ?: 0) - GAP.roundToPx()
+        val inline = dismiss != null && actionButton == null && paragraphs.size == 1 && text.maxIntrinsicWidth(Constraints.Infinity) <= inlineRoom
+        if (inline) {
+            // One line: icon, text and Dismiss centered on one row, Dismiss's own padding at the end.
+            val placedText = text.measure(Constraints(maxWidth = inlineRoom))
+            val inner = maxOf(icon.height, placedText.height, dismiss!!.height)
+            val height = inner + INLINE_VERTICAL.roundToPx() * 2
+            layout(width, height) {
+                val mid = height / 2
+                icon.place(SIDE.roundToPx(), mid - icon.height / 2)
+                placedText.place(textStart, mid - placedText.height / 2)
+                dismiss.place(width - INLINE_END.roundToPx() - dismiss.width, mid - dismiss.height / 2)
+            }
+        } else {
+            val textWidth = width - textStart - SIDE.roundToPx()
+            val placedText = text.measure(Constraints(maxWidth = textWidth.coerceAtLeast(0)))
+            val textTop = VERTICAL.roundToPx() + TEXT_TOP.roundToPx()
+            val buttonsTop = textTop + placedText.height + BUTTONS_GAP.roundToPx()
+            val buttonsHeight = maxOf(actionButton?.height ?: 0, dismiss?.height ?: 0)
+            val bottom = if (buttonsHeight > 0) buttonsTop + buttonsHeight else textTop + placedText.height
+            val height = maxOf(bottom, VERTICAL.roundToPx() + ICON_TOP.roundToPx() + icon.height) + VERTICAL.roundToPx()
+            layout(width, height) {
+                icon.place(SIDE.roundToPx(), VERTICAL.roundToPx() + ICON_TOP.roundToPx())
+                placedText.place(textStart, textTop)
+                actionButton?.place(textStart, buttonsTop)
+                // The icon column's width (icon and gap) mirrored at the end.
+                dismiss?.place(width - SIDE.roundToPx() - (icon.width + GAP.roundToPx()) - dismiss.width, buttonsTop)
             }
         }
     }
@@ -174,3 +200,14 @@ private val ErrorIcon: ImageVector = ImageVector.Builder("Error", 24.dp, 24.dp, 
     .build()
 
 private val PARAGRAPH_GAP = 8.dp
+private val ICON_SIZE = 24.dp
+private val SIDE = 16.dp
+private val GAP = 12.dp
+private val VERTICAL = 12.dp
+private val ICON_TOP = 2.dp
+private val TEXT_TOP = 3.dp
+private val BUTTONS_GAP = 10.dp
+
+/** On one line: Dismiss's own 12 dp padding plus this puts its label 16 dp from the end, like the icon at the start. */
+private val INLINE_END = 4.dp
+private val INLINE_VERTICAL = 4.dp

@@ -66,6 +66,7 @@ import com.valghora.shrimpl.ui.common.SwitchItem
 import com.valghora.shrimpl.ui.common.Tone
 import com.valghora.shrimpl.ui.common.TooltipIconButton
 import com.valghora.shrimpl.ui.common.withoutBottom
+import com.valghora.shrimpl.ui.theme.AppShapes
 
 /** Shrimpl's settings page (docs/SHRIMPL_SPEC.md R2.5). */
 @OptIn(ExperimentalMaterial3Api::class)
@@ -285,6 +286,7 @@ private fun AccessItem(title: Int, failed: Int, access: SettingsViewModel.Access
             Button(
                 onClick = onRequest,
                 enabled = access != SettingsViewModel.Access.REQUESTING,
+                shape = AppShapes.Control,
                 colors = ButtonDefaults.buttonColors(containerColor = background, contentColor = content),
             ) {
                 if (access == SettingsViewModel.Access.REQUESTING) {

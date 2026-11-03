@@ -66,15 +66,15 @@ import com.valghora.shrimpl.discovery.SiteDiscovery
 import com.valghora.shrimpl.ui.common.AppTextField
 import com.valghora.shrimpl.ui.common.BuildSheet
 import com.valghora.shrimpl.ui.common.BuildState
-import com.valghora.shrimpl.ui.common.FieldShape
+import com.valghora.shrimpl.ui.common.MainActionButton
 import com.valghora.shrimpl.ui.common.PageTopBar
-import com.valghora.shrimpl.ui.common.PillButton
 import com.valghora.shrimpl.ui.common.Tone
 import com.valghora.shrimpl.ui.common.TooltipIconButton
 import com.valghora.shrimpl.ui.common.WithTooltip
 import com.valghora.shrimpl.ui.common.progressStep
 import com.valghora.shrimpl.ui.common.withoutBottom
 import com.valghora.shrimpl.ui.form.ProfileFormFields
+import com.valghora.shrimpl.ui.theme.AppShapes
 import kotlinx.coroutines.launch
 
 /** The configuration page (docs/SHRIMPL_SPEC.md R3), opened from the home screen's button. */
@@ -116,14 +116,14 @@ fun CreateScreen(onClose: () -> Unit, onBackUpKey: () -> Unit) {
             },
             floatingActionButton = {
                 if (reviewing) {
-                    PillButton(
+                    MainActionButton(
                         text = stringResource(R.string.action_create),
                         icon = Icons.Filled.Check,
                         onClick = { if (!model.create()) scope.launch { snackbar.showSnackbar(invalidMessage) } },
                     )
                 } else if (step is CreateViewModel.Step.Failed) {
                     // R3.2: after a failed search, Continue is the one next step (Retry is the search button).
-                    PillButton(
+                    MainActionButton(
                         text = stringResource(R.string.action_continue),
                         icon = Icons.AutoMirrored.Filled.ArrowForward,
                         onClick = model::continueWithoutDiscovery,
@@ -232,7 +232,7 @@ private fun UrlStep(model: CreateViewModel, step: CreateViewModel.Step, padding:
                     FilledTonalIconButton(
                         onClick = model::search,
                         enabled = !busy && url.isNotBlank(),
-                        shape = FieldShape,
+                        shape = AppShapes.Control,
                         modifier = Modifier.size(FIELD_HEIGHT),
                     ) { Icon(if (retry) Icons.Filled.Refresh else Icons.Filled.Search, contentDescription = label) }
                 }

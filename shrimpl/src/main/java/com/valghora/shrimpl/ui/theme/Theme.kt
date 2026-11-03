@@ -8,13 +8,14 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalContext
 import com.valghora.shrimpl.data.ThemeSetting
 
-/** Material 3 with the wallpaper's dynamic colors (R1.3; always available at minSdk 37), light or dark per settings. */
+/** Material 3 with the wallpaper's dynamic colors (R1.3; always available at minSdk 37), light or dark per settings, and Shrimpl's shapes (R1.5). */
 @Composable
 fun ShrimplTheme(setting: ThemeSetting, content: @Composable () -> Unit) {
     val dark = setting.isDark()
     val context = LocalContext.current
     MaterialTheme(
         colorScheme = if (dark) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context),
+        shapes = MaterialShapes,
         content = content,
     )
 }

@@ -23,14 +23,13 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -54,6 +53,7 @@ import androidx.core.graphics.drawable.toBitmap
 import com.valghora.shrimpl.R
 import com.valghora.shrimpl.core.icons.IconException
 import com.valghora.shrimpl.icons.IconImages
+import com.valghora.shrimpl.ui.theme.AppShapes
 import java.io.IOException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -148,7 +148,7 @@ fun CustomIconSheet(onPicked: (bytes: ByteArray, maskable: Boolean, origin: Stri
 @Composable
 private fun Source(label: String, onClick: () -> Unit, tinted: Boolean = true, icon: @Composable () -> Unit) {
     Column(
-        Modifier.width(80.dp).clip(RoundedCornerShape(16.dp)).clickable(role = Role.Button, onClick = onClick).padding(vertical = 6.dp),
+        Modifier.width(80.dp).clip(AppShapes.MenuItem).clickable(role = Role.Button, onClick = onClick).padding(vertical = 6.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         Surface(shape = CircleShape, color = if (tinted) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surface) {

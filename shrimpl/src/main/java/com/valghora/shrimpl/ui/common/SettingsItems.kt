@@ -55,18 +55,14 @@ import androidx.compose.ui.state.ToggleableState
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import com.valghora.shrimpl.R
+import com.valghora.shrimpl.ui.theme.AppShapes
 
 // Settings pages in the style of grouped Material 3 Expressive settings: a section title, then the
 // items as tonal surfaces a small gap apart, the value or control at the end. A group is rounded on
 // the outside and tight where its items meet.
 
-/** A group's outer corners, the corners where its items meet, and the gap between items. */
-private val OUTER_RADIUS = 20.dp
-private val INNER_RADIUS = 4.dp
+/** The gap between items in a group. */
 private val ITEM_GAP = 3.dp
-
-/** The rounded rectangle of settings items, also used for the app list's cards. */
-val ItemShape = RoundedCornerShape(OUTER_RADIUS)
 
 /**
  * A section's wrap line (R3.3): its items report the width of what they show at their end, and every
@@ -141,8 +137,8 @@ fun SettingsSection(title: String, modifier: Modifier = Modifier, content: @Comp
 
 /** The shape of item [index] of [count] in a group. */
 private fun groupShape(index: Int, count: Int): Shape {
-    val top = if (index == 0) OUTER_RADIUS else INNER_RADIUS
-    val bottom = if (index == count - 1) OUTER_RADIUS else INNER_RADIUS
+    val top = if (index == 0) AppShapes.ItemRadius else AppShapes.ItemInnerRadius
+    val bottom = if (index == count - 1) AppShapes.ItemRadius else AppShapes.ItemInnerRadius
     return RoundedCornerShape(topStart = top, topEnd = top, bottomStart = bottom, bottomEnd = bottom)
 }
 
@@ -184,7 +180,7 @@ fun SettingsItem(
         modifier
             .fillMaxWidth()
             // Inside a SettingsSection, the section clips each item to its place in the group.
-            .then(if (LocalInGroup.current) Modifier else Modifier.clip(ItemShape))
+            .then(if (LocalInGroup.current) Modifier else Modifier.clip(AppShapes.Item))
             .background(MaterialTheme.colorScheme.surfaceContainer)
             .then(if (onClick != null) Modifier.clickable(enabled = enabled, role = role, onClick = onClick) else Modifier)
             .heightIn(min = 72.dp)

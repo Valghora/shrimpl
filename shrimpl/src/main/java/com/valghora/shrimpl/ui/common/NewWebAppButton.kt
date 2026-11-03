@@ -28,16 +28,18 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import com.valghora.shrimpl.R
+import com.valghora.shrimpl.ui.theme.AppShapes
 
 /**
- * The app's main-action button (New app, Create, Save): fully rounded, filled in the theme's
+ * The app's main-action button (New app, Create, Save): a filled [AppShapes.Control] button in the theme's
  * primary color (or, [secondary], its secondary container color, as Update all), with an icon and a label.
  */
 @Composable
-fun PillButton(text: String, icon: ImageVector, onClick: () -> Unit, modifier: Modifier = Modifier, secondary: Boolean = false) {
+fun MainActionButton(text: String, icon: ImageVector, onClick: () -> Unit, modifier: Modifier = Modifier, secondary: Boolean = false) {
     Button(
         onClick = onClick,
         modifier = modifier.heightIn(min = NEW_APP_BUTTON_HEIGHT),
+        shape = AppShapes.Control,
         contentPadding = PaddingValues(start = 16.dp, end = 20.dp),
         elevation = ButtonDefaults.buttonElevation(defaultElevation = 3.dp),
         // A secondary action (Update all) beside a primary one takes the secondary container color.
@@ -60,11 +62,11 @@ fun PillButton(text: String, icon: ImageVector, onClick: () -> Unit, modifier: M
 @Composable
 fun NewWebAppButton(onClick: () -> Unit, modifier: Modifier = Modifier, fillWidth: Boolean = false) {
     WithTooltip(stringResource(R.string.tooltip_new_web_app), modifier) {
-        PillButton(stringResource(R.string.action_new_web_app), Icons.Filled.Add, onClick, if (fillWidth) Modifier.fillMaxWidth() else Modifier)
+        MainActionButton(stringResource(R.string.action_new_web_app), Icons.Filled.Add, onClick, if (fillWidth) Modifier.fillMaxWidth() else Modifier)
     }
 }
 
-/** The height of [PillButton]s, such as New app. */
+/** The height of [MainActionButton]s, such as New app. */
 val NEW_APP_BUTTON_HEIGHT = 56.dp
 
 /**

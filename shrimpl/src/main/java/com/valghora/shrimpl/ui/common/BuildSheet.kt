@@ -41,6 +41,7 @@ import androidx.core.net.toUri
 import androidx.lifecycle.compose.LifecycleResumeEffect
 import com.valghora.shrimpl.R
 import com.valghora.shrimpl.build.WebAppFactory
+import com.valghora.shrimpl.ui.theme.AppShapes
 import kotlinx.coroutines.delay
 
 /**
@@ -95,7 +96,7 @@ fun BuildSheet(
                     Text(stringResource(R.string.build_title_done, state.record.profile.name), style = MaterialTheme.typography.titleLarge, modifier = Modifier.asHeading())
                     Row(Modifier.align(Alignment.End), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         TextButton(onClick = onDone) { Text(stringResource(R.string.action_done)) }
-                        Button(onClick = { onOpen(state.record.packageName) }) { Text(stringResource(R.string.action_open)) }
+                        Button(onClick = { onOpen(state.record.packageName) }, shape = AppShapes.Control) { Text(stringResource(R.string.action_open)) }
                     }
                 }
                 is BuildState.BatchDone -> {
@@ -123,9 +124,9 @@ fun BuildSheet(
                     Row(Modifier.align(Alignment.End), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         TextButton(onClick = onDone) { Text(stringResource(R.string.action_close)) }
                         if (state.offerSystemInstaller) {
-                            OutlinedButton(onClick = { onRetry(true) }) { Text(stringResource(R.string.action_use_system_installer)) }
+                            OutlinedButton(onClick = { onRetry(true) }, shape = AppShapes.Control) { Text(stringResource(R.string.action_use_system_installer)) }
                         }
-                        Button(onClick = { onRetry(false) }) { Text(stringResource(R.string.action_try_again)) }
+                        Button(onClick = { onRetry(false) }, shape = AppShapes.Control) { Text(stringResource(R.string.action_try_again)) }
                     }
                 }
             }
@@ -200,7 +201,7 @@ private fun WaitingForUser(uninstalling: Boolean, onShowInstaller: () -> Unit, o
     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
         TextButton(onClick = onCancel) { Text(stringResource(R.string.action_cancel)) }
         Spacer(Modifier.width(8.dp))
-        Button(onClick = onShowInstaller) { Text(stringResource(R.string.action_show_installer)) }
+        Button(onClick = onShowInstaller, shape = AppShapes.Control) { Text(stringResource(R.string.action_show_installer)) }
     }
 }
 
@@ -225,6 +226,6 @@ private fun UnknownSources(onRetry: () -> Unit, onDone: () -> Unit) {
             context.startActivity(
                 Intent(Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES, "package:${context.packageName}".toUri()),
             )
-        }) { Text(stringResource(R.string.action_open_settings)) }
+        }, shape = AppShapes.Control) { Text(stringResource(R.string.action_open_settings)) }
     }
 }

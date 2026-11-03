@@ -10,7 +10,6 @@ import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.windowInsetsPadding
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
@@ -19,6 +18,7 @@ import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import com.valghora.shrimpl.ui.theme.AppShapes
 
 // Two-pane layouts show each pane as a rounded card on the window's surfaceContainer background,
 // separated by a 24 dp gap holding a drag handle (or the hinge of a dual-screen or book-posture
@@ -55,7 +55,7 @@ fun PaneCard(twoPane: Boolean, side: PaneSide, content: @Composable () -> Unit) 
         // Pads for this pane's own edges; the inner edge's insets are consumed, not padded twice.
         Box(Modifier.windowInsetsPadding(insets).consumeWindowInsets(WindowInsets.safeDrawing).padding(margins)) {
             Surface(
-                shape = RoundedCornerShape(PANE_CORNER),
+                shape = AppShapes.Surface,
                 color = MaterialTheme.colorScheme.surface,
                 modifier = Modifier.fillMaxSize(),
             ) {
@@ -68,4 +68,3 @@ fun PaneCard(twoPane: Boolean, side: PaneSide, content: @Composable () -> Unit) 
 /** The space between a pane card and the window's edges. */
 internal val PANE_MARGIN = 16.dp
 private val PANE_TOP_MARGIN = 8.dp
-private val PANE_CORNER = 24.dp

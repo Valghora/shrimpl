@@ -27,7 +27,6 @@ import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Build
 import androidx.compose.material.icons.filled.MoreVert
@@ -104,20 +103,20 @@ import com.valghora.shrimpl.ui.common.BuildSheet
 import com.valghora.shrimpl.ui.common.COLLAPSE_DISTANCE
 import com.valghora.shrimpl.ui.common.CenteredEmptyState
 import com.valghora.shrimpl.ui.common.EmptyStateText
-import com.valghora.shrimpl.ui.common.ItemShape
 import com.valghora.shrimpl.ui.common.LargeTitleBar
 import com.valghora.shrimpl.ui.common.LocalInPane
+import com.valghora.shrimpl.ui.common.MainActionButton
 import com.valghora.shrimpl.ui.common.NEW_APP_BUTTON_HEIGHT
 import com.valghora.shrimpl.ui.common.NewWebAppButton
 import com.valghora.shrimpl.ui.common.Notice
 import com.valghora.shrimpl.ui.common.NoticeCard
-import com.valghora.shrimpl.ui.common.PillButton
 import com.valghora.shrimpl.ui.common.PitchText
 import com.valghora.shrimpl.ui.common.TooltipIconButton
 import com.valghora.shrimpl.ui.common.WithTooltip
 import com.valghora.shrimpl.ui.common.asHeading
 import com.valghora.shrimpl.ui.icons.AdaptiveIcon
 import com.valghora.shrimpl.ui.icons.rememberIconLayers
+import com.valghora.shrimpl.ui.theme.AppShapes
 
 /**
  * "My Web Apps" (docs/SHRIMPL_SPEC.md R2), the list pane of the list-detail layout. The list flows
@@ -221,7 +220,7 @@ fun HomeScreen(
             Column(Modifier.width(IntrinsicSize.Max), verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 // R11.7: two or more apps signed with another key.
                 if (toFix.size >= 2) {
-                    PillButton(
+                    MainActionButton(
                         stringResource(R.string.action_fix_all),
                         Icons.Filled.Build,
                         onClick = { model.fix(toFix) },
@@ -230,7 +229,7 @@ fun HomeScreen(
                     )
                 }
                 if (outdated.size >= 2) {
-                    PillButton(
+                    MainActionButton(
                         stringResource(R.string.action_update_all),
                         Icons.Filled.Refresh,
                         onClick = { if (method == InstallMethod.SESSION) confirmUpdateAll = true else model.updateAll(outdated) },
@@ -444,8 +443,8 @@ private fun AppItem(
             .padding(horizontal = ROW_INSET)
             // Borderless rows: the settings items' rounded shape shows only as the press, hover and
             // (in two panes) selection highlight.
-            .clip(ItemShape)
-            // The selected row takes the hover tint, not secondaryContainer, so its tonal Update pill stays
+            .clip(AppShapes.Item)
+            // The selected row takes the hover tint, not secondaryContainer, so its tonal Update button stays
             // visible on it.
             .background(if (selected) MaterialTheme.colorScheme.onSurface.copy(alpha = HOVER_ALPHA) else Color.Transparent)
             // In two panes the highlighted row is announced as selected.
@@ -555,7 +554,7 @@ private fun AppTile(
     val tileColor = if (selected) colors.surfaceContainerHighest else colors.surfaceContainer
     Column(
         Modifier
-            .clip(TileShape)
+            .clip(AppShapes.Item)
             .background(tileColor)
             .semantics { if (selected) this.selected = true }
             .then(modifier)
@@ -645,7 +644,6 @@ private val GRID_GAP = 8.dp
 /** The list's width that fits exactly [columns] tiles across, so a pane can be sized for them (R1.1). */
 internal fun tilesWidth(columns: Int): Dp = TILE_INSET * 2 + MIN_TILE_WIDTH * columns + GRID_GAP * (columns - 1)
 
-private val TileShape = RoundedCornerShape(22.dp)
 
 /** A tile's status badge: 22 dp across, with a 2 dp ring, overhanging the icon's corner. */
 private val BADGE_SIZE = 22.dp
@@ -721,7 +719,7 @@ private fun menuActions(
 private class RowAction(val label: Int, val icon: ImageVector, val urgent: Boolean, val onClick: () -> Unit)
 
 /**
- * R2.2: a small icon-only pill (48 x 32 dp, a full 48 dp touch target) with a tooltip naming the
+ * R2.2: a small icon-only button (48 x 32 dp, a full 48 dp touch target) with a tooltip naming the
  * action. Update is in the theme's tonal color; Fix in the theme's error color.
  *
  * Invariant: Fix matches the Needs fix badge on a tile ([AppTile]), so the state looks the same in
@@ -739,7 +737,7 @@ private fun RowActionButton(action: RowAction, appName: String) {
     WithTooltip(label) {
         FilledTonalIconButton(
             onClick = action.onClick,
-            shape = CircleShape,
+            shape = AppShapes.Control,
             colors = colors,
             modifier = Modifier.size(width = 48.dp, height = 32.dp),
         ) { Icon(action.icon, contentDescription = label, modifier = Modifier.size(18.dp)) }

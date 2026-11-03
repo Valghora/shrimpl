@@ -14,7 +14,6 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.CircularProgressIndicator
@@ -38,8 +37,8 @@ import androidx.compose.ui.unit.dp
 import com.valghora.shrimpl.R
 import com.valghora.shrimpl.core.records.IconOptions
 import com.valghora.shrimpl.core.records.IconRecord
-import com.valghora.shrimpl.ui.common.ItemShape
 import com.valghora.shrimpl.ui.common.LocalInGroup
+import com.valghora.shrimpl.ui.theme.AppShapes
 
 /**
  * The icon choice (docs/SHRIMPL_SPEC.md R10.1): one preview tile per option (Brand, Website, Custom),
@@ -58,7 +57,7 @@ fun IconTiles(
     modifier: Modifier = Modifier,
 ) {
     // In a section, the section gives it its place's shape.
-    Surface(shape = if (LocalInGroup.current) RectangleShape else ItemShape, color = MaterialTheme.colorScheme.surfaceContainer, modifier = modifier.fillMaxWidth()) {
+    Surface(shape = if (LocalInGroup.current) RectangleShape else AppShapes.Item, color = MaterialTheme.colorScheme.surfaceContainer, modifier = modifier.fillMaxWidth()) {
         Row(
             Modifier.selectableGroup().padding(vertical = 14.dp, horizontal = 8.dp),
             horizontalArrangement = Arrangement.SpaceEvenly,
@@ -100,7 +99,7 @@ private fun Tile(label: String, selected: Boolean, onClick: () -> Unit, preview:
     Column(
         Modifier
             .width(TILE_WIDTH)
-            .clip(RoundedCornerShape(16.dp))
+            .clip(AppShapes.MenuItem)
             .selectable(selected = selected, onClick = onClick, role = Role.RadioButton)
             .padding(vertical = 6.dp),
         horizontalAlignment = Alignment.CenterHorizontally,

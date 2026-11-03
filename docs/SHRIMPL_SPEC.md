@@ -89,6 +89,19 @@ binary translation) on any device.
   icon, font scaling supported. The template stays on Views (T1.1).
 - R1.4 Three install methods behind one interface (R6): System (the platform installer), Shizuku and
   Root.
+- R1.5 Shapes: tight corners from Material's shape scale, one size per role, all defined in one place
+  (`ui/theme/Shapes.kt`, which also sets Material's theme shapes so dialogs, sheets, chips, tooltips
+  and snackbars follow):
+  - Input, 4 dp: text fields.
+  - Control, 8 dp: buttons with a container (New app, Create, Save, Update all, Fix all, row
+    buttons, the search button, buttons in sheets and settings) and chips.
+  - Item, 8 dp outside and 2 dp where grouped items meet: home rows and tiles, settings groups.
+  - Notice, 8 dp: notices (R3.3).
+  - Menu, 8 dp, with 4 dp for an item's highlight inside it (also the press highlight of icon option
+    tiles and custom icon sources).
+  - Surface, 12 dp: the two-pane cards, bottom sheets and dialogs.
+  - Round: app icons, badges, color swatches, progress marks and icon-only buttons without a
+    container.
 
 ## R2 Home
 
@@ -112,7 +125,7 @@ binary translation) on any device.
   4.5:1 contrast in both themes); tapping it does nothing (Resolve on tap doesn't apply to it, R2.5), and accessibility services aren't offered a
   tap, but its ⋮ menu, long press ("Show options"), right-click menu work as usual. It has no row button: Reinstall, in its menus, builds it signed with the current key whatever key it had (R11.7). An installed app built from
   an older template (R11.4) shows an Update button to the right of its name, which rebuilds it with
-  the bundled template. Row buttons are small icon-only pills (48 x 32 dp, a 48 dp touch target)
+  the bundled template. Row buttons are small icon-only buttons (48 x 32 dp, Control corners, a 48 dp touch target)
   whose tooltip names the action and the app: Update (refresh icon) in the theme's tonal color, Fix
   (wrench, R11.7) in the theme's error color, matching a tile's Needs fix badge (R2.6). Each app's ⋮
   menu and its right-click and long-press menu offer the same actions: Open (when installed), Edit,
@@ -125,7 +138,7 @@ binary translation) on any device.
   package and key, so the app keeps its data). Changes not saved are discarded on leaving the page;
   recreating the window (rotation, resize) keeps them. Its back arrow leaves the page, in two panes too.
 - R2.4 "New app" opens the configuration page (R3), titled "Create app". It is one design everywhere, shared by the
-  other main-action buttons (Create, Save, Update all): a fully rounded filled button
+  other main-action buttons (Create, Save, Update all): a filled button with Control corners (R1.5)
   with an icon in the theme's primary color (Update all in its secondary container color); New
   app's tooltip names Ctrl+N. With one pane it sits at the bottom right of the list. With two
   panes it appears in exactly one place: in the empty detail pane, or at the bottom right of the
@@ -152,7 +165,7 @@ binary translation) on any device.
   - **About:** "App Version: x.y" and "Template Version: N.0".
 - R2.6 Tiles: the layout switch shows the apps as tiles instead of rows, and the choice is kept.
   Tiles flow three across on phones (at least 100 dp wide, 8 dp apart, 12 dp in from the sides),
-  more on wide windows. Each tile is a rounded card (22 dp corners) in the theme's container color,
+  more on wide windows. Each tile is a card with Item corners (R1.5) in the theme's container color,
   with no tint or color of its own: the icon (56 dp), the name, and a status line in the theme's
   variant text color: "Needs fix" (R11.7), "Update ready" (R11.4) or "Not installed". A round badge
   on the icon's corner, ringed in the tile's color, marks an app that needs something: a wrench in
@@ -166,9 +179,9 @@ binary translation) on any device.
 ## R3 Configuration page
 
 - R3.1 Address: a Website field (URI keyboard, `https://` assumed without a scheme) with a search
-  button beside it, also from the IME action. Text fields everywhere are filled, with 12 dp corners
+  button beside it, also from the IME action. Text fields everywhere are filled, with Input corners (R1.5)
   and no outline; typing draws a primary edge, an error a red one with the message below. The search
-  button matches the field's shape and height, in the tonal container color. Input that isn't a web
+  button matches the field's height, with Control corners, in the tonal container color. Input that isn't a web
   address shows an error under the field, before any search.
 - R3.2 Discovery (R9) shows a checklist under "Searching…": Loading the site, Consulting the
   manifest, Researching permissions, Searching for icon. Finished steps get a check, the current one
@@ -181,11 +194,11 @@ binary translation) on any device.
   rendered pass, since bot protection often refuses plain requests but lets a browser in; only if
   the rendered page is refused too does Researching permissions fail with "The site denied the
   request". On failure the heading reads "Search failed"; the search button beside the address
-  becomes Retry (a refresh icon) until the address is edited, and a Continue pill (defaults for the
+  becomes Retry (a refresh icon) until the address is edited, and a Continue button (defaults for the
   address) floats at the bottom right.
 - R3.3 Review: a form prefilled from discovery, laid out like the system settings: titled sections
-  of tonal items 3 dp apart, each group rounded on the outside (20 dp) and tight where items meet (4
-  dp): the first item rounded at the top, the last at the bottom, a lone item all round (Settings,
+  of tonal items 3 dp apart, each group with Item corners (R1.5): 8 dp on the outside and 2 dp where
+  items meet: the first item rounded at the top, the last at the bottom, a lone item all round (Settings,
   R2.5, uses the same sections); each showing its value (summary, switch, menu value or color
   swatch); text, color, domain and window size values open dialogs. Each section has one wrap line
   for its items' text (description, error, discovery hint): 24 dp before the widest value, switch or
@@ -210,8 +223,10 @@ binary translation) on any device.
   a profile keeps any it already has.
 
   Values discovered with low or medium confidence say where they came from; discovery's notes appear
-  as Info, Caution or Error notices. Every dismissable notice in Shrimpl has a Dismiss button at
-  the end of its button row (never an X) and is also dismissed by swiping it left or right. Every field is validated as the user types, by the core
+  as Info, Caution or Error notices. Notices have Notice corners (R1.5). Every dismissable notice has a Dismiss button (never an X)
+  and is also dismissed by swiping it left or right. A one-paragraph notice with no other button
+  that fits on one line beside Dismiss keeps Dismiss on that line, so short notices stay one line
+  tall; otherwise the buttons sit in a row under the text, Dismiss at its end. Every field is validated as the user types, by the core
   validator (R4.2).
 - R3.4 Create builds, signs and installs (R8, R6). A bottom sheet titled "Creating an app for
   <name>…" ("Updating <name>…" for an update, "Reinstalling <name>…" for a known app that isn't
@@ -408,12 +423,12 @@ The template's behavior is docs/TEMPLATE_SPEC.md. What Shrimpl relies on:
   with their drawn launcher icon as a Custom icon. This search runs once, so apps removed from the
   list stay removed. Apps signed with another key are handled by R11.7.
 - R11.7 An app last signed with a key other than Shrimpl's current one keeps its record either way.
-  Installed, its row offers only Fix (an icon-only pill with a wrench in the error color, R2.2), tapping the row
+  Installed, its row offers only Fix (an icon-only button with a wrench in the error color, R2.2), tapping the row
   does nothing (it fixes the app with Resolve on tap, R2.5), and its menus offer only Remove (a tile's menu offers Fix, then Remove, R2.6);
   Update all skips it. Fix uninstalls the app (the
   system asks), then rebuilds it from the saved settings signed with the current key (the system
   asks again); the build sheet adds an Uninstalling step before the build's stages, and turning the
-  uninstall down stops with nothing changed. With two or more such apps, Fix all (a pill above New
+  uninstall down stops with nothing changed. With two or more such apps, Fix all (a button above New
   app, like Update all) fixes them one after another and ends with what was fixed and what failed.
   Not installed (say, its Fix stopped after the uninstall), the key no longer matters: it is shown
   and reinstalled like any app that isn't installed (R2.2). Home shows a Caution notice

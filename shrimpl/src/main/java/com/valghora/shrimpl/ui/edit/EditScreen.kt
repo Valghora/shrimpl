@@ -43,9 +43,9 @@ import com.valghora.shrimpl.data.InstalledApps
 import com.valghora.shrimpl.ui.common.AppMenu
 import com.valghora.shrimpl.ui.common.AppMenuItem
 import com.valghora.shrimpl.ui.common.BuildSheet
+import com.valghora.shrimpl.ui.common.MainActionButton
 import com.valghora.shrimpl.ui.common.Notice
 import com.valghora.shrimpl.ui.common.PageTopBar
-import com.valghora.shrimpl.ui.common.PillButton
 import com.valghora.shrimpl.ui.common.TooltipIconButton
 import com.valghora.shrimpl.ui.common.withoutBottom
 import com.valghora.shrimpl.ui.form.ProfileFormFields
@@ -150,7 +150,7 @@ fun EditScreen(appId: String, onBack: () -> Unit) {
             },
             floatingActionButton = {
                 if (model.dirty) {
-                    PillButton(
+                    MainActionButton(
                         text = stringResource(R.string.action_save),
                         icon = Icons.Filled.Check,
                         onClick = { if (!model.save()) scope.launch { snackbar.showSnackbar(invalidMessage) } },
