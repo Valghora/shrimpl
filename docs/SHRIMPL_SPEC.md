@@ -449,7 +449,7 @@ The template's behavior is docs/TEMPLATE_SPEC.md. What Shrimpl relies on:
   workflow, as it has when main is fast-forwarded to a tested branch; if so, Build is skipped.
   Build, one step per stage, runs Core (`:core:check`, tests and coverage), Template (unit tests,
   release lint, release build), Shrimpl tests, Shrimpl lint (release lint, which covers all its code)
-  and Shrimpl APK (debug), then the R0 check, and uploads the APKs and reports. Shrimpl is tested
+  and Shrimpl APK (debug), then the R0 check, and uploads the APKs and reports, kept for one day. Shrimpl is tested
   as a debug build: its release APK is built, and R0-checked, only in a manual run with Release
   build ticked. The template's release APK is always built, since every Shrimpl build bundles it.
   Lint for both apps reports 0 errors. Release builds skip lint vital, a subset of the release lint

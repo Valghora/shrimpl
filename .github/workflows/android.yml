@@ -128,6 +128,8 @@ jobs:
             shrimpl/build/outputs/apk/debug/shrimpl-debug.apk
             shrimpl/build/outputs/apk/release/shrimpl-release.apk
           if-no-files-found: warn
+          # Builds are tested from APKs sent directly, so CI copies only need to last a day.
+          retention-days: 1
 
       - name: Upload reports
         if: always()
@@ -141,3 +143,4 @@ jobs:
             template/build/test-results/
             shrimpl/build/reports/
           if-no-files-found: ignore
+          retention-days: 1
