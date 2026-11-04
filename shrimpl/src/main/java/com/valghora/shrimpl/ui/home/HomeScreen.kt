@@ -115,6 +115,7 @@ import com.valghora.shrimpl.ui.common.PitchText
 import com.valghora.shrimpl.ui.common.TooltipIconButton
 import com.valghora.shrimpl.ui.common.WithTooltip
 import com.valghora.shrimpl.ui.common.asHeading
+import com.valghora.shrimpl.ui.common.isMediumWidth
 import com.valghora.shrimpl.ui.icons.AdaptiveIcon
 import com.valghora.shrimpl.ui.icons.rememberIconLayers
 import com.valghora.shrimpl.ui.theme.AppShapes
@@ -256,9 +257,10 @@ fun HomeScreen(
         } else {
             // Tiles sit 12 dp in from the sides; rows run edge to edge with their own inset.
             val gridInset = if (tiles) TILE_INSET else 0.dp
+            val mediumWidth = isMediumWidth()
             LazyVerticalGrid(
                 state = grid,
-                columns = GridCells.Adaptive(if (tiles) MIN_TILE_WIDTH else MIN_CELL_WIDTH),
+                columns = GridCells.Adaptive(if (!tiles) MIN_CELL_WIDTH else if (mediumWidth) WIDE_MIN_TILE_WIDTH else MIN_TILE_WIDTH),
                 // The sides keep clear of a side navigation bar or camera cutout (landscape phones), and
                 // the bottom leaves room so the last card can scroll clear of the floating buttons.
                 contentPadding = PaddingValues(
@@ -626,8 +628,15 @@ private fun ItemIcon(record: WebAppRecord, installed: InstalledApp?, loadImage: 
 private val ROW_ICON_SIZE = 48.dp
 private val TILE_ICON_SIZE = 56.dp
 
-/** The narrowest a tile gets before the grid drops a column: three across on phones. */
+/** The narrowest a tile gets before the grid drops a column: three across on phones, even 360 dp ones. */
 private val MIN_TILE_WIDTH = 100.dp
+
+/**
+ * The narrowest a tile gets in a Medium window or wider, so tiles stay near their phone width: three
+ * across beside the detail pane (about 119 dp each, with 2 dp to spare), six across a window snapped
+ * to half a laptop screen (about 850 dp), where 100 dp tiles would cut names short.
+ */
+private val WIDE_MIN_TILE_WIDTH = 118.dp
 
 /** How far the tiles sit in from the sides of the list. */
 private val TILE_INSET = 12.dp

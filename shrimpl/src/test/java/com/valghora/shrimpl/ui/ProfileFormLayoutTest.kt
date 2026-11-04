@@ -96,7 +96,7 @@ class ProfileFormLayoutTest {
 
     @Test
     fun onePaneFillsTheWidthEvenWhenWide() {
-        // A window too narrow for two panes (under 840 dp): the floating button floats over the form.
+        // A window too narrow for two panes (under 880 dp): the floating button floats over the form.
         val (left, right) = nameItemEdges(820.dp, inPane = false)
         assertEquals(16f, left, 1f)
         assertEquals(820f - 32f, right - left, 1f)

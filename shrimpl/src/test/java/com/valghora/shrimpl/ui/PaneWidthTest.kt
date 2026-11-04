@@ -29,9 +29,10 @@ import org.robolectric.RobolectricTestRunner
 import org.robolectric.RuntimeEnvironment
 
 /**
- * R1.1: below Material's expanded width (840 dp) one pane; from it, Material's 412 dp list pane at
- * every width, three tiles across (about 119 dp each, near a phone's 124), and an app's settings at
- * least a phone's width. Resizing the window keeps what's open.
+ * R1.1: one pane below 880 dp (a window snapped to half a laptop screen included), its tiles six
+ * across there and three on a small phone; from 880 dp Material's 412 dp list pane, three tiles
+ * across (about 119 dp each), and an app's settings at least a phone's width. Resizing the window
+ * keeps what's open.
  */
 @RunWith(RobolectricTestRunner::class)
 class PaneWidthTest {
@@ -53,17 +54,21 @@ class PaneWidthTest {
     private fun launch(width: Int) {
         RuntimeEnvironment.setQualifiers("w${width}dp-h900dp")
         TestApps.save()
-        TestApps.saveMany(3)
+        // Eight apps, enough to fill a line of six or seven tiles.
+        TestApps.saveMany(6)
         TestApps.app.container.settings.setHomeLayout(HomeLayout.TILES)
         scenario = ActivityScenario.launch(MainActivity::class.java)
-        compose.waitUntil(LOAD_TIMEOUT_MS) { exists("Fillerc") }
+        compose.waitUntil(LOAD_TIMEOUT_MS) { exists("Fillerf") }
     }
 
     /** How many tiles share the first line. */
     private fun tilesAcross(): Int {
-        val top = { name: String -> compose.onAllNodes(hasText(name)).fetchSemanticsNodes().first().boundsInRoot.top }
-        val first = top("Example")
-        return listOf("Example", "Fillera", "Fillerb", "Fillerc", "Squoosh").count { kotlin.math.abs(top(it) - first) < 1f }
+        val names = listOf("Example", "Squoosh") + ('a'..'f').map { "Filler$it" }
+        val tops = names.mapNotNull { name ->
+            compose.onAllNodes(hasText(name) and SemanticsMatcher.keyIsDefined(SemanticsActions.OnLongClick)).fetchSemanticsNodes()
+                .map { it.boundsInRoot }.firstOrNull { it.height > 0f }?.top
+        }
+        return tops.count { kotlin.math.abs(it - tops.min()) < 1f }
     }
 
     /** Opens Squoosh's settings and returns the width of its Name item, the settings column's width, in dp. */
@@ -83,6 +88,27 @@ class PaneWidthTest {
         assertFalse("no detail pane beside the list", twoPanes)
     }
 
+    /** A window snapped to half a laptop screen: one pane, its tiles six across at about 130 dp. */
+    @Test
+    fun aSnappedWindowShowsOnePaneWithSixTiles() {
+        launch(849)
+        assertFalse("one pane", twoPanes)
+        assertEquals(6, tilesAcross())
+    }
+
+    @Test
+    fun justBelowTheSwitchThereIsStillOnePane() {
+        launch(879)
+        assertFalse("one pane", twoPanes)
+    }
+
+    /** A small phone keeps three tiles across. */
+    @Test
+    fun aSmallPhoneShowsThreeTiles() {
+        launch(360)
+        assertEquals(3, tilesAcross())
+    }
+
     /** The width of [name]'s tile: the node offering its long-press menu. */
     private fun tileWidth(name: String) = compose.onAllNodes(hasText(name) and SemanticsMatcher.keyIsDefined(SemanticsActions.OnLongClick))
         .fetchSemanticsNodes().first().boundsInRoot.width / density
@@ -97,7 +123,7 @@ class PaneWidthTest {
     }
 
     @Test
-    fun anExpandedWindow() = threeTilesAndRoomForSettings(840)
+    fun theNarrowestTwoPaneWindow() = threeTilesAndRoomForSettings(880)
 
     @Test
     fun theLargestExpandedWindow() = threeTilesAndRoomForSettings(1199)

@@ -19,7 +19,9 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLayoutDirection
+import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -80,13 +82,18 @@ enum class AppShortcut { NEW_WEB_APP, SETTINGS }
 @Composable
 fun ShrimplNavigation(shortcuts: Flow<AppShortcut>) {
     val backStack = rememberNavBackStack(HomeKey)
-    // R1.1: two panes from Material's expanded width (840 dp); the list pane is Material's 412 dp at
-    // every two-pane size, three tiles across as on a phone, and the detail takes the rest. On a
-    // dual-screen phone or a foldable half-open like a book, the default hinge policy splits the panes
-    // along the hinge.
+    // R1.1: the list pane is Material's 412 dp, three tiles across as on a phone, and the detail takes
+    // the rest. Two panes need a window of TWO_PANE_MIN_WIDTH: below it the detail would be narrower
+    // than a phone beside the list, so one pane shows at a time (a window snapped to half a laptop
+    // screen is about 850 dp). On a dual-screen phone or a foldable half-open like a book, the default
+    // hinge policy splits the panes along the hinge, whatever the width.
     val startInset = WindowInsets.safeDrawing.only(WindowInsetsSides.Start).asPaddingValues()
         .calculateStartPadding(LocalLayoutDirection.current)
-    val directive = calculatePaneScaffoldDirective(currentWindowAdaptiveInfoV2()).copy(
+    val windowWidth = with(LocalDensity.current) { LocalWindowInfo.current.containerSize.width.toDp() }
+    val materialDirective = calculatePaneScaffoldDirective(currentWindowAdaptiveInfoV2())
+    val roomForTwo = windowWidth >= TWO_PANE_MIN_WIDTH || materialDirective.excludedBounds.isNotEmpty()
+    val directive = materialDirective.copy(
+        maxHorizontalPartitions = if (roomForTwo) materialDirective.maxHorizontalPartitions else 1,
         defaultPanePreferredWidth = startInset + LIST_PANE_WIDTH,
         horizontalPartitionSpacerSize = PANE_GAP,
     )
@@ -199,3 +206,10 @@ private val PANE_GAP = 24.dp
 
 /** Material's list pane width; with the card's 16 dp margin it fits three tiles of about 119 dp. */
 private val LIST_PANE_WIDTH = 412.dp
+
+/**
+ * The narrowest window with two panes: there the detail pane is 428 dp beside the list, wider than a
+ * phone, so the settings column fits. Material splits from 840 dp; docs/ADAPTIVE.md records why
+ * Shrimpl waits.
+ */
+private val TWO_PANE_MIN_WIDTH = 880.dp

@@ -124,8 +124,8 @@ fun PageTopBar(
     // the bar recomposes only while the title is between sizes, not on every scrolled pixel.
     val distance = with(density) { COLLAPSE_DISTANCE.toPx() }
     // Invariant: only a page with one pane collapses. A pane too narrow for the column has no column
-    // either, but its bar stays put in the pane's color (found on a device, 2026-11-04: just over
-    // 840 dp the bar took the window's color as the page scrolled).
+    // either, but its bar stays put in the pane's color (found on a device, 2026-11-04: in a pane
+    // beside the list too narrow for the column, the bar took the window's color as the page scrolled).
     val collapsing = !inPane && scroll != null
     val collapsed by remember(scroll, distance, collapsing) {
         derivedStateOf { if (collapsing && scroll != null) (scroll.value / distance).coerceIn(0f, 1f) else 0f }

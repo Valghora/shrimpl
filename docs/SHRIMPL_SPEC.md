@@ -66,7 +66,8 @@ binary translation) on any device.
     changes, 48 dp touch targets, tooltips on icon-only buttons, a right-click menu on web apps, and
     app-wide keyboard shortcuts (Ctrl+N new web app, Ctrl+, settings) listed in the Keyboard
     Shortcuts Helper.
-  - When the window has room for two panes (expanded width, 840 dp and up), the home list sits
+  - When the window has room for two panes (880 dp and up, ADAPTIVE.md deviations; below that,
+    including a window snapped to half a laptop screen, one pane at a time), the home list sits
     beside a detail pane as rounded cards on the window background, 24 dp apart: the list
     is Material's 412 dp list pane at every two-pane width: three tiles across (R2.6), each about
     119 dp, near the 124 dp they get on a phone, so none is squeezed. The detail takes the rest, so an
@@ -170,7 +171,9 @@ binary translation) on any device.
   - **About:** "App Version: x.y" and "Template Version: N.0".
 - R2.6 Tiles: the layout switch shows the apps as tiles instead of rows, and the choice is kept.
   Tiles flow three across on phones (at least 100 dp wide, 8 dp apart, 12 dp in from the sides),
-  more on wide windows. Each tile is a card with Item corners (R1.5) in the theme's container color,
+  more on wide windows; from the Medium width class (600 dp) a tile is at least 118 dp wide, near its
+  phone width, so names aren't cut short: three across beside the detail pane, six across a window
+  snapped to half a laptop screen (about 850 dp). Each tile is a card with Item corners (R1.5) in the theme's container color,
   with no tint or color of its own: the icon (56 dp), the name, and a status line in the theme's
   variant text color: "Needs fix" (R11.7), "Update ready" (R11.4) or "Not installed". A round badge
   on the icon's corner, ringed in the tile's color, marks an app that needs something: a wrench in
