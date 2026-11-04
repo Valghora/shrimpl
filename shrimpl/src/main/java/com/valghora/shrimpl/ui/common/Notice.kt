@@ -95,8 +95,9 @@ data class Notice(val kind: Kind, val text: String) {
  * A notification card (docs/SHRIMPL_SPEC.md R3.3): the kind's icon and text, an optional [action]
  * button (such as Open settings), and Dismiss when [onDismiss] is set. A one-paragraph note that fits
  * on one line beside Dismiss keeps it on that line, so short notes stay one line tall; otherwise the
- * buttons sit in a row under the text, Dismiss at its end, inset as far from the card's end as
- * [action] is from its start. A dismissable card also goes when swiped left or right; the Dismiss
+ * buttons sit in a row under the text, 12 dp from it and from the card's bottom, Dismiss inset as far
+ * from the card's end as the text is from its start. Below 480 dp [action] sits under the start of
+ * the text; from 480 dp it sits beside Dismiss, so the buttons stay together on wide cards. A dismissable card also goes when swiped left or right; the Dismiss
  * button is the way for keyboards, mice and accessibility services.
  */
 @Composable
@@ -126,6 +127,7 @@ private fun NoticeContent(notice: Notice, modifier: Modifier, onDismiss: (() -> 
         TextButton(onClick = onClick) { Text(label, color = color, style = MaterialTheme.typography.labelLarge) }
     }
     val dismissLabel = stringResource(R.string.action_dismiss)
+    val labelLine = MaterialTheme.typography.labelLarge.lineHeight
     // Paragraphs (split at blank lines) sit closer together than a whole blank line would.
     val paragraphs = notice.text.split("\n\n")
     Layout(
@@ -170,17 +172,24 @@ private fun NoticeContent(notice: Notice, modifier: Modifier, onDismiss: (() -> 
             val textWidth = width - textStart - SIDE.roundToPx()
             val placedText = text.measure(Constraints(maxWidth = textWidth.coerceAtLeast(0)))
             val textTop = VERTICAL.roundToPx() + TEXT_TOP.roundToPx()
-            val buttonsTop = textTop + placedText.height + BUTTONS_GAP.roundToPx()
+            val textBottom = textTop + placedText.height
             val buttonsHeight = maxOf(actionButton?.height ?: 0, dismiss?.height ?: 0)
-            val bottom = if (buttonsHeight > 0) buttonsTop + buttonsHeight else textTop + placedText.height
-            val height = maxOf(bottom, VERTICAL.roundToPx() + ICON_TOP.roundToPx() + icon.height) + VERTICAL.roundToPx()
+            // A label sits centered in its button's 48 dp touch area; the spacing is measured from
+            // the label, so the touch area overlaps the space around it (and can reach the edge).
+            val labelInset = (buttonsHeight - labelLine.roundToPx()) / 2
+            val buttonsTop = textBottom + LABEL_SPACE.roundToPx() - labelInset
+            val contentBottom = if (buttonsHeight > 0) buttonsTop + labelInset + labelLine.roundToPx() + LABEL_SPACE.roundToPx() else textBottom + VERTICAL.roundToPx()
+            val height = maxOf(contentBottom, VERTICAL.roundToPx() * 2 + ICON_TOP.roundToPx() + icon.height)
+            // The icon column's width (icon and gap) mirrored at the end.
+            val dismissX = width - SIDE.roundToPx() - (icon.width + GAP.roundToPx()) - (dismiss?.width ?: 0)
+            // Narrow: the action under the start of the text. Wide: beside Dismiss, so the two stay together.
+            val actionX = if (width < WIDE_NOTICE.roundToPx() || dismiss == null) textStart else dismissX - BUTTON_GAP.roundToPx() - (actionButton?.width ?: 0)
             layout(width, height) {
                 roundedBackground.measure(Constraints.fixed(width, height)).place(0, 0)
                 icon.place(SIDE.roundToPx(), VERTICAL.roundToPx() + ICON_TOP.roundToPx())
                 placedText.place(textStart, textTop)
-                actionButton?.place(textStart, buttonsTop)
-                // The icon column's width (icon and gap) mirrored at the end.
-                dismiss?.place(width - SIDE.roundToPx() - (icon.width + GAP.roundToPx()) - dismiss.width, buttonsTop)
+                actionButton?.place(actionX, buttonsTop)
+                dismiss?.place(dismissX, buttonsTop)
             }
         }
     }
@@ -213,7 +222,13 @@ private val GAP = 12.dp
 private val VERTICAL = 12.dp
 private val ICON_TOP = 2.dp
 private val TEXT_TOP = 3.dp
-private val BUTTONS_GAP = 10.dp
+
+/** The space above and below the button labels in the row under the text. */
+private val LABEL_SPACE = 12.dp
+
+/** From this width a notice's buttons sit together at the end, [BUTTON_GAP] apart; narrower, they split. */
+private val WIDE_NOTICE = 480.dp
+private val BUTTON_GAP = 16.dp
 
 /** On one line: Dismiss's own 12 dp padding plus this puts its label 16 dp from the end, like the icon at the start. */
 private val INLINE_END = 4.dp

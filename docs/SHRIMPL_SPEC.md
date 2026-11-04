@@ -227,7 +227,10 @@ binary translation) on any device.
   as Info, Caution or Error notices. Notices have Notice corners (R1.5), so one-line notices are pills. Every dismissable notice has a Dismiss button (never an X)
   and is also dismissed by swiping it left or right. A one-paragraph notice with no other button
   that fits on one line beside Dismiss keeps Dismiss on that line, so short notices stay one line
-  tall; otherwise the buttons sit in a row under the text, Dismiss at its end. Every field is validated as the user types, by the core
+  tall; otherwise the buttons sit in a row under the text, their labels 12 dp below it and 12 dp
+  above the card's bottom, Dismiss at the row's end. On a notice narrower than 480 dp another button
+  (such as Open settings) sits under the start of the text; from 480 dp it sits beside Dismiss,
+  16 dp apart, so the buttons stay together on wide cards. Every field is validated as the user types, by the core
   validator (R4.2).
 - R3.4 Create builds, signs and installs (R8, R6). A bottom sheet titled "Creating an app for
   <name>…" ("Updating <name>…" for an update, "Reinstalling <name>…" for a known app that isn't
