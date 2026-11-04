@@ -138,11 +138,12 @@ binary translation) on any device.
 - R2.3 The edit page offers every profile setting in the form of R3.3 (the app ID is not shown) and the
   icon options (R10); its ⋮ menu offers Open (when installed), Rebuild (Reinstall when not
   installed) and Uninstall (confirmed; then offers to remove the record), or Remove. Once something
-  is changed, a Save button rebuilds with the next build number and installs it as an update (same
+  is changed, a Save button appears in the top bar, before the ⋮ button (the page has no floating
+  button, so its column is centred like Settings'); it rebuilds with the next build number and installs it as an update (same
   package and key, so the app keeps its data). Changes not saved are discarded on leaving the page;
   recreating the window (rotation, resize) keeps them. Its back arrow leaves the page, in two panes too.
 - R2.4 "New app" opens the configuration page (R3), titled "Create app". It is one design everywhere, shared by the
-  other main-action buttons (Create, Save, Update all): a filled button with Control corners (R1.5)
+  other main-action buttons (Create, Update all): a filled button with Control corners (R1.5)
   with an icon in the theme's primary color (Update all in its secondary container color); New
   app's tooltip names Ctrl+N. With one pane it sits at the bottom right of the list. With two
   panes it appears in exactly one place: in the empty detail pane, or at the bottom right of the
@@ -245,7 +246,7 @@ binary translation) on any device.
   R5.3).
 - R3.5 The form is one column, and Shrimpl's Settings (R2.5) uses the same column and top bar from
   the same code, so the pages always match. Beside the list (two panes), the column is at most 680 dp
-  wide and centred; on a page with a floating button (Save, Create), if centring would put the column
+  wide and centred; on a page with a floating button (Create), if centring would put the column
   under the button at the bottom right, it moves left as far as needed (at least 24 dp from the left
   edge), so the button never covers an option. With one pane (a phone, or any window too narrow for
   two panes), or in a pane too narrow for a 360 dp column, the form takes the full width and the

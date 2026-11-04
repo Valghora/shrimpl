@@ -85,7 +85,7 @@ data class FormColumn(val start: Dp, val width: Dp)
 
 /**
  * The form's column in a pane [paneWidth] wide beside the list ([inPane]): at most 680 dp, centred, or,
- * on a page with a [floatingButton] (Save, Create), moved left so the button never covers it. Null with
+ * on a page with a [floatingButton] (Create), moved left so the button never covers it. Null with
  * one pane, or a pane too narrow: the form then takes the full width and the button floats over it.
  */
 fun formColumn(paneWidth: Dp, inPane: Boolean, floatingButton: Boolean = true): FormColumn? {

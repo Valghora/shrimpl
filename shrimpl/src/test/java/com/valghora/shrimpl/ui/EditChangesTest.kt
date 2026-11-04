@@ -77,6 +77,19 @@ class EditChangesTest {
         assertFalse("nothing left to save", saveShown)
     }
 
+    /** R2.3: Save appears in the top bar, above the form, once something is changed. */
+    @Test
+    fun saveAppearsInTheTopBar() {
+        openSquoosh()
+        assertFalse("no Save before a change", saveShown)
+        camera().performScrollTo().performClick()
+        compose.waitUntil(LOAD_TIMEOUT_MS) { saveShown }
+        val save = compose.onNode(hasClickAction() and hasText(string(R.string.action_save))).fetchSemanticsNode().boundsInRoot
+        // The page title: the topmost visible "Squoosh" (the list behind the page lays out at zero size).
+        val title = compose.onAllNodes(hasText("Squoosh")).fetchSemanticsNodes().map { it.boundsInRoot }.filter { it.height > 0f }.minBy { it.top }
+        assertTrue("on the title's line", save.top < title.bottom && save.bottom > title.top)
+    }
+
     /** The Camera permission switch item. */
     private fun camera() = compose.onNode(hasText(string(R.string.field_camera)) and SemanticsMatcher.keyIsDefined(SemanticsProperties.ToggleableState))
 

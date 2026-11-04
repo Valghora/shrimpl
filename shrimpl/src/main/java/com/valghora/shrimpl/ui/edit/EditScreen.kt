@@ -5,14 +5,19 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -34,6 +39,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -43,12 +49,12 @@ import com.valghora.shrimpl.data.InstalledApps
 import com.valghora.shrimpl.ui.common.AppMenu
 import com.valghora.shrimpl.ui.common.AppMenuItem
 import com.valghora.shrimpl.ui.common.BuildSheet
-import com.valghora.shrimpl.ui.common.MainActionButton
 import com.valghora.shrimpl.ui.common.Notice
 import com.valghora.shrimpl.ui.common.PageTopBar
 import com.valghora.shrimpl.ui.common.TooltipIconButton
 import com.valghora.shrimpl.ui.common.withoutBottom
 import com.valghora.shrimpl.ui.form.ProfileFormFields
+import com.valghora.shrimpl.ui.theme.AppShapes
 import kotlinx.coroutines.launch
 
 /** A web app's settings (docs/SHRIMPL_SPEC.md R2.3): change, save as the next build, uninstall. */
@@ -104,6 +110,7 @@ fun EditScreen(appId: String, onBack: () -> Unit) {
                     title = current.profile.name,
                     paneWidth = paneWidth,
                     scroll = scroll,
+                    floatingButton = false,
                     // Beside the list the arrow closes the detail pane (docs/ADAPTIVE.md deviations).
                     navigation = {
                         TooltipIconButton(stringResource(R.string.action_back), onBack) {
@@ -111,6 +118,19 @@ fun EditScreen(appId: String, onBack: () -> Unit) {
                         }
                     },
                     actions = {
+                        // R2.3: Save sits in the bar, before the menu, once something is changed; the page
+                        // has no floating button, so the form's column is centred like Settings'.
+                        if (model.dirty) {
+                            Button(
+                                onClick = { if (!model.save()) scope.launch { snackbar.showSnackbar(invalidMessage) } },
+                                shape = AppShapes.Control,
+                                modifier = Modifier.padding(end = 4.dp),
+                            ) {
+                                Icon(Icons.Filled.Check, contentDescription = null, modifier = Modifier.size(ButtonDefaults.IconSize))
+                                Spacer(Modifier.width(ButtonDefaults.IconSpacing))
+                                Text(stringResource(R.string.action_save))
+                            }
+                        }
                         // Invariant: the menu sits in a Box with its button, so it opens under the button. A
                         // DropdownMenu anchors to its parent; in the bar's Row that is the whole bar, which put
                         // the menu at the bar's start (found on a device, 2026-11-03).
@@ -148,15 +168,6 @@ fun EditScreen(appId: String, onBack: () -> Unit) {
                     },
                 )
             },
-            floatingActionButton = {
-                if (model.dirty) {
-                    MainActionButton(
-                        text = stringResource(R.string.action_save),
-                        icon = Icons.Filled.Check,
-                        onClick = { if (!model.save()) scope.launch { snackbar.showSnackbar(invalidMessage) } },
-                    )
-                }
-            },
             snackbarHost = { SnackbarHost(snackbar) },
         ) { padding ->
             Box(Modifier.padding(padding.withoutBottom()).fillMaxSize()) {
@@ -168,6 +179,7 @@ fun EditScreen(appId: String, onBack: () -> Unit) {
                     storedImage = model::storedImage,
                     bottomInset = padding.calculateBottomPadding(),
                     scrollState = scroll,
+                    floatingButton = false,
                 )
             }
         }

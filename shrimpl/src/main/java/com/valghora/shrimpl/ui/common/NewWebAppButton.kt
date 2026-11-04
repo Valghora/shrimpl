@@ -31,7 +31,7 @@ import com.valghora.shrimpl.R
 import com.valghora.shrimpl.ui.theme.AppShapes
 
 /**
- * The app's main-action button (New app, Create, Save): a filled [AppShapes.Control] button in the theme's
+ * The app's main-action button (New app, Create, Update all): a filled [AppShapes.Control] button in the theme's
  * primary color (or, [secondary], its secondary container color, as Update all), with an icon and a label.
  */
 @Composable

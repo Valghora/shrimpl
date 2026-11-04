@@ -72,8 +72,8 @@ import com.valghora.shrimpl.ui.icons.IconTiles
 /**
  * A web app's settings (docs/SHRIMPL_SPEC.md R3.3), shared by the configuration and edit pages, as
  * grouped settings items. [hints] are discovery sources shown under low- and medium-confidence values.
- * Wide enough (R3.5), the sections form the settings column ([FormColumnLayout]), which the floating
- * button (Save, Create) never covers. [bottomInset] (the navigation
+ * Wide enough (R3.5), the sections form the settings column ([FormColumnLayout]), which a
+ * [floatingButton] (Create) never covers. [bottomInset] (the navigation
  * bar) is added inside the scroll, so the form scrolls behind the bar and ends above it.
  */
 @Composable
@@ -86,6 +86,7 @@ fun ProfileFormFields(
     modifier: Modifier = Modifier,
     bottomInset: Dp = 0.dp,
     scrollState: ScrollState = rememberScrollState(),
+    floatingButton: Boolean = true,
 ) {
     val result = draft.form.result()
     val fields = Fields(draft.form, { onChange(draft.withForm(it)) }, result::errorFor, hints)
@@ -101,8 +102,14 @@ fun ProfileFormFields(
         fields.Window()
         fields.Permissions()
     }
-    // With one pane the floating button (Save, Create) floats over the form; leave room below it.
-    FormColumnLayout(modifier, scrollState, fullWidthBottom = 96.dp + bottomInset, columnBottom = 32.dp + bottomInset) { sections() }
+    // With one pane a floating button (Create) floats over the form; leave room below it.
+    FormColumnLayout(
+        modifier,
+        scrollState,
+        floatingButton = floatingButton,
+        fullWidthBottom = (if (floatingButton) 96.dp else 32.dp) + bottomInset,
+        columnBottom = 32.dp + bottomInset,
+    ) { sections() }
 }
 
 
