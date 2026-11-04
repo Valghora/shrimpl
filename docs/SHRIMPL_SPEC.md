@@ -61,9 +61,8 @@ binary translation) on any device.
 - R1.1 Form factors.
   - MUST work on phones, foldables, tablets, in desktop windows and on Googlebook OS (its primary
     devices, docs/GOOGLEBOOKS.md): freely resizable, no aspect ratio limits, no `configChanges`,
-    edge to edge, with keyboard and pointer support. On a phone-sized screen (smallest width under
-    600 dp: a phone, a foldable's cover screen) it asks for portrait; from 600 dp (tablets, unfolded
-    foldables, Googlebooks) every orientation stays (ADAPTIVE.md deviations).
+    edge to edge, with keyboard and pointer support, in every orientation (WCAG 1.3.4: no
+    orientation lock, phones included).
   - It follows docs/ADAPTIVE.md: layout from window size classes, state that survives configuration
     changes, 48 dp touch targets, tooltips on icon-only buttons, a right-click menu on web apps, and
     app-wide keyboard shortcuts (Ctrl+N new web app, Ctrl+, settings) listed in the Keyboard

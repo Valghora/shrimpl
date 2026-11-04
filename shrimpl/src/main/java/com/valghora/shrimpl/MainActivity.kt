@@ -1,6 +1,5 @@
 package com.valghora.shrimpl
 
-import android.content.pm.ActivityInfo
 import android.content.res.Configuration
 import android.graphics.Color
 import android.os.Bundle
@@ -35,14 +34,6 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)
-        // R1.1: portrait on a phone-sized screen (a phone, a foldable's cover screen). From a 600 dp
-        // smallest width (tablets, unfolded foldables, Googlebooks) every orientation stays, and
-        // Android ignores orientation requests there anyway.
-        requestedOrientation = if (resources.configuration.smallestScreenWidthDp < PHONE_MAX_SMALLEST_WIDTH) {
-            ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
-        } else {
-            ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
-        }
         sharingScreen.value = isInMultiWindowMode
         setContent {
             val theme by container.settings.theme.collectAsStateWithLifecycle()
@@ -91,6 +82,3 @@ class MainActivity : ComponentActivity() {
         )
     }
 }
-
-/** Below this smallest width (Material's Medium width class) a screen is phone-sized. */
-private const val PHONE_MAX_SMALLEST_WIDTH = 600

@@ -1,6 +1,5 @@
 package com.valghora.shrimpl.ui
 
-import android.content.pm.ActivityInfo
 import androidx.compose.ui.semantics.SemanticsActions
 import androidx.compose.ui.semantics.SemanticsProperties
 import androidx.compose.ui.test.SemanticsMatcher
@@ -134,16 +133,6 @@ class PaneWidthTest {
     fun anAppFillingTheScreenBelowMaterialsWidthIsOnePane() {
         launch(839, sharing = false)
         assertFalse("one pane", twoPanes)
-    }
-
-    /** R1.1: portrait on a phone-sized screen; from a 600 dp smallest width every orientation stays. */
-    @Test
-    fun aPhoneAsksForPortraitAndALargerScreenDoesNot() {
-        launch(400, sharing = false)
-        scenario!!.onActivity { assertEquals(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT, it.requestedOrientation) }
-        scenario!!.close()
-        launch(1280, sharing = false)
-        scenario!!.onActivity { assertEquals(ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED, it.requestedOrientation) }
     }
 
     /** A small phone keeps three tiles across. */
