@@ -79,6 +79,7 @@ import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.onLongClick
 import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.Dp
@@ -548,6 +549,7 @@ private fun AppTile(
         else -> null
     }
     val tileColor = if (selected) colors.surfaceContainerHighest else colors.surfaceContainer
+    val nameLines = if (LocalDensity.current.fontScale > 1f) 2 else 1
     Column(
         Modifier
             .clip(AppShapes.Item)
@@ -569,7 +571,11 @@ private fun AppTile(
         Text(
             record.profile.name,
             style = MaterialTheme.typography.bodyMedium,
-            maxLines = 1,
+            textAlign = TextAlign.Center,
+            // R2.6: with a larger font size a name may take a second line rather than be cut short;
+            // every tile then keeps two lines' height, so the tiles in a line still match.
+            minLines = nameLines,
+            maxLines = nameLines,
             overflow = TextOverflow.Ellipsis,
             modifier = if (greyed) Modifier.alpha(GREYED_ALPHA) else Modifier,
         )

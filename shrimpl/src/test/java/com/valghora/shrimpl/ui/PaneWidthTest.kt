@@ -98,10 +98,14 @@ class PaneWidthTest {
         assertEquals(816f, settingsColumn(), 1.5f)
     }
 
+    /** R3.5: the widest one-pane window keeps its settings to the 816 dp two panes keep, centred. */
     @Test
-    fun justBelowTheSwitchThereIsStillOnePane() {
+    fun justBelowTheSwitchThereIsStillOnePaneWithItsSettingsCapped() {
         launch(879)
         assertFalse("one pane", twoPanes)
+        assertEquals(816f, settingsColumn(), 1f)
+        val left = compose.onNode(hasText(string(R.string.field_name)) and hasClickAction()).fetchSemanticsNode().boundsInRoot.left / density
+        assertEquals("centred", (879f - 816f) / 2, left, 1f)
     }
 
     /** A small phone keeps three tiles across. */

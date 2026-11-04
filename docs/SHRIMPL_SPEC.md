@@ -173,7 +173,9 @@ binary translation) on any device.
   Tiles flow three across on phones (at least 100 dp wide, 8 dp apart, 12 dp in from the sides),
   more on wide windows; from the Medium width class (600 dp) a tile is at least 118 dp wide, near its
   phone width, so names aren't cut short: three across beside the detail pane, six across a window
-  snapped to half a laptop screen (about 850 dp). Each tile is a card with Item corners (R1.5) in the theme's container color,
+  snapped to half a laptop screen (about 850 dp). With a font size above the default, a name may take
+  a second line instead of being cut short, and every tile keeps two lines' height so the tiles in a
+  line match; the number across doesn't change. Each tile is a card with Item corners (R1.5) in the theme's container color,
   with no tint or color of its own: the icon (56 dp), the name, and a status line in the theme's
   variant text color: "Needs fix" (R11.7), "Update ready" (R11.4) or "Not installed". A round badge
   on the icon's corner, ringed in the tile's color, marks an app that needs something: a wrench in
@@ -252,8 +254,9 @@ binary translation) on any device.
   centred; on a page with a floating button (Create), if centring would put the column
   under the button at the bottom right, it moves left as far as needed (at least 24 dp from the left
   edge), so the button never covers an option. With one pane (a phone, or any window too narrow for
-  two panes), or in a pane too narrow for a 360 dp column, the form takes the full width and the
-  button floats over it, with room below the last section.
+  two panes), or in a pane too narrow for a 360 dp column, the form takes the full width (16 dp
+  margins) and the button floats over it, with room below the last section; with one pane it is
+  still at most 816 dp wide, centred, with the top bar's arrow and buttons over it.
   The top bar holds a back arrow and the page's title (the app's name, Settings, or Create app) in
   large type on one line, with the edit page's ⋮ at the end. With one pane the arrow starts the bar
   and, as the page scrolls, the title shrinks to the usual size and the bar takes the container color.

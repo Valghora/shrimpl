@@ -57,7 +57,8 @@ fun FormColumnLayout(
         val column = formColumn(maxWidth, inPane, floatingButton)
         val scroll = Modifier.fillMaxSize().verticalScroll(scrollState)
         if (column == null) {
-            Column(scroll.padding(horizontal = 16.dp).padding(bottom = fullWidthBottom), content = content)
+            val side = if (inPane) FULL_WIDTH_MARGIN else onePaneMargin(maxWidth)
+            Column(scroll.padding(horizontal = side).padding(bottom = fullWidthBottom), content = content)
         } else {
             // The scroll area fills the pane; the column inside it gets its own width (a width set after
             // fillMaxSize on the same modifier can't shrink it).
@@ -73,6 +74,15 @@ fun FormColumnLayout(
  * half a laptop screen (849 dp, one pane, less its 16 dp margins), so two panes never show them wider.
  */
 private val MAX_COLUMN = 816.dp
+
+/** The margin of a page that takes the full width: with one pane, or in a pane too narrow for the column. */
+private val FULL_WIDTH_MARGIN = 16.dp
+
+/**
+ * The side margin of a page with one pane [width] wide: 16 dp, or more on a wide window so the page
+ * is never wider than [MAX_COLUMN], the limit two panes keep too (R3.5).
+ */
+private fun onePaneMargin(width: Dp): Dp = maxOf(FULL_WIDTH_MARGIN, (width - MAX_COLUMN) / 2)
 
 /** Narrower than this, the page takes the full width instead. */
 private val MIN_COLUMN = 360.dp
@@ -130,6 +140,8 @@ fun PageTopBar(
     // either, but its bar stays put in the pane's color (found on a device, 2026-11-04: in a pane
     // beside the list too narrow for the column, the bar took the window's color as the page scrolled).
     val collapsing = !inPane && scroll != null
+    // With one pane on a wide window the page is narrower than the window; the bar moves in with it.
+    val onePaneShift = if (inPane) 0.dp else onePaneMargin(paneWidth) - FULL_WIDTH_MARGIN
     val collapsed by remember(scroll, distance, collapsing) {
         derivedStateOf { if (collapsing && scroll != null) (scroll.value / distance).coerceIn(0f, 1f) else 0f }
     }
@@ -138,9 +150,9 @@ fun PageTopBar(
         collapsed = collapsed,
         navigation = navigation,
         modifier = modifier,
-        start = column?.let { (it.start + SECTION_LABEL_INSET - GLYPH_INSET).coerceAtLeast(0.dp) } ?: BAR_EDGE,
+        start = column?.let { (it.start + SECTION_LABEL_INSET - GLYPH_INSET).coerceAtLeast(0.dp) } ?: BAR_EDGE + onePaneShift,
         // A 48 dp button centred over the chevrons, 32 dp in from the column's end, ends 8 dp before it.
-        end = column?.let { (paneWidth - (it.start + it.width) + CHEVRON_INSET - BUTTON_HALF).coerceAtLeast(0.dp) } ?: BAR_EDGE,
+        end = column?.let { (paneWidth - (it.start + it.width) + CHEVRON_INSET - BUTTON_HALF).coerceAtLeast(0.dp) } ?: BAR_EDGE + onePaneShift,
         actions = actions,
     )
 }
