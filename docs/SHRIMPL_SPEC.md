@@ -67,11 +67,10 @@ binary translation) on any device.
     app-wide keyboard shortcuts (Ctrl+N new web app, Ctrl+, settings) listed in the Keyboard
     Shortcuts Helper.
   - When the window has room for two panes (expanded width, 840 dp and up), the home list sits
-    beside a detail pane as rounded cards on the window background, 24 dp apart: the list's width
-    follows Material's window size classes: in an expanded window (840 to 1199 dp) Material's 360 dp
-    list pane, three tiles across (R2.6), and from a large window (1200 dp) just wide enough for four
-    tiles at their full width (124 dp, what three across a typical phone get), so none is squeezed. The detail takes the rest, so an app's settings always get at least a phone's width. The
-    panes can't be resized, and resizing the window keeps what each pane shows and any unsaved
+    beside a detail pane as rounded cards on the window background, 24 dp apart: the list
+    is Material's 412 dp list pane at every two-pane width: three tiles across (R2.6), each about
+    119 dp, near the 124 dp they get on a phone, so none is squeezed. The detail takes the rest, so an
+    app's settings always get at least a phone's width. The panes can't be resized, and resizing the window keeps what each pane shows and any unsaved
     changes. On a separating hinge (a dual-screen
     phone, a foldable half-open like a book) the panes split along the hinge, one on each side. The
     detail pane shows a web app's edit page, the configuration page

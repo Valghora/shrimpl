@@ -14,8 +14,6 @@ import com.valghora.shrimpl.MainActivity
 import com.valghora.shrimpl.R
 import com.valghora.shrimpl.ui.TestApps.awaitHome
 import com.valghora.shrimpl.ui.TestApps.string
-import com.valghora.shrimpl.ui.home.FULL_TILE_WIDTH
-import com.valghora.shrimpl.ui.home.tilesWidth
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
@@ -82,12 +80,11 @@ class FormTitleTest {
     @Test
     fun besideTheListTheTitleLinesUpWithTheColumn() {
         open(1280, 800)
-        // The list pane is wide enough for four full-width tiles beside its 16 dp margin. Its ⋮ buttons end
-        // 8 dp inside the card (the rows' inset), at most 2 dp of rounding slack past four tiles.
+        // The list pane is Material's 412 dp, its card 16 dp in from the window's edge. Its ⋮ buttons end
+        // 8 dp inside the card (the rows' inset).
         val listEnd = compose.onNode(hasContentDescription(string(R.string.action_app_options, "Example"))).fetchSemanticsNode()
             .boundsInRoot.right / density
-        val fourTiles = 16f + tilesWidth(4, FULL_TILE_WIDTH).value
-        assertTrue("the list ends where four tiles fit ($listEnd)", listEnd in fourTiles - 8f..fourTiles - 6f + 0.5f)
+        assertEquals("the list's ⋮ buttons end 8 dp inside its 412 dp pane", 404f, listEnd, 1f)
         val sections = compose.onNodeWithText(string(R.string.section_identity)).fetchSemanticsNode().left()
         assertTrue("the column is beside the list", sections > listEnd)
         assertArrowAndTitleOverColumn(sections, "Squoosh")
@@ -113,7 +110,7 @@ class FormTitleTest {
         assertArrowAndTitleOverColumn(sections, string(R.string.settings_title))
 
         // The detail pane runs from the list pane's end plus the 24 dp gap to 16 dp from the window's edge.
-        val paneStart = 16f + tilesWidth(4, FULL_TILE_WIDTH).value + 2f + 24f
+        val paneStart = 412f + 24f
         val paneEnd = 1280f - 16f
         val item = compose.onAllNodes(hasText(string(R.string.theme_mode))).fetchSemanticsNodes().maxBy { it.boundsInRoot.width }
         val itemCenter = item.boundsInRoot.center.x / density

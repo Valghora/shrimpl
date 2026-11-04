@@ -29,10 +29,9 @@ import org.robolectric.RobolectricTestRunner
 import org.robolectric.RuntimeEnvironment
 
 /**
- * R1.1: the panes follow Material's window size classes. Below 840 dp one pane; in an expanded
- * window (840 to 1199 dp) Material's 360 dp list, three tiles across; from 1200 dp a list four tiles
- * wide. With two panes an app's settings always get at least a phone's width (360 dp), and reach
- * their 680 dp maximum on wide windows. Resizing the window keeps what's open.
+ * R1.1: below Material's expanded width (840 dp) one pane; from it, Material's 412 dp list pane at
+ * every width, three tiles across (about 119 dp each, near a phone's 124), and an app's settings at
+ * least a phone's width. Resizing the window keeps what's open.
  */
 @RunWith(RobolectricTestRunner::class)
 class PaneWidthTest {
@@ -84,39 +83,33 @@ class PaneWidthTest {
         assertFalse("no detail pane beside the list", twoPanes)
     }
 
-    @Test
-    fun anExpandedWindowShowsThreeTilesAndRoomForSettings() {
-        launch(840)
-        assertTrue("two panes", twoPanes)
-        assertEquals(3, tilesAcross())
-        assertTrue("the settings column is at least a phone's width", settingsColumn() >= 360f)
-    }
-
-    @Test
-    fun theLargestExpandedWindowStillShowsThreeTiles() {
-        launch(1199)
-        assertEquals(3, tilesAcross())
-        assertTrue("the settings column is at least a phone's width", settingsColumn() >= 360f)
-    }
-
     /** The width of [name]'s tile: the node offering its long-press menu. */
     private fun tileWidth(name: String) = compose.onAllNodes(hasText(name) and SemanticsMatcher.keyIsDefined(SemanticsActions.OnLongClick))
         .fetchSemanticsNodes().first().boundsInRoot.width / density
 
-    @Test
-    fun aLargeWindowShowsFourTiles() {
-        launch(1200)
-        assertEquals(4, tilesAcross())
-        assertTrue("tiles at their full width (${tileWidth("Example")} dp)", tileWidth("Example") >= 124f)
+    /** Three tiles at about their phone width at [width] dp, and room for an app's settings. */
+    private fun threeTilesAndRoomForSettings(width: Int) {
+        launch(width)
+        assertTrue("two panes", twoPanes)
+        assertEquals(3, tilesAcross())
+        assertTrue("tiles near their phone width (${tileWidth("Example")} dp)", tileWidth("Example") >= 118f)
         assertTrue("the settings column is at least a phone's width", settingsColumn() >= 360f)
     }
 
     @Test
-    fun anExtraLargeWindowStillShowsFourTiles() {
-        launch(1920)
-        assertEquals(4, tilesAcross())
-        assertTrue("tiles at their full width", tileWidth("Example") >= 124f)
-        assertEquals("the settings column at its maximum", 680f, settingsColumn(), 2f)
+    fun anExpandedWindow() = threeTilesAndRoomForSettings(840)
+
+    @Test
+    fun theLargestExpandedWindow() = threeTilesAndRoomForSettings(1199)
+
+    @Test
+    fun aLargeWindow() = threeTilesAndRoomForSettings(1200)
+
+    @Test
+    fun anExtraLargeWindowWithTheSettingsAtTheirMaximum() {
+        threeTilesAndRoomForSettings(1920)
+        compose.waitUntil(LOAD_TIMEOUT_MS) { exists(string(R.string.field_name)) }
+        assertEquals(680f, compose.onNode(hasText(string(R.string.field_name)) and hasClickAction()).fetchSemanticsNode().boundsInRoot.width / density, 2f)
     }
 
     /** Narrowing the window to one pane and widening it again keeps the open settings and their edits. */

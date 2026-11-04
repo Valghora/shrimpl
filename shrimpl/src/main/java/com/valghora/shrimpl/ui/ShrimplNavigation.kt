@@ -30,13 +30,11 @@ import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.runtime.rememberNavBackStack
 import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
 import androidx.navigation3.ui.NavDisplay
-import androidx.window.core.layout.WindowSizeClass
 import com.valghora.shrimpl.R
 import com.valghora.shrimpl.container
 import com.valghora.shrimpl.ui.common.CenteredEmptyState
 import com.valghora.shrimpl.ui.common.EmptyStateText
 import com.valghora.shrimpl.ui.common.NewWebAppButton
-import com.valghora.shrimpl.ui.common.PANE_MARGIN
 import com.valghora.shrimpl.ui.common.PaneCard
 import com.valghora.shrimpl.ui.common.PaneSide
 import com.valghora.shrimpl.ui.common.PitchText
@@ -44,8 +42,6 @@ import com.valghora.shrimpl.ui.common.paneBackground
 import com.valghora.shrimpl.ui.create.CreateScreen
 import com.valghora.shrimpl.ui.edit.EditScreen
 import com.valghora.shrimpl.ui.home.HomeScreen
-import com.valghora.shrimpl.ui.home.FULL_TILE_WIDTH
-import com.valghora.shrimpl.ui.home.tilesWidth
 import com.valghora.shrimpl.ui.settings.SettingsScreen
 import kotlinx.coroutines.flow.Flow
 import kotlinx.serialization.Serializable
@@ -84,18 +80,14 @@ enum class AppShortcut { NEW_WEB_APP, SETTINGS }
 @Composable
 fun ShrimplNavigation(shortcuts: Flow<AppShortcut>) {
     val backStack = rememberNavBackStack(HomeKey)
-    // R1.1: the list pane's width follows Material's window size classes, so its switch points are
-    // Material's: in an expanded window (840 to 1199 dp) Material's 360 dp list pane, three tiles
-    // across, leaving the detail at least a phone's width; from large (1200 dp) just wide enough for
-    // four tiles at their full width, so none is squeezed. The detail takes the rest. On a dual-screen phone or a foldable half-open like a book,
-    // the default hinge policy splits the panes along the hinge.
+    // R1.1: two panes from Material's expanded width (840 dp); the list pane is Material's 412 dp at
+    // every two-pane size, three tiles across as on a phone, and the detail takes the rest. On a
+    // dual-screen phone or a foldable half-open like a book, the default hinge policy splits the panes
+    // along the hinge.
     val startInset = WindowInsets.safeDrawing.only(WindowInsetsSides.Start).asPaddingValues()
         .calculateStartPadding(LocalLayoutDirection.current)
-    val adaptiveInfo = currentWindowAdaptiveInfoV2()
-    val large = adaptiveInfo.windowSizeClass.isWidthAtLeastBreakpoint(WindowSizeClass.WIDTH_DP_LARGE_LOWER_BOUND)
-    val listWidth = if (large) PANE_MARGIN + tilesWidth(LARGE_LIST_TILES, FULL_TILE_WIDTH) + ROUNDING_SLACK else EXPANDED_LIST_WIDTH
-    val directive = calculatePaneScaffoldDirective(adaptiveInfo).copy(
-        defaultPanePreferredWidth = startInset + listWidth,
+    val directive = calculatePaneScaffoldDirective(currentWindowAdaptiveInfoV2()).copy(
+        defaultPanePreferredWidth = startInset + LIST_PANE_WIDTH,
         horizontalPartitionSpacerSize = PANE_GAP,
     )
     // Back closes what the detail pane shows, even when both panes stay on screen (Material's default
@@ -205,11 +197,5 @@ private fun DetailPlaceholder(onCreate: () -> Unit) {
 /** The gap between the two panes (Material's default spacer). */
 private val PANE_GAP = 24.dp
 
-/** How many tiles fit across the list pane in a large window or wider. */
-private const val LARGE_LIST_TILES = 4
-
-/** Material's list pane width in an expanded window; with the card's margin it fits three tiles. */
-private val EXPANDED_LIST_WIDTH = 360.dp
-
-/** Keeps the fourth tile from wrapping when dp to px rounding shaves a fraction off the pane. */
-private val ROUNDING_SLACK = 2.dp
+/** Material's list pane width; with the card's 16 dp margin it fits three tiles of about 119 dp. */
+private val LIST_PANE_WIDTH = 412.dp
