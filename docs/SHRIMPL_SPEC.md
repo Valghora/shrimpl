@@ -147,8 +147,9 @@ binary translation) on any device.
   the configuration page). When two or more installed apps have a template update, "Update all"
   sits above it in the list, the two the same width: it rebuilds those apps one after another (a
   failure doesn't stop the rest; the build sheet shows "Updating <name> (i of n)…" and ends with
-  what was updated and what failed). With the System install method it first explains that Android
-  will ask to confirm each update, with Cancel.
+  what was updated and what failed). With the System install method it first asks: "Android will ask
+  you for permission to perform each update. To update your apps without prompts, switch your
+  installation method to Shizuku or Root via Settings.", with Cancel and Update all.
 - R2.5 Settings, from the top bar button or Ctrl+,:
   - **Appearance:** Theme: System (dynamic color from the wallpaper), Light or Dark.
   - **Installation:** Method (R6.2), and the Request Root / Request Shizuku item when one is chosen.

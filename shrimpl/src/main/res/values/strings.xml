@@ -129,10 +129,7 @@
         <item quantity="one">Update %1$d app?</item>
         <item quantity="other">Update %1$d apps?</item>
     </plurals>
-    <plurals name="update_all_text">
-        <item quantity="one">Your install method is System, so Android will ask you to confirm the update. To update without prompts, choose Shizuku or Root in Settings.</item>
-        <item quantity="other">Your install method is System, so Android will ask you to confirm each update: %1$d prompts in a row. To update without prompts, choose Shizuku or Root in Settings.</item>
-    </plurals>
+    <string name="update_all_text">Android will ask you for permission to perform each update. To update your apps without prompts, switch your installation method to Shizuku or Root via Settings.</string>
     <string name="build_title_updating">Updating %1$s (%2$d of %3$d)…</string>
     <plurals name="batch_fixed">
         <item quantity="one">%1$d app fixed</item>

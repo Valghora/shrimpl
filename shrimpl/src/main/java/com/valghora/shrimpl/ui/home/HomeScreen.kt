@@ -341,7 +341,7 @@ fun HomeScreen(
         AlertDialog(
             onDismissRequest = { confirmUpdateAll = false },
             title = { Text(pluralStringResource(R.plurals.update_all_title, outdated.size, outdated.size)) },
-            text = { Text(pluralStringResource(R.plurals.update_all_text, outdated.size, outdated.size)) },
+            text = { Text(stringResource(R.string.update_all_text)) },
             confirmButton = {
                 TextButton(onClick = {
                     confirmUpdateAll = false
