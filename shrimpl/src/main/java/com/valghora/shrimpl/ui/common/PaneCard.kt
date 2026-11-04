@@ -21,7 +21,7 @@ import androidx.compose.ui.unit.dp
 import com.valghora.shrimpl.ui.theme.AppShapes
 
 // Two-pane layouts show each pane as a rounded card on the window's surfaceContainer background,
-// separated by a 24 dp gap holding a drag handle (or the hinge of a dual-screen or book-posture
+// separated by a 24 dp gap (or the hinge of a dual-screen or book-posture
 // device), as Material 3's list-detail layouts do. With one pane, screens stay edge to edge. docs/ADAPTIVE.md.
 
 /** True inside a [PaneCard]: screens use the pane's color for their top bars. */

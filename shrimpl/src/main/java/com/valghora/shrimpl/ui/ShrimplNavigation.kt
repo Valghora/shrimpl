@@ -1,26 +1,21 @@
 package com.valghora.shrimpl.ui
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.calculateStartPadding
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.safeDrawing
-import androidx.compose.material3.LocalMinimumInteractiveComponentSize
-import androidx.compose.material3.VerticalDragHandle
 import androidx.compose.material3.adaptive.ExperimentalMaterial3AdaptiveApi
 import androidx.compose.material3.adaptive.currentWindowAdaptiveInfoV2
 import androidx.compose.material3.adaptive.layout.calculatePaneScaffoldDirective
-import androidx.compose.material3.adaptive.layout.rememberPaneExpansionState
 import androidx.compose.material3.adaptive.navigation.BackNavigationBehavior
 import androidx.compose.material3.adaptive.navigation3.ListDetailSceneStrategy
 import androidx.compose.material3.adaptive.navigation3.rememberListDetailSceneStrategy
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -87,7 +82,7 @@ enum class AppShortcut { NEW_WEB_APP, SETTINGS }
 @Composable
 fun ShrimplNavigation(shortcuts: Flow<AppShortcut>) {
     val backStack = rememberNavBackStack(HomeKey)
-    // R1.1: the list pane starts just wide enough for four tiles (with the card's margin and the start
+    // R1.1: the list pane is just wide enough for four tiles (with the card's margin and the start
     // inset), and the detail takes the rest. On a dual-screen phone or a foldable half-open like a book,
     // the default hinge policy splits the panes along the hinge.
     val startInset = WindowInsets.safeDrawing.only(WindowInsetsSides.Start).asPaddingValues()
@@ -97,19 +92,11 @@ fun ShrimplNavigation(shortcuts: Flow<AppShortcut>) {
         horizontalPartitionSpacerSize = PANE_GAP,
     )
     // Back closes what the detail pane shows, even when both panes stay on screen (Material's default
-    // pops until the panes change, which would leave Shrimpl from two panes). The drag handle in the gap
-    // resizes the panes (R1.1); its width is saved with the screen's state.
+    // pops until the panes change, which would leave Shrimpl from two panes). The panes can't be
+    // resized: the list keeps its four-tile width (R1.1).
     val listDetail = rememberListDetailSceneStrategy<NavKey>(
         backNavigationBehavior = BackNavigationBehavior.PopUntilContentChange,
         directive = directive,
-        paneExpansionState = rememberPaneExpansionState(),
-        paneExpansionDragHandle = { state ->
-            val interactionSource = remember { MutableInteractionSource() }
-            VerticalDragHandle(
-                modifier = Modifier.paneExpansionDraggable(state, LocalMinimumInteractiveComponentSize.current, interactionSource),
-                interactionSource = interactionSource,
-            )
-        },
     )
     // Two panes: both are cards on the window background, and the detail has no back arrow (adaptive
     // skill: detail screens in a list-detail layout must not show one), as the entries below set.
@@ -208,10 +195,10 @@ private fun DetailPlaceholder(onCreate: () -> Unit) {
     }
 }
 
-/** The gap between the two panes, which holds the drag handle (Material's default spacer). */
+/** The gap between the two panes (Material's default spacer). */
 private val PANE_GAP = 24.dp
 
-/** How many tiles fit across the list pane at its default width. */
+/** How many tiles fit across the list pane. */
 private const val DEFAULT_LIST_TILES = 4
 
 /** Keeps the fourth tile from wrapping when dp to px rounding shaves a fraction off the pane. */
