@@ -24,7 +24,7 @@ import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
 
 /**
- * docs/SHRIMPL_SPEC.md R3.5: the app settings form is one column of at most 680 dp, centred or moved
+ * docs/SHRIMPL_SPEC.md R3.5: the app settings form is one column of at most 816 dp, centred or moved
  * left so the floating button (192 dp at the right) never covers it, beside the list; full width with
  * one pane and on narrow panes.
  */
@@ -73,16 +73,16 @@ class ProfileFormLayoutTest {
     }
 
     @Test
-    fun wideDesktopPaneCentresA680DpColumn() {
+    fun wideDesktopPaneCentresTheWidestColumn() {
         val pane = 1400.dp
         val (left, right) = nameItemEdges(pane)
-        assertEquals(680f, right - left, 1f)
+        assertEquals(816f, right - left, 1f)
         // Room on both sides for the button: exactly centred.
-        assertEquals((pane.value - 680f) / 2, left, 1f)
+        assertEquals((pane.value - 816f) / 2, left, 1f)
     }
 
     @Test
-    fun mediumPaneShiftsTheColumnLeftToClearTheButton() = assertBeside(1000.dp, 680f)
+    fun mediumPaneShiftsTheColumnLeftToClearTheButton() = assertBeside(1100.dp, 816f)
 
     @Test
     fun narrowerPaneShrinksTheColumnBesideTheButton() = assertBeside(700.dp, 700f - FAB_CLEARANCE - SIDE_MARGIN)

@@ -247,8 +247,9 @@ binary translation) on any device.
   Create app page instead drops the user back on the app list (after the one-time backup prompt,
   R5.3).
 - R3.5 The form is one column, and Shrimpl's Settings (R2.5) uses the same column and top bar from
-  the same code, so the pages always match. Beside the list (two panes), the column is at most 680 dp
-  wide and centred; on a page with a floating button (Create), if centring would put the column
+  the same code, so the pages always match. Beside the list (two panes), the column is at most 816 dp
+  wide, as wide as the settings in a window snapped to half a laptop screen (849 dp, one pane), and
+  centred; on a page with a floating button (Create), if centring would put the column
   under the button at the bottom right, it moves left as far as needed (at least 24 dp from the left
   edge), so the button never covers an option. With one pane (a phone, or any window too narrow for
   two panes), or in a pane too narrow for a 360 dp column, the form takes the full width and the

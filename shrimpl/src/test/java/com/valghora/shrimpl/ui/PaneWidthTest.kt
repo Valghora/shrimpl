@@ -94,6 +94,8 @@ class PaneWidthTest {
         launch(849)
         assertFalse("one pane", twoPanes)
         assertEquals(6, tilesAcross())
+        // R3.5: the settings here, the window less its 16 dp margins, are as wide as two panes ever show them.
+        assertEquals(816f, settingsColumn(), 1.5f)
     }
 
     @Test
@@ -135,7 +137,7 @@ class PaneWidthTest {
     fun anExtraLargeWindowWithTheSettingsAtTheirMaximum() {
         threeTilesAndRoomForSettings(1920)
         compose.waitUntil(LOAD_TIMEOUT_MS) { exists(string(R.string.field_name)) }
-        assertEquals(680f, compose.onNode(hasText(string(R.string.field_name)) and hasClickAction()).fetchSemanticsNode().boundsInRoot.width / density, 2f)
+        assertEquals(816f, compose.onNode(hasText(string(R.string.field_name)) and hasClickAction()).fetchSemanticsNode().boundsInRoot.width / density, 2f)
     }
 
     /** Narrowing the window to one pane and widening it again keeps the open settings and their edits. */

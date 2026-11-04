@@ -68,8 +68,11 @@ fun FormColumnLayout(
     }
 }
 
-/** The widest the column grows (R3.5). */
-private val MAX_COLUMN = 680.dp
+/**
+ * The widest the column grows beside the list (R3.5): as wide as the settings in a window snapped to
+ * half a laptop screen (849 dp, one pane, less its 16 dp margins), so two panes never show them wider.
+ */
+private val MAX_COLUMN = 816.dp
 
 /** Narrower than this, the page takes the full width instead. */
 private val MIN_COLUMN = 360.dp
@@ -84,7 +87,7 @@ private val SIDE_MARGIN = 24.dp
 data class FormColumn(val start: Dp, val width: Dp)
 
 /**
- * The form's column in a pane [paneWidth] wide beside the list ([inPane]): at most 680 dp, centred, or,
+ * The form's column in a pane [paneWidth] wide beside the list ([inPane]): at most 816 dp, centred, or,
  * on a page with a [floatingButton] (Create), moved left so the button never covers it. Null with
  * one pane, or a pane too narrow: the form then takes the full width and the button floats over it.
  */
