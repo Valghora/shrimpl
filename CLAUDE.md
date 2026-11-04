@@ -61,6 +61,10 @@ There is no emulator in the cloud container; UI changes are confirmed on the own
 
 ## Working practice
 
+- Push back before following an owner instruction that goes starkly against a standard (Android's
+  adaptive and large-screen guidance, Material, accessibility such as WCAG, the vendored skills):
+  say which standard, what it costs users, and the closest option that meets both, then do what the
+  owner decides and record the deviation.
 - Commit work locally as it's done. Build, push and send the APK only when asked ("Build and push
   it, then send the APK"); then push the branch, check CI, and send `shrimpl-debug.apk`. Build
   Shrimpl's release APK (`:shrimpl:assembleRelease`, then the R0 check on it) only when the owner
