@@ -66,7 +66,8 @@ There is no emulator in the cloud container; UI changes are confirmed on the own
   say which standard, what it costs users, and the closest option that meets both, then do what the
   owner decides and record the deviation.
 - Commit work locally as it's done. Build, push and send the APK only when asked ("Build and push
-  it, then send the APK"); then push the branch, check CI, and send `shrimpl-debug.apk`. Build
+  it, then send the APK"); then push the branch, check CI, and send `shrimpl-debug.apk`, built after deleting
+  `shrimpl/build/outputs/apk/debug/` (BUILD_NOTES, "Debug APK size"). Build
   Shrimpl's release APK (`:shrimpl:assembleRelease`, then the R0 check on it) only when the owner
   asks for a release build; in CI, run the workflow by hand with Release build ticked.
 - Never force-push. Branch from the default branch for new work.

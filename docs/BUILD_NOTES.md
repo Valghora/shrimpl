@@ -230,3 +230,12 @@ asks for a release APK. A problem that only shows after shrinking (such as a cla
 loaded by reflection) is then found at that build, not on every change. The template's release
 build stays in every run: debug Shrimpl bundles it, and the core tests build web apps from it.
 
+## Debug APK size (2026-11)
+
+AGP packages debug APKs incrementally: it rewrites changed entries inside the existing file and
+leaves the old space behind as gaps. After many builds in one checkout the debug APK grew to 62 MB
+while its entries held only 35 MB. Deleting `shrimpl/build/outputs/apk/debug/` before
+`:shrimpl:assembleDebug` packages it fresh. A clean debug APK is about 35 MB, almost all of it dex
+stored uncompressed and not shrunk (Compose, Material 3 and the other libraries, about 33 MB); the
+release build shrinks and compresses that with R8.
+
