@@ -635,8 +635,14 @@ private val TILE_INSET = 12.dp
 /** The space between columns of rows or tiles. */
 private val GRID_GAP = 8.dp
 
-/** The list's width that fits exactly [columns] tiles across, so a pane can be sized for them (R1.1). */
-internal fun tilesWidth(columns: Int): Dp = TILE_INSET * 2 + MIN_TILE_WIDTH * columns + GRID_GAP * (columns - 1)
+/**
+ * A tile's full width: what three across a typical 412 dp phone get, wide enough that a name like
+ * "update Google" isn't cut short.
+ */
+internal val FULL_TILE_WIDTH = 124.dp
+
+/** The list's width that fits exactly [columns] tiles across, each [tileWidth] wide, so a pane can be sized for them (R1.1). */
+internal fun tilesWidth(columns: Int, tileWidth: Dp = MIN_TILE_WIDTH): Dp = TILE_INSET * 2 + tileWidth * columns + GRID_GAP * (columns - 1)
 
 
 /** A tile's status badge: 22 dp across, with a 2 dp ring, overhanging the icon's corner. */

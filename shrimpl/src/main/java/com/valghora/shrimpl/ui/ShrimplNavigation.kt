@@ -44,6 +44,7 @@ import com.valghora.shrimpl.ui.common.paneBackground
 import com.valghora.shrimpl.ui.create.CreateScreen
 import com.valghora.shrimpl.ui.edit.EditScreen
 import com.valghora.shrimpl.ui.home.HomeScreen
+import com.valghora.shrimpl.ui.home.FULL_TILE_WIDTH
 import com.valghora.shrimpl.ui.home.tilesWidth
 import com.valghora.shrimpl.ui.settings.SettingsScreen
 import kotlinx.coroutines.flow.Flow
@@ -86,13 +87,13 @@ fun ShrimplNavigation(shortcuts: Flow<AppShortcut>) {
     // R1.1: the list pane's width follows Material's window size classes, so its switch points are
     // Material's: in an expanded window (840 to 1199 dp) Material's 360 dp list pane, three tiles
     // across, leaving the detail at least a phone's width; from large (1200 dp) just wide enough for
-    // four tiles. The detail takes the rest. On a dual-screen phone or a foldable half-open like a book,
+    // four tiles at their full width, so none is squeezed. The detail takes the rest. On a dual-screen phone or a foldable half-open like a book,
     // the default hinge policy splits the panes along the hinge.
     val startInset = WindowInsets.safeDrawing.only(WindowInsetsSides.Start).asPaddingValues()
         .calculateStartPadding(LocalLayoutDirection.current)
     val adaptiveInfo = currentWindowAdaptiveInfoV2()
     val large = adaptiveInfo.windowSizeClass.isWidthAtLeastBreakpoint(WindowSizeClass.WIDTH_DP_LARGE_LOWER_BOUND)
-    val listWidth = if (large) PANE_MARGIN + tilesWidth(LARGE_LIST_TILES) + ROUNDING_SLACK else EXPANDED_LIST_WIDTH
+    val listWidth = if (large) PANE_MARGIN + tilesWidth(LARGE_LIST_TILES, FULL_TILE_WIDTH) + ROUNDING_SLACK else EXPANDED_LIST_WIDTH
     val directive = calculatePaneScaffoldDirective(adaptiveInfo).copy(
         defaultPanePreferredWidth = startInset + listWidth,
         horizontalPartitionSpacerSize = PANE_GAP,

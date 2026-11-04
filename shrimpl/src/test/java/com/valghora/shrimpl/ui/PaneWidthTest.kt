@@ -1,5 +1,6 @@
 package com.valghora.shrimpl.ui
 
+import androidx.compose.ui.semantics.SemanticsActions
 import androidx.compose.ui.semantics.SemanticsProperties
 import androidx.compose.ui.test.SemanticsMatcher
 import androidx.compose.ui.test.assertIsOn
@@ -98,10 +99,15 @@ class PaneWidthTest {
         assertTrue("the settings column is at least a phone's width", settingsColumn() >= 360f)
     }
 
+    /** The width of [name]'s tile: the node offering its long-press menu. */
+    private fun tileWidth(name: String) = compose.onAllNodes(hasText(name) and SemanticsMatcher.keyIsDefined(SemanticsActions.OnLongClick))
+        .fetchSemanticsNodes().first().boundsInRoot.width / density
+
     @Test
     fun aLargeWindowShowsFourTiles() {
         launch(1200)
         assertEquals(4, tilesAcross())
+        assertTrue("tiles at their full width (${tileWidth("Example")} dp)", tileWidth("Example") >= 124f)
         assertTrue("the settings column is at least a phone's width", settingsColumn() >= 360f)
     }
 
@@ -109,6 +115,7 @@ class PaneWidthTest {
     fun anExtraLargeWindowStillShowsFourTiles() {
         launch(1920)
         assertEquals(4, tilesAcross())
+        assertTrue("tiles at their full width", tileWidth("Example") >= 124f)
         assertEquals("the settings column at its maximum", 680f, settingsColumn(), 2f)
     }
 
