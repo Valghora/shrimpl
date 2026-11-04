@@ -229,6 +229,7 @@
     <string name="action_app_options">Options for %1$s</string>
     <string name="action_update_app">Update %1$s</string>
     <string name="action_fix_app">Fix %1$s</string>
+    <string name="action_reinstall_app">Reinstall %1$s</string>
     <string name="icon_option_brand">Brand</string>
     <string name="icon_option_website">Website</string>
     <string name="icon_option_custom">Custom</string>
@@ -271,6 +272,6 @@
     <string name="action_show_tiles">Show as tiles</string>
     <string name="action_show_list">Show as list</string>
     <!-- An app tile's status line (R2.2). -->
-    <string name="status_needs_fix">Needs fix</string>
+    <string name="status_fix_required">Fix required</string>
     <string name="status_update_ready">Update ready</string>
 </resources>

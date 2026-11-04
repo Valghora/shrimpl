@@ -130,11 +130,13 @@ binary translation) on any device.
   resume. A record whose app isn't installed sits at the bottom of the list under a "Not installed"
   label (each group in name order), its icon and name greyed out (65 % opacity, so the name keeps
   4.5:1 contrast in both themes); tapping it does nothing (Resolve on tap doesn't apply to it, R2.5), and accessibility services aren't offered a
-  tap, but its ⋮ menu, long press ("Show options"), right-click menu work as usual. It has no row button: Reinstall, in its menus, builds it signed with the current key whatever key it had (R11.7). An installed app built from
+  tap, but its ⋮ menu, long press ("Show options"), right-click menu work as usual. It offers Reinstall as a row button and in its menus, which builds it signed with the current key whatever key it had (R11.7); the button keeps its colors while the row is dimmed. An installed app built from
   an older template (R11.4) shows an Update button to the right of its name, which rebuilds it with
   the bundled template. Row buttons are small icon-only buttons (48 x 32 dp, Control corners, a 48 dp touch target)
-  whose tooltip names the action and the app: Update (refresh icon) in the theme's tonal color, Fix
-  (wrench, R11.7) in the theme's error color, matching a tile's Needs fix badge (R2.6). Each app's ⋮
+  whose tooltip names the action and the app, each in its status's pastel with the deep shade for the
+  icon, harmonized with the theme (Notice.kt's Tone, 7:1 contrast kept): Fix (wrench, R11.7) in red,
+  Reinstall (Material's "cached") in yellow, Update (an up arrow) in green, matching a tile's badge
+  (R2.6). Each app's ⋮
   menu and its right-click and long-press menu offer the same actions: Open (when installed), Edit,
   then Update (an update is available), Reinstall (not installed) or Rebuild, then Uninstall or
   Remove. An empty list says "No apps yet". User-facing text says "app", never "web app".
@@ -180,9 +182,10 @@ binary translation) on any device.
   a second line instead of being cut short, and every tile keeps two lines' height so the tiles in a
   line match; the number across doesn't change. Each tile is a card with Item corners (R1.5) in the theme's container color,
   with no tint or color of its own: the icon (56 dp), the name, and a status line in the theme's
-  variant text color: "Needs fix" (R11.7), "Update ready" (R11.4) or "Not installed". A round badge
-  on the icon's corner, ringed in the tile's color, marks an app that needs something: a wrench in
-  the theme's error color (Needs fix) or a refresh arrow in its primary color (Update ready); it
+  variant text color: "Fix required" (R11.7), "Update ready" (R11.4) or "Not installed". A round badge
+  on the icon's corner, ringed in the tile's color, marks an app that needs something, in the same
+  harmonized pastels as the row buttons (R2.2): a red wrench (Fix required), a green up arrow (Update
+  ready) or a yellow "cached" icon (Not installed, outside the dimmed icon so it keeps its colors); it
   repeats the status line, so accessibility services skip it. Uninstalled apps follow the installed
   ones in the same grid, greyed out as in rows, with no label. Tiles have no ⋮ button or row
   buttons: tapping one does what tapping a row does, and right-click or long press opens the

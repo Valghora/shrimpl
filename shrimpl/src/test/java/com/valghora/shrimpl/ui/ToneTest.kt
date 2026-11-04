@@ -2,12 +2,16 @@ package com.valghora.shrimpl.ui
 
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.lightColorScheme
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.test.junit4.v2.createComposeRule
 import com.valghora.shrimpl.ui.common.Tone
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNotEquals
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
@@ -70,6 +74,35 @@ class ToneTest {
         seen.forEach { (tone, colors) ->
             val ratio = contrast(colors.first, colors.second)
             assertTrue("$tone text on its container is $ratio:1", ratio >= 7f)
+        }
+    }
+
+    /**
+     * R2.2, R2.6: the home statuses use every tone harmonized (caution and error included), keeping
+     * 7:1 contrast on every theme color tried.
+     */
+    @Test
+    fun statusColorsAreHarmonizedAndKeepTheirContrast() {
+        fun contrast(a: Color, b: Color): Float {
+            val (hi, lo) = listOf(a.luminance(), b.luminance()).sortedDescending()
+            return (hi + 0.05f) / (lo + 0.05f)
+        }
+        val seen = mutableMapOf<String, Pair<Color, Color>>()
+        var primary by mutableStateOf(Color(0xFF1B6EF3))
+        compose.setContent {
+            MaterialTheme(colorScheme = lightColorScheme(primary = primary)) {
+                listOf(Tone.CAUTION, Tone.ERROR, Tone.SUCCESS).forEach { seen["${primary.toArgb()} ${it.name}"] = it.statusContent to it.statusContainer }
+            }
+        }
+        for (theme in listOf(Color(0xFF6750A4), Color(0xFF386A20), Color(0xFFB3261E))) {
+            compose.runOnIdle { primary = theme }
+        }
+        compose.waitForIdle()
+        // Toward a blue theme the caution pastel turns, as success's always has.
+        assertNotEquals(Color(0xFFFFF1BF), seen.getValue("${Color(0xFF1B6EF3).toArgb()} CAUTION").second)
+        seen.forEach { (key, colors) ->
+            val ratio = contrast(colors.first, colors.second)
+            assertTrue("$key icon on its badge is $ratio:1", ratio >= 7f)
         }
     }
 }

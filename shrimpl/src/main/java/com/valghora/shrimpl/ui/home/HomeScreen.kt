@@ -103,6 +103,7 @@ import com.valghora.shrimpl.ui.common.AppMenu
 import com.valghora.shrimpl.ui.common.AppMenuItem
 import com.valghora.shrimpl.ui.common.BuildSheet
 import com.valghora.shrimpl.ui.common.COLLAPSE_DISTANCE
+import com.valghora.shrimpl.ui.common.CachedIcon
 import com.valghora.shrimpl.ui.common.CenteredEmptyState
 import com.valghora.shrimpl.ui.common.EmptyStateText
 import com.valghora.shrimpl.ui.common.LargeTitleBar
@@ -113,7 +114,9 @@ import com.valghora.shrimpl.ui.common.NewWebAppButton
 import com.valghora.shrimpl.ui.common.Notice
 import com.valghora.shrimpl.ui.common.NoticeCard
 import com.valghora.shrimpl.ui.common.PitchText
+import com.valghora.shrimpl.ui.common.Tone
 import com.valghora.shrimpl.ui.common.TooltipIconButton
+import com.valghora.shrimpl.ui.common.UpdateIcon
 import com.valghora.shrimpl.ui.common.WithTooltip
 import com.valghora.shrimpl.ui.common.asHeading
 import com.valghora.shrimpl.ui.common.isMediumWidth
@@ -464,8 +467,9 @@ private fun AppItem(
             // R2.2: a newer template is bundled; Update rebuilds this app with it. R11.7: an app signed
             // with another key offers Fix (uninstall, then rebuild with the current key).
             val rowAction = when {
-                locked -> RowAction(R.string.action_fix_app, Icons.Filled.Build, urgent = true, onFix)
-                installed != null && updateAvailable -> RowAction(R.string.action_update_app, Icons.Filled.Refresh, urgent = false, onRebuild)
+                locked -> RowAction(R.string.action_fix_app, Icons.Filled.Build, Tone.ERROR, onFix)
+                installed == null -> RowAction(R.string.action_reinstall_app, CachedIcon, Tone.CAUTION, onRebuild)
+                updateAvailable -> RowAction(R.string.action_update_app, UpdateIcon, Tone.SUCCESS, onRebuild)
                 else -> null
             }
             rowAction?.let { RowActionButton(it, record.profile.name) }
@@ -544,7 +548,7 @@ private fun AppTile(
     val update = !greyed && !locked && updateAvailable
     val status = when {
         greyed -> R.string.home_not_installed
-        locked -> R.string.status_needs_fix
+        locked -> R.string.status_fix_required
         update -> R.string.status_update_ready
         else -> null
     }
@@ -564,8 +568,10 @@ private fun AppTile(
         Box {
             Box(if (greyed) Modifier.greyedOut() else Modifier) { ItemIcon(record, installed, loadImage, TILE_ICON_SIZE) }
             when {
-                locked -> StatusBadge(Icons.Filled.Build, colors.error, colors.onError, tileColor, Modifier.align(Alignment.TopEnd))
-                update -> StatusBadge(Icons.Filled.Refresh, colors.primary, colors.onPrimary, tileColor, Modifier.align(Alignment.TopEnd))
+                // The badge sits outside the dimmed icon, so a not-installed app's badge keeps its colors.
+                greyed -> StatusBadge(CachedIcon, Tone.CAUTION, tileColor, Modifier.align(Alignment.TopEnd))
+                locked -> StatusBadge(Icons.Filled.Build, Tone.ERROR, tileColor, Modifier.align(Alignment.TopEnd))
+                update -> StatusBadge(UpdateIcon, Tone.SUCCESS, tileColor, Modifier.align(Alignment.TopEnd))
             }
         }
         Text(
@@ -596,16 +602,16 @@ private fun AppTile(
  * repeats the status line, so accessibility services skip it.
  */
 @Composable
-private fun StatusBadge(icon: ImageVector, container: Color, content: Color, ring: Color, modifier: Modifier) {
+private fun StatusBadge(icon: ImageVector, tone: Tone, ring: Color, modifier: Modifier) {
     Box(
         modifier
             .offset(x = BADGE_OVERHANG, y = -BADGE_OVERHANG)
             .size(BADGE_SIZE)
             .border(BADGE_RING, ring, CircleShape)
             .padding(BADGE_RING)
-            .background(container, CircleShape),
+            .background(tone.statusContainer, CircleShape),
         contentAlignment = Alignment.Center,
-    ) { Icon(icon, contentDescription = null, tint = content, modifier = Modifier.size(12.dp)) }
+    ) { Icon(icon, contentDescription = null, tint = tone.statusContent, modifier = Modifier.size(12.dp)) }
 }
 
 @Composable
@@ -723,24 +729,19 @@ private fun menuActions(
 }
 
 /** A row's action (R2.2): its label (taking the app's name), icon, and whether it is [urgent] (Fix). */
-private class RowAction(val label: Int, val icon: ImageVector, val urgent: Boolean, val onClick: () -> Unit)
+private class RowAction(val label: Int, val icon: ImageVector, val tone: Tone, val onClick: () -> Unit)
 
 /**
  * R2.2: a small icon-only button (48 x 32 dp, a full 48 dp touch target) with a tooltip naming the
- * action. Update is in the theme's tonal color; Fix in the theme's error color.
+ * action, in its status's harmonized pastel: Fix in red, Reinstall in yellow, Update in green.
  *
- * Invariant: Fix matches the Needs fix badge on a tile ([AppTile]), so the state looks the same in
- * both layouts.
+ * Invariant: each button matches its status's badge on a tile ([AppTile], [StatusBadge]), so a state
+ * looks the same in both layouts.
  */
 @Composable
 private fun RowActionButton(action: RowAction, appName: String) {
     val label = stringResource(action.label, appName)
-    val scheme = MaterialTheme.colorScheme
-    val colors = if (action.urgent) {
-        IconButtonDefaults.filledTonalIconButtonColors(containerColor = scheme.error, contentColor = scheme.onError)
-    } else {
-        IconButtonDefaults.filledTonalIconButtonColors()
-    }
+    val colors = IconButtonDefaults.filledTonalIconButtonColors(containerColor = action.tone.statusContainer, contentColor = action.tone.statusContent)
     WithTooltip(label) {
         FilledTonalIconButton(
             onClick = action.onClick,

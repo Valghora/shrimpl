@@ -70,9 +70,11 @@ class HomeListTest {
         assertEquals(listOf(string(R.string.action_remove)), menuItems())
     }
 
-    /** R11.7: signed with another key but not installed, Squoosh is just not installed; Reinstall is in its menu. */
+    /** R2.2, R11.7: signed with another key but not installed, Squoosh is just not installed. */
     @Test
-    fun uninstalledAppWithAnotherKeyHasNoRowButton() {
+    fun uninstalledAppOffersReinstall() {
+        // R2.2: not installed, Squoosh offers Reinstall (cached icon, harmonized yellow), whatever key it had.
+        compose.onNodeWithContentDescription(string(R.string.action_reinstall_app, "Squoosh")).assertExists()
         compose.onNodeWithContentDescription(string(R.string.action_fix_app, "Squoosh")).assertDoesNotExist()
         compose.onNodeWithContentDescription(string(R.string.action_update_app, "Squoosh")).assertDoesNotExist()
     }

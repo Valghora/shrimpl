@@ -70,7 +70,7 @@ class ResolveOnTapTest {
     @Test
     fun tilesOfferTheirPendingActionOnATap() {
         home(HomeLayout.TILES)
-        compose.waitUntil(LOAD_TIMEOUT_MS) { compose.onAllNodes(hasText(string(R.string.status_needs_fix))).fetchSemanticsNodes().isNotEmpty() }
+        compose.waitUntil(LOAD_TIMEOUT_MS) { compose.onAllNodes(hasText(string(R.string.status_fix_required))).fetchSemanticsNodes().isNotEmpty() }
         assertEquals(string(R.string.action_fix_app, "Example"), tapLabel("Example"))
     }
 

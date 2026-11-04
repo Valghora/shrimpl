@@ -65,9 +65,21 @@ enum class Tone(private val pastel: Color?, private val deep: Color?, private va
     /** Status text on ordinary surfaces, such as a failure description. */
     val text: Color @Composable get() = (if (isDarkTheme()) pastel else deep)?.let { themed(it) } ?: MaterialTheme.colorScheme.secondary
 
+    /**
+     * The background of a home status badge or row button in this tone (R2.2, R2.6): the pastel,
+     * harmonized with the theme whatever the tone. Each status also has its own icon and status text,
+     * so a caution turned toward peach on a red or purple theme still reads apart from an error.
+     */
+    val statusContainer: Color @Composable get() = pastel?.let { harmonize(it) } ?: MaterialTheme.colorScheme.secondaryContainer
+
+    /** The icon on [statusContainer]: the deep shade, harmonized the same way. */
+    val statusContent: Color @Composable get() = deep?.let { harmonize(it) } ?: MaterialTheme.colorScheme.onSecondaryContainer
+
     @Composable
-    private fun themed(color: Color): Color {
-        if (!harmonized) return color
+    private fun themed(color: Color): Color = if (harmonized) harmonize(color) else color
+
+    @Composable
+    private fun harmonize(color: Color): Color {
         val primary = MaterialTheme.colorScheme.primary
         return remember(color, primary) { Color(MaterialColors.harmonize(color.toArgb(), primary.toArgb())) }
     }

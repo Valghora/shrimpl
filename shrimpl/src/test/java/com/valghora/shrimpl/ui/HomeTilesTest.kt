@@ -44,7 +44,7 @@ class HomeTilesTest {
             MaterialTheme { HomeScreen(selected = null, showCreateButton = true, onCreate = {}, onSettings = {}, onEdit = {}) }
         }
         // Example shows as installed: its tile says it needs a fix.
-        compose.waitUntil(LOAD_TIMEOUT_MS) { exists(string(R.string.status_needs_fix)) }
+        compose.waitUntil(LOAD_TIMEOUT_MS) { exists(string(R.string.status_fix_required)) }
     }
 
     private fun exists(text: String) = compose.onAllNodes(hasText(text)).fetchSemanticsNodes().isNotEmpty()
