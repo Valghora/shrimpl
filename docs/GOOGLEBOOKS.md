@@ -27,35 +27,32 @@ What the lineup has in common, for layout:
 
 ## In dp
 
-No source gives Googlebook OS's default display scaling, and the user can change it (Settings,
-Display size), so dp widths below are estimates. Shrimpl lays out by window width in dp (two panes
-from 880 dp, docs/ADAPTIVE.md), so the scale decides what a user sees.
+Shrimpl lays out by window width in dp (two panes from 880 dp, docs/ADAPTIVE.md), so the system's
+display scale decides what a user sees. The user can change it (Settings, Display, Display size).
 
-One measured point: the owner's device, snapped to half the screen, gives Shrimpl an 849 dp window.
-On a 2880 px panel that is a scale of about 1.70 (half the screen, 1440 px, over 849 dp): a
-full-screen width of about 1700 dp.
+Confirmed on the owner's device, a Dell XPS Googlebook at its default display size: snapped to half
+the screen, Shrimpl's window is 849 dp. Half of 2560 px is 1280 px, so the scale is 1.5 (240 dpi), the
+full screen is about 1707 dp, and snapping leaves about 4 dp between the two windows. Snapping offers
+halves and full screen only; quarters aren't possible (confirmed on the device).
 
-| Panel width | Scale 1.5 | Scale 1.7 (measured) | Scale 2.0 |
-|---|---|---|---|
-| 2880 px, full screen | 1920 dp | 1694 dp | 1440 dp |
-| 2880 px, snapped to half | about 960 dp: **two panes** | about 847 dp: one pane | about 720 dp: one pane |
-| 2560 px (Dell), full screen | 1707 dp | 1506 dp | 1280 dp |
-| 2560 px (Dell), snapped to half | about 853 dp: one pane | about 753 dp: one pane | about 640 dp: one pane |
+No source gives the default scale of the 2880 px models. At the same 1.5 they would be 1920 dp wide;
+scaled up for their slightly higher density (243 ppi against the Dell's 225), about 1.62, 1777 dp.
 
-So with Shrimpl's current rules:
+| Model | Scale | Full screen | Snapped to half | With today's 880 dp rule |
+|---|---|---|---|---|
+| Dell XPS (confirmed) | 1.5 | 1707 dp | 849 dp | One pane |
+| 14" 2880 px models, same scale as the Dell | 1.5 | 1920 dp | about 956 dp | Two panes, settings pane about 500 dp |
+| 14" 2880 px models, scaled for density | about 1.62 | 1777 dp | about 885 dp | Two panes, just past the switch |
+| Lenovo 15 (lower density, likely 1.5 or less) | 1.5 | 1920 dp | about 956 dp | Two panes |
 
-- Full screen is always two panes, at every likely scale, with the settings at their 816 dp maximum.
-- A window snapped to half the screen is one pane on the 14" models at the measured scale. If the
-  Lenovo's larger panel gets a smaller default scale (1.5 or less), a snapped window there is about
-  960 dp and shows two panes, with the settings pane about 500 dp.
-- The Acer in tablet or tent mode has no keyboard; the same widths apply, with touch only.
+So the 880 dp switch was tuned on the Dell, and on the other four models a snapped window likely
+lands just above it and shows two panes. Full screen is two panes on every model, with the settings at
+their 816 dp maximum.
 
 ## To confirm on a device
 
-- The default scale per model: Settings, Display, Display size, or over adb `wm size` and
+- The default scale of the 2880 px models: Settings, Display, Display size, or over adb `wm size` and
   `wm density` (density / 160 is the scale).
-- The exact window width when snapped to half, and whether thirds or quarters exist: launch coverage
-  confirms dragging a title bar to an edge for half or full screen, nothing smaller.
 - The caption bar's height, which takes from the window's height, not its width.
 
 ## Sources
