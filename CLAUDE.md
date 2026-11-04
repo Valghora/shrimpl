@@ -3,7 +3,9 @@
 Shrimpl (`:shrimpl`, Compose) builds, signs and installs web apps on the device from a bundled
 template (`:template`, AndroidX Views + WebView), using pure-JVM logic in `:core`. Read
 `docs/SHRIMPL_SPEC.md` (the requirements), `docs/TEMPLATE_SPEC.md` (web app behavior) and
-`docs/ADAPTIVE.md` before changing behavior. Keep those documents in step with the code: a change
+`docs/ADAPTIVE.md` before changing behavior. Shrimpl works on every form factor, but its primary users
+are on Googlebooks (Android laptops, not Chromebooks): size windowing and resizing decisions for the
+screens in `docs/GOOGLEBOOKS.md` first. Keep those documents in step with the code: a change
 that alters a requirement updates the spec in the same commit.
 
 ## Non-negotiables
