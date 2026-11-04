@@ -27,7 +27,7 @@ What the lineup has in common, for layout:
 
 ## In dp
 
-Shrimpl lays out by window width in dp (two panes from 880 dp, docs/ADAPTIVE.md), so the system's
+Shrimpl lays out by window width in dp (two panes from 1000 dp, docs/ADAPTIVE.md), so the system's
 display scale decides what a user sees. The user can change it (Settings, Display, Display size).
 
 Confirmed on the owner's device, a Dell XPS Googlebook at its default display size: snapped to half
@@ -38,16 +38,17 @@ halves and full screen only; quarters aren't possible (confirmed on the device).
 No source gives the default scale of the 2880 px models. At the same 1.5 they would be 1920 dp wide;
 scaled up for their slightly higher density (243 ppi against the Dell's 225), about 1.62, 1777 dp.
 
-| Model | Scale | Full screen | Snapped to half | With today's 880 dp rule |
+| Model | Scale | Full screen | Snapped to half | Panes snapped (switch at 1000 dp) |
 |---|---|---|---|---|
-| Dell XPS (confirmed) | 1.5 | 1707 dp | 849 dp | One pane |
-| 14" 2880 px models, same scale as the Dell | 1.5 | 1920 dp | about 956 dp | Two panes, settings pane about 500 dp |
-| 14" 2880 px models, scaled for density | about 1.62 | 1777 dp | about 885 dp | Two panes, just past the switch |
-| Lenovo 15 (lower density, likely 1.5 or less) | 1.5 | 1920 dp | about 956 dp | Two panes |
+| Dell XPS (confirmed) | 1.5 | 1707 dp | 849 dp | One |
+| 14" 2880 px models, same scale as the Dell | 1.5 | 1920 dp | about 956 dp | One |
+| 14" 2880 px models, scaled for density | about 1.62 | 1777 dp | about 885 dp | One |
+| Lenovo 15 (lower density, likely 1.5 or less) | 1.5 | 1920 dp | about 956 dp | One |
 
-So the 880 dp switch was tuned on the Dell, and on the other four models a snapped window likely
-lands just above it and shows two panes. Full screen is two panes on every model, with the settings at
-their 816 dp maximum.
+Shrimpl first split at 880 dp, tuned on the Dell; on the 2880 px models a snapped window would have
+landed just above that and shown two panes, so the switch moved to 1000 dp: every snapped window is
+one pane, every full screen two, with the settings at their maximum width. A user who makes the
+display size much smaller (a scale under about 1.4 on the 2880 px models) gets two panes when snapped.
 
 ## To confirm on a device
 

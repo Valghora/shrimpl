@@ -26,7 +26,7 @@ import org.robolectric.RuntimeEnvironment
 /**
  * R1.1 and R3.5: beside the list, an app's settings page puts its
  * name over the form's column, starting where the section labels start, and its ⋮ button over the
- * column's end. With one pane (below 880 dp)
+ * column's end. With one pane (below 1000 dp)
  * the column sits 24 dp from the edge to clear the floating button, so the title keeps its place after
  * the back arrow.
  */

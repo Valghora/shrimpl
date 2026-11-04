@@ -66,8 +66,8 @@ binary translation) on any device.
     changes, 48 dp touch targets, tooltips on icon-only buttons, a right-click menu on web apps, and
     app-wide keyboard shortcuts (Ctrl+N new web app, Ctrl+, settings) listed in the Keyboard
     Shortcuts Helper.
-  - When the window has room for two panes (880 dp and up, ADAPTIVE.md deviations; below that,
-    including a window snapped to half a laptop screen, one pane at a time), the home list sits
+  - When the window has room for two panes (1000 dp and up, ADAPTIVE.md deviations; below that,
+    including any Googlebook window snapped to half the screen, one pane at a time), the home list sits
     beside a detail pane as rounded cards on the window background, 24 dp apart: the list
     is Material's 412 dp list pane at every two-pane width: three tiles across (R2.6), each about
     119 dp, near the 124 dp they get on a phone, so none is squeezed. The detail takes the rest, so an

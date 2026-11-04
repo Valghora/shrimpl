@@ -83,9 +83,8 @@ enum class AppShortcut { NEW_WEB_APP, SETTINGS }
 fun ShrimplNavigation(shortcuts: Flow<AppShortcut>) {
     val backStack = rememberNavBackStack(HomeKey)
     // R1.1: the list pane is Material's 412 dp, three tiles across as on a phone, and the detail takes
-    // the rest. Two panes need a window of TWO_PANE_MIN_WIDTH: below it the detail would be narrower
-    // than a phone beside the list, so one pane shows at a time (a window snapped to half a laptop
-    // screen is about 850 dp). On a dual-screen phone or a foldable half-open like a book, the default
+    // the rest. Two panes need a window of TWO_PANE_MIN_WIDTH: below it one pane shows at a time, so a
+    // window snapped to half a Googlebook's screen (849 to about 956 dp, docs/GOOGLEBOOKS.md) is one pane. On a dual-screen phone or a foldable half-open like a book, the default
     // hinge policy splits the panes along the hinge, whatever the width.
     val startInset = WindowInsets.safeDrawing.only(WindowInsetsSides.Start).asPaddingValues()
         .calculateStartPadding(LocalLayoutDirection.current)
@@ -208,8 +207,9 @@ private val PANE_GAP = 24.dp
 private val LIST_PANE_WIDTH = 412.dp
 
 /**
- * The narrowest window with two panes: there the detail pane is 428 dp beside the list, wider than a
- * phone, so the settings column fits. Material splits from 840 dp; docs/ADAPTIVE.md records why
- * Shrimpl waits.
+ * The narrowest window with two panes: wider than any Googlebook window snapped to half the screen
+ * (about 956 dp at most), so snapping always gives one pane, and narrower than any Googlebook's full
+ * screen (1707 dp at least). There the detail pane is 548 dp beside the list. Material splits from
+ * 840 dp; docs/ADAPTIVE.md records why Shrimpl waits.
  */
-private val TWO_PANE_MIN_WIDTH = 880.dp
+private val TWO_PANE_MIN_WIDTH = 1000.dp

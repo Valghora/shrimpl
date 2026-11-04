@@ -29,8 +29,8 @@ import org.robolectric.RobolectricTestRunner
 import org.robolectric.RuntimeEnvironment
 
 /**
- * R1.1: one pane below 880 dp (a window snapped to half a laptop screen included), its tiles six
- * across there and three on a small phone; from 880 dp Material's 412 dp list pane, three tiles
+ * R1.1: one pane below 1000 dp (any Googlebook window snapped to half the screen included), its tiles
+ * six across a snapped XPS and three on a small phone; from 1000 dp Material's 412 dp list pane, three tiles
  * across (about 119 dp each), and an app's settings at least a phone's width. Resizing the window
  * keeps what's open.
  */
@@ -101,11 +101,18 @@ class PaneWidthTest {
     /** R3.5: the widest one-pane window keeps its settings to the 816 dp two panes keep, centred. */
     @Test
     fun justBelowTheSwitchThereIsStillOnePaneWithItsSettingsCapped() {
-        launch(879)
+        launch(999)
         assertFalse("one pane", twoPanes)
         assertEquals(816f, settingsColumn(), 1f)
         val left = compose.onNode(hasText(string(R.string.field_name)) and hasClickAction()).fetchSemanticsNode().boundsInRoot.left / density
-        assertEquals("centred", (879f - 816f) / 2, left, 1f)
+        assertEquals("centred", (999f - 816f) / 2, left, 1f)
+    }
+
+    /** A 14" Googlebook snapped to half its 2880 px screen at the Dell's 1.5 scale (docs/GOOGLEBOOKS.md): still one pane. */
+    @Test
+    fun aWiderSnappedGooglebookWindowIsStillOnePane() {
+        launch(956)
+        assertFalse("one pane", twoPanes)
     }
 
     /** A small phone keeps three tiles across. */
@@ -129,7 +136,7 @@ class PaneWidthTest {
     }
 
     @Test
-    fun theNarrowestTwoPaneWindow() = threeTilesAndRoomForSettings(880)
+    fun theNarrowestTwoPaneWindow() = threeTilesAndRoomForSettings(1000)
 
     @Test
     fun theLargestExpandedWindow() = threeTilesAndRoomForSettings(1199)
