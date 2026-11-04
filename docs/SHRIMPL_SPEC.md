@@ -109,8 +109,8 @@ binary translation) on any device.
 
 ## R2 Home
 
-- R2.1 A top app bar in the settings pages' large-title style (R3.5): the shrimp glyph (in the
-  theme's primary color) and the title "Apps" in large type on one line, with a layout switch ("Show as
+- R2.1 A top app bar in the settings pages' large-title style (R3.5): the title "My Apps" in
+  large type, with a layout switch ("Show as
   tiles" / "Show as list", R2.6) and a settings button at its end. With one pane the title shrinks
   to the usual bar size as the list scrolls; beside the detail pane the bar stays put. It sits over an adaptive grid of
   the web apps Shrimpl created (one column on phones, more on wide windows). Each app is a

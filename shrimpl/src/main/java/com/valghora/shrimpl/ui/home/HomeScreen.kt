@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.calculateEndPadding
 import androidx.compose.foundation.layout.calculateStartPadding
 import androidx.compose.foundation.layout.fillMaxSize
@@ -192,15 +193,8 @@ fun HomeScreen(
             LargeTitleBar(
                 title = stringResource(R.string.home_title),
                 collapsed = collapsed,
-                navigation = {
-                    // The theme's primary color, so it follows the user's Material You palette.
-                    Icon(
-                        painterResource(R.drawable.ic_shrimpl_glyph),
-                        contentDescription = null,
-                        modifier = Modifier.padding(start = 12.dp).size(28.dp),
-                        tint = MaterialTheme.colorScheme.primary,
-                    )
-                },
+                // No navigation: with the bar's own padding the title starts 16 dp in, over the rows' icons.
+                navigation = { Spacer(Modifier.width(4.dp)) },
                 actions = {
                     // R2.1: switches between rows and tiles; the choice is kept.
                     val switchLabel = stringResource(if (tiles) R.string.action_show_list else R.string.action_show_tiles)

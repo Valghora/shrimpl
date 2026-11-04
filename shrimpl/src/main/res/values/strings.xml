@@ -33,7 +33,7 @@
     <string name="action_use_system_installer">Use the system installer</string>
 
     <!-- Home -->
-    <string name="home_title">Apps</string>
+    <string name="home_title">My Apps</string>
     <string name="home_not_installed">Not installed</string>
     <string name="home_empty_title">No apps yet</string>
     <string name="home_start_text">Provide a website, get a custom app.</string>
