@@ -103,7 +103,7 @@ import com.valghora.shrimpl.ui.common.AppMenu
 import com.valghora.shrimpl.ui.common.AppMenuItem
 import com.valghora.shrimpl.ui.common.BuildSheet
 import com.valghora.shrimpl.ui.common.COLLAPSE_DISTANCE
-import com.valghora.shrimpl.ui.common.CachedIcon
+import com.valghora.shrimpl.ui.common.ReplayIcon
 import com.valghora.shrimpl.ui.common.CenteredEmptyState
 import com.valghora.shrimpl.ui.common.EmptyStateText
 import com.valghora.shrimpl.ui.common.LargeTitleBar
@@ -468,7 +468,7 @@ private fun AppItem(
             // with another key offers Fix (uninstall, then rebuild with the current key).
             val rowAction = when {
                 locked -> RowAction(R.string.action_fix_app, Icons.Filled.Build, Tone.ERROR, onFix)
-                installed == null -> RowAction(R.string.action_reinstall_app, CachedIcon, Tone.CAUTION, onRebuild)
+                installed == null -> RowAction(R.string.action_reinstall_app, ReplayIcon, Tone.CAUTION, onRebuild)
                 updateAvailable -> RowAction(R.string.action_update_app, UpdateIcon, Tone.SUCCESS, onRebuild)
                 else -> null
             }
@@ -569,7 +569,7 @@ private fun AppTile(
             Box(if (greyed) Modifier.greyedOut() else Modifier) { ItemIcon(record, installed, loadImage, TILE_ICON_SIZE) }
             when {
                 // The badge sits outside the dimmed icon, so a not-installed app's badge keeps its colors.
-                greyed -> StatusBadge(CachedIcon, Tone.CAUTION, tileColor, Modifier.align(Alignment.TopEnd))
+                greyed -> StatusBadge(ReplayIcon, Tone.CAUTION, tileColor, Modifier.align(Alignment.TopEnd))
                 locked -> StatusBadge(Icons.Filled.Build, Tone.ERROR, tileColor, Modifier.align(Alignment.TopEnd))
                 update -> StatusBadge(UpdateIcon, Tone.SUCCESS, tileColor, Modifier.align(Alignment.TopEnd))
             }

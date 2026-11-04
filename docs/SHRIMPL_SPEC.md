@@ -135,7 +135,8 @@ binary translation) on any device.
   the bundled template. Row buttons are small icon-only buttons (48 x 32 dp, Control corners, a 48 dp touch target)
   whose tooltip names the action and the app, each in its status's pastel with the deep shade for the
   icon (Notice.kt's Tone, fixed on every theme, 7:1 contrast): Fix (wrench, R11.7) in red,
-  Reinstall (Material's "cached") in yellow, Update (an up arrow) in green, matching a tile's badge
+  Reinstall (Material's "replay") in yellow, Update (an up arrow) in green, the two line icons
+  weighted to match the solid wrench, matching a tile's badge
   (R2.6). Each app's ⋮
   menu and its right-click and long-press menu offer the same actions: Open (when installed), Edit,
   then Update (an update is available), Reinstall (not installed) or Rebuild, then Uninstall or
@@ -185,7 +186,7 @@ binary translation) on any device.
   variant text color: "Fix required" (R11.7), "Update ready" (R11.4) or "Not installed". A round badge
   on the icon's corner, ringed in the tile's color, marks an app that needs something, in the same
   pastels as the row buttons (R2.2): a red wrench (Fix required), a green up arrow (Update
-  ready) or a yellow "cached" icon (Not installed, outside the dimmed icon so it keeps its colors); it
+  ready) or a yellow "replay" icon (Not installed, outside the dimmed icon so it keeps its colors); it
   repeats the status line, so accessibility services skip it. Uninstalled apps follow the installed
   ones in the same grid, greyed out as in rows, with no label. Tiles have no ⋮ button or row
   buttons: tapping one does what tapping a row does, and right-click or long press opens the
