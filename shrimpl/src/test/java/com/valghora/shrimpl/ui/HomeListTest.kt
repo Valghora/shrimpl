@@ -73,7 +73,7 @@ class HomeListTest {
     /** R2.2, R11.7: signed with another key but not installed, Squoosh is just not installed. */
     @Test
     fun uninstalledAppOffersReinstall() {
-        // R2.2: not installed, Squoosh offers Reinstall (cached icon, harmonized yellow), whatever key it had.
+        // R2.2: not installed, Squoosh offers Reinstall (cached icon, yellow), whatever key it had.
         compose.onNodeWithContentDescription(string(R.string.action_reinstall_app, "Squoosh")).assertExists()
         compose.onNodeWithContentDescription(string(R.string.action_fix_app, "Squoosh")).assertDoesNotExist()
         compose.onNodeWithContentDescription(string(R.string.action_update_app, "Squoosh")).assertDoesNotExist()

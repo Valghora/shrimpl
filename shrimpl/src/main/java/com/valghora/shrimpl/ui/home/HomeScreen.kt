@@ -609,9 +609,9 @@ private fun StatusBadge(icon: ImageVector, tone: Tone, ring: Color, modifier: Mo
             .size(BADGE_SIZE)
             .border(BADGE_RING, ring, CircleShape)
             .padding(BADGE_RING)
-            .background(tone.statusContainer, CircleShape),
+            .background(tone.container, CircleShape),
         contentAlignment = Alignment.Center,
-    ) { Icon(icon, contentDescription = null, tint = tone.statusContent, modifier = Modifier.size(12.dp)) }
+    ) { Icon(icon, contentDescription = null, tint = tone.content, modifier = Modifier.size(12.dp)) }
 }
 
 @Composable
@@ -733,7 +733,7 @@ private class RowAction(val label: Int, val icon: ImageVector, val tone: Tone, v
 
 /**
  * R2.2: a small icon-only button (48 x 32 dp, a full 48 dp touch target) with a tooltip naming the
- * action, in its status's harmonized pastel: Fix in red, Reinstall in yellow, Update in green.
+ * action, in its status's pastel with a deep icon: Fix in red, Reinstall in yellow, Update in green.
  *
  * Invariant: each button matches its status's badge on a tile ([AppTile], [StatusBadge]), so a state
  * looks the same in both layouts.
@@ -741,7 +741,7 @@ private class RowAction(val label: Int, val icon: ImageVector, val tone: Tone, v
 @Composable
 private fun RowActionButton(action: RowAction, appName: String) {
     val label = stringResource(action.label, appName)
-    val colors = IconButtonDefaults.filledTonalIconButtonColors(containerColor = action.tone.statusContainer, contentColor = action.tone.statusContent)
+    val colors = IconButtonDefaults.filledTonalIconButtonColors(containerColor = action.tone.container, contentColor = action.tone.content)
     WithTooltip(label) {
         FilledTonalIconButton(
             onClick = action.onClick,

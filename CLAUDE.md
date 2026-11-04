@@ -76,7 +76,7 @@ There is no emulator in the cloud container; UI changes are confirmed on the own
   notifications, toasts, dialogs) has no ending period unless it is two or more sentences. Follow
   the palette rules in `ui/common/Notice.kt` and the theme (Info follows the Material theme; Caution, Error and Success
   use pastel containers with dark text in both themes; status text on plain surfaces is pastel in
-  dark theme and deep in light theme; Success alone is harmonized toward the theme's primary).
+  dark theme and deep in light theme; none is harmonized with the theme).
 - Shrimpl's Compose screens are tested with Robolectric in `shrimpl/src/test` (layout at the nine
   window sizes of the testing-setup skill, what a state shows, simple interactions, state surviving
   recreation; docs/BUILD_NOTES.md). With every change,
