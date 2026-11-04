@@ -27,7 +27,8 @@ What the lineup has in common, for layout:
 
 ## In dp
 
-Shrimpl lays out by window width in dp (two panes from 1000 dp, docs/ADAPTIVE.md), so the system's
+Shrimpl lays out by window width in dp (a window sharing the screen, as snapped windows do, shows two
+panes from 1000 dp; docs/ADAPTIVE.md), so the system's
 display scale decides what a user sees. The user can change it (Settings, Display, Display size).
 
 Confirmed on the owner's device, a Dell XPS Googlebook at its default display size: snapped to half
@@ -38,7 +39,7 @@ halves and full screen only; quarters aren't possible (confirmed on the device).
 No source gives the default scale of the 2880 px models. At the same 1.5 they would be 1920 dp wide;
 scaled up for their slightly higher density (243 ppi against the Dell's 225), about 1.62, 1777 dp.
 
-| Model | Scale | Full screen | Snapped to half | Panes snapped (switch at 1000 dp) |
+| Model | Scale | Full screen | Snapped to half | Panes snapped (sharing the screen: from 1000 dp) |
 |---|---|---|---|---|
 | Dell XPS (confirmed) | 1.5 | 1707 dp | 849 dp | One |
 | 14" 2880 px models, same scale as the Dell | 1.5 | 1920 dp | about 956 dp | One |

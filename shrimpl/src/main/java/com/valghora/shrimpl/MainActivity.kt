@@ -1,5 +1,7 @@
 package com.valghora.shrimpl
 
+import android.content.pm.ActivityInfo
+import android.content.res.Configuration
 import android.graphics.Color
 import android.os.Bundle
 import android.view.KeyEvent
@@ -12,6 +14,7 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.valghora.shrimpl.ui.AppShortcut
 import com.valghora.shrimpl.ui.ShrimplNavigation
@@ -26,9 +29,21 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 class MainActivity : ComponentActivity() {
     private val shortcuts = MutableSharedFlow<AppShortcut>(extraBufferCapacity = 1)
 
+    /** Whether the window shares the screen (snapped, split screen, a desktop window), which sets when two panes show (R1.1). */
+    private val sharingScreen = mutableStateOf(false)
+
     override fun onCreate(savedInstanceState: Bundle?) {
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)
+        // R1.1: portrait on a phone-sized screen (a phone, a foldable's cover screen). From a 600 dp
+        // smallest width (tablets, unfolded foldables, Googlebooks) every orientation stays, and
+        // Android ignores orientation requests there anyway.
+        requestedOrientation = if (resources.configuration.smallestScreenWidthDp < PHONE_MAX_SMALLEST_WIDTH) {
+            ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
+        } else {
+            ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
+        }
+        sharingScreen.value = isInMultiWindowMode
         setContent {
             val theme by container.settings.theme.collectAsStateWithLifecycle()
             val dark = theme.isDark()
@@ -41,9 +56,14 @@ class MainActivity : ComponentActivity() {
                 onDispose {}
             }
             ShrimplTheme(theme) {
-                ShrimplNavigation(shortcuts)
+                ShrimplNavigation(shortcuts, sharingScreen = sharingScreen.value)
             }
         }
+    }
+
+    override fun onMultiWindowModeChanged(isInMultiWindowMode: Boolean, newConfig: Configuration) {
+        super.onMultiWindowModeChanged(isInMultiWindowMode, newConfig)
+        sharingScreen.value = isInMultiWindowMode
     }
 
     /** Ctrl+N: new web app. Ctrl+,: settings. Works wherever focus is. */
@@ -71,3 +91,6 @@ class MainActivity : ComponentActivity() {
         )
     }
 }
+
+/** Below this smallest width (Material's Medium width class) a screen is phone-sized. */
+private const val PHONE_MAX_SMALLEST_WIDTH = 600

@@ -80,17 +80,19 @@ enum class AppShortcut { NEW_WEB_APP, SETTINGS }
  */
 @OptIn(ExperimentalMaterial3AdaptiveApi::class)
 @Composable
-fun ShrimplNavigation(shortcuts: Flow<AppShortcut>) {
+fun ShrimplNavigation(shortcuts: Flow<AppShortcut>, sharingScreen: Boolean = false) {
     val backStack = rememberNavBackStack(HomeKey)
     // R1.1: the list pane is Material's 412 dp, three tiles across as on a phone, and the detail takes
-    // the rest. Two panes need a window of TWO_PANE_MIN_WIDTH: below it one pane shows at a time, so a
-    // window snapped to half a Googlebook's screen (849 to about 956 dp, docs/GOOGLEBOOKS.md) is one pane. On a dual-screen phone or a foldable half-open like a book, the default
+    // the rest. An app filling the screen (a tablet, an unfolded foldable) splits at Material's 840 dp. A
+    // window sharing the screen ([sharingScreen]: snapped, split screen, a desktop window) needs
+    // SHARED_TWO_PANE_MIN_WIDTH, so a window snapped to half a Googlebook's screen (849 to about 956 dp,
+    // docs/GOOGLEBOOKS.md) shows one pane at a time. On a dual-screen phone or a foldable half-open like a book, the default
     // hinge policy splits the panes along the hinge, whatever the width.
     val startInset = WindowInsets.safeDrawing.only(WindowInsetsSides.Start).asPaddingValues()
         .calculateStartPadding(LocalLayoutDirection.current)
     val windowWidth = with(LocalDensity.current) { LocalWindowInfo.current.containerSize.width.toDp() }
     val materialDirective = calculatePaneScaffoldDirective(currentWindowAdaptiveInfoV2())
-    val roomForTwo = windowWidth >= TWO_PANE_MIN_WIDTH || materialDirective.excludedBounds.isNotEmpty()
+    val roomForTwo = !sharingScreen || windowWidth >= SHARED_TWO_PANE_MIN_WIDTH || materialDirective.excludedBounds.isNotEmpty()
     val directive = materialDirective.copy(
         maxHorizontalPartitions = if (roomForTwo) materialDirective.maxHorizontalPartitions else 1,
         defaultPanePreferredWidth = startInset + LIST_PANE_WIDTH,
@@ -207,9 +209,10 @@ private val PANE_GAP = 24.dp
 private val LIST_PANE_WIDTH = 412.dp
 
 /**
- * The narrowest window with two panes: wider than any Googlebook window snapped to half the screen
- * (about 956 dp at most), so snapping always gives one pane, and narrower than any Googlebook's full
- * screen (1707 dp at least). There the detail pane is 548 dp beside the list. Material splits from
- * 840 dp; docs/ADAPTIVE.md records why Shrimpl waits.
+ * The narrowest window sharing the screen with two panes: wider than any Googlebook window snapped to
+ * half the screen (about 956 dp at most), so snapping always gives one pane, and narrower than any
+ * Googlebook's full screen (1707 dp at least). There the detail pane is 548 dp beside the list.
+ * Material splits from 840 dp, as Shrimpl does when it fills the screen; docs/ADAPTIVE.md records why
+ * a shared window waits.
  */
-private val TWO_PANE_MIN_WIDTH = 1000.dp
+private val SHARED_TWO_PANE_MIN_WIDTH = 1000.dp

@@ -24,7 +24,7 @@ import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
 
 /**
- * docs/SHRIMPL_SPEC.md R3.5: the app settings form is one column of at most 816 dp, centred or moved
+ * docs/SHRIMPL_SPEC.md R3.5: the app settings form is one column of at most 720 dp, centred or moved
  * left so the floating button (192 dp at the right) never covers it, beside the list; full width with
  * one pane and on narrow panes.
  */
@@ -76,13 +76,13 @@ class ProfileFormLayoutTest {
     fun wideDesktopPaneCentresTheWidestColumn() {
         val pane = 1400.dp
         val (left, right) = nameItemEdges(pane)
-        assertEquals(816f, right - left, 1f)
+        assertEquals(720f, right - left, 1f)
         // Room on both sides for the button: exactly centred.
-        assertEquals((pane.value - 816f) / 2, left, 1f)
+        assertEquals((pane.value - 720f) / 2, left, 1f)
     }
 
     @Test
-    fun mediumPaneShiftsTheColumnLeftToClearTheButton() = assertBeside(1100.dp, 816f)
+    fun mediumPaneShiftsTheColumnLeftToClearTheButton() = assertBeside(1100.dp, 720f)
 
     @Test
     fun narrowerPaneShrinksTheColumnBesideTheButton() = assertBeside(700.dp, 700f - FAB_CLEARANCE - SIDE_MARGIN)
@@ -95,11 +95,11 @@ class ProfileFormLayoutTest {
     }
 
     @Test
-    fun onePaneFillsTheWidthEvenWhenWide() {
-        // A window too narrow for two panes (under 1000 dp): the floating button floats over the form.
+    fun onePaneOnAWideWindowStopsAt720DpCentred() {
+        // R3.5: a wide one-pane window (under 840 dp filling the screen, or a snapped window) keeps the 720 dp limit.
         val (left, right) = nameItemEdges(820.dp, inPane = false)
-        assertEquals(16f, left, 1f)
-        assertEquals(820f - 32f, right - left, 1f)
+        assertEquals(720f, right - left, 1f)
+        assertEquals((820f - 720f) / 2, left, 1f)
     }
 
     private companion object {

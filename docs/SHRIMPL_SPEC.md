@@ -59,15 +59,19 @@ binary translation) on any device.
 ## R1 Shrimpl
 
 - R1.1 Form factors.
-  - MUST work in phone portrait and landscape, on foldables, tablets, in desktop windows and on
-    Googlebook OS: freely resizable, no orientation or aspect ratio limits, no `configChanges`,
-    edge to edge, with keyboard and pointer support.
+  - MUST work on phones, foldables, tablets, in desktop windows and on Googlebook OS (its primary
+    devices, docs/GOOGLEBOOKS.md): freely resizable, no aspect ratio limits, no `configChanges`,
+    edge to edge, with keyboard and pointer support. On a phone-sized screen (smallest width under
+    600 dp: a phone, a foldable's cover screen) it asks for portrait; from 600 dp (tablets, unfolded
+    foldables, Googlebooks) every orientation stays (ADAPTIVE.md deviations).
   - It follows docs/ADAPTIVE.md: layout from window size classes, state that survives configuration
     changes, 48 dp touch targets, tooltips on icon-only buttons, a right-click menu on web apps, and
     app-wide keyboard shortcuts (Ctrl+N new web app, Ctrl+, settings) listed in the Keyboard
     Shortcuts Helper.
-  - When the window has room for two panes (1000 dp and up, ADAPTIVE.md deviations; below that,
-    including any Googlebook window snapped to half the screen, one pane at a time), the home list sits
+  - Two panes show when the window has room: an app filling the screen (a tablet, an unfolded
+    foldable) from Material's 840 dp; a window sharing it (snapped, split screen, a desktop window)
+    from 1000 dp, so any Googlebook window snapped to half the screen shows one pane at a time
+    (ADAPTIVE.md deviations). A separating hinge always splits them. With two panes the home list sits
     beside a detail pane as rounded cards on the window background, 24 dp apart: the list
     is Material's 412 dp list pane at every two-pane width: three tiles across (R2.6), each about
     119 dp, near the 124 dp they get on a phone, so none is squeezed. The detail takes the rest, so an
@@ -249,14 +253,14 @@ binary translation) on any device.
   Create app page instead drops the user back on the app list (after the one-time backup prompt,
   R5.3).
 - R3.5 The form is one column, and Shrimpl's Settings (R2.5) uses the same column and top bar from
-  the same code, so the pages always match. Beside the list (two panes), the column is at most 816 dp
-  wide, as wide as the settings in a window snapped to half a laptop screen (849 dp, one pane), and
-  centred; on a page with a floating button (Create), if centring would put the column
+  the same code, so the pages always match. Beside the list (two panes), the column is at most 720 dp
+  wide, so a description beside a value runs about 70 characters a line, and centred; on a page with a floating button (Create), if centring would put the column
   under the button at the bottom right, it moves left as far as needed (at least 24 dp from the left
   edge), so the button never covers an option. With one pane (a phone, or any window too narrow for
   two panes), or in a pane too narrow for a 360 dp column, the form takes the full width (16 dp
   margins) and the button floats over it, with room below the last section; with one pane it is
-  still at most 816 dp wide, centred, with the top bar's arrow and buttons over it.
+  still at most 720 dp wide, centred, so every Googlebook window snapped to half the screen shows
+  the settings at the same width, with the top bar's arrow and buttons over it.
   The top bar holds a back arrow and the page's title (the app's name, Settings, or Create app) in
   large type on one line, with the edit page's ⋮ at the end. With one pane the arrow starts the bar
   and, as the page scrolls, the title shrinks to the usual size and the bar takes the container color.

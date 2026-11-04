@@ -70,10 +70,11 @@ fun FormColumnLayout(
 }
 
 /**
- * The widest the column grows beside the list (R3.5): as wide as the settings in a window snapped to
- * half a laptop screen (849 dp, one pane, less its 16 dp margins), so two panes never show them wider.
+ * The widest the settings grow, with one pane or two (R3.5): a description beside a value then runs
+ * about 70 characters a line, within comfortable reading length, and every Googlebook window snapped
+ * to half the screen (849 to about 956 dp, docs/GOOGLEBOOKS.md) shows the settings at this one width.
  */
-private val MAX_COLUMN = 816.dp
+private val MAX_COLUMN = 720.dp
 
 /** The margin of a page that takes the full width: with one pane, or in a pane too narrow for the column. */
 private val FULL_WIDTH_MARGIN = 16.dp
@@ -97,7 +98,7 @@ private val SIDE_MARGIN = 24.dp
 data class FormColumn(val start: Dp, val width: Dp)
 
 /**
- * The form's column in a pane [paneWidth] wide beside the list ([inPane]): at most 816 dp, centred, or,
+ * The form's column in a pane [paneWidth] wide beside the list ([inPane]): at most 720 dp, centred, or,
  * on a page with a [floatingButton] (Create), moved left so the button never covers it. Null with
  * one pane, or a pane too narrow: the form then takes the full width and the button floats over it.
  */

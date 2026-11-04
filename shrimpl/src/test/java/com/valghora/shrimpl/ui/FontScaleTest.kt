@@ -45,6 +45,8 @@ class FontScaleTest {
         TestApps.saveMany(6)
         TestApps.app.container.settings.setHomeLayout(HomeLayout.TILES)
         scenario = ActivityScenario.launch(MainActivity::class.java)
+        // Snapped, so sharing the screen: one pane.
+        scenario!!.onActivity { it.onMultiWindowModeChanged(true, it.resources.configuration) }
         compose.waitUntil(5_000) { compose.onAllNodes(hasText("Fillerf")).fetchSemanticsNodes().isNotEmpty() }
     }
 

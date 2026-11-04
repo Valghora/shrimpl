@@ -26,9 +26,9 @@ import org.robolectric.RuntimeEnvironment
 
 /**
  * The whole app (MainActivity) in the testing-setup skill's nine window sizes: widths 400, 610 and
- * 900 dp (compact, medium, expanded) by heights 400, 500 and 1000 dp. Two panes need 1000 dp
- * (docs/ADAPTIVE.md deviations, R1.1; PaneWidthTest covers them), so here every width shows one pane
- * at a time with a back arrow. The window size comes from Robolectric's screen qualifiers, not
+ * 900 dp (compact, medium, expanded) by heights 400, 500 and 1000 dp, each filling the screen.
+ * Expanded widths show the list and the detail side by side (docs/ADAPTIVE.md, R1.1); the others show
+ * one pane at a time with a back arrow. The window size comes from Robolectric's screen qualifiers, not
  * DeviceConfigurationOverride.ForcedSize, which doesn't change the window size class the panes
  * follow (docs/SKILLS.md).
  */
@@ -98,8 +98,8 @@ class WindowSizeTest(private val width: Int, private val height: Int) {
     }
 
     companion object {
-        /** Two panes from 1000 dp (docs/ADAPTIVE.md deviations), so all three widths show one; PaneWidthTest covers two panes. */
-        private const val EXPANDED_WIDTH = 1000
+        /** Filling the screen, Shrimpl splits at Material's 840 dp (a window sharing it waits for 1000, PaneWidthTest). */
+        private const val EXPANDED_WIDTH = 840
         private const val LOAD_TIMEOUT_MS = 5_000L
         private val SLACK = Offset(0.5f, 0.5f)
 

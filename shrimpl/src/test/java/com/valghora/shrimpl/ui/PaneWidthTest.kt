@@ -1,5 +1,6 @@
 package com.valghora.shrimpl.ui
 
+import android.content.pm.ActivityInfo
 import androidx.compose.ui.semantics.SemanticsActions
 import androidx.compose.ui.semantics.SemanticsProperties
 import androidx.compose.ui.test.SemanticsMatcher
@@ -29,8 +30,9 @@ import org.robolectric.RobolectricTestRunner
 import org.robolectric.RuntimeEnvironment
 
 /**
- * R1.1: one pane below 1000 dp (any Googlebook window snapped to half the screen included), its tiles
- * six across a snapped XPS and three on a small phone; from 1000 dp Material's 412 dp list pane, three tiles
+ * R1.1: a window sharing the screen (any Googlebook window snapped to half the screen included) is one
+ * pane below 1000 dp, an app filling it below Material's 840 dp; tiles six across a snapped XPS and
+ * three on a small phone; with two panes Material's 412 dp list pane, three tiles
  * across (about 119 dp each), and an app's settings at least a phone's width. Resizing the window
  * keeps what's open.
  */
@@ -51,13 +53,18 @@ class PaneWidthTest {
     private val density get() = compose.onAllNodes(isRoot()).fetchSemanticsNodes().first().layoutInfo.density.density
 
     /** Five apps as tiles: Example (installed) first, then the four not installed in name order. */
-    private fun launch(width: Int) {
+    /**
+     * Launches Shrimpl in a [width] dp window, [sharing] the screen by default (snapped, split screen
+     * or a desktop window, as on a Googlebook); false fills it, as on a tablet or unfolded foldable.
+     */
+    private fun launch(width: Int, sharing: Boolean = true) {
         RuntimeEnvironment.setQualifiers("w${width}dp-h900dp")
         TestApps.save()
         // Eight apps, enough to fill a line of six or seven tiles.
         TestApps.saveMany(6)
         TestApps.app.container.settings.setHomeLayout(HomeLayout.TILES)
         scenario = ActivityScenario.launch(MainActivity::class.java)
+        if (sharing) scenario!!.onActivity { it.onMultiWindowModeChanged(true, it.resources.configuration) }
         compose.waitUntil(LOAD_TIMEOUT_MS) { exists("Fillerf") }
     }
 
@@ -94,18 +101,18 @@ class PaneWidthTest {
         launch(849)
         assertFalse("one pane", twoPanes)
         assertEquals(6, tilesAcross())
-        // R3.5: the settings here, the window less its 16 dp margins, are as wide as two panes ever show them.
-        assertEquals(816f, settingsColumn(), 1.5f)
+        // R3.5: a snapped window shows the settings at the 720 dp two panes keep too, centred.
+        assertEquals(720f, settingsColumn(), 1f)
     }
 
-    /** R3.5: the widest one-pane window keeps its settings to the 816 dp two panes keep, centred. */
+    /** R3.5: the widest one-pane window keeps its settings to the 720 dp two panes keep, centred. */
     @Test
     fun justBelowTheSwitchThereIsStillOnePaneWithItsSettingsCapped() {
         launch(999)
         assertFalse("one pane", twoPanes)
-        assertEquals(816f, settingsColumn(), 1f)
+        assertEquals(720f, settingsColumn(), 1f)
         val left = compose.onNode(hasText(string(R.string.field_name)) and hasClickAction()).fetchSemanticsNode().boundsInRoot.left / density
-        assertEquals("centred", (999f - 816f) / 2, left, 1f)
+        assertEquals("centred", (999f - 720f) / 2, left, 1f)
     }
 
     /** A 14" Googlebook snapped to half its 2880 px screen at the Dell's 1.5 scale (docs/GOOGLEBOOKS.md): still one pane. */
@@ -113,6 +120,30 @@ class PaneWidthTest {
     fun aWiderSnappedGooglebookWindowIsStillOnePane() {
         launch(956)
         assertFalse("one pane", twoPanes)
+    }
+
+    /** An unfolded foldable fills its screen, so it splits at Material's 840 dp: two panes at 849 dp. */
+    @Test
+    fun anAppFillingTheScreenSplitsAtMaterialsWidth() {
+        launch(849, sharing = false)
+        assertTrue("two panes", twoPanes)
+        assertEquals(3, tilesAcross())
+    }
+
+    @Test
+    fun anAppFillingTheScreenBelowMaterialsWidthIsOnePane() {
+        launch(839, sharing = false)
+        assertFalse("one pane", twoPanes)
+    }
+
+    /** R1.1: portrait on a phone-sized screen; from a 600 dp smallest width every orientation stays. */
+    @Test
+    fun aPhoneAsksForPortraitAndALargerScreenDoesNot() {
+        launch(400, sharing = false)
+        scenario!!.onActivity { assertEquals(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT, it.requestedOrientation) }
+        scenario!!.close()
+        launch(1280, sharing = false)
+        scenario!!.onActivity { assertEquals(ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED, it.requestedOrientation) }
     }
 
     /** A small phone keeps three tiles across. */
@@ -148,7 +179,7 @@ class PaneWidthTest {
     fun anExtraLargeWindowWithTheSettingsAtTheirMaximum() {
         threeTilesAndRoomForSettings(1920)
         compose.waitUntil(LOAD_TIMEOUT_MS) { exists(string(R.string.field_name)) }
-        assertEquals(816f, compose.onNode(hasText(string(R.string.field_name)) and hasClickAction()).fetchSemanticsNode().boundsInRoot.width / density, 2f)
+        assertEquals(720f, compose.onNode(hasText(string(R.string.field_name)) and hasClickAction()).fetchSemanticsNode().boundsInRoot.width / density, 2f)
     }
 
     /** Narrowing the window to one pane and widening it again keeps the open settings and their edits. */
