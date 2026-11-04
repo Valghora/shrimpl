@@ -253,7 +253,8 @@ binary translation) on any device.
   The top bar holds a back arrow and the page's title (the app's name, Settings, or Create app) in
   large type on one line, with the edit page's ⋮ at the end. With one pane the arrow starts the bar
   and, as the page scrolls, the title shrinks to the usual size and the bar takes the container color.
-  Beside the list the bar stays put while the page scrolls under it, with no divider: the arrow's glyph
+  Beside the list the bar stays put while the page scrolls under it, in the pane's color, with no
+  divider, also in a pane too narrow for the column, where the page fills the pane: the arrow's glyph
   starts where the section labels do, the title follows it, and ⋮ sits over the items' trailing
   chevrons. There the arrow closes the detail pane.
 

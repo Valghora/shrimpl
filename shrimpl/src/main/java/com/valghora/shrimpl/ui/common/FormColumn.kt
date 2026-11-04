@@ -117,12 +117,16 @@ fun PageTopBar(
     floatingButton: Boolean = true,
     actions: @Composable RowScope.() -> Unit = {},
 ) {
-    val column = formColumn(paneWidth, LocalInPane.current, floatingButton)
+    val inPane = LocalInPane.current
+    val column = formColumn(paneWidth, inPane, floatingButton)
     val density = LocalDensity.current
     // 0 at the top of the page, 1 once it has scrolled by COLLAPSE_DISTANCE (one pane only). Derived, so
     // the bar recomposes only while the title is between sizes, not on every scrolled pixel.
     val distance = with(density) { COLLAPSE_DISTANCE.toPx() }
-    val collapsing = column == null && scroll != null
+    // Invariant: only a page with one pane collapses. A pane too narrow for the column has no column
+    // either, but its bar stays put in the pane's color (found on a device, 2026-11-04: just over
+    // 840 dp the bar took the window's color as the page scrolled).
+    val collapsing = !inPane && scroll != null
     val collapsed by remember(scroll, distance, collapsing) {
         derivedStateOf { if (collapsing && scroll != null) (scroll.value / distance).coerceIn(0f, 1f) else 0f }
     }

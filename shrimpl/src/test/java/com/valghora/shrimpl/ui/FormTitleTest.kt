@@ -1,14 +1,17 @@
 package com.valghora.shrimpl.ui
 
+import androidx.compose.ui.semantics.SemanticsActions
 import androidx.compose.ui.semantics.SemanticsNode
 import androidx.compose.ui.test.hasContentDescription
 import androidx.compose.ui.test.hasText
+import androidx.compose.ui.test.isHeading
 import androidx.compose.ui.test.isRoot
 import androidx.compose.ui.test.junit4.v2.createEmptyComposeRule
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
+import androidx.compose.ui.text.TextLayoutResult
 import androidx.test.core.app.ActivityScenario
 import com.valghora.shrimpl.MainActivity
 import com.valghora.shrimpl.R
@@ -115,6 +118,28 @@ class FormTitleTest {
         val item = compose.onAllNodes(hasText(string(R.string.theme_mode))).fetchSemanticsNodes().maxBy { it.boundsInRoot.width }
         val itemCenter = item.boundsInRoot.center.x / density
         assertEquals("the column is centred in the pane", (paneStart + paneEnd) / 2, itemCenter, 3f)
+    }
+
+    /**
+     * R3.5: in a pane too narrow for the column (just over 840 dp, beside the 412 dp list) the page
+     * fills the pane, but its bar still stays put: the title keeps its size as the page scrolls (found on
+     * a device, 2026-11-04).
+     */
+    @Test
+    fun inANarrowPaneTheBarStaysPut() {
+        open(842, 800)
+        compose.onNodeWithContentDescription(string(R.string.settings_title)).performClick()
+        compose.waitUntil(5_000) { compose.onAllNodes(hasText(string(R.string.settings_appearance))).fetchSemanticsNodes().isNotEmpty() }
+        fun titleSize(): Float {
+            val results = mutableListOf<TextLayoutResult>()
+            compose.onNode(hasText(string(R.string.settings_title)) and isHeading()).fetchSemanticsNode()
+                .config[SemanticsActions.GetTextLayoutResult].action?.invoke(results)
+            return results.single().layoutInput.style.fontSize.value
+        }
+        val expanded = titleSize()
+        compose.onNodeWithText(string(R.string.settings_about)).performScrollTo()
+        compose.waitForIdle()
+        assertEquals("the title keeps its size", expanded, titleSize())
     }
 
     /** R3.5: with one pane the large title shrinks to the usual bar size as the page scrolls; the arrow stays put. */
