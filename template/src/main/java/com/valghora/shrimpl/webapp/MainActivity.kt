@@ -97,6 +97,9 @@ class MainActivity : AppCompatActivity() {
 
     private lateinit var prefs: SessionPrefs
     private lateinit var controller: DesktopSessionController
+
+    /** Saves the files pages make themselves (T6.15), for the main window and its popups. */
+    private lateinit var pageDownloads: PageDownloadBridge
     private lateinit var root: FrameLayout
     private lateinit var webView: DesktopWebView
     private lateinit var workspaceMonitor: WorkspaceMonitor
@@ -185,6 +188,7 @@ class MainActivity : AppCompatActivity() {
         prefs = SessionPrefs(this)
         // T5.7: page text starts at the system font size (accessibility skill), not a fixed 100 %.
         controller = DesktopSessionController(prefs, prefs, WebApp.profile.sessionConfig(), fontScalePercent())
+        pageDownloads = PageDownloadBridge(this, controller)
 
         isLargeOrPc = packageManager.hasSystemFeature(PackageManager.FEATURE_PC) ||
             resources.configuration.smallestScreenWidthDp >= 600
@@ -398,7 +402,7 @@ class MainActivity : AppCompatActivity() {
         webView.webViewClient = MainClient()
         webView.webChromeClient = AppChromeClient(popup = null)
         webView.setDownloadListener { url, _, contentDisposition, mimeType, _ ->
-            enqueueDownload(url, webView.settings.userAgentString, contentDisposition, mimeType)
+            download(webView, url, contentDisposition, mimeType)
         }
 
         webView.isFocusable = true
@@ -423,6 +427,7 @@ class MainActivity : AppCompatActivity() {
             true
         }
         if (WebApp.profile.allowNotifications) NotificationBridge(this, controller).install(webView)
+        pageDownloads.install(webView)
         if (WebApp.profile.headerMode == HeaderMode.DYNAMIC) PageColors(controller, ::onPageColors).install(webView)
     }
 
@@ -710,8 +715,9 @@ class MainActivity : AppCompatActivity() {
             child.view.webViewClient = PopupClient(child)
             child.view.webChromeClient = AppChromeClient(child)
             child.view.setDownloadListener { url, _, contentDisposition, mimeType, _ ->
-                enqueueDownload(url, child.view.settings.userAgentString, contentDisposition, mimeType)
+                download(child.view, url, contentDisposition, mimeType)
             }
+            pageDownloads.install(child.view)
             popups += child
             transport.webView = child.view
             resultMsg.sendToTarget()
@@ -938,14 +944,28 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    // ----- Downloads (T6.3) -----
+    // ----- Downloads (T6.3, T6.15) -----
 
-    /** Hands an http(s) download to the system download manager (T6.3); other schemes get a toast. */
-    private fun enqueueDownload(url: String, userAgent: String, contentDisposition: String?, mimeType: String?) {
+    /**
+     * Hands an http(s) download to the system download manager (T6.3) and a file the page made itself
+     * (`blob:` or `data:`) to [pageDownloads] (T6.15); other schemes, or a page that can't send the file,
+     * get a toast.
+     */
+    private fun download(view: WebView, url: String, contentDisposition: String?, mimeType: String?) {
+        if (url.startsWith("blob:") || url.startsWith("data:")) {
+            pageDownloads.save(view, url) { sent ->
+                toast(if (sent) R.string.toast_download_started else R.string.toast_download_unsupported)
+            }
+            return
+        }
         if (!isHttpUrl(url)) {
             toast(R.string.toast_download_unsupported)
             return
         }
+        enqueueDownload(url, view.settings.userAgentString, contentDisposition, mimeType)
+    }
+
+    private fun enqueueDownload(url: String, userAgent: String, contentDisposition: String?, mimeType: String?) {
         val fileName = URLUtil.guessFileName(url, contentDisposition, mimeType)
         val request = DownloadManager.Request(url.toUri()).apply {
             CookieManager.getInstance().getCookie(url)?.let { addRequestHeader("Cookie", it) }
@@ -998,11 +1018,7 @@ class MainActivity : AppCompatActivity() {
             }
             MenuAction.OPEN_LINK -> withLinkUrl(hit, extra, ::openExternal)
             MenuAction.SAVE_IMAGE ->
-                if (extra != null && isHttpUrl(extra)) {
-                    enqueueDownload(extra, webView.settings.userAgentString, null, null)
-                } else {
-                    toast(R.string.toast_download_unsupported)
-                }
+                if (extra != null) download(webView, extra, null, null) else toast(R.string.toast_download_unsupported)
         }
     }
 

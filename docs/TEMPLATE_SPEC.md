@@ -124,8 +124,9 @@ Unit tests cover every branch with a fixed fixture config, including look-alike 
   T6.10 and T6.11, never on resize.
 - T6.2 Cookies, including third-party ones, are accepted; they are flushed to disk in onStop and on
   SLEEP (T8.3), on a background thread (`flush()` blocks on file I/O).
-- T6.3 Downloads (http and https only) go to `DownloadManager` with the page's cookies and user
-  agent, into Downloads, with a completion notification. Other schemes show a toast.
+- T6.3 Downloads (http and https) go to `DownloadManager` with the page's cookies and user
+  agent, into Downloads, with a completion notification. Files the page made itself (`blob:`, `data:`)
+  follow T6.15; other schemes show a toast. "Save image" takes the same routes.
 - T6.4 File chooser: the page's chooser intent (multiple when asked), results from clip data and
   data, the callback called exactly once.
 - T6.5 Media permissions: only for internal origins and only resources the profile allows
@@ -170,6 +171,20 @@ Unit tests cover every branch with a fixed fixture config, including look-alike 
   (`requestFullscreenMode`). Esc and Back leave it.
 - T6.14 Printing: Ctrl+P prints the page (`PrintManager` with the WebView's print adapter), which can
   also save a PDF.
+- T6.15 Page-made downloads (`blob:` and `data:`, such as an editor's Export or Save to disk): a
+  document-start script on the internal origins (nested `WEB_MESSAGE_LISTENER` and
+  `DOCUMENT_START_SCRIPT` checks, as T7.1) remembers the `download` name of each link the page clicks
+  and takes hold of a `blob:` file at once, since sites often revoke the link right after the click.
+  When WebView reports the download, the template asks the page for the file, which arrives in 512 KiB
+  base64 chunks over a `WebMessageListener` (`AndroidDownload`, internal origins only) and is written
+  in order, off the main thread, to a pending MediaStore entry in Downloads (no storage permission).
+  The name is made safe (no path, no reserved characters, at most 120 characters, an extension from the
+  type when it has none; "download" when the page gave none) and MediaStore numbers a duplicate. The
+  toast says "Downloading…"; when the file is complete a low-importance "Downloads" notification
+  ("<name>", "Saved to Downloads") opens it, or without notification permission a toast says "Saved
+  <name> to Downloads". A failure removes the partial file and says "Couldn't save <name>"; a transfer
+  over 1 GiB is dropped. A page outside the internal origins, or a WebView without the features, gets
+  the unsupported toast. The protocol and naming are in `:core` (`PageDownloads`).
 
 ## T7 Notifications (with `profile.allowNotifications`)
 
@@ -211,4 +226,5 @@ Unit tests cover every branch with a fixed fixture config, including look-alike 
 - A user agent toggle applies to the current window; other windows change on relaunch.
 - Ctrl+P is the template's Print shortcut, so a site's own Ctrl+P (some editors use it for quick
   open) doesn't reach the page.
-- blob: and data: downloads are not supported.
+- Page-made downloads (T6.15) work only on the internal origins, and only from the main frame or a
+  same-origin frame.

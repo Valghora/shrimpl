@@ -21,6 +21,10 @@
 
     <string name="toast_download_started">Downloading…</string>
     <string name="toast_download_unsupported">This file can\'t be downloaded</string>
+    <string name="toast_saved">Saved %1$s to Downloads</string>
+    <string name="toast_save_failed">Couldn\'t save %1$s</string>
+    <string name="notification_saved">Saved to Downloads</string>
+    <string name="channel_downloads">Downloads</string>
     <string name="toast_no_app">No app can open this link</string>
 
     <!-- A page asks for a permission Android holds back (TEMPLATE_SPEC T6.5). %1$s is the page's host,
