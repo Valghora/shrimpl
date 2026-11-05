@@ -50,6 +50,17 @@ class AppSettings(context: Context) {
         _resolveOnTap.value = resolve
     }
 
+    private val _hapticFeedback = MutableStateFlow(prefs.getBoolean(KEY_HAPTIC_FEEDBACK, true))
+
+    /** A long press that opens an app's menu vibrates (R2.5); on by default, like the system's touch feedback. */
+    val hapticFeedback: StateFlow<Boolean> = _hapticFeedback.asStateFlow()
+
+    /** Saves the Haptic feedback switch (R2.5). */
+    fun setHapticFeedback(enabled: Boolean) {
+        prefs.edit { putBoolean(KEY_HAPTIC_FEEDBACK, enabled) }
+        _hapticFeedback.value = enabled
+    }
+
     private val _homeLayout = MutableStateFlow(
         prefs.getString(KEY_HOME_LAYOUT, null)?.let { runCatching { HomeLayout.valueOf(it) }.getOrNull() } ?: HomeLayout.LIST,
     )
@@ -122,6 +133,7 @@ class AppSettings(context: Context) {
         const val KEY_HOME_LAYOUT = "home_layout"
         // Invariant: the key keeps the switch's old name, so a saved choice survives the rename.
         const val KEY_RESOLVE_ON_CLICK = "resolve_on_click"
+        const val KEY_HAPTIC_FEEDBACK = "haptic_feedback"
         const val KEY_BACKED_UP = "key_backed_up"
         const val KEY_PROMPT_SHOWN = "backup_prompt_shown"
         const val KEY_RECOVERY_DONE = "recovery_done"

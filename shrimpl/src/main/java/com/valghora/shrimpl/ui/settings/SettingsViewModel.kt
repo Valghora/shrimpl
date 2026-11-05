@@ -29,6 +29,7 @@ class SettingsViewModel(private val container: AppContainer) : ViewModel() {
     val theme: StateFlow<ThemeSetting> = container.settings.theme
     val clickAction: StateFlow<ClickAction> = container.settings.clickAction
     val resolveOnTap: StateFlow<Boolean> = container.settings.resolveOnTap
+    val hapticFeedback: StateFlow<Boolean> = container.settings.hapticFeedback
 
     /** Where a root or Shizuku access request stands (the Request Access button's states). */
     enum class Access { NOT_REQUESTED, REQUESTING, GRANTED, FAILED }
@@ -124,6 +125,9 @@ class SettingsViewModel(private val container: AppContainer) : ViewModel() {
 
     /** Saves the Resolve on tap switch (R2.5). */
     fun setResolveOnTap(resolve: Boolean) = container.settings.setResolveOnTap(resolve)
+
+    /** Saves the Haptic feedback switch (R2.5). */
+    fun setHapticFeedback(enabled: Boolean) = container.settings.setHapticFeedback(enabled)
 
     /**
      * Writes the key as a PKCS12 file protected by [password] to [uri]

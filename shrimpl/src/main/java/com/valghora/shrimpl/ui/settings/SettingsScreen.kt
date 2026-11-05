@@ -78,6 +78,7 @@ fun SettingsScreen(inPane: Boolean, onBack: () -> Unit) {
     val theme by model.theme.collectAsStateWithLifecycle()
     val clickAction by model.clickAction.collectAsStateWithLifecycle()
     val resolveOnTap by model.resolveOnTap.collectAsStateWithLifecycle()
+    val hapticFeedback by model.hapticFeedback.collectAsStateWithLifecycle()
     val rootAccess by model.rootAccess.collectAsStateWithLifecycle()
     val shizukuAccess by model.shizukuAccess.collectAsStateWithLifecycle()
     val fingerprint by model.fingerprint.collectAsStateWithLifecycle()
@@ -194,6 +195,12 @@ fun SettingsScreen(inPane: Boolean, onBack: () -> Unit) {
                         resolveOnTap,
                         model::setResolveOnTap,
                         summary = stringResource(if (resolveOnTap) R.string.resolve_on_tap_on_detail else R.string.resolve_on_tap_off_detail),
+                    )
+                    SwitchItem(
+                        stringResource(R.string.haptic_feedback),
+                        hapticFeedback,
+                        model::setHapticFeedback,
+                        summary = stringResource(R.string.haptic_feedback_detail),
                     )
                 }
 

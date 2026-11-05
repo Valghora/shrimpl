@@ -66,11 +66,13 @@ import androidx.compose.ui.graphics.Paint
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.input.pointer.PointerEventType
 import androidx.compose.ui.input.pointer.isSecondaryPressed
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.pluralStringResource
@@ -150,6 +152,7 @@ fun HomeScreen(
     val message by model.message.collectAsStateWithLifecycle()
     val clickAction by model.clickAction.collectAsStateWithLifecycle()
     val resolveOnTap by model.resolveOnTap.collectAsStateWithLifecycle()
+    val hapticFeedback by model.hapticFeedback.collectAsStateWithLifecycle()
     val method by model.installMethod.collectAsStateWithLifecycle()
     val signingKey by model.signingKey.collectAsStateWithLifecycle()
     val layout by model.layout.collectAsStateWithLifecycle()
@@ -303,6 +306,7 @@ fun HomeScreen(
                         selected = record.appId == selected,
                         clickAction = clickAction,
                         resolveOnTap = resolveOnTap,
+                        hapticFeedback = hapticFeedback,
                         onOpen = { if (app != null) InstalledApps.open(context, record.packageName) else onEdit(record.appId) },
                         onEdit = { onEdit(record.appId) },
                         onRebuild = { model.rebuild(record) },
@@ -376,6 +380,7 @@ private fun AppItem(
     selected: Boolean,
     clickAction: ClickAction,
     resolveOnTap: Boolean,
+    hapticFeedback: Boolean,
     onOpen: () -> Unit,
     onEdit: () -> Unit,
     onRebuild: () -> Unit,
@@ -396,6 +401,8 @@ private fun AppItem(
     }
     val showOptions = stringResource(R.string.action_show_options)
     val showMenu = { at: Offset -> openMenu(with(density) { DpOffset(at.x.toDp(), at.y.toDp()) }) }
+    val haptic = LocalHapticFeedback.current
+    val vibrate = { haptic.performHapticFeedback(HapticFeedbackType.LongPress) }
     // The action its row button offers (R2.2, R11.7): Fix or Update, with its label.
     val pending = when {
         locked -> R.string.action_fix_app to onFix
@@ -432,7 +439,7 @@ private fun AppItem(
     }
     if (tile) {
         Box {
-            AppTile(record, installed, loadImage, updateAvailable, locked, selected, Modifier.appGestures(record.appId, onTap, tapLabel, showOptions, showMenu) { openMenu(DpOffset(16.dp, 64.dp)) })
+            AppTile(record, installed, loadImage, updateAvailable, locked, selected, Modifier.appGestures(record.appId, onTap, tapLabel, showOptions, hapticFeedback, showMenu, vibrate) { openMenu(DpOffset(16.dp, 64.dp)) })
             menu()
         }
         return
@@ -441,15 +448,15 @@ private fun AppItem(
         Modifier
             // The highlight sits 4 dp in from each side, so its rounded corners don't meet the edge.
             .padding(horizontal = ROW_INSET)
-            // Borderless rows: the settings items' rounded shape shows only as the press, hover and
-            // (in two panes) selection highlight.
-            .clip(AppShapes.Item)
+            // Borderless rows: the row's pill shows only as the press, hover and (in two panes)
+            // selection highlight.
+            .clip(AppShapes.Row)
             // The selected row takes the hover tint, not secondaryContainer, so its tonal Update button stays
             // visible on it.
             .background(if (selected) MaterialTheme.colorScheme.onSurface.copy(alpha = HOVER_ALPHA) else Color.Transparent)
             // In two panes the highlighted row is announced as selected.
             .semantics { if (selected) this.selected = true }
-            .appGestures(record.appId, onTap, tapLabel, showOptions, showMenu) { openMenu(DpOffset(24.dp, 48.dp)) },
+            .appGestures(record.appId, onTap, tapLabel, showOptions, hapticFeedback, showMenu, vibrate) { openMenu(DpOffset(24.dp, 48.dp)) },
     ) {
         Row(
             // With the inset, the icon is 16 dp from the edge and the ⋮ button's center 28 dp from it,
@@ -463,6 +470,17 @@ private fun AppItem(
             Box(if (greyed) Modifier.greyedOut() else Modifier) { ItemIcon(record, installed, loadImage) }
             Column(Modifier.weight(1f)) {
                 Text(record.profile.name, style = MaterialTheme.typography.titleMedium, modifier = if (greyed) Modifier.alpha(GREYED_ALPHA) else Modifier)
+                // R2.2: the status under the name, as on a tile; it isn't dimmed with a greyed row, so it
+                // keeps its contrast.
+                appStatus(greyed, locked, updateAvailable)?.let { status ->
+                    Text(
+                        stringResource(status),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                }
             }
             // R2.2: a newer template is bundled; Update rebuilds this app with it. R11.7: an app signed
             // with another key offers Fix (uninstall, then rebuild with the current key).
@@ -491,11 +509,21 @@ private fun AppItem(
     }
 }
 
+/** The status a row or tile shows under the name (R2.2, R2.6), in the order its badge or row button picks. */
+private fun appStatus(notInstalled: Boolean, locked: Boolean, updateAvailable: Boolean): Int? = when {
+    notInstalled -> R.string.home_not_installed
+    locked -> R.string.status_fix_required
+    updateAvailable -> R.string.status_update_ready
+    else -> null
+}
+
 /**
  * Right-click (secondary mouse button or two-finger trackpad tap) opens the menu at the pointer;
  * a long press opens it there too, and [onTap] (null: the item does nothing on a tap) runs on a tap,
  * named [tapLabel] for accessibility services when it isn't the usual open or edit. They get the
- * long press as "Show options", at [menuForAccessibility].
+ * long press as "Show options", at [menuForAccessibility]. With [haptics] (the Haptic feedback setting,
+ * R2.5) a long press vibrates as the menu opens, through [vibrate]; a right-click and an accessibility
+ * action don't.
  */
 @OptIn(ExperimentalFoundationApi::class)
 private fun Modifier.appGestures(
@@ -503,7 +531,9 @@ private fun Modifier.appGestures(
     onTap: (() -> Unit)?,
     tapLabel: String?,
     showOptions: String,
+    haptics: Boolean,
     showMenu: (Offset) -> Unit,
+    vibrate: () -> Unit,
     menuForAccessibility: () -> Unit,
 ): Modifier = pointerInput(key) {
     awaitPointerEventScope {
@@ -520,10 +550,22 @@ private fun Modifier.appGestures(
 }.then(
     if (onTap == null) {
         Modifier
-            .pointerInput(key) { detectTapGestures(onLongPress = { showMenu(it) }) }
+            .pointerInput(key, haptics) {
+                detectTapGestures(onLongPress = {
+                    if (haptics) vibrate()
+                    showMenu(it)
+                })
+            }
             .semantics(mergeDescendants = true) { onLongClick(showOptions) { menuForAccessibility(); true } }
     } else {
-        Modifier.combinedClickable(onClick = onTap, onClickLabel = tapLabel, onLongClickLabel = showOptions, onLongClick = menuForAccessibility)
+        // combinedClickable vibrates for a long press itself, and only for the gesture.
+        Modifier.combinedClickable(
+            onClick = onTap,
+            onClickLabel = tapLabel,
+            onLongClickLabel = showOptions,
+            onLongClick = menuForAccessibility,
+            hapticFeedbackEnabled = haptics,
+        )
     },
 )
 
@@ -546,12 +588,7 @@ private fun AppTile(
     val colors = MaterialTheme.colorScheme
     val greyed = installed == null
     val update = !greyed && !locked && updateAvailable
-    val status = when {
-        greyed -> R.string.home_not_installed
-        locked -> R.string.status_fix_required
-        update -> R.string.status_update_ready
-        else -> null
-    }
+    val status = appStatus(greyed, locked, updateAvailable)
     val tileColor = if (selected) colors.surfaceContainerHighest else colors.surfaceContainer
     val nameLines = if (LocalDensity.current.fontScale > 1f) 2 else 1
     Column(

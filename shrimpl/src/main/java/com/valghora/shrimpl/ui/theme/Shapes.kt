@@ -25,14 +25,17 @@ object AppShapes {
     /** Buttons with a container (main actions, row buttons, the search button): fully round. */
     val Control: Shape = CircleShape
 
-    /** The outside corners of list content: home rows and tiles, settings groups and lone items. */
+    /** The outside corners of list content: home tiles, settings groups and lone items. */
     val ItemRadius = 20.dp
 
     /** Where items in a settings group meet. */
     val ItemInnerRadius = 4.dp
 
-    /** A home row or tile, or a settings item on its own. */
+    /** A home tile, or a settings item on its own. */
     val Item: Shape = RoundedCornerShape(ItemRadius)
+
+    /** A home row's press, hover and selection highlight: a pill, like Material's navigation items. */
+    val Row: Shape = CircleShape
 
     /** Notices of more than one line (R3.3): half a one-line notice's usual 56 dp height. */
     val Notice: Shape = RoundedCornerShape(28.dp)

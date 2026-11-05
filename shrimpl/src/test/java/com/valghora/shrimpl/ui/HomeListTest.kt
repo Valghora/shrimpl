@@ -57,10 +57,22 @@ class HomeListTest {
 
     @Test
     fun uninstalledAppsSitBelowANotInstalledLabel() {
-        val label = string(R.string.home_not_installed)
-        compose.onNodeWithText(label).assertExists()
-        assertTrue("Example is above the label", top("Example") < top(label))
-        assertTrue("Squoosh is below the label", top("Squoosh") > top(label))
+        val label = compose.onNode(hasText(string(R.string.home_not_installed)) and isHeading()).fetchSemanticsNode().boundsInRoot.top
+        assertTrue("Example is above the label", top("Example") < label)
+        assertTrue("Squoosh is below the label", top("Squoosh") > label)
+    }
+
+    /** R2.2: each row says its status under the name, as a tile does. */
+    @Test
+    fun rowsShowTheirStatusUnderTheName() {
+        for ((name, status) in listOf("Example" to R.string.status_fix_required, "Squoosh" to R.string.home_not_installed)) {
+            val nameNode = compose.onNode(hasText(name), useUnmergedTree = true).fetchSemanticsNode().boundsInRoot
+            // The status sharing the name's left edge, just under it; Squoosh's is the row's, not the label above.
+            val under = compose.onAllNodes(hasText(string(status)), useUnmergedTree = true).fetchSemanticsNodes()
+                .map { it.boundsInRoot }
+                .filter { it.left == nameNode.left && it.top >= nameNode.bottom && it.top - nameNode.bottom < nameNode.height }
+            assertEquals("$name's status is under its name", 1, under.size)
+        }
     }
 
     @Test

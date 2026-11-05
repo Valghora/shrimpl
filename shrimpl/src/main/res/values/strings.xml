@@ -226,6 +226,8 @@
     <string name="resolve_on_tap">Resolve on tap</string>
     <string name="resolve_on_tap_on_detail">Override default tap preference and automatically perform pending actions</string>
     <string name="resolve_on_tap_off_detail">Always respect default tap preference</string>
+    <string name="haptic_feedback">Haptic feedback</string>
+    <string name="haptic_feedback_detail">Vibrate when a long press opens a menu</string>
     <string name="action_app_options">Options for %1$s</string>
     <string name="action_update_app">Update %1$s</string>
     <string name="action_fix_app">Fix %1$s</string>

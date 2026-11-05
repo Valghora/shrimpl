@@ -101,7 +101,8 @@ binary translation) on any device.
   - Input, 12 dp: text fields. Search, fully round: the website field on Create (R3.1).
   - Control, fully round: buttons with a container (New app, Create, Save, Update all, Fix all, row
     buttons, the search button, buttons in sheets and settings). Chips take Material's 8 dp.
-  - Item, 20 dp outside and 4 dp where grouped items meet: home rows and tiles, settings groups.
+  - Item, 20 dp outside and 4 dp where grouped items meet: home tiles, settings groups.
+  - Row, fully round: a home row's press, hover and selection highlight (R2.1).
   - Notice: a one-line notice is a pill at any text size; a taller one has 28 dp corners (R3.3).
   - Menu, 16 dp, with 12 dp for an item's highlight inside it (also the press highlight of icon
     option tiles and custom icon sources).
@@ -117,15 +118,17 @@ binary translation) on any device.
   tiles" / "Show as list", R2.6) and a settings button at its end. With one pane the title shrinks
   to the usual bar size as the list scrolls; beside the detail pane the bar stays put. It sits over an adaptive grid of
   the web apps Shrimpl created (one column on phones, more on wide windows). Each app is a
-  borderless row on the page background; the settings items' rounded shape shows only as its press
+  borderless row on the page background; its pill (Row corners, R1.5) shows only as its press
   and hover highlight, and in two panes as the selection (the hover tint, so a tonal button on it stays visible): the installed icon
-  (48 dp), the name, an Update button when a newer template is bundled (R2.2), and a more-options
+  (48 dp), the name with the app's status under it (Not installed, Fix required or Update ready, as on
+  a tile, R2.6), an Update button when a newer template is bundled (R2.2), and a more-options
   (three vertical dots) button (`Options for <name>`), lined up under the settings button,
   offering Open (when installed), Edit, Reinstall (when not installed), and Uninstall (or Remove
   when not installed). Build numbers are never shown. Tapping an item edits it, or opens the app,
   as the Default click action setting says (R2.5); one that isn't installed is always edited.
   Right-click or long press opens a menu with Open, Edit, Reinstall / Update / Rebuild, and
-  Uninstall or Remove.
+  Uninstall or Remove; a long press vibrates as it opens, rows and tiles alike, unless Haptic feedback
+  is off (R2.5).
 - R2.2 The list comes from Shrimpl's records (R11) joined with the installed state, re-read on
   resume. A record whose app isn't installed sits at the bottom of the list under a "Not installed"
   label (each group in name order), its icon and name greyed out (65 % opacity, so the name keeps
@@ -171,7 +174,9 @@ binary translation) on any device.
     rows and tiles, and accessibility services hear the tap named after it ("Fix Example"); off,
     the default click action applies (and an app signed with another key still does nothing on a
     tap). An app that isn't installed ignores the switch: tapping it does nothing, and Reinstall stays
-    in its menus.
+    in its menus. Haptic feedback (a switch at the end of the section, on by default; "Vibrate when a
+    long press opens a menu"): on, a long press that opens an app's menu vibrates (R2.1); the system's
+    touch feedback setting still applies.
   - **Signing:** the certificate's SHA-256 fingerprint with a copy button, "Export…" and "Import…"
     (export and import the certificate, R5).
   - **About:** "App Version: x.y" and "Template Version: N.0".
