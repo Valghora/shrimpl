@@ -72,8 +72,8 @@ There is no emulator in the cloud container; UI changes are confirmed on the own
   asks for a release build; in CI, run the workflow by hand with Release build ticked.
 - Never force-push. Branch from the default branch for new work.
 - Settings descriptions (the text under a setting) end with a period when they are two or more
-  sentences, or when they contain punctuation (a comma, apostrophe, hyphen, parentheses, a period);
-  a single sentence without any of these goes without one. Other text (labels, titles, errors,
+  sentences, or when they contain punctuation (a comma, hyphen, parentheses, a period; an apostrophe
+  doesn't count); a single sentence without any of these goes without one. Other text (labels, titles, errors,
   notifications, toasts, dialogs) has no ending period unless it is two or more sentences. Follow
   the palette rules in `ui/common/Notice.kt` and the theme (Info follows the Material theme; Caution, Error and Success
   use pastel containers with dark text in both themes; status text on plain surfaces is pastel in

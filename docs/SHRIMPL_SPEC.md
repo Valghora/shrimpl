@@ -167,8 +167,8 @@ binary translation) on any device.
   installation method to Shizuku or Root via Settings.", with Cancel and Update all.
 - R2.5 Settings, from the top bar button or Ctrl+,:
   - **Appearance:** Theme: System (dynamic color from the wallpaper), Light or Dark. Status text:
-    Show (the default; "Show status text in list rows and tiles") or Hide ("Hide status text in list
-    rows and tiles"). Hidden, rows and tiles drop the status line (R2.1, R2.6), a tile shrinks to its
+    Show (the default; "Show an app's status text in its list row or tile") or Hide ("Hide an app's
+    status text in its list row or tile"). Hidden, rows and tiles drop the status line (R2.1, R2.6), a tile shrinks to its
     icon and name, centred with equal space above and below, and accessibility services still hear
     the status as the row's or tile's state; badges and row buttons stay.
   - **Installation:** Method (R6.2), and the Request Root / Request Shizuku item when one is chosen.

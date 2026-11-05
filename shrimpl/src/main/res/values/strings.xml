@@ -205,8 +205,8 @@
     <string name="status_text">Status text</string>
     <string name="status_text_show">Show</string>
     <string name="status_text_hide">Hide</string>
-    <string name="status_text_show_detail">Show status text in list rows and tiles</string>
-    <string name="status_text_hide_detail">Hide status text in list rows and tiles</string>
+    <string name="status_text_show_detail">Show an app\'s status text in its list row or tile</string>
+    <string name="status_text_hide_detail">Hide an app\'s status text in its list row or tile</string>
     <string name="settings_appearance">Appearance</string>
     <string name="signing_certificate">Certificate</string>
     <string name="about_app">App Version: %1$s</string>
