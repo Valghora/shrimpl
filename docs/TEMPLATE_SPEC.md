@@ -202,7 +202,7 @@ Unit tests cover every branch with a fixed fixture config, including look-alike 
   sites offer a download instead (T6.15). Parsing is `PageShare` in `:core`.
 - T6.17 Single-file File System Access (WebView has none): a document-start script on the internal
   origins (nested checks, as T7.1) adds `showOpenFilePicker` and `showSaveFilePicker` when the page lacks
-  them; folders (`showDirectoryPicker`) aren't offered. Open shows Android's Open dialog for any file
+  them (folders: T6.18). Open shows Android's Open dialog for any file
   (sites' own types are often unknown to Android), several with `multiple`; Save shows its Save dialog
   with the suggested name made safe (as T6.15) and the first plain MIME type from `types`, else a
   generic type so Android adds no extension. One picker at a time; backing out rejects with AbortError.
@@ -214,6 +214,19 @@ Unit tests cover every branch with a fixed fixture config, including look-alike 
   failed save leaves it as it was. Permission queries answer "granted". Handles don't survive a restart
   of the app: a handle the site kept elsewhere fails with NotFoundError, and the site asks again.
   Parsing is `FileAccess` in `:core`.
+- T6.18 Folders: `showDirectoryPicker` shows Android's folder picker (read and write); Android doesn't
+  offer the top of internal storage, of Downloads, or `Android/data`, and some cloud providers offer
+  no folders. The folder's handle and every entry found in it get keys for the session, one per
+  document, so `isSameEntry` holds. Folder handles list entries (`entries`, `keys`, `values`, `for
+  await`), get or create a file or folder (`getFileHandle`, `getDirectoryHandle`; a TypeMismatchError
+  when the name is the other kind, NotFoundError without `create`), remove one (`removeEntry`; a folder
+  with entries only with `recursive`, else InvalidModificationError), and `resolve` a descendant's path
+  (handles keep their path from the picked folder). `move` renames an entry or moves it to another
+  folder of the same picked folder, never over an existing name; a picked file or folder can't move.
+  Names follow the standard: empty, `.`, `..` and names with a separator are a TypeError. Files are
+  created with a generic type so Android keeps the name as given; reads and writes are T6.17's. All of
+  it goes through `DocumentsContract` on the IO thread, one call per listing, so a folder of thousands
+  of entries is slow to walk. Changes other apps make aren't reported.
 
 ## T7 Notifications (with `profile.allowNotifications`)
 
@@ -246,7 +259,7 @@ Unit tests cover every branch with a fixed fixture config, including look-alike 
 
 - Google and some other identity providers block sign-in inside embedded WebViews
   (`disallowed_useragent`); the template doesn't try to evade this.
-- Web features WebView lacks (Push API, folder access in File System Access, WebUSB and Web Bluetooth, some passkey
+- Web features WebView lacks (Push API, WebUSB and Web Bluetooth, some passkey
   flows) don't work, and a desktop user agent can expose site features that need them.
 - While the workspace sleeps, timers are paused: real-time connections drop and notifications arrive
   after wake. No background delivery.
