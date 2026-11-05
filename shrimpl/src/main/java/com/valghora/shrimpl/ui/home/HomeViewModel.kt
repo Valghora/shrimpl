@@ -72,11 +72,10 @@ class HomeViewModel(private val container: AppContainer) : ViewModel() {
      * is left out, since any build installs fresh with the current key.
      */
     fun otherKey(records: List<WebAppRecord>, installed: Map<String, InstalledApp>, key: SigningKeyCheck): Set<String> {
-        val real = if (key is SigningKeyCheck.Read) records.filter { it.signerFingerprint != key.fingerprint } else emptyList()
-        // R13: apps tagged cert behave as if signed with another key.
-        return (real + records.filter { TestTag.CERT in TestMode.tags(it.profile.name) })
-            .filter { it.packageName in installed }
-            .mapTo(mutableSetOf()) { it.appId }
+        if (key !is SigningKeyCheck.Read) {
+            return records.filter { TestTag.CERT in TestMode.tags(it.profile.name) && it.packageName in installed }.mapTo(mutableSetOf()) { it.appId }
+        }
+        return records.filter { it.packageName in installed && signedWithOtherKey(it, key.fingerprint) }.mapTo(mutableSetOf()) { it.appId }
     }
 
     /** R13: the installed apps as the list shows them; apps tagged missing count as not installed. */
@@ -152,3 +151,10 @@ sealed interface SigningKeyCheck {
 
     data class Read(val fingerprint: String?) : SigningKeyCheck
 }
+
+/**
+ * [record] was last signed with a key other than [current], Shrimpl's key's fingerprint (R11.7); R13:
+ * an app tagged cert behaves as if it were. Whether it is installed is the caller's to check.
+ */
+fun signedWithOtherKey(record: WebAppRecord, current: String?): Boolean =
+    record.signerFingerprint != current || TestTag.CERT in TestMode.tags(record.profile.name)

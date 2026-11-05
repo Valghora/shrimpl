@@ -66,6 +66,7 @@ fun EditScreen(appId: String, onBack: () -> Unit) {
     val record by model.record.collectAsStateWithLifecycle()
     val draft by model.draft.collectAsStateWithLifecycle()
     val installed by model.installed.collectAsStateWithLifecycle()
+    val otherKey by model.otherKey.collectAsStateWithLifecycle()
     val buildState by model.build.state.collectAsStateWithLifecycle()
     val message by model.message.collectAsStateWithLifecycle()
     val offerRemove by model.offerRemove.collectAsStateWithLifecycle()
@@ -138,29 +139,28 @@ fun EditScreen(appId: String, onBack: () -> Unit) {
                             TooltipIconButton(stringResource(R.string.action_more), { menu = true }) {
                                 Icon(Icons.Filled.MoreVert, contentDescription = stringResource(R.string.action_more))
                             }
-                            AppMenu(expanded = menu, onDismissRequest = { menu = false }) {
-                                if (installed == true) {
-                                    AppMenuItem(text = { Text(stringResource(R.string.action_open)) }, onClick = {
-                                        menu = false
-                                        InstalledApps.open(context, current.packageName)
-                                    })
-                                }
-                                AppMenuItem(
-                                    text = { Text(stringResource(if (installed == false) R.string.action_reinstall else R.string.action_rebuild)) },
-                                    onClick = {
-                                        menu = false
-                                        model.rebuild()
-                                    },
-                                )
-                                if (installed == true) {
-                                    AppMenuItem(text = { Text(stringResource(R.string.action_uninstall)) }, onClick = {
-                                        menu = false
-                                        confirmUninstall = true
-                                    })
+                            // R2.3: the app's pending action (Fix, Reinstall) comes first, as in the home menus,
+                            // then Open, Rebuild, and Uninstall or Remove. R11.7: an app signed with another key can
+                            // only be fixed or removed.
+                            val actions: List<Pair<Int, () -> Unit>> = buildList {
+                                if (otherKey) {
+                                    add(R.string.action_fix to model::fix)
                                 } else {
-                                    AppMenuItem(text = { Text(stringResource(R.string.action_remove)) }, onClick = {
+                                    if (installed == false) add(R.string.action_reinstall to model::rebuild)
+                                    if (installed == true) add(R.string.action_open to { InstalledApps.open(context, current.packageName) })
+                                    if (installed != false) add(R.string.action_rebuild to model::rebuild)
+                                }
+                                if (installed == true && !otherKey) {
+                                    add(R.string.action_uninstall to { confirmUninstall = true })
+                                } else {
+                                    add(R.string.action_remove to { model.remove(onBack) })
+                                }
+                            }
+                            AppMenu(expanded = menu, onDismissRequest = { menu = false }) {
+                                actions.forEach { (label, action) ->
+                                    AppMenuItem(text = { Text(stringResource(label)) }, onClick = {
                                         menu = false
-                                        model.remove(onBack)
+                                        action()
                                     })
                                 }
                             }
@@ -175,7 +175,12 @@ fun EditScreen(appId: String, onBack: () -> Unit) {
                     draft = form,
                     onChange = model::update,
                     hints = emptyMap(),
-                    notes = if (installed == false) listOf(Notice(Notice.Kind.INFO, stringResource(R.string.edit_not_installed))) else emptyList(),
+                    notes = when {
+                        installed == false -> listOf(Notice(Notice.Kind.INFO, stringResource(R.string.edit_not_installed)))
+                        // R11.7: saving uninstalls the app first, which clears its site data.
+                        otherKey -> listOf(Notice(Notice.Kind.CAUTION, stringResource(R.string.edit_other_key)))
+                        else -> emptyList()
+                    },
                     storedImage = model::storedImage,
                     bottomInset = padding.calculateBottomPadding(),
                     scrollState = scroll,

@@ -11,6 +11,7 @@ import com.valghora.shrimpl.ui.common.BuildController
 import com.valghora.shrimpl.core.records.WebAppDraft
 import com.valghora.shrimpl.core.profile.ProfileForm
 import com.valghora.shrimpl.core.records.WebAppRecord
+import com.valghora.shrimpl.ui.home.signedWithOtherKey
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -31,6 +32,14 @@ class EditViewModel(private val container: AppContainer, val appId: String) : Vi
     /** Null until checked. */
     val installed: StateFlow<Boolean?> = _installed.asStateFlow()
 
+    private val _otherKey = MutableStateFlow(false)
+
+    /**
+     * Installed but signed with another key (R11.7): it can't be updated, so Save and Fix uninstall it
+     * first, then build it with the current key. False until checked.
+     */
+    val otherKey: StateFlow<Boolean> = _otherKey.asStateFlow()
+
     /** The outcome of the last uninstall, shown once. */
     private val _message = MutableStateFlow<String?>(null)
     val message: StateFlow<String?> = _message.asStateFlow()
@@ -44,6 +53,7 @@ class EditViewModel(private val container: AppContainer, val appId: String) : Vi
             _record.value = saved
             _draft.value = draftOf(saved)
             _installed.value = true
+            _otherKey.value = false
         }
     }
 
@@ -56,7 +66,11 @@ class EditViewModel(private val container: AppContainer, val appId: String) : Vi
     fun refresh(context: Context) {
         val record = _record.value ?: return
         viewModelScope.launch {
-            _installed.value = withContext(Dispatchers.IO) { InstalledApps.find(context, record.packageName) != null }
+            val (found, key) = withContext(Dispatchers.IO) {
+                (InstalledApps.find(context, record.packageName) != null) to container.keys.current()?.fingerprint
+            }
+            _installed.value = found
+            _otherKey.value = found && signedWithOtherKey(record, key)
         }
     }
 
@@ -71,13 +85,23 @@ class EditViewModel(private val container: AppContainer, val appId: String) : Vi
         _draft.value = _record.value?.let(::draftOf)
     }
 
-    /** Saves by building the next version and installing it over the current one (R2.3); false on form errors. */
+    /**
+     * Saves by building the next version and installing it over the current one (R2.3), or for an app
+     * signed with another key by fixing it with the changes (R11.7); false on form errors.
+     */
     fun save(): Boolean {
         val record = _record.value ?: return false
         val draft = _draft.value ?: return false
         val profile = draft.form.result().profile ?: return false
-        build.start(BuildRequest(profile, draft.icons, draft.newImages, existing = record))
+        val request = BuildRequest(profile, draft.icons, draft.newImages, existing = record)
+        if (_otherKey.value) build.startFix(listOf(request)) else build.start(request)
         return true
+    }
+
+    /** Fix (R11.7): uninstalls the app, then builds its saved settings with the current key. */
+    fun fix() {
+        val record = _record.value ?: return
+        build.startFix(listOf(BuildRequest(record.profile, record.iconOptions, newImages = emptyMap(), existing = record)))
     }
 
     /** Builds the stored settings again, e.g. after an uninstall or with a newer template. */

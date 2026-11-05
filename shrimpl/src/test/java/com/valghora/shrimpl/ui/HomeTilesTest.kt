@@ -72,16 +72,17 @@ class HomeTilesTest {
         assertTrue("Squoosh comes after Example", bounds("Squoosh").left > bounds("Example").left)
     }
 
+    /** R2.2, R11.7: the pending action first, then Edit and Remove. */
     @Test
-    fun aTileSignedWithAnotherKeyOffersFixAndRemove() {
+    fun aTileSignedWithAnotherKeyOffersFixEditAndRemove() {
         compose.onNodeWithText("Example").performTouchInput { longClick() }
-        assertEquals(listOf(string(R.string.action_fix), string(R.string.action_remove)), menuItems())
+        assertEquals(listOf(R.string.action_fix, R.string.action_edit, R.string.action_remove).map { string(it) }, menuItems())
     }
 
     @Test
     fun anUninstalledTileOffersTheListsActions() {
         compose.onNodeWithText("Squoosh").performTouchInput { longClick() }
-        assertEquals(listOf(R.string.action_edit, R.string.action_reinstall, R.string.action_remove).map { string(it) }, menuItems())
+        assertEquals(listOf(R.string.action_reinstall, R.string.action_edit, R.string.action_remove).map { string(it) }, menuItems())
     }
 
     @Test

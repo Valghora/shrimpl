@@ -48,6 +48,6 @@ class StateRestorationTest {
         val items = compose.onAllNodes(hasClickAction() and hasAnyAncestor(isPopup()))
             .fetchSemanticsNodes()
             .mapNotNull { node -> node.config.getOrNull(SemanticsProperties.Text)?.joinToString { it.text } }
-        assertEquals(listOf(R.string.action_edit, R.string.action_reinstall, R.string.action_remove).map { string(it) }, items)
+        assertEquals(listOf(R.string.action_reinstall, R.string.action_edit, R.string.action_remove).map { string(it) }, items)
     }
 }

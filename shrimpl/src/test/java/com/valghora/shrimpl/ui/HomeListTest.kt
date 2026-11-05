@@ -75,11 +75,12 @@ class HomeListTest {
         }
     }
 
+    /** R2.2, R11.7: the pending action first, then Edit and Remove. */
     @Test
-    fun installedAppWithAnotherKeyOffersFixAndOnlyRemove() {
+    fun installedAppWithAnotherKeyOffersFixEditAndRemove() {
         compose.onNodeWithContentDescription(string(R.string.action_fix_app, "Example")).assertExists()
         compose.onNodeWithContentDescription(string(R.string.action_app_options, "Example")).performClick()
-        assertEquals(listOf(string(R.string.action_remove)), menuItems())
+        assertEquals(listOf(R.string.action_fix, R.string.action_edit, R.string.action_remove).map { string(it) }, menuItems())
     }
 
     /** R2.2, R11.7: signed with another key but not installed, Squoosh is just not installed. */
@@ -93,7 +94,7 @@ class HomeListTest {
 
     @Test
     fun optionsMenuAndLongPressMenuOfferTheSameActions() {
-        val expected = listOf(R.string.action_edit, R.string.action_reinstall, R.string.action_remove).map { string(it) }
+        val expected = listOf(R.string.action_reinstall, R.string.action_edit, R.string.action_remove).map { string(it) }
         compose.onNodeWithContentDescription(string(R.string.action_app_options, "Squoosh")).performClick()
         assertEquals("the ⋮ menu", expected, menuItems())
         // Edit closes the menu (the screen's onEdit does nothing here).

@@ -420,8 +420,7 @@ private fun AppItem(
         else -> onOpen
     }
     val tapLabel = resolve?.let { stringResource(it.first, record.profile.name) }
-    // Tiles have no ⋮ button or row buttons, so their menu also offers Fix (R2.6).
-    val actions = menuActions(locked, installed != null, updateAvailable, withFix = tile, onOpen, onEdit, onRebuild, onUninstall, onFix, onRemove)
+    val actions = menuActions(locked, installed != null, updateAvailable, onOpen, onEdit, onRebuild, onUninstall, onFix, onRemove)
     // Invariant: the anchor is an empty box at the pressed point. A dropdown menu opens below its anchor
     // and adds its offset to the anchor's bottom, so offsetting the menu itself put it far below a tile
     // (found on a device, docs/BUILD_NOTES.md "Robolectric").
@@ -733,35 +732,34 @@ private fun Modifier.greyedOut(): Modifier = drawWithContent {
 }
 
 /**
- * R2.2: an app's actions, the same in its ⋮ menu and its right-click and long-press menu: Open,
- * Edit, then Update (an update is available), Reinstall (not installed) or Rebuild, then Uninstall
- * or Remove. An app signed with another key ([locked], R11.7) offers only Remove, after Fix
- * [withFix] (a tile, which has no Fix button, R2.6).
+ * An app's ⋮, right-click and long-press menu (R2.1, R2.2, R11.7): its pending action first (Fix,
+ * Update or Reinstall), then Open, Edit, Rebuild and Uninstall or Remove, as they apply. An app signed
+ * with another key offers only Fix, Edit and Remove.
  */
 private fun menuActions(
     locked: Boolean,
     installed: Boolean,
     updateAvailable: Boolean,
-    withFix: Boolean,
     onOpen: () -> Unit,
     onEdit: () -> Unit,
     onRebuild: () -> Unit,
     onUninstall: () -> Unit,
     onFix: () -> Unit,
     onRemove: () -> Unit,
-): List<Pair<Int, () -> Unit>> = if (locked) {
-    listOfNotNull(if (withFix) R.string.action_fix to onFix else null, R.string.action_remove to onRemove)
-} else {
-    buildList {
-        if (installed) add(R.string.action_open to onOpen)
-        add(R.string.action_edit to onEdit)
-        val rebuild = when {
-            !installed -> R.string.action_reinstall
-            updateAvailable -> R.string.action_update
-            else -> R.string.action_rebuild
-        }
-        add(rebuild to onRebuild)
-        add(if (installed) R.string.action_uninstall to onUninstall else R.string.action_remove to onRemove)
+): List<Pair<Int, () -> Unit>> = buildList {
+    val pending = when {
+        locked -> R.string.action_fix to onFix
+        !installed -> R.string.action_reinstall to onRebuild
+        updateAvailable -> R.string.action_update to onRebuild
+        else -> null
+    }
+    pending?.let(::add)
+    if (installed && !locked) add(R.string.action_open to onOpen)
+    add(R.string.action_edit to onEdit)
+    if (pending == null) add(R.string.action_rebuild to onRebuild)
+    when {
+        locked || !installed -> add(R.string.action_remove to onRemove)
+        else -> add(R.string.action_uninstall to onUninstall)
     }
 }
 

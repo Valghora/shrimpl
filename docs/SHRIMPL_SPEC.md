@@ -123,11 +123,9 @@ binary translation) on any device.
   (48 dp), the name with the app's status under it (Not installed, Fix required or Update ready, as on
   a tile, R2.6), an Update button when a newer template is bundled (R2.2), and a more-options
   (three vertical dots) button (`Options for <name>`), lined up under the settings button,
-  offering Open (when installed), Edit, Reinstall (when not installed), and Uninstall (or Remove
-  when not installed). Build numbers are never shown. Tapping an item edits it, or opens the app,
+  offering the app's menu (R2.2). Build numbers are never shown. Tapping an item edits it, or opens the app,
   as the Default click action setting says (R2.5); one that isn't installed is always edited.
-  Right-click or long press opens a menu with Open, Edit, Reinstall / Update / Rebuild, and
-  Uninstall or Remove; a long press vibrates as it opens, rows and tiles alike, unless Haptic feedback
+  Right-click or long press opens the same menu; a long press vibrates as it opens, rows and tiles alike, unless Haptic feedback
   is off (R2.5).
 - R2.2 The list comes from Shrimpl's records (R11) joined with the installed state, re-read on
   resume. A record whose app isn't installed sits at the bottom of the list under a "Not installed"
@@ -141,12 +139,16 @@ binary translation) on any device.
   Reinstall (Material's "replay") in yellow, Update (an up arrow) in green, the two line icons
   weighted to match the solid wrench, matching a tile's badge
   (R2.6). Each app's ⋮
-  menu and its right-click and long-press menu offer the same actions: Open (when installed), Edit,
-  then Update (an update is available), Reinstall (not installed) or Rebuild, then Uninstall or
-  Remove. An empty list says "No apps yet". User-facing text says "app", never "web app".
+  menu and its right-click and long-press menu offer the same actions, the app's pending action
+  always first: Fix (signed with another key, R11.7), Update (an update is available) or Reinstall
+  (not installed); then, as they apply, Open (installed), Edit, Rebuild (no pending action), and
+  Uninstall (installed) or Remove (not installed, or signed with another key). An empty list says "No apps yet". User-facing text says "app", never "web app".
 - R2.3 The edit page offers every profile setting in the form of R3.3 (the app ID is not shown) and the
-  icon options (R10); its ⋮ menu offers Open (when installed), Rebuild (Reinstall when not
-  installed) and Uninstall (confirmed; then offers to remove the record), or Remove. Once something
+  icon options (R10); its ⋮ menu offers, pending action first as on home (R2.2), Reinstall (when
+  not installed), Open and Rebuild (when installed), and Uninstall (when installed; confirmed, then
+  offers to remove the record) or Remove. For an installed app signed with another key (R11.7) it
+  offers Fix, then Remove, a Caution notice says that saving or fixing uninstalls the app (its
+  settings are kept, not its site data), and Save fixes it with the changes. Once something
   is changed, a Save button appears in the top bar, before the ⋮ button (the page has no floating
   button, so its column is centred like Settings'); it rebuilds with the next build number and installs it as an update (same
   package and key, so the app keeps its data). Changes not saved are discarded on leaving the page;
@@ -195,7 +197,7 @@ binary translation) on any device.
   repeats the status line, so accessibility services skip it. Uninstalled apps follow the installed
   ones in the same grid, greyed out as in rows, with no label. Tiles have no ⋮ button or row
   buttons: tapping one does what tapping a row does, and right-click or long press opens the
-  row's menu, which for an app signed with another key offers Fix before Remove. In two panes the
+  row's menu (R2.2). In two panes the
   selected tile takes the highest container color.
 
 ## R3 Configuration page
@@ -452,7 +454,7 @@ The template's behavior is docs/TEMPLATE_SPEC.md. What Shrimpl relies on:
   list stay removed. Apps signed with another key are handled by R11.7.
 - R11.7 An app last signed with a key other than Shrimpl's current one keeps its record either way.
   Installed, its row offers only Fix (an icon-only button with a wrench in the error color, R2.2), tapping the row
-  does nothing (it fixes the app with Resolve on tap, R2.5), and its menus offer only Remove (a tile's menu offers Fix, then Remove, R2.6);
+  does nothing (it fixes the app with Resolve on tap, R2.5), and its menus offer Fix, Edit and Remove (R2.2; Save on the edit page fixes it, R2.3);
   Update all skips it. Fix uninstalls the app (the
   system asks), then rebuilds it from the saved settings signed with the current key (the system
   asks again); the build sheet adds an Uninstalling step before the build's stages, and turning the
@@ -495,7 +497,7 @@ Release builds never read tags or test addresses.
   place, before the usual rules, so the list shows only states real users can reach: update,cert
   shows Fix, as a real mismatch would. Nothing is stored.
   - `update`: Update is offered (R2.2), and the app counts for Update all.
-  - `cert`: signed with another key (R11.7): Fix, the Remove-only menu, the notice and Fix all
+  - `cert`: signed with another key (R11.7): Fix, the Fix, Edit and Remove menu, the notice and Fix all
     (on an installed app; with `missing`, it changes nothing).
   - `missing`: shown as not installed.
 - R13.2 A build of an existing app whose name has tags and keeps them plays back: the sheet goes
