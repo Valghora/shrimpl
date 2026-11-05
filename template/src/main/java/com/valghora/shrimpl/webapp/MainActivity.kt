@@ -107,6 +107,9 @@ class MainActivity : AppCompatActivity() {
 
     /** The Web Share API for the main window and its popups (T6.16). */
     private lateinit var shareBridge: ShareBridge
+
+    /** Open and Save dialogs with file handles for the main window and its popups (T6.17). */
+    private lateinit var fileAccess: FileAccessBridge
     private lateinit var root: FrameLayout
     private lateinit var webView: DesktopWebView
     private lateinit var workspaceMonitor: WorkspaceMonitor
@@ -211,6 +214,7 @@ class MainActivity : AppCompatActivity() {
         controller = DesktopSessionController(prefs, prefs, WebApp.profile.sessionConfig(), fontScalePercent())
         pageDownloads = PageDownloadBridge(this, controller)
         shareBridge = ShareBridge(this, controller)
+        fileAccess = FileAccessBridge(this, controller)
 
         isLargeOrPc = packageManager.hasSystemFeature(PackageManager.FEATURE_PC) ||
             resources.configuration.smallestScreenWidthDp >= 600
@@ -316,6 +320,7 @@ class MainActivity : AppCompatActivity() {
         fileChooserCallback?.onReceiveValue(null)
         fileChooserCallback = null
         pendingChooser = null
+        if (::fileAccess.isInitialized) fileAccess.release()
         destroyMainWebView()
         super.onDestroy()
     }
@@ -452,6 +457,7 @@ class MainActivity : AppCompatActivity() {
         if (WebApp.profile.allowNotifications) NotificationBridge(this, controller).install(webView)
         pageDownloads.install(webView)
         shareBridge.install(webView)
+        fileAccess.install(webView)
         if (WebApp.profile.headerMode == HeaderMode.DYNAMIC) PageColors(controller, ::onPageColors).install(webView)
     }
 
@@ -743,6 +749,7 @@ class MainActivity : AppCompatActivity() {
             }
             pageDownloads.install(child.view)
             shareBridge.install(child.view)
+            fileAccess.install(child.view)
             popups += child
             transport.webView = child.view
             resultMsg.sendToTarget()

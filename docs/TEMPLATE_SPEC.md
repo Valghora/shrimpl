@@ -200,6 +200,20 @@ Unit tests cover every branch with a fixed fixture config, including look-alike 
   sheet opens (Android doesn't report whether the user shared) and rejects with AbortError when no app
   can share. Files aren't shared: `canShare` returns false and `share` rejects with NotAllowedError, so
   sites offer a download instead (T6.15). Parsing is `PageShare` in `:core`.
+- T6.17 Single-file File System Access (WebView has none): a document-start script on the internal
+  origins (nested checks, as T7.1) adds `showOpenFilePicker` and `showSaveFilePicker` when the page lacks
+  them; folders (`showDirectoryPicker`) aren't offered. Open shows Android's Open dialog for any file
+  (sites' own types are often unknown to Android), several with `multiple`; Save shows its Save dialog
+  with the suggested name made safe (as T6.15) and the first plain MIME type from `types`, else a
+  generic type so Android adds no extension. One picker at a time; backing out rejects with AbortError.
+  Each picked file gets a handle key for this session (`FileAccessBridge`, main thread), so the site
+  reads it (`getFile`, sent in 512 KiB parts with its name, type and modification time) and saves back
+  to it silently: `createWritable` gives a WritableStream with `write`, `seek` and `truncate` (strings,
+  buffers, Blobs and write commands; `keepExistingData` starts from the file), which on close sends the
+  whole content in parts to a temporary file, then replaces the picked file (`wt`, else `w`), so a
+  failed save leaves it as it was. Permission queries answer "granted". Handles don't survive a restart
+  of the app: a handle the site kept elsewhere fails with NotFoundError, and the site asks again.
+  Parsing is `FileAccess` in `:core`.
 
 ## T7 Notifications (with `profile.allowNotifications`)
 
@@ -232,7 +246,7 @@ Unit tests cover every branch with a fixed fixture config, including look-alike 
 
 - Google and some other identity providers block sign-in inside embedded WebViews
   (`disallowed_useragent`); the template doesn't try to evade this.
-- Web features WebView lacks (Push API, File System Access, WebUSB and Web Bluetooth, some passkey
+- Web features WebView lacks (Push API, folder access in File System Access, WebUSB and Web Bluetooth, some passkey
   flows) don't work, and a desktop user agent can expose site features that need them.
 - While the workspace sleeps, timers are paused: real-time connections drop and notifications arrive
   after wake. No background delivery.

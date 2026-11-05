@@ -67,7 +67,8 @@ and uploads the APKs.
 ## Limitations
 
 - Google and some other identity providers block sign-in inside embedded WebViews.
-- Web features WebView lacks (Push API, File System Access, WebUSB, some passkey flows) don't work.
+- Web features WebView lacks (Push API, folder access, WebUSB, some passkey flows) don't work. Single-file
+  Open and Save, sharing links, camera uploads and page-made downloads do (docs/TEMPLATE_SPEC.md T6).
 - While the screen is off the page is paused, so notifications arrive after wake; there is no
   background delivery.
 - For personal sideloading, not the Play Store.
