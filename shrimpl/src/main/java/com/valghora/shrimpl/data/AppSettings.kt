@@ -15,6 +15,9 @@ enum class ThemeSetting { SYSTEM, LIGHT, DARK }
 /** What tapping an app in the home list does (R2.5). */
 enum class ClickAction { OPEN, EDIT }
 
+/** Whether rows and tiles show an app's status under its name (R2.5). */
+enum class StatusText { SHOW, HIDE }
+
 /** How the home screen shows the apps (R2.2): rows, or tiles. */
 enum class HomeLayout { LIST, TILES }
 
@@ -48,6 +51,19 @@ class AppSettings(context: Context) {
     fun setResolveOnTap(resolve: Boolean) {
         prefs.edit { putBoolean(KEY_RESOLVE_ON_CLICK, resolve) }
         _resolveOnTap.value = resolve
+    }
+
+    private val _statusText = MutableStateFlow(
+        prefs.getString(KEY_STATUS_TEXT, null)?.let { runCatching { StatusText.valueOf(it) }.getOrNull() } ?: StatusText.SHOW,
+    )
+
+    /** Whether home rows and tiles show the status text (R2.5); shown unless the user hid it. */
+    val statusText: StateFlow<StatusText> = _statusText.asStateFlow()
+
+    /** Saves the Status text setting; the home screen follows at once (R2.5). */
+    fun setStatusText(status: StatusText) {
+        prefs.edit { putString(KEY_STATUS_TEXT, status.name) }
+        _statusText.value = status
     }
 
     private val _hapticFeedback = MutableStateFlow(prefs.getBoolean(KEY_HAPTIC_FEEDBACK, true))
@@ -133,6 +149,7 @@ class AppSettings(context: Context) {
         const val KEY_HOME_LAYOUT = "home_layout"
         // Invariant: the key keeps the switch's old name, so a saved choice survives the rename.
         const val KEY_RESOLVE_ON_CLICK = "resolve_on_click"
+        const val KEY_STATUS_TEXT = "status_text"
         const val KEY_HAPTIC_FEEDBACK = "haptic_feedback"
         const val KEY_BACKED_UP = "key_backed_up"
         const val KEY_PROMPT_SHOWN = "backup_prompt_shown"

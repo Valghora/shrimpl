@@ -54,6 +54,7 @@ import com.valghora.shrimpl.R
 import com.valghora.shrimpl.container
 import com.valghora.shrimpl.data.ClickAction
 import com.valghora.shrimpl.data.InstallMethod
+import com.valghora.shrimpl.data.StatusText
 import com.valghora.shrimpl.data.ThemeSetting
 import com.valghora.shrimpl.ui.common.AppTextField
 import com.valghora.shrimpl.ui.common.DropdownItem
@@ -79,6 +80,7 @@ fun SettingsScreen(inPane: Boolean, onBack: () -> Unit) {
     val clickAction by model.clickAction.collectAsStateWithLifecycle()
     val resolveOnTap by model.resolveOnTap.collectAsStateWithLifecycle()
     val hapticFeedback by model.hapticFeedback.collectAsStateWithLifecycle()
+    val statusText by model.statusText.collectAsStateWithLifecycle()
     val rootAccess by model.rootAccess.collectAsStateWithLifecycle()
     val shizukuAccess by model.shizukuAccess.collectAsStateWithLifecycle()
     val fingerprint by model.fingerprint.collectAsStateWithLifecycle()
@@ -146,6 +148,21 @@ fun SettingsScreen(inPane: Boolean, onBack: () -> Unit) {
                                 ThemeSetting.SYSTEM -> R.string.theme_system_detail
                                 ThemeSetting.DARK -> R.string.theme_dark_detail
                                 ThemeSetting.LIGHT -> R.string.theme_light_detail
+                            },
+                        ),
+                    )
+                    DropdownItem(
+                        stringResource(R.string.status_text),
+                        statusText,
+                        listOf(
+                            StatusText.SHOW to stringResource(R.string.status_text_show),
+                            StatusText.HIDE to stringResource(R.string.status_text_hide),
+                        ),
+                        model::setStatusText,
+                        summary = stringResource(
+                            when (statusText) {
+                                StatusText.SHOW -> R.string.status_text_show_detail
+                                StatusText.HIDE -> R.string.status_text_hide_detail
                             },
                         ),
                     )

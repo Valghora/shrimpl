@@ -81,6 +81,7 @@ import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.onLongClick
 import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Density
@@ -101,6 +102,7 @@ import com.valghora.shrimpl.data.HomeLayout
 import com.valghora.shrimpl.data.InstallMethod
 import com.valghora.shrimpl.data.InstalledApp
 import com.valghora.shrimpl.data.InstalledApps
+import com.valghora.shrimpl.data.StatusText
 import com.valghora.shrimpl.ui.common.AppMenu
 import com.valghora.shrimpl.ui.common.AppMenuItem
 import com.valghora.shrimpl.ui.common.BuildSheet
@@ -153,6 +155,7 @@ fun HomeScreen(
     val clickAction by model.clickAction.collectAsStateWithLifecycle()
     val resolveOnTap by model.resolveOnTap.collectAsStateWithLifecycle()
     val hapticFeedback by model.hapticFeedback.collectAsStateWithLifecycle()
+    val statusText by model.statusText.collectAsStateWithLifecycle()
     val method by model.installMethod.collectAsStateWithLifecycle()
     val signingKey by model.signingKey.collectAsStateWithLifecycle()
     val layout by model.layout.collectAsStateWithLifecycle()
@@ -307,6 +310,7 @@ fun HomeScreen(
                         clickAction = clickAction,
                         resolveOnTap = resolveOnTap,
                         hapticFeedback = hapticFeedback,
+                        showStatus = statusText == StatusText.SHOW,
                         onOpen = { if (app != null) InstalledApps.open(context, record.packageName) else onEdit(record.appId) },
                         onEdit = { onEdit(record.appId) },
                         onRebuild = { model.rebuild(record) },
@@ -381,6 +385,7 @@ private fun AppItem(
     clickAction: ClickAction,
     resolveOnTap: Boolean,
     hapticFeedback: Boolean,
+    showStatus: Boolean,
     onOpen: () -> Unit,
     onEdit: () -> Unit,
     onRebuild: () -> Unit,
@@ -436,9 +441,10 @@ private fun AppItem(
             }
         }
     }
+    val status = appStatus(installed == null, locked, updateAvailable)?.let { stringResource(it) }
     if (tile) {
         Box {
-            AppTile(record, installed, loadImage, updateAvailable, locked, selected, Modifier.appGestures(record.appId, onTap, tapLabel, showOptions, hapticFeedback, showMenu, vibrate) { openMenu(DpOffset(16.dp, 64.dp)) })
+            AppTile(record, installed, loadImage, updateAvailable, locked, selected, showStatus, Modifier.appGestures(record.appId, onTap, tapLabel, showOptions, hapticFeedback, showMenu, vibrate) { openMenu(DpOffset(16.dp, 64.dp)) })
             menu()
         }
         return
@@ -455,6 +461,7 @@ private fun AppItem(
             .background(if (selected) MaterialTheme.colorScheme.onSurface.copy(alpha = HOVER_ALPHA) else Color.Transparent)
             // In two panes the highlighted row is announced as selected.
             .semantics { if (selected) this.selected = true }
+            .statusForAccessibility(if (showStatus) null else status)
             .appGestures(record.appId, onTap, tapLabel, showOptions, hapticFeedback, showMenu, vibrate) { openMenu(DpOffset(24.dp, 48.dp)) },
     ) {
         Row(
@@ -469,11 +476,11 @@ private fun AppItem(
             Box(if (greyed) Modifier.greyedOut() else Modifier) { ItemIcon(record, installed, loadImage) }
             Column(Modifier.weight(1f)) {
                 Text(record.profile.name, style = MaterialTheme.typography.titleMedium, modifier = if (greyed) Modifier.alpha(GREYED_ALPHA) else Modifier)
-                // R2.2: the status under the name, as on a tile; it isn't dimmed with a greyed row, so it
-                // keeps its contrast.
-                appStatus(greyed, locked, updateAvailable)?.let { status ->
+                // R2.2: the status under the name, as on a tile, unless Status text is Hide (R2.5); it
+                // isn't dimmed with a greyed row, so it keeps its contrast.
+                if (showStatus && status != null) {
                     Text(
-                        stringResource(status),
+                        status,
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         maxLines = 1,
@@ -507,6 +514,13 @@ private fun AppItem(
         menu()
     }
 }
+
+/**
+ * With the status text hidden (R2.5), accessibility services still hear an app's [status] (null: none
+ * to add) as the row's or tile's state, since the badge and row button don't say it.
+ */
+private fun Modifier.statusForAccessibility(status: String?): Modifier =
+    if (status == null) this else semantics { stateDescription = status }
 
 /** The status a row or tile shows under the name (R2.2, R2.6), in the order its badge or row button picks. */
 private fun appStatus(notInstalled: Boolean, locked: Boolean, updateAvailable: Boolean): Int? = when {
@@ -582,6 +596,7 @@ private fun AppTile(
     updateAvailable: Boolean,
     locked: Boolean,
     selected: Boolean,
+    showStatus: Boolean,
     modifier: Modifier,
 ) {
     val colors = MaterialTheme.colorScheme
@@ -595,9 +610,11 @@ private fun AppTile(
             .clip(AppShapes.Item)
             .background(tileColor)
             .semantics { if (selected) this.selected = true }
+            .statusForAccessibility(if (showStatus) null else status?.let { stringResource(it) })
             .then(modifier)
             .fillMaxWidth()
-            .padding(start = 8.dp, top = 16.dp, end = 8.dp, bottom = 12.dp),
+            // Without the status line the icon and name sit centred, the same space above and below.
+            .padding(start = 8.dp, top = 16.dp, end = 8.dp, bottom = if (showStatus) 12.dp else 16.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
@@ -621,8 +638,9 @@ private fun AppTile(
             overflow = TextOverflow.Ellipsis,
             modifier = if (greyed) Modifier.alpha(GREYED_ALPHA) else Modifier,
         )
-        // Every tile keeps the status line's height, so the tiles in a line match.
-        Text(
+        // Every tile keeps the status line's height, so the tiles in a line match; with Status text
+        // Hide (R2.5) no tile has it, so they still match.
+        if (showStatus) Text(
             status?.let { stringResource(it) }.orEmpty(),
             style = MaterialTheme.typography.labelSmall,
             color = colors.onSurfaceVariant,
@@ -670,7 +688,8 @@ private fun ItemIcon(record: WebAppRecord, installed: InstalledApp?, loadImage: 
         return
     }
     val layers by rememberIconLayers(record.icon, record.profile.iconBackground, record.profile.resolvedIconForeground, record.updatedAt, loadImage)
-    layers?.let { AdaptiveIcon(it, CircleShape, size) }
+    // The icon's space is kept while its layers load, so a row or tile doesn't grow when they arrive.
+    Box(Modifier.size(size)) { layers?.let { AdaptiveIcon(it, CircleShape, size) } }
 }
 
 private val ROW_ICON_SIZE = 48.dp

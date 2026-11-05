@@ -202,6 +202,11 @@
     <string name="theme_system_detail">Colors adapt based on wallpaper</string>
     <string name="theme_dark_detail">Colors follow system dark theme</string>
     <string name="theme_light_detail">Colors follow system light theme</string>
+    <string name="status_text">Status text</string>
+    <string name="status_text_show">Show</string>
+    <string name="status_text_hide">Hide</string>
+    <string name="status_text_show_detail">Show status text in list rows and tiles</string>
+    <string name="status_text_hide_detail">Hide status text in list rows and tiles</string>
     <string name="settings_appearance">Appearance</string>
     <string name="signing_certificate">Certificate</string>
     <string name="about_app">App Version: %1$s</string>
