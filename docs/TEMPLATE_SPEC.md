@@ -128,7 +128,14 @@ Unit tests cover every branch with a fixed fixture config, including look-alike 
   agent, into Downloads, with a completion notification. Files the page made itself (`blob:`, `data:`)
   follow T6.15; other schemes show a toast. "Save image" takes the same routes.
 - T6.4 File chooser: the page's chooser intent (multiple when asked), results from clip data and
-  data, the callback called exactly once.
+  data, the callback called exactly once. An input that takes images (or names no type) also offers the
+  camera for a photo, one that takes video for a video (`CaptureChoice` in `:core`), beside the files;
+  with the `capture` attribute the camera opens on its own. The camera app writes a full-size file into
+  the cache (`camera/`, shared through the template's FileProvider, `<package>.files`, which the
+  patcher renames with the package); files a day old are cleared when a chooser opens. A web app that
+  declares the camera permission (camera allowed, R7.3) must hold it to start a camera app: a `capture`
+  input asks through T6.5's flow first and falls back to the file picker if refused, and a plain input
+  leaves the camera out until it is granted. One that doesn't declare it starts the camera freely.
 - T6.5 Media permissions: only for internal origins and only resources the profile allows
   (microphone, camera, protected media); Android's runtime permission is requested when missing and
   only granted resources are passed on. Location (with `profile.allowLocation`): internal origins
@@ -185,6 +192,14 @@ Unit tests cover every branch with a fixed fixture config, including look-alike 
   <name> to Downloads". A failure removes the partial file and says "Couldn't save <name>"; a transfer
   over 1 GiB is dropped. A page outside the internal origins, or a WebView without the features, gets
   the unsupported toast. The protocol and naming are in `:core` (`PageDownloads`).
+- T6.16 Web Share API (WebView has none): a document-start script on the internal origins (nested
+  checks, as T7.1) adds `navigator.share` and `navigator.canShare` when the page lacks them. A share of
+  a title, text or link posts to a `WebMessageListener` (`AndroidShare`, internal origins only), which
+  opens Android's share sheet: the text with the link on its own line after it (not repeated when the
+  text has it), or the title when there is neither; the title as subject. The promise resolves once the
+  sheet opens (Android doesn't report whether the user shared) and rejects with AbortError when no app
+  can share. Files aren't shared: `canShare` returns false and `share` rejects with NotAllowedError, so
+  sites offer a download instead (T6.15). Parsing is `PageShare` in `:core`.
 
 ## T7 Notifications (with `profile.allowNotifications`)
 

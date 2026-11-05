@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The files the template's FileProvider may share: camera output for file inputs (T6.4). -->
+<paths>
+    <cache-path
+        name="camera"
+        path="camera/" />
+</paths>

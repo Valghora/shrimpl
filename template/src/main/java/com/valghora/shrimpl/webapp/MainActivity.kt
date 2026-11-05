@@ -23,6 +23,7 @@ import android.os.Message
 import android.os.SystemClock
 import android.print.PrintAttributes
 import android.print.PrintManager
+import android.provider.MediaStore
 import android.provider.Settings
 import android.util.Log
 import android.view.ContextMenu
@@ -56,6 +57,7 @@ import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.animation.addListener
 import androidx.core.content.ContextCompat
+import androidx.core.content.FileProvider
 import androidx.core.content.pm.ShortcutInfoCompat
 import androidx.core.content.pm.ShortcutManagerCompat
 import androidx.core.graphics.drawable.IconCompat
@@ -69,6 +71,7 @@ import androidx.webkit.WebSettingsCompat
 import androidx.webkit.WebViewFeature
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.snackbar.Snackbar
+import com.valghora.shrimpl.core.CaptureChoice
 import com.valghora.shrimpl.core.DesktopSessionController
 import com.valghora.shrimpl.core.HitType
 import com.valghora.shrimpl.core.KeyAction
@@ -82,6 +85,7 @@ import com.valghora.shrimpl.core.profile.HeaderMode
 import com.valghora.shrimpl.core.profile.newWindowShortcutSpec
 import com.valghora.shrimpl.core.profile.sessionConfig
 import com.valghora.shrimpl.core.profile.uaFeaturesActive
+import java.io.File
 import java.net.URISyntaxException
 import java.util.Collections
 import java.util.WeakHashMap
@@ -100,6 +104,9 @@ class MainActivity : AppCompatActivity() {
 
     /** Saves the files pages make themselves (T6.15), for the main window and its popups. */
     private lateinit var pageDownloads: PageDownloadBridge
+
+    /** The Web Share API for the main window and its popups (T6.16). */
+    private lateinit var shareBridge: ShareBridge
     private lateinit var root: FrameLayout
     private lateinit var webView: DesktopWebView
     private lateinit var workspaceMonitor: WorkspaceMonitor
@@ -130,6 +137,12 @@ class MainActivity : AppCompatActivity() {
     private var storeWindowOpenedAt = 0L
 
     private var fileChooserCallback: ValueCallback<Array<Uri>>? = null
+
+    /** The files the camera writes to for the open chooser (T6.4); the one it filled is the result. */
+    private var cameraFiles: List<Pair<File, Uri>> = emptyList()
+
+    /** A file chooser waiting for Android's camera permission (T6.4). */
+    private var pendingChooser: (() -> Unit)? = null
     private var pendingPermissionRequest: PermissionRequest? = null
     private var pendingPermissionResources: List<String> = emptyList()
 
@@ -160,8 +173,16 @@ class MainActivity : AppCompatActivity() {
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
             val callback = fileChooserCallback ?: return@registerForActivityResult
             fileChooserCallback = null
-            callback.onReceiveValue(if (result.resultCode == RESULT_OK) collectUris(result.data) else null)
+            val shot = cameraFiles.filter { (file, _) -> file.length() > 0 }.map { it.second }
+            cameraFiles.forEach { (file, _) -> if (file.length() == 0L) file.delete() }
+            cameraFiles = emptyList()
+            val picked = if (result.resultCode == RESULT_OK) collectUris(result.data)?.filter { it !in shot } else null
+            val uris = picked.orEmpty() + if (result.resultCode == RESULT_OK) shot else emptyList()
+            callback.onReceiveValue(uris.takeIf { it.isNotEmpty() }?.toTypedArray())
         }
+
+    private val cameraPermissionLauncher =
+        registerForActivityResult(ActivityResultContracts.RequestPermission()) { runPendingChooser() }
 
     private val mediaPermissionLauncher =
         registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { finishMediaRequest() }
@@ -189,6 +210,7 @@ class MainActivity : AppCompatActivity() {
         // T5.7: page text starts at the system font size (accessibility skill), not a fixed 100 %.
         controller = DesktopSessionController(prefs, prefs, WebApp.profile.sessionConfig(), fontScalePercent())
         pageDownloads = PageDownloadBridge(this, controller)
+        shareBridge = ShareBridge(this, controller)
 
         isLargeOrPc = packageManager.hasSystemFeature(PackageManager.FEATURE_PC) ||
             resources.configuration.smallestScreenWidthDp >= 600
@@ -293,6 +315,7 @@ class MainActivity : AppCompatActivity() {
         pendingPermissionRequest = null
         fileChooserCallback?.onReceiveValue(null)
         fileChooserCallback = null
+        pendingChooser = null
         destroyMainWebView()
         super.onDestroy()
     }
@@ -428,6 +451,7 @@ class MainActivity : AppCompatActivity() {
         }
         if (WebApp.profile.allowNotifications) NotificationBridge(this, controller).install(webView)
         pageDownloads.install(webView)
+        shareBridge.install(webView)
         if (WebApp.profile.headerMode == HeaderMode.DYNAMIC) PageColors(controller, ::onPageColors).install(webView)
     }
 
@@ -718,6 +742,7 @@ class MainActivity : AppCompatActivity() {
                 download(child.view, url, contentDisposition, mimeType)
             }
             pageDownloads.install(child.view)
+            shareBridge.install(child.view)
             popups += child
             transport.webView = child.view
             resultMsg.sendToTarget()
@@ -806,17 +831,21 @@ class MainActivity : AppCompatActivity() {
         ): Boolean {
             fileChooserCallback?.onReceiveValue(null)
             fileChooserCallback = filePathCallback
-            val intent = fileChooserParams.createIntent()
+            pendingChooser = null
+            val picker = fileChooserParams.createIntent()
             if (fileChooserParams.mode == FileChooserParams.MODE_OPEN_MULTIPLE) {
-                intent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true)
+                picker.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true)
             }
-            try {
-                fileChooserLauncher.launch(intent)
-            } catch (_: ActivityNotFoundException) {
-                fileChooserCallback = null
-                filePathCallback.onReceiveValue(null)
-                toast(R.string.toast_no_app)
+            val choice = CaptureChoice.of(fileChooserParams.acceptTypes.orEmpty().toList(), fileChooserParams.isCaptureEnabled)
+            // The page asked for the camera: Android's permission comes first when this app holds one.
+            if (choice.direct && cameraNeedsPermission()) {
+                pendingChooser = { openFileChooser(picker, choice) }
+                requestForPage(webView.url?.toUri()?.host.orEmpty(), listOf(Manifest.permission.CAMERA), { cameraPermissionLauncher.launch(it.single()) }) {
+                    runPendingChooser()
+                }
+                return true
             }
+            openFileChooser(picker, choice)
             return true
         }
     }
@@ -924,6 +953,74 @@ class MainActivity : AppCompatActivity() {
                     else -> LOCATION
                 }
             }
+        }
+    }
+
+    // ----- Camera for file inputs (T6.4) -----
+
+    /** Opens the file chooser left waiting for the camera permission, once. */
+    private fun runPendingChooser() {
+        val chooser = pendingChooser ?: return
+        pendingChooser = null
+        chooser()
+    }
+
+    /**
+     * The file picker, with the camera beside it when the input takes photos or video and the camera
+     * can be used now, or the camera alone for an input with `capture` (T6.4).
+     */
+    private fun openFileChooser(picker: Intent, choice: CaptureChoice) {
+        val camera = if (choice.any && !cameraNeedsPermission()) cameraIntents(choice) else emptyList()
+        val intent = when {
+            camera.isEmpty() -> picker
+            choice.direct && camera.size == 1 -> camera.single()
+            choice.direct -> Intent.createChooser(camera.first(), null).putExtra(Intent.EXTRA_INITIAL_INTENTS, camera.drop(1).toTypedArray())
+            else -> Intent.createChooser(picker, null).putExtra(Intent.EXTRA_INITIAL_INTENTS, camera.toTypedArray())
+        }
+        try {
+            fileChooserLauncher.launch(intent)
+        } catch (_: ActivityNotFoundException) {
+            cameraFiles.forEach { (file, _) -> file.delete() }
+            cameraFiles = emptyList()
+            fileChooserCallback?.onReceiveValue(null)
+            fileChooserCallback = null
+            toast(R.string.toast_no_app)
+        }
+    }
+
+    /**
+     * An app that declares the camera permission must hold it to start the camera app; one without it
+     * (the web app doesn't use the camera, R7.3) can start it freely, as the camera app takes the photo.
+     */
+    private fun cameraNeedsPermission(): Boolean {
+        val declared = packageManager.getPackageInfo(packageName, PackageManager.PackageInfoFlags.of(PackageManager.GET_PERMISSIONS.toLong()))
+            .requestedPermissions.orEmpty()
+        return Manifest.permission.CAMERA in declared && !isGranted(Manifest.permission.CAMERA)
+    }
+
+    /**
+     * Camera intents that write a full-size photo or video to this app's cache, shared through its
+     * FileProvider; files a day old are cleared first, since pages read theirs soon after picking.
+     */
+    private fun cameraIntents(choice: CaptureChoice): List<Intent> {
+        val dir = File(cacheDir, CAMERA_DIR).apply { mkdirs() }
+        val stale = System.currentTimeMillis() - CAMERA_FILE_LIFETIME_MS
+        dir.listFiles()?.forEach { if (it.lastModified() < stale) it.delete() }
+        val stamp = System.currentTimeMillis()
+        val kinds = listOfNotNull(
+            if (choice.photo) Triple(MediaStore.ACTION_IMAGE_CAPTURE, "photo-$stamp.jpg", "image/jpeg") else null,
+            if (choice.video) Triple(MediaStore.ACTION_VIDEO_CAPTURE, "video-$stamp.mp4", "video/mp4") else null,
+        )
+        cameraFiles = kinds.map { (_, name, _) ->
+            val file = File(dir, name)
+            file to FileProvider.getUriForFile(this, "$packageName$FILE_PROVIDER_SUFFIX", file)
+        }
+        return kinds.zip(cameraFiles).map { (kind, output) ->
+            Intent(kind.first)
+                .putExtra(MediaStore.EXTRA_OUTPUT, output.second)
+                .addFlags(Intent.FLAG_GRANT_WRITE_URI_PERMISSION or Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                // The grant travels with clip data, including through the chooser's initial intents.
+                .apply { clipData = ClipData.newRawUri(null, output.second) }
         }
     }
 
@@ -1251,6 +1348,15 @@ class MainActivity : AppCompatActivity() {
     }
 
     private companion object {
+        /** Where camera photos and videos for file inputs go, in the cache (res/xml/shared_files.xml). */
+        const val CAMERA_DIR = "camera"
+        const val CAMERA_FILE_LIFETIME_MS = 24 * 60 * 60 * 1000L
+
+        /**
+         * The FileProvider's authority after the package name. Invariant: it matches the manifest's
+         * `applicationId` + ".files", which Shrimpl's patcher renames with the package (R8.2).
+         */
+        const val FILE_PROVIDER_SUFFIX = ".files"
         const val MATCH_PARENT = ViewGroup.LayoutParams.MATCH_PARENT
         const val TRANSPARENT = android.graphics.Color.TRANSPARENT
         const val BAR_FADE_MS = 250L
