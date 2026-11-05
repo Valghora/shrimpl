@@ -196,7 +196,7 @@ binary translation) on any device.
   with no tint or color of its own: the icon (56 dp), the name, and a status line in the theme's
   variant text color: "Fix required" (R11.7), "Update ready" (R11.4) or "Not installed" (left out
   when Status text is Hide, R2.5). A round badge
-  on the icon's corner, ringed in the tile's color, marks an app that needs something, in the same
+  on the icon's corner (28 dp with a 16 dp symbol), ringed in the tile's color, marks an app that needs something, in the same
   pastels as the row buttons (R2.2): a red wrench (Fix required), a green up arrow (Update
   ready) or a yellow "replay" icon (Not installed, outside the dimmed icon so it keeps its colors); it
   repeats the status line, so accessibility services skip it. Uninstalled apps follow the installed

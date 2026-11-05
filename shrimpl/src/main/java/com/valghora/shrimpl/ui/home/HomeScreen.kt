@@ -665,7 +665,7 @@ private fun StatusBadge(icon: ImageVector, tone: Tone, ring: Color, modifier: Mo
             .padding(BADGE_RING)
             .background(tone.container, CircleShape),
         contentAlignment = Alignment.Center,
-    ) { Icon(icon, contentDescription = null, tint = tone.content, modifier = Modifier.size(12.dp)) }
+    ) { Icon(icon, contentDescription = null, tint = tone.content, modifier = Modifier.size(BADGE_SYMBOL)) }
 }
 
 @Composable
@@ -713,10 +713,14 @@ private val GRID_GAP = 8.dp
 
 
 
-/** A tile's status badge: 22 dp across, with a 2 dp ring, overhanging the icon's corner. */
-private val BADGE_SIZE = 22.dp
+/**
+ * A tile's status badge (R2.6): 28 dp across with a 2 dp ring, large enough that its symbol reads at a
+ * glance, overhanging the icon's corner by a quarter of its size so it covers little of the icon.
+ */
+private val BADGE_SIZE = 28.dp
 private val BADGE_RING = 2.dp
-private val BADGE_OVERHANG = 5.dp
+private val BADGE_OVERHANG = 7.dp
+private val BADGE_SYMBOL = 16.dp
 
 /** How far each row's highlight sits in from the sides. */
 private val ROW_INSET = 4.dp
