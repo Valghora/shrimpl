@@ -189,7 +189,9 @@ binary translation) on any device.
   snapped to half a laptop screen (about 850 dp). With a font size above the default, a name may take
   a second line instead of being cut short, and every tile keeps two lines' height so the tiles in a
   line match, a one-line name centred in them; the number across doesn't change. Each tile is a card with Item corners (R1.5) in the theme's container color,
-  with no tint or color of its own: the icon (56 dp) and the name, 16 dp of space above and below.
+  with no tint or color of its own: the icon (56 dp) and the name, 16 dp of space above and below;
+  the name's line spacing above its first line and below its last is trimmed, so the space under it
+  looks the same as the space above the icon.
   There is no status text; accessibility services hear the status ("Fix required", R11.7; "Update
   ready", R11.4; "Not installed") as the tile's state. A round badge
   on the icon's corner (28 dp with a 16 dp symbol), ringed in the tile's color, marks an app that needs something, in the same

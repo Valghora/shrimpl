@@ -82,6 +82,7 @@ import androidx.compose.ui.semantics.onLongClick
 import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.stateDescription
+import androidx.compose.ui.text.style.LineHeightStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Density
@@ -613,11 +614,16 @@ private fun AppTile(
         // R2.6: with a larger font size a name may take a second line rather than be cut short; every
         // tile then keeps two lines' height, so the tiles in a line still match, and a one-line name
         // sits centred in them. An empty text of that many lines sets the height for the font size.
+        // The line spacing above the first line and below the last is trimmed, so the space under the
+        // name looks like the 16 dp above the icon (found on a device: it looked half again as tall).
+        val nameStyle = MaterialTheme.typography.bodyMedium.copy(
+            lineHeightStyle = LineHeightStyle(LineHeightStyle.Alignment.Center, LineHeightStyle.Trim.Both),
+        )
         Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
-            Text("", style = MaterialTheme.typography.bodyMedium, minLines = nameLines, modifier = Modifier.clearAndSetSemantics {})
+            Text("", style = nameStyle, minLines = nameLines, modifier = Modifier.clearAndSetSemantics {})
             Text(
                 record.profile.name,
-                style = MaterialTheme.typography.bodyMedium,
+                style = nameStyle,
                 textAlign = TextAlign.Center,
                 maxLines = nameLines,
                 overflow = TextOverflow.Ellipsis,
