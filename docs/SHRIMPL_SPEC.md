@@ -120,8 +120,8 @@ binary translation) on any device.
   the web apps Shrimpl created (one column on phones, more on wide windows). Each app is a
   borderless row on the page background; its pill (Row corners, R1.5) shows only as its press
   and hover highlight, and in two panes as the selection (the hover tint, so a tonal button on it stays visible): the installed icon
-  (48 dp), the name with the app's status under it (Not installed, Fix required or Update ready, as on
-  a tile, R2.6; unless Status text is Hide, R2.5), an Update button when a newer template is bundled (R2.2), and a more-options
+  (48 dp), the name (no status text: accessibility services hear the status, "Not installed", "Fix
+  required" or "Update ready", as the row's state, R2.2), an Update button when a newer template is bundled (R2.2), and a more-options
   (three vertical dots) button (`Options for <name>`), lined up under the settings button,
   offering the app's menu (R2.2). Build numbers are never shown. Tapping an item edits it, or opens the app,
   as the Default click action setting says (R2.5); one that isn't installed is always edited.
@@ -166,11 +166,7 @@ binary translation) on any device.
   you for permission to perform each update. To update your apps without prompts, switch your
   installation method to Shizuku or Root via Settings.", with Cancel and Update all.
 - R2.5 Settings, from the top bar button or Ctrl+,:
-  - **Appearance:** Theme: System (dynamic color from the wallpaper), Light or Dark. Status text:
-    Show (the default; "Show an app's status text in its list row or tile") or Hide ("Hide an app's
-    status text in its list row or tile"). Hidden, rows and tiles drop the status line (R2.1, R2.6), a tile shrinks to its
-    icon and name, centred with equal space above and below, and accessibility services still hear
-    the status as the row's or tile's state; badges and row buttons stay.
+  - **Appearance:** Theme: System (dynamic color from the wallpaper), Light or Dark.
   - **Installation:** Method (R6.2), and the Request Root / Request Shizuku item when one is chosen.
   - **Behavior:** Default click action: Edit (the default; "Edit the application on click") or Open
     ("Launch the application on click"). Resolve on tap (a switch, off by default; "Override default tap
@@ -192,14 +188,14 @@ binary translation) on any device.
   phone width, so names aren't cut short: three across beside the detail pane, six across a window
   snapped to half a laptop screen (about 850 dp). With a font size above the default, a name may take
   a second line instead of being cut short, and every tile keeps two lines' height so the tiles in a
-  line match; the number across doesn't change. Each tile is a card with Item corners (R1.5) in the theme's container color,
-  with no tint or color of its own: the icon (56 dp), the name, and a status line in the theme's
-  variant text color: "Fix required" (R11.7), "Update ready" (R11.4) or "Not installed" (left out
-  when Status text is Hide, R2.5). A round badge
+  line match, a one-line name centred in them; the number across doesn't change. Each tile is a card with Item corners (R1.5) in the theme's container color,
+  with no tint or color of its own: the icon (56 dp) and the name, 16 dp of space above and below.
+  There is no status text; accessibility services hear the status ("Fix required", R11.7; "Update
+  ready", R11.4; "Not installed") as the tile's state. A round badge
   on the icon's corner (28 dp with a 16 dp symbol), ringed in the tile's color, marks an app that needs something, in the same
   pastels as the row buttons (R2.2): a red wrench (Fix required), a green up arrow (Update
-  ready) or a yellow "replay" icon (Not installed, outside the dimmed icon so it keeps its colors); it
-  repeats the status line, so accessibility services skip it. Uninstalled apps follow the installed
+  ready) or a yellow "replay" icon (Not installed, outside the dimmed icon so it keeps its colors);
+  accessibility services skip it, as the tile states the status. Uninstalled apps follow the installed
   ones in the same grid, greyed out as in rows, with no label. Tiles have no ⋮ button or row
   buttons: tapping one does what tapping a row does, and right-click or long press opens the
   row's menu (R2.2). In two panes the

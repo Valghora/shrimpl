@@ -8,6 +8,7 @@ import androidx.compose.ui.test.SemanticsMatcher
 import androidx.compose.ui.test.hasAnyAncestor
 import androidx.compose.ui.test.hasClickAction
 import androidx.compose.ui.test.hasContentDescription
+import androidx.compose.ui.test.hasStateDescription
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.isPopup
 import androidx.compose.ui.test.junit4.v2.createComposeRule
@@ -44,10 +45,10 @@ class HomeTilesTest {
             MaterialTheme { HomeScreen(selected = null, showCreateButton = true, onCreate = {}, onSettings = {}, onEdit = {}) }
         }
         // Example shows as installed: its tile says it needs a fix.
-        compose.waitUntil(LOAD_TIMEOUT_MS) { exists(string(R.string.status_fix_required)) }
+        compose.waitUntil(LOAD_TIMEOUT_MS) {
+            compose.onAllNodes(hasStateDescription(string(R.string.status_fix_required))).fetchSemanticsNodes().isNotEmpty()
+        }
     }
-
-    private fun exists(text: String) = compose.onAllNodes(hasText(text)).fetchSemanticsNodes().isNotEmpty()
 
     private fun bounds(name: String) = compose.onAllNodes(hasText(name) and SemanticsMatcher.keyIsDefined(SemanticsActions.OnLongClick))
         .fetchSemanticsNodes().single().boundsInRoot
@@ -56,9 +57,14 @@ class HomeTilesTest {
         .fetchSemanticsNodes()
         .mapNotNull { node -> node.config.getOrNull(SemanticsProperties.Text)?.joinToString { it.text } }
 
+    /** R2.6: no status text; accessibility services hear the status as the tile's state. */
     @Test
     fun tilesSayTheirStatusWithoutRowButtons() {
-        compose.onNodeWithText(string(R.string.home_not_installed)).assertExists()
+        compose.onNode(hasText("Squoosh") and hasStateDescription(string(R.string.home_not_installed))).assertExists()
+        assertTrue(
+            "no status text",
+            compose.onAllNodes(hasText(string(R.string.status_fix_required)), useUnmergedTree = true).fetchSemanticsNodes().isEmpty(),
+        )
         assertTrue(
             "no ⋮ buttons",
             compose.onAllNodes(hasContentDescription(string(R.string.action_app_options, "Example"))).fetchSemanticsNodes().isEmpty(),

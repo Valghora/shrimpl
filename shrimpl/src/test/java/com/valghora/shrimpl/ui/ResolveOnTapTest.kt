@@ -6,6 +6,7 @@ import androidx.compose.ui.semantics.SemanticsProperties
 import androidx.compose.ui.test.SemanticsMatcher
 import androidx.compose.ui.test.assertIsOff
 import androidx.compose.ui.test.assertIsOn
+import androidx.compose.ui.test.hasStateDescription
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.junit4.v2.createComposeRule
 import androidx.compose.ui.test.onNodeWithText
@@ -70,7 +71,7 @@ class ResolveOnTapTest {
     @Test
     fun tilesOfferTheirPendingActionOnATap() {
         home(HomeLayout.TILES)
-        compose.waitUntil(LOAD_TIMEOUT_MS) { compose.onAllNodes(hasText(string(R.string.status_fix_required))).fetchSemanticsNodes().isNotEmpty() }
+        compose.waitUntil(LOAD_TIMEOUT_MS) { compose.onAllNodes(hasStateDescription(string(R.string.status_fix_required))).fetchSemanticsNodes().isNotEmpty() }
         assertEquals(string(R.string.action_fix_app, "Example"), tapLabel("Example"))
     }
 

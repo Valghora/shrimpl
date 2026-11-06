@@ -12,7 +12,6 @@ import com.valghora.shrimpl.data.HomeLayout
 import com.valghora.shrimpl.data.InstallMethod
 import com.valghora.shrimpl.data.InstalledApp
 import com.valghora.shrimpl.data.InstalledApps
-import com.valghora.shrimpl.data.StatusText
 import com.valghora.shrimpl.install.InstallResult
 import com.valghora.shrimpl.testing.TestMode
 import com.valghora.shrimpl.ui.common.BuildController
@@ -41,7 +40,6 @@ class HomeViewModel(private val container: AppContainer) : ViewModel() {
     /** Tapping an installed app with a pending action does that action (R2.5). */
     val resolveOnTap: StateFlow<Boolean> = container.settings.resolveOnTap
     val hapticFeedback: StateFlow<Boolean> = container.settings.hapticFeedback
-    val statusText: StateFlow<StatusText> = container.settings.statusText
 
     /** Switches between rows and tiles, and keeps the choice (R2.6). */
     fun setLayout(layout: HomeLayout) = container.settings.setHomeLayout(layout)

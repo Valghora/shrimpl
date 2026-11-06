@@ -102,7 +102,6 @@ import com.valghora.shrimpl.data.HomeLayout
 import com.valghora.shrimpl.data.InstallMethod
 import com.valghora.shrimpl.data.InstalledApp
 import com.valghora.shrimpl.data.InstalledApps
-import com.valghora.shrimpl.data.StatusText
 import com.valghora.shrimpl.ui.common.AppMenu
 import com.valghora.shrimpl.ui.common.AppMenuItem
 import com.valghora.shrimpl.ui.common.BuildSheet
@@ -155,7 +154,6 @@ fun HomeScreen(
     val clickAction by model.clickAction.collectAsStateWithLifecycle()
     val resolveOnTap by model.resolveOnTap.collectAsStateWithLifecycle()
     val hapticFeedback by model.hapticFeedback.collectAsStateWithLifecycle()
-    val statusText by model.statusText.collectAsStateWithLifecycle()
     val method by model.installMethod.collectAsStateWithLifecycle()
     val signingKey by model.signingKey.collectAsStateWithLifecycle()
     val layout by model.layout.collectAsStateWithLifecycle()
@@ -310,7 +308,6 @@ fun HomeScreen(
                         clickAction = clickAction,
                         resolveOnTap = resolveOnTap,
                         hapticFeedback = hapticFeedback,
-                        showStatus = statusText == StatusText.SHOW,
                         onOpen = { if (app != null) InstalledApps.open(context, record.packageName) else onEdit(record.appId) },
                         onEdit = { onEdit(record.appId) },
                         onRebuild = { model.rebuild(record) },
@@ -385,7 +382,6 @@ private fun AppItem(
     clickAction: ClickAction,
     resolveOnTap: Boolean,
     hapticFeedback: Boolean,
-    showStatus: Boolean,
     onOpen: () -> Unit,
     onEdit: () -> Unit,
     onRebuild: () -> Unit,
@@ -444,7 +440,7 @@ private fun AppItem(
     val status = appStatus(installed == null, locked, updateAvailable)?.let { stringResource(it) }
     if (tile) {
         Box {
-            AppTile(record, installed, loadImage, updateAvailable, locked, selected, showStatus, Modifier.appGestures(record.appId, onTap, tapLabel, showOptions, hapticFeedback, showMenu, vibrate) { openMenu(DpOffset(16.dp, 64.dp)) })
+            AppTile(record, installed, loadImage, updateAvailable, locked, selected, Modifier.appGestures(record.appId, onTap, tapLabel, showOptions, hapticFeedback, showMenu, vibrate) { openMenu(DpOffset(16.dp, 64.dp)) })
             menu()
         }
         return
@@ -461,7 +457,7 @@ private fun AppItem(
             .background(if (selected) MaterialTheme.colorScheme.onSurface.copy(alpha = HOVER_ALPHA) else Color.Transparent)
             // In two panes the highlighted row is announced as selected.
             .semantics { if (selected) this.selected = true }
-            .statusForAccessibility(if (showStatus) null else status)
+            .statusForAccessibility(status)
             .appGestures(record.appId, onTap, tapLabel, showOptions, hapticFeedback, showMenu, vibrate) { openMenu(DpOffset(24.dp, 48.dp)) },
     ) {
         Row(
@@ -476,17 +472,6 @@ private fun AppItem(
             Box(if (greyed) Modifier.greyedOut() else Modifier) { ItemIcon(record, installed, loadImage) }
             Column(Modifier.weight(1f)) {
                 Text(record.profile.name, style = MaterialTheme.typography.titleMedium, modifier = if (greyed) Modifier.alpha(GREYED_ALPHA) else Modifier)
-                // R2.2: the status under the name, as on a tile, unless Status text is Hide (R2.5); it
-                // isn't dimmed with a greyed row, so it keeps its contrast.
-                if (showStatus && status != null) {
-                    Text(
-                        status,
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                    )
-                }
             }
             // R2.2: a newer template is bundled; Update rebuilds this app with it. R11.7: an app signed
             // with another key offers Fix (uninstall, then rebuild with the current key).
@@ -516,13 +501,13 @@ private fun AppItem(
 }
 
 /**
- * With the status text hidden (R2.5), accessibility services still hear an app's [status] (null: none
- * to add) as the row's or tile's state, since the badge and row button don't say it.
+ * Accessibility services hear an app's [status] (null: none) as its row's or tile's state (R2.2,
+ * R2.6): no text shows it, and the badge and row button don't say it.
  */
 private fun Modifier.statusForAccessibility(status: String?): Modifier =
     if (status == null) this else semantics { stateDescription = status }
 
-/** The status a row or tile shows under the name (R2.2, R2.6), in the order its badge or row button picks. */
+/** An app's status (R2.2, R2.6), for accessibility services, in the order its badge or row button picks. */
 private fun appStatus(notInstalled: Boolean, locked: Boolean, updateAvailable: Boolean): Int? = when {
     notInstalled -> R.string.home_not_installed
     locked -> R.string.status_fix_required
@@ -583,10 +568,10 @@ private fun Modifier.appGestures(
 )
 
 /**
- * R2.6: a tile in the theme's container color: the icon (56 dp), the name, and a status line (Needs
- * fix, Update ready or Not installed). A badge on the icon marks an app that needs something: a
- * wrench in the theme's error color (signed with another key, R11.7) or a refresh arrow in its
- * primary color (a template update, R11.4).
+ * R2.6: a tile in the theme's container color: the icon (56 dp) and the name. A badge on the icon
+ * marks an app that needs something (R2.2's pastels): a red wrench (signed with another key, R11.7), a
+ * green up arrow (a template update, R11.4) or a yellow replay (not installed); accessibility services
+ * hear it as the tile's state.
  */
 @Composable
 private fun AppTile(
@@ -596,7 +581,6 @@ private fun AppTile(
     updateAvailable: Boolean,
     locked: Boolean,
     selected: Boolean,
-    showStatus: Boolean,
     modifier: Modifier,
 ) {
     val colors = MaterialTheme.colorScheme
@@ -610,11 +594,10 @@ private fun AppTile(
             .clip(AppShapes.Item)
             .background(tileColor)
             .semantics { if (selected) this.selected = true }
-            .statusForAccessibility(if (showStatus) null else status?.let { stringResource(it) })
+            .statusForAccessibility(status?.let { stringResource(it) })
             .then(modifier)
             .fillMaxWidth()
-            // Without the status line the icon and name sit centred, the same space above and below.
-            .padding(start = 8.dp, top = 16.dp, end = 8.dp, bottom = if (showStatus) 12.dp else 16.dp),
+            .padding(horizontal = 8.dp, vertical = 16.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
@@ -627,33 +610,26 @@ private fun AppTile(
                 update -> StatusBadge(UpdateIcon, Tone.SUCCESS, tileColor, Modifier.align(Alignment.TopEnd))
             }
         }
-        Text(
-            record.profile.name,
-            style = MaterialTheme.typography.bodyMedium,
-            textAlign = TextAlign.Center,
-            // R2.6: with a larger font size a name may take a second line rather than be cut short;
-            // every tile then keeps two lines' height, so the tiles in a line still match.
-            minLines = nameLines,
-            maxLines = nameLines,
-            overflow = TextOverflow.Ellipsis,
-            modifier = if (greyed) Modifier.alpha(GREYED_ALPHA) else Modifier,
-        )
-        // Every tile keeps the status line's height, so the tiles in a line match; with Status text
-        // Hide (R2.5) no tile has it, so they still match.
-        if (showStatus) Text(
-            status?.let { stringResource(it) }.orEmpty(),
-            style = MaterialTheme.typography.labelSmall,
-            color = colors.onSurfaceVariant,
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis,
-            modifier = if (status == null) Modifier.clearAndSetSemantics {} else Modifier,
-        )
+        // R2.6: with a larger font size a name may take a second line rather than be cut short; every
+        // tile then keeps two lines' height, so the tiles in a line still match, and a one-line name
+        // sits centred in them. An empty text of that many lines sets the height for the font size.
+        Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+            Text("", style = MaterialTheme.typography.bodyMedium, minLines = nameLines, modifier = Modifier.clearAndSetSemantics {})
+            Text(
+                record.profile.name,
+                style = MaterialTheme.typography.bodyMedium,
+                textAlign = TextAlign.Center,
+                maxLines = nameLines,
+                overflow = TextOverflow.Ellipsis,
+                modifier = if (greyed) Modifier.alpha(GREYED_ALPHA) else Modifier,
+            )
+        }
     }
 }
 
 /**
- * A round badge on a tile's icon, ringed in the tile's color so it stands clear of the icon. It
- * repeats the status line, so accessibility services skip it.
+ * A round badge on a tile's icon, ringed in the tile's color so it stands clear of the icon. The tile
+ * states the status for accessibility services, so they skip the badge.
  */
 @Composable
 private fun StatusBadge(icon: ImageVector, tone: Tone, ring: Color, modifier: Modifier) {

@@ -8,6 +8,7 @@ import androidx.compose.ui.test.hasAnyAncestor
 import androidx.compose.ui.test.hasClickAction
 import androidx.compose.ui.test.hasContentDescription
 import androidx.compose.ui.test.hasScrollAction
+import androidx.compose.ui.test.hasStateDescription
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.isHeading
 import androidx.compose.ui.test.isPopup
@@ -62,17 +63,17 @@ class HomeListTest {
         assertTrue("Squoosh is below the label", top("Squoosh") > label)
     }
 
-    /** R2.2: each row says its status under the name, as a tile does. */
+    /** R2.2: rows show no status text; accessibility services hear the status as the row's state. */
     @Test
-    fun rowsShowTheirStatusUnderTheName() {
-        for ((name, status) in listOf("Example" to R.string.status_fix_required, "Squoosh" to R.string.home_not_installed)) {
-            val nameNode = compose.onNode(hasText(name), useUnmergedTree = true).fetchSemanticsNode().boundsInRoot
-            // The status sharing the name's left edge, just under it; Squoosh's is the row's, not the label above.
-            val under = compose.onAllNodes(hasText(string(status)), useUnmergedTree = true).fetchSemanticsNodes()
-                .map { it.boundsInRoot }
-                .filter { it.left == nameNode.left && it.top >= nameNode.bottom && it.top - nameNode.bottom < nameNode.height }
-            assertEquals("$name's status is under its name", 1, under.size)
-        }
+    fun rowsSayTheirStatusOnlyToAccessibilityServices() {
+        compose.onNode(hasText("Example") and hasStateDescription(string(R.string.status_fix_required))).assertExists()
+        compose.onNode(hasText("Squoosh") and hasStateDescription(string(R.string.home_not_installed))).assertExists()
+        assertTrue(
+            "no status text",
+            compose.onAllNodes(hasText(string(R.string.status_fix_required)), useUnmergedTree = true).fetchSemanticsNodes().isEmpty(),
+        )
+        // "Not installed" shows only as the label above the uninstalled apps.
+        assertEquals(1, compose.onAllNodes(hasText(string(R.string.home_not_installed)), useUnmergedTree = true).fetchSemanticsNodes().size)
     }
 
     /** R2.2, R11.7: the pending action first, then Edit and Remove. */

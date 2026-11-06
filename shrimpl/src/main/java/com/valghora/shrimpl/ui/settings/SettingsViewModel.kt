@@ -11,7 +11,6 @@ import com.valghora.shrimpl.AppContainer
 import com.valghora.shrimpl.data.ClickAction
 import com.valghora.shrimpl.data.InstallMethod
 import com.valghora.shrimpl.data.SigningKeyStore
-import com.valghora.shrimpl.data.StatusText
 import com.valghora.shrimpl.data.ThemeSetting
 import com.valghora.shrimpl.install.Availability
 import com.valghora.shrimpl.core.build.SigningKey
@@ -31,7 +30,6 @@ class SettingsViewModel(private val container: AppContainer) : ViewModel() {
     val clickAction: StateFlow<ClickAction> = container.settings.clickAction
     val resolveOnTap: StateFlow<Boolean> = container.settings.resolveOnTap
     val hapticFeedback: StateFlow<Boolean> = container.settings.hapticFeedback
-    val statusText: StateFlow<StatusText> = container.settings.statusText
 
     /** Where a root or Shizuku access request stands (the Request Access button's states). */
     enum class Access { NOT_REQUESTED, REQUESTING, GRANTED, FAILED }
@@ -127,9 +125,6 @@ class SettingsViewModel(private val container: AppContainer) : ViewModel() {
 
     /** Saves the Resolve on tap switch (R2.5). */
     fun setResolveOnTap(resolve: Boolean) = container.settings.setResolveOnTap(resolve)
-
-    /** Saves the Status text setting (R2.5). */
-    fun setStatusText(status: StatusText) = container.settings.setStatusText(status)
 
     /** Saves the Haptic feedback switch (R2.5). */
     fun setHapticFeedback(enabled: Boolean) = container.settings.setHapticFeedback(enabled)
