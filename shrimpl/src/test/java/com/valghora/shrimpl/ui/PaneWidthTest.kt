@@ -146,11 +146,11 @@ class PaneWidthTest {
     private fun tileWidth(name: String) = compose.onAllNodes(hasText(name) and SemanticsMatcher.keyIsDefined(SemanticsActions.OnLongClick))
         .fetchSemanticsNodes().first().boundsInRoot.width / density
 
-    /** Three tiles at about their phone width at [width] dp, and room for an app's settings. */
-    private fun threeTilesAndRoomForSettings(width: Int) {
-        launch(width)
+    /** Three tiles (four from 1600 dp) at about their phone width at [width] dp, and room for an app's settings. */
+    private fun threeTilesAndRoomForSettings(width: Int, sharing: Boolean = true) {
+        launch(width, sharing)
         assertTrue("two panes", twoPanes)
-        assertEquals(3, tilesAcross())
+        assertEquals(if (width >= 1600) 4 else 3, tilesAcross())
         assertTrue("tiles near their phone width (${tileWidth("Example")} dp)", tileWidth("Example") >= 118f)
         assertTrue("the settings column is at least a phone's width", settingsColumn() >= 360f)
     }
@@ -163,6 +163,16 @@ class PaneWidthTest {
 
     @Test
     fun aLargeWindow() = threeTilesAndRoomForSettings(1200)
+
+    @Test
+    fun justBelowExtraLargeThereAreThreeTiles() = threeTilesAndRoomForSettings(1599)
+
+    @Test
+    fun anExtraLargeWindowHasFourTiles() = threeTilesAndRoomForSettings(1600)
+
+    /** The owner's Dell XPS Googlebook at full screen (docs/GOOGLEBOOKS.md). */
+    @Test
+    fun theXpsFullScreenHasFourTiles() = threeTilesAndRoomForSettings(1707, sharing = false)
 
     @Test
     fun anExtraLargeWindowWithTheSettingsAtTheirMaximum() {

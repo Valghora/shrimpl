@@ -72,8 +72,10 @@ binary translation) on any device.
     from 1000 dp, so any Googlebook window snapped to half the screen shows one pane at a time
     (ADAPTIVE.md deviations). A separating hinge always splits them. With two panes the home list sits
     beside a detail pane as rounded cards on the window background, 24 dp apart: the list
-    is Material's 412 dp list pane at every two-pane width: three tiles across (R2.6), each about
-    119 dp, near the 124 dp they get on a phone, so none is squeezed. The detail takes the rest, so an
+    is Material's 412 dp list pane, three tiles across (R2.6), each about 119 dp, near the 124 dp they
+    get on a phone, so none is squeezed; from Material's Extra-large width class (1600 dp, every
+    Googlebook's full screen) it is 540 dp, four tiles of the same size, as the detail pane then has
+    room to spare beside its 720 dp column. The detail takes the rest, so an
     app's settings always get at least a phone's width. The panes can't be resized, and resizing the window keeps what each pane shows and any unsaved
     changes. On a separating hinge (a dual-screen
     phone, a foldable half-open like a book) the panes split along the hinge, one on each side. The
@@ -185,7 +187,8 @@ binary translation) on any device.
 - R2.6 Tiles: the layout switch shows the apps as tiles instead of rows, and the choice is kept.
   Tiles flow three across on phones (at least 100 dp wide, 8 dp apart, 12 dp in from the sides),
   more on wide windows; from the Medium width class (600 dp) a tile is at least 118 dp wide, near its
-  phone width, so names aren't cut short: three across beside the detail pane, six across a window
+  phone width, so names aren't cut short: three across beside the detail pane (four from 1600 dp,
+  R1.1), six across a window
   snapped to half a laptop screen (about 850 dp). With a font size above the default, a name may take
   a second line instead of being cut short, and every tile keeps two lines' height so the tiles in a
   line match, a one-line name centred in them; the number across doesn't change. Each tile is a card with Item corners (R1.5) in the theme's container color,

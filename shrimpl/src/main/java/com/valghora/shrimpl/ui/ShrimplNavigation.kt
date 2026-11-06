@@ -83,7 +83,8 @@ enum class AppShortcut { NEW_WEB_APP, SETTINGS }
 fun ShrimplNavigation(shortcuts: Flow<AppShortcut>, sharingScreen: Boolean = false) {
     val backStack = rememberNavBackStack(HomeKey)
     // R1.1: the list pane is Material's 412 dp, three tiles across as on a phone, and the detail takes
-    // the rest. An app filling the screen (a tablet, an unfolded foldable) splits at Material's 840 dp. A
+    // the rest; an Extra-large window (a Googlebook's full screen) widens it to four tiles of the same
+    // size, as the detail has room to spare beside its 720 dp column. An app filling the screen (a tablet, an unfolded foldable) splits at Material's 840 dp. A
     // window sharing the screen ([sharingScreen]: snapped, split screen, a desktop window) needs
     // SHARED_TWO_PANE_MIN_WIDTH, so a window snapped to half a Googlebook's screen (849 to about 956 dp,
     // docs/GOOGLEBOOKS.md) shows one pane at a time. On a dual-screen phone or a foldable half-open like a book, the default
@@ -95,7 +96,7 @@ fun ShrimplNavigation(shortcuts: Flow<AppShortcut>, sharingScreen: Boolean = fal
     val roomForTwo = !sharingScreen || windowWidth >= SHARED_TWO_PANE_MIN_WIDTH || materialDirective.excludedBounds.isNotEmpty()
     val directive = materialDirective.copy(
         maxHorizontalPartitions = if (roomForTwo) materialDirective.maxHorizontalPartitions else 1,
-        defaultPanePreferredWidth = startInset + LIST_PANE_WIDTH,
+        defaultPanePreferredWidth = startInset + if (windowWidth >= EXTRA_LARGE_WIDTH) WIDE_LIST_PANE_WIDTH else LIST_PANE_WIDTH,
         horizontalPartitionSpacerSize = PANE_GAP,
     )
     // Back closes what the detail pane shows, even when both panes stay on screen (Material's default
@@ -207,6 +208,15 @@ private val PANE_GAP = 24.dp
 
 /** Material's list pane width; with the card's 16 dp margin it fits three tiles of about 119 dp. */
 private val LIST_PANE_WIDTH = 412.dp
+
+/**
+ * The list pane in an Extra-large window: four tiles of the same 119 dp. The detail pane keeps at
+ * least 1020 dp, well past the settings' 720 dp column (R3.5).
+ */
+private val WIDE_LIST_PANE_WIDTH = 540.dp
+
+/** Material's Extra-large width class; every Googlebook's full screen (1707 dp or more) is in it. */
+private val EXTRA_LARGE_WIDTH = 1600.dp
 
 /**
  * The narrowest window sharing the screen with two panes: wider than any Googlebook window snapped to

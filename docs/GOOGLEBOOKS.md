@@ -46,6 +46,11 @@ scaled up for their slightly higher density (243 ppi against the Dell's 225), ab
 | 14" 2880 px models, scaled for density | about 1.62 | 1777 dp | about 885 dp | One |
 | Lenovo 15 (lower density, likely 1.5 or less) | 1.5 | 1920 dp | about 956 dp | One |
 
+At full screen every model is in Material's Extra-large width class (1600 dp and up), where the list
+pane widens to 540 dp: four tiles across at the same size as three in the 412 dp pane (SHRIMPL_SPEC
+R1.1). The HP's 1920 × 1200 option is the exception to watch: at a scale of 1.25 or more its full
+screen is under 1600 dp, and it keeps three tiles.
+
 Shrimpl first split at 880 dp, tuned on the Dell; on the 2880 px models a snapped window would have
 landed just above that and shown two panes, so the switch moved to 1000 dp: every snapped window is
 one pane, every full screen two, with the settings at their maximum width. A user who makes the
