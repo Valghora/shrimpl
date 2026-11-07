@@ -202,6 +202,13 @@
     <string name="theme_system_detail">Colors adapt based on wallpaper</string>
     <string name="theme_dark_detail">Colors follow system dark theme</string>
     <string name="theme_light_detail">Colors follow system light theme</string>
+    <string name="badge_theme">Badge theme</string>
+    <string name="badge_theme_shrimpl">Shrimpl</string>
+    <string name="badge_theme_harmony">Harmony</string>
+    <string name="badge_theme_mono">Mono</string>
+    <string name="badge_theme_shrimpl_detail">Badges follow the stock pastel color palette regardless of system theme</string>
+    <string name="badge_theme_harmony_detail">Badge color is lightly skewed to blend with your wallpaper\'s color palette</string>
+    <string name="badge_theme_mono_detail">Badge color corresponds to your wallpaper\'s primary color</string>
     <string name="settings_appearance">Appearance</string>
     <string name="signing_certificate">Certificate</string>
     <string name="about_app">App Version: %1$s</string>

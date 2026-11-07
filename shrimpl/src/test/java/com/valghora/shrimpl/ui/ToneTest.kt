@@ -16,7 +16,7 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 
-/** The status tones (notices, home badges and row buttons) keep one fixed pastel and deep pair each. */
+/** The status tones keep one fixed pastel and deep pair each: notices, and home badges and row buttons under the Shrimpl badge theme (R2.5). */
 @RunWith(RobolectricTestRunner::class)
 class ToneTest {
     @get:Rule

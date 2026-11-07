@@ -103,6 +103,8 @@ dependencies {
     implementation(libs.androidx.compose.material3.adaptive.layout)
     implementation(libs.androidx.compose.material3.adaptive.navigation3)
     implementation(libs.androidx.compose.material.icons.core)
+    // Only for MaterialColors.harmonize, the Harmony badge theme (docs/SHRIMPL_SPEC.md R2.5).
+    implementation(libs.material)
     implementation(libs.androidx.activity.compose)
     implementation(libs.androidx.navigation3.runtime)
     implementation(libs.androidx.navigation3.ui)

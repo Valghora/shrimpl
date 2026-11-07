@@ -45,6 +45,7 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
@@ -107,6 +108,7 @@ import com.valghora.shrimpl.ui.common.AppMenu
 import com.valghora.shrimpl.ui.common.AppMenuItem
 import com.valghora.shrimpl.ui.common.BuildSheet
 import com.valghora.shrimpl.ui.common.COLLAPSE_DISTANCE
+import com.valghora.shrimpl.ui.common.LocalBadgeTheme
 import com.valghora.shrimpl.ui.common.ReplayIcon
 import com.valghora.shrimpl.ui.common.CenteredEmptyState
 import com.valghora.shrimpl.ui.common.EmptyStateText
@@ -123,6 +125,7 @@ import com.valghora.shrimpl.ui.common.TooltipIconButton
 import com.valghora.shrimpl.ui.common.UpdateIcon
 import com.valghora.shrimpl.ui.common.WithTooltip
 import com.valghora.shrimpl.ui.common.asHeading
+import com.valghora.shrimpl.ui.common.badgeColors
 import com.valghora.shrimpl.ui.common.isMediumWidth
 import com.valghora.shrimpl.ui.icons.AdaptiveIcon
 import com.valghora.shrimpl.ui.icons.rememberIconLayers
@@ -155,6 +158,7 @@ fun HomeScreen(
     val clickAction by model.clickAction.collectAsStateWithLifecycle()
     val resolveOnTap by model.resolveOnTap.collectAsStateWithLifecycle()
     val hapticFeedback by model.hapticFeedback.collectAsStateWithLifecycle()
+    val badgeTheme by model.badgeTheme.collectAsStateWithLifecycle()
     val method by model.installMethod.collectAsStateWithLifecycle()
     val signingKey by model.signingKey.collectAsStateWithLifecycle()
     val layout by model.layout.collectAsStateWithLifecycle()
@@ -197,140 +201,143 @@ fun HomeScreen(
         }
     }
 
-    Scaffold(
-        containerColor = MaterialTheme.colorScheme.surface,
-        topBar = {
-            LargeTitleBar(
-                title = stringResource(R.string.home_title),
-                collapsed = collapsed,
-                // No navigation: with the bar's own padding the title starts 16 dp in, over the rows' icons.
-                navigation = { Spacer(Modifier.width(4.dp)) },
-                actions = {
-                    // R2.1: switches between rows and tiles; the choice is kept.
-                    val switchLabel = stringResource(if (tiles) R.string.action_show_list else R.string.action_show_tiles)
-                    TooltipIconButton(switchLabel, { model.setLayout(if (tiles) HomeLayout.LIST else HomeLayout.TILES) }) {
-                        Icon(painterResource(if (tiles) R.drawable.ic_view_list else R.drawable.ic_view_tiles), contentDescription = switchLabel)
+    // R2.5: the Badge theme colors every status badge and row button below (badgeColors).
+    CompositionLocalProvider(LocalBadgeTheme provides badgeTheme) {
+        Scaffold(
+            containerColor = MaterialTheme.colorScheme.surface,
+            topBar = {
+                LargeTitleBar(
+                    title = stringResource(R.string.home_title),
+                    collapsed = collapsed,
+                    // No navigation: with the bar's own padding the title starts 16 dp in, over the rows' icons.
+                    navigation = { Spacer(Modifier.width(4.dp)) },
+                    actions = {
+                        // R2.1: switches between rows and tiles; the choice is kept.
+                        val switchLabel = stringResource(if (tiles) R.string.action_show_list else R.string.action_show_tiles)
+                        TooltipIconButton(switchLabel, { model.setLayout(if (tiles) HomeLayout.LIST else HomeLayout.TILES) }) {
+                            Icon(painterResource(if (tiles) R.drawable.ic_view_list else R.drawable.ic_view_tiles), contentDescription = switchLabel)
+                        }
+                        TooltipIconButton(stringResource(R.string.settings_title), onSettings, tooltip = stringResource(R.string.tooltip_settings)) {
+                            Icon(Icons.Filled.Settings, contentDescription = stringResource(R.string.settings_title))
+                        }
+                    },
+                )
+            },
+            floatingActionButton = {
+                // R2.4: Update all (two or more outdated apps) above New app, the same width. Beside the
+                // detail pane, New app shows only while the detail holds something else; the empty detail
+                // pane has its own.
+                Column(Modifier.width(IntrinsicSize.Max), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    // R11.7: two or more apps signed with another key.
+                    if (toFix.size >= 2) {
+                        MainActionButton(
+                            stringResource(R.string.action_fix_all),
+                            Icons.Filled.Build,
+                            onClick = { model.fix(toFix) },
+                            modifier = Modifier.fillMaxWidth(),
+                            secondary = true,
+                        )
                     }
-                    TooltipIconButton(stringResource(R.string.settings_title), onSettings, tooltip = stringResource(R.string.tooltip_settings)) {
-                        Icon(Icons.Filled.Settings, contentDescription = stringResource(R.string.settings_title))
+                    if (outdated.size >= 2) {
+                        MainActionButton(
+                            stringResource(R.string.action_update_all),
+                            Icons.Filled.Refresh,
+                            onClick = { if (method == InstallMethod.SESSION) confirmUpdateAll = true else model.updateAll(outdated) },
+                            modifier = Modifier.fillMaxWidth(),
+                            secondary = true,
+                        )
                     }
-                },
-            )
-        },
-        floatingActionButton = {
-            // R2.4: Update all (two or more outdated apps) above New app, the same width. Beside the
-            // detail pane, New app shows only while the detail holds something else; the empty detail
-            // pane has its own.
-            Column(Modifier.width(IntrinsicSize.Max), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                // R11.7: two or more apps signed with another key.
-                if (toFix.size >= 2) {
-                    MainActionButton(
-                        stringResource(R.string.action_fix_all),
-                        Icons.Filled.Build,
-                        onClick = { model.fix(toFix) },
-                        modifier = Modifier.fillMaxWidth(),
-                        secondary = true,
-                    )
+                    if (showCreateButton) NewWebAppButton(onCreate, Modifier.fillMaxWidth(), fillWidth = true)
                 }
-                if (outdated.size >= 2) {
-                    MainActionButton(
-                        stringResource(R.string.action_update_all),
-                        Icons.Filled.Refresh,
-                        onClick = { if (method == InstallMethod.SESSION) confirmUpdateAll = true else model.updateAll(outdated) },
-                        modifier = Modifier.fillMaxWidth(),
-                        secondary = true,
-                    )
+            },
+            snackbarHost = { SnackbarHost(snackbar) },
+        ) { padding ->
+            if (records.isEmpty()) {
+                if (inPane) {
+                    // Spans the whole card, so it lines up with the detail pane's text.
+                    CenteredEmptyState { EmptyStateText(stringResource(R.string.home_empty_title), title = true) }
+                } else {
+                    // One pane: the title and pitch are centered together, as one block, between the top
+                    // bar and the top of the New app button.
+                    Column(
+                        Modifier.padding(padding).fillMaxSize()
+                            .padding(start = 32.dp, end = 32.dp, bottom = FAB_MARGIN + NEW_APP_BUTTON_HEIGHT),
+                        verticalArrangement = Arrangement.spacedBy(24.dp, Alignment.CenterVertically),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                    ) {
+                        EmptyStateText(stringResource(R.string.home_empty_title), title = true)
+                        PitchText()
+                    }
                 }
-                if (showCreateButton) NewWebAppButton(onCreate, Modifier.fillMaxWidth(), fillWidth = true)
-            }
-        },
-        snackbarHost = { SnackbarHost(snackbar) },
-    ) { padding ->
-        if (records.isEmpty()) {
-            if (inPane) {
-                // Spans the whole card, so it lines up with the detail pane's text.
-                CenteredEmptyState { EmptyStateText(stringResource(R.string.home_empty_title), title = true) }
             } else {
-                // One pane: the title and pitch are centered together, as one block, between the top
-                // bar and the top of the New app button.
-                Column(
-                    Modifier.padding(padding).fillMaxSize()
-                        .padding(start = 32.dp, end = 32.dp, bottom = FAB_MARGIN + NEW_APP_BUTTON_HEIGHT),
-                    verticalArrangement = Arrangement.spacedBy(24.dp, Alignment.CenterVertically),
-                    horizontalAlignment = Alignment.CenterHorizontally,
+                // Tiles sit 12 dp in from the sides; rows run edge to edge with their own inset.
+                val gridInset = if (tiles) TILE_INSET else 0.dp
+                val mediumWidth = isMediumWidth()
+                LazyVerticalGrid(
+                    state = grid,
+                    columns = GridCells.Adaptive(if (!tiles) MIN_CELL_WIDTH else if (mediumWidth) WIDE_MIN_TILE_WIDTH else MIN_TILE_WIDTH),
+                    // The sides keep clear of a side navigation bar or camera cutout (landscape phones), and
+                    // the bottom leaves room so the last card can scroll clear of the floating buttons.
+                    contentPadding = PaddingValues(
+                        start = padding.calculateStartPadding(layoutDirection) + gridInset,
+                        top = padding.calculateTopPadding() + 8.dp,
+                        end = padding.calculateEndPadding(layoutDirection) + gridInset,
+                        bottom = 168.dp,
+                    ),
+                    horizontalArrangement = Arrangement.spacedBy(GRID_GAP),
+                    verticalArrangement = Arrangement.spacedBy(if (tiles) 8.dp else 0.dp),
                 ) {
-                    EmptyStateText(stringResource(R.string.home_empty_title), title = true)
-                    PitchText()
-                }
-            }
-        } else {
-            // Tiles sit 12 dp in from the sides; rows run edge to edge with their own inset.
-            val gridInset = if (tiles) TILE_INSET else 0.dp
-            val mediumWidth = isMediumWidth()
-            LazyVerticalGrid(
-                state = grid,
-                columns = GridCells.Adaptive(if (!tiles) MIN_CELL_WIDTH else if (mediumWidth) WIDE_MIN_TILE_WIDTH else MIN_TILE_WIDTH),
-                // The sides keep clear of a side navigation bar or camera cutout (landscape phones), and
-                // the bottom leaves room so the last card can scroll clear of the floating buttons.
-                contentPadding = PaddingValues(
-                    start = padding.calculateStartPadding(layoutDirection) + gridInset,
-                    top = padding.calculateTopPadding() + 8.dp,
-                    end = padding.calculateEndPadding(layoutDirection) + gridInset,
-                    bottom = 168.dp,
-                ),
-                horizontalArrangement = Arrangement.spacedBy(GRID_GAP),
-                verticalArrangement = Arrangement.spacedBy(if (tiles) 8.dp else 0.dp),
-            ) {
-                // R11.6, R11.7: apps from a previous install, signed with a key Shrimpl no longer has.
-                if (showKeyNotice) {
-                    item(key = OTHER_KEY_NOTICE, span = { GridItemSpan(maxLineSpan) }, contentType = OTHER_KEY_NOTICE) {
-                        NoticeCard(
-                            Notice(Notice.Kind.CAUTION, stringResource(R.string.other_key_notice)),
-                            modifier = Modifier.padding(horizontal = 16.dp - gridInset, vertical = 8.dp),
-                            onDismiss = { model.dismissKeyNotice(otherKey) },
-                            action = stringResource(R.string.action_open_settings) to onSettings,
+                    // R11.6, R11.7: apps from a previous install, signed with a key Shrimpl no longer has.
+                    if (showKeyNotice) {
+                        item(key = OTHER_KEY_NOTICE, span = { GridItemSpan(maxLineSpan) }, contentType = OTHER_KEY_NOTICE) {
+                            NoticeCard(
+                                Notice(Notice.Kind.CAUTION, stringResource(R.string.other_key_notice)),
+                                modifier = Modifier.padding(horizontal = 16.dp - gridInset, vertical = 8.dp),
+                                onDismiss = { model.dismissKeyNotice(otherKey) },
+                                action = stringResource(R.string.action_open_settings) to onSettings,
+                            )
+                        }
+                    }
+                    // R2.2: uninstalled apps sit at the bottom (in rows, under a "Not installed" label), each
+                    // group in name order.
+                    val (present, absent) = records.partition { it.packageName in installed }
+                    val row: @Composable (WebAppRecord) -> Unit = { record ->
+                        val app = installed[record.packageName]
+                        AppItem(
+                            tile = tiles,
+                            record = record,
+                            installed = app,
+                            density = density,
+                            loadImage = { file -> store.image(record.appId, file) },
+                            updateAvailable = model.updateAvailable(record),
+                            otherKey = record.appId in otherKey,
+                            selected = record.appId == selected,
+                            clickAction = clickAction,
+                            resolveOnTap = resolveOnTap,
+                            hapticFeedback = hapticFeedback,
+                            onOpen = { if (app != null) InstalledApps.open(context, record.packageName) else onEdit(record.appId) },
+                            onEdit = { onEdit(record.appId) },
+                            onRebuild = { model.rebuild(record) },
+                            onUninstall = { confirmUninstall = record.appId },
+                            onFix = { model.fix(listOf(record)) },
+                            onRemove = { model.remove(record) },
                         )
                     }
-                }
-                // R2.2: uninstalled apps sit at the bottom (in rows, under a "Not installed" label), each
-                // group in name order.
-                val (present, absent) = records.partition { it.packageName in installed }
-                val row: @Composable (WebAppRecord) -> Unit = { record ->
-                    val app = installed[record.packageName]
-                    AppItem(
-                        tile = tiles,
-                        record = record,
-                        installed = app,
-                        density = density,
-                        loadImage = { file -> store.image(record.appId, file) },
-                        updateAvailable = model.updateAvailable(record),
-                        otherKey = record.appId in otherKey,
-                        selected = record.appId == selected,
-                        clickAction = clickAction,
-                        resolveOnTap = resolveOnTap,
-                        hapticFeedback = hapticFeedback,
-                        onOpen = { if (app != null) InstalledApps.open(context, record.packageName) else onEdit(record.appId) },
-                        onEdit = { onEdit(record.appId) },
-                        onRebuild = { model.rebuild(record) },
-                        onUninstall = { confirmUninstall = record.appId },
-                        onFix = { model.fix(listOf(record)) },
-                        onRemove = { model.remove(record) },
-                    )
-                }
-                val contentType = if (tiles) APP_TILE else APP_ROW
-                items(present, key = { it.appId }, contentType = { contentType }) { row(it) }
-                if (tiles) {
-                    items(absent, key = { it.appId }, contentType = { contentType }) { row(it) }
-                } else if (absent.isNotEmpty()) {
-                    item(key = NOT_INSTALLED_LABEL, span = { GridItemSpan(maxLineSpan) }, contentType = NOT_INSTALLED_LABEL) {
-                        Text(
-                            stringResource(R.string.home_not_installed),
-                            style = MaterialTheme.typography.labelLarge,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.padding(start = 20.dp, top = 16.dp, bottom = 4.dp).asHeading(),
-                        )
+                    val contentType = if (tiles) APP_TILE else APP_ROW
+                    items(present, key = { it.appId }, contentType = { contentType }) { row(it) }
+                    if (tiles) {
+                        items(absent, key = { it.appId }, contentType = { contentType }) { row(it) }
+                    } else if (absent.isNotEmpty()) {
+                        item(key = NOT_INSTALLED_LABEL, span = { GridItemSpan(maxLineSpan) }, contentType = NOT_INSTALLED_LABEL) {
+                            Text(
+                                stringResource(R.string.home_not_installed),
+                                style = MaterialTheme.typography.labelLarge,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.padding(start = 20.dp, top = 16.dp, bottom = 4.dp).asHeading(),
+                            )
+                        }
+                        items(absent, key = { it.appId }, contentType = { APP_ROW }) { row(it) }
                     }
-                    items(absent, key = { it.appId }, contentType = { APP_ROW }) { row(it) }
                 }
             }
         }
@@ -645,9 +652,9 @@ private fun StatusBadge(icon: ImageVector, tone: Tone, ring: Color, modifier: Mo
             .size(BADGE_SIZE)
             .border(BADGE_RING, ring, CircleShape)
             .padding(BADGE_RING)
-            .background(tone.container, CircleShape),
+            .background(badgeColors(tone).container, CircleShape),
         contentAlignment = Alignment.Center,
-    ) { Icon(icon, contentDescription = null, tint = tone.content, modifier = Modifier.size(BADGE_SYMBOL)) }
+    ) { Icon(icon, contentDescription = null, tint = badgeColors(tone).content, modifier = Modifier.size(BADGE_SYMBOL)) }
 }
 
 @Composable
@@ -781,7 +788,8 @@ private class RowAction(val label: Int, val icon: ImageVector, val tone: Tone, v
 @Composable
 private fun RowActionButton(action: RowAction, appName: String) {
     val label = stringResource(action.label, appName)
-    val colors = IconButtonDefaults.filledTonalIconButtonColors(containerColor = action.tone.container, contentColor = action.tone.content)
+    val badge = badgeColors(action.tone)
+    val colors = IconButtonDefaults.filledTonalIconButtonColors(containerColor = badge.container, contentColor = badge.content)
     WithTooltip(label) {
         FilledTonalIconButton(
             onClick = action.onClick,

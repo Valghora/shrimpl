@@ -52,6 +52,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.valghora.shrimpl.BuildConfig
 import com.valghora.shrimpl.R
 import com.valghora.shrimpl.container
+import com.valghora.shrimpl.data.BadgeTheme
 import com.valghora.shrimpl.data.ClickAction
 import com.valghora.shrimpl.data.InstallMethod
 import com.valghora.shrimpl.data.ThemeSetting
@@ -79,6 +80,7 @@ fun SettingsScreen(inPane: Boolean, onBack: () -> Unit) {
     val clickAction by model.clickAction.collectAsStateWithLifecycle()
     val resolveOnTap by model.resolveOnTap.collectAsStateWithLifecycle()
     val hapticFeedback by model.hapticFeedback.collectAsStateWithLifecycle()
+    val badgeTheme by model.badgeTheme.collectAsStateWithLifecycle()
     val rootAccess by model.rootAccess.collectAsStateWithLifecycle()
     val shizukuAccess by model.shizukuAccess.collectAsStateWithLifecycle()
     val fingerprint by model.fingerprint.collectAsStateWithLifecycle()
@@ -146,6 +148,23 @@ fun SettingsScreen(inPane: Boolean, onBack: () -> Unit) {
                                 ThemeSetting.SYSTEM -> R.string.theme_system_detail
                                 ThemeSetting.DARK -> R.string.theme_dark_detail
                                 ThemeSetting.LIGHT -> R.string.theme_light_detail
+                            },
+                        ),
+                    )
+                    DropdownItem(
+                        stringResource(R.string.badge_theme),
+                        badgeTheme,
+                        listOf(
+                            BadgeTheme.SHRIMPL to stringResource(R.string.badge_theme_shrimpl),
+                            BadgeTheme.HARMONY to stringResource(R.string.badge_theme_harmony),
+                            BadgeTheme.MONO to stringResource(R.string.badge_theme_mono),
+                        ),
+                        model::setBadgeTheme,
+                        summary = stringResource(
+                            when (badgeTheme) {
+                                BadgeTheme.SHRIMPL -> R.string.badge_theme_shrimpl_detail
+                                BadgeTheme.HARMONY -> R.string.badge_theme_harmony_detail
+                                BadgeTheme.MONO -> R.string.badge_theme_mono_detail
                             },
                         ),
                     )

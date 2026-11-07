@@ -7,6 +7,7 @@ import com.valghora.shrimpl.AppContainer
 import com.valghora.shrimpl.build.BuildRequest
 import com.valghora.shrimpl.core.records.WebAppRecord
 import com.valghora.shrimpl.core.testing.TestTag
+import com.valghora.shrimpl.data.BadgeTheme
 import com.valghora.shrimpl.data.ClickAction
 import com.valghora.shrimpl.data.HomeLayout
 import com.valghora.shrimpl.data.InstallMethod
@@ -40,6 +41,7 @@ class HomeViewModel(private val container: AppContainer) : ViewModel() {
     /** Tapping an installed app with a pending action does that action (R2.5). */
     val resolveOnTap: StateFlow<Boolean> = container.settings.resolveOnTap
     val hapticFeedback: StateFlow<Boolean> = container.settings.hapticFeedback
+    val badgeTheme: StateFlow<BadgeTheme> = container.settings.badgeTheme
 
     /** Switches between rows and tiles, and keeps the choice (R2.6). */
     fun setLayout(layout: HomeLayout) = container.settings.setHomeLayout(layout)

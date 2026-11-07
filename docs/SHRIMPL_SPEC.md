@@ -137,7 +137,7 @@ binary translation) on any device.
   an older template (R11.4) shows an Update button to the right of its name, which rebuilds it with
   the bundled template. Row buttons are small icon-only buttons (48 x 32 dp, Control corners, a 48 dp touch target)
   whose tooltip names the action and the app, each in its status's pastel with the deep shade for the
-  icon (Notice.kt's Tone, fixed on every theme, 7:1 contrast): Fix (wrench, R11.7) in red,
+  icon (Notice.kt's Tone, fixed on every theme, 7:1 contrast; or as the Badge theme sets, R2.5): Fix (wrench, R11.7) in red,
   Reinstall (Material's "replay") in yellow, Update (an up arrow) in green, the two line icons
   weighted to match the solid wrench, matching a tile's badge
   (R2.6). Each app's ⋮
@@ -168,7 +168,14 @@ binary translation) on any device.
   you for permission to perform each update. To update your apps without prompts, switch your
   installation method to Shizuku or Root via Settings.", with Cancel and Update all.
 - R2.5 Settings, from the top bar button or Ctrl+,:
-  - **Appearance:** Theme: System (dynamic color from the wallpaper), Light or Dark.
+  - **Appearance:** Theme: System (dynamic color from the wallpaper), Light or Dark. Badge theme,
+    for home status badges and row buttons (R2.2, R2.6), not notices: Shrimpl (the default; "Badges
+    follow the stock pastel color palette regardless of system theme"): each status's fixed pastel and
+    deep shade; Harmony ("Badge color is lightly skewed to blend with your wallpaper's color
+    palette"): both run through Material's harmonize with the theme's primary color (hue turned up to
+    15 degrees, tone kept, so 7:1 contrast holds); Mono ("Badge color corresponds to your wallpaper's
+    primary color"): the theme's primary container and on-primary-container colors for every status,
+    which the symbols then tell apart.
   - **Installation:** Method (R6.2), and the Request Root / Request Shizuku item when one is chosen.
   - **Behavior:** Default click action: Edit (the default; "Edit the application on click") or Open
     ("Launch the application on click"). Resolve on tap (a switch, off by default; "Override default tap

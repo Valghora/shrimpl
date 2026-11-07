@@ -12,6 +12,12 @@ enum class InstallMethod { SESSION, SHIZUKU, ROOT }
 /** Shrimpl's theme (R2.5): the system's light or dark setting, or always light or dark. */
 enum class ThemeSetting { SYSTEM, LIGHT, DARK }
 
+/**
+ * The colors of home status badges and row buttons (R2.5): Shrimpl's fixed pastels, those pastels
+ * harmonized with the wallpaper, or the wallpaper's primary container colors.
+ */
+enum class BadgeTheme { SHRIMPL, HARMONY, MONO }
+
 /** What tapping an app in the home list does (R2.5). */
 enum class ClickAction { OPEN, EDIT }
 
@@ -48,6 +54,19 @@ class AppSettings(context: Context) {
     fun setResolveOnTap(resolve: Boolean) {
         prefs.edit { putBoolean(KEY_RESOLVE_ON_CLICK, resolve) }
         _resolveOnTap.value = resolve
+    }
+
+    private val _badgeTheme = MutableStateFlow(
+        prefs.getString(KEY_BADGE_THEME, null)?.let { runCatching { BadgeTheme.valueOf(it) }.getOrNull() } ?: BadgeTheme.SHRIMPL,
+    )
+
+    /** How home status badges and row buttons are colored (R2.5); Shrimpl's pastels unless the user picked another. */
+    val badgeTheme: StateFlow<BadgeTheme> = _badgeTheme.asStateFlow()
+
+    /** Saves the Badge theme setting; the home screen follows at once (R2.5). */
+    fun setBadgeTheme(theme: BadgeTheme) {
+        prefs.edit { putString(KEY_BADGE_THEME, theme.name) }
+        _badgeTheme.value = theme
     }
 
     private val _hapticFeedback = MutableStateFlow(prefs.getBoolean(KEY_HAPTIC_FEEDBACK, true))
@@ -133,6 +152,7 @@ class AppSettings(context: Context) {
         const val KEY_HOME_LAYOUT = "home_layout"
         // Invariant: the key keeps the switch's old name, so a saved choice survives the rename.
         const val KEY_RESOLVE_ON_CLICK = "resolve_on_click"
+        const val KEY_BADGE_THEME = "badge_theme"
         const val KEY_HAPTIC_FEEDBACK = "haptic_feedback"
         const val KEY_BACKED_UP = "key_backed_up"
         const val KEY_PROMPT_SHOWN = "backup_prompt_shown"
