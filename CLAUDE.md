@@ -57,7 +57,11 @@ scripts/check_native_code.sh --all-abis shrimpl/build/outputs/apk/debug/shrimpl-
 scripts/check_comments.sh --diff origin/main
 ```
 
-There is no emulator in the cloud container; UI changes are confirmed on the owner's devices.
+There is no emulator in the cloud container (no KVM, and ARM images can't run on an x86 host). Instrumented
+tests run in CI instead, in the Emulator workflow on a real Android 37 system image: push the branch and
+read its result (`docs/TESTING.md` says what it covers and how to read a failure). A merge to main needs
+both the Android and the Emulator workflow green on that commit. How a screen looks and feels, and what
+needs hardware, is still confirmed on the owner's devices.
 
 ## Working practice
 
@@ -66,7 +70,7 @@ There is no emulator in the cloud container; UI changes are confirmed on the own
   say which standard, what it costs users, and the closest option that meets both, then do what the
   owner decides and record the deviation.
 - Commit work locally as it's done. Build, push and send the APK only when asked ("Build and push
-  it, then send the APK"); then push the branch, check CI, and send `shrimpl-debug.apk`, built after deleting
+  it, then send the APK"); then push the branch, check CI (the Android and Emulator workflows), and send `shrimpl-debug.apk`, built after deleting
   `shrimpl/build/outputs/apk/debug/` (BUILD_NOTES, "Debug APK size"). Build
   Shrimpl's release APK (`:shrimpl:assembleRelease`, then the R0 check on it) only when the owner
   asks for a release build; in CI, run the workflow by hand with Release build ticked.
@@ -83,8 +87,9 @@ There is no emulator in the cloud container; UI changes are confirmed on the own
   window sizes of the testing-setup skill, what a state shows, simple interactions, state surviving
   recreation; docs/BUILD_NOTES.md). With every change,
   look for behavior worth a new Robolectric test, and add it where it makes sense; a layout or state
-  bug found on a device gets a test that would have caught it. The template's WebView, real installs
-  and hinges still need devices.
+  bug found on a device gets a test that would have caught it. The template's WebView and bridges and
+  real installs have emulator tests (`docs/TESTING.md`): a change to them adds or updates one, and
+  anything the emulator can't do (hinges, Shizuku and Root, TalkBack, how it looks) is named in that file.
 - Android skills from Google's android/skills are vendored unchanged in `.claude/skills/`;
   `docs/SKILLS.md` says when to use each and records the deliberate deviations (the adaptive
   skill's are in `docs/ADAPTIVE.md`). Use the skill that matches the work and follow it unless a

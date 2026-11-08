@@ -13,6 +13,7 @@ R11.5 a rule that no code reads web apps' data; nothing to cite
 R12.1 the repository layout and scripts/
 R12.2 .github/workflows/android.yml
 R12.3 shrimpl/build.gradle.kts (release build type)
+R12.4 .github/workflows/emulator.yml
 T1.1 template/build.gradle.kts dependencies
 T1.2 template/build.gradle.kts release optimization
 T1.3 lint (RequiresFeature) and the rule in CLAUDE.md

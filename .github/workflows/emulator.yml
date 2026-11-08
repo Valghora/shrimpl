@@ -1,6 +1,6 @@
 name: Emulator
 
-# Instrumented tests on a real Android system (docs/BUILD_NOTES.md, "Emulator"): the template's WebView
+# Instrumented tests on a real Android system (docs/SHRIMPL_SPEC.md R12.4, docs/BUILD_NOTES.md, "Emulator"): the template's WebView
 # and its bridges, and Shrimpl building, installing and launching a web app. GitHub's Linux runners
 # expose KVM, so the x86_64 emulator runs at hardware speed; the cloud container Claude Code works in
 # has no KVM and can't run one.

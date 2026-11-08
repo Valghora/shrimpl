@@ -77,7 +77,25 @@ and services.gradle.org).
   screens. `singleInstancePerTask` plus `FLAG_ACTIVITY_MULTIPLE_TASK` gives multiple windows.
 - **Data extraction.** With targetSdk 31+, `allowBackup="false"` doesn't stop device-to-device
   transfer; `data_extraction_rules.xml` excludes everything.
-- **No emulator in the cloud container** (no KVM): UI changes are checked on devices.
+- **Emulator (2026-11-08).** The cloud container can't run one: no `/dev/kvm` and no `vmx`/`svm` CPU flags,
+  so x86_64 images fail ("KVM requires a CPU that supports vmx or svm"), and ARM images can't run on an
+  x86 host at all ("Avd's CPU Architecture 'arm64' is not supported by the QEMU2 emulator on x86_64
+  host"). GitHub's `ubuntu-latest` runners (2 cores, 7 GB, 14 GB free disk) do have `/dev/kvm`, even for a
+  private repository, so the Emulator workflow runs `system-images;android-37.2;google_apis_ps16k;x86_64`
+  there (`scripts/start_emulator.sh`); every 37.x image is a 16 KB page one, so a native library that isn't
+  16 KB aligned can't load on it (`scripts/check_page_alignment.sh`). Things that went wrong and why the
+  workflow looks as it does: the first run had too little disk for a 6 GB data partition (the emulator
+  exits at once, `adb wait-for-device` then blocks forever, so the script watches the process; the
+  workflow frees ~20 GB first); building with the 4 GB emulator running made the runner run out of
+  memory and die ("AAPT2 daemon unexpectedly exit", "received a shutdown signal"), so everything is built
+  and the Gradle daemon stopped first; a failed test's files vanish with Gradle's uninstall, so evidence
+  goes to `/data/local/tmp/evidence` and logcat. A new workflow can't be dispatched from a branch until it
+  is on the default branch, so the Emulator workflow runs on push. Run times: about 4 minutes to boot,
+  25 to 30 for the whole job.
+- **What the emulator found** that Robolectric and hands-on testing hadn't: this WebView already defines
+  `showOpenFilePicker`/`showSaveFilePicker` (they throw a SecurityError without a user gesture and have no
+  dialog), so a bridge that skipped pages that had them never installed; and the file bridge crashed the
+  whole web app when a document's provider had no `last_modified` column (MediaStore's).
 
 ## Deviations
 
@@ -206,7 +224,7 @@ thrown away.
   with them enabled, an unlabelled, clickable 10 dp box with near-invisible text passes, whether the
   checks are enabled before or after the content, with Robolectric's native graphics and with its
   accessibility manager switched on. Accessibility is tested with semantics assertions instead
-  (docs/SKILLS.md); ATF needs a device or emulator.
+  (docs/SKILLS.md); ATF runs on the emulator (`AccessibilityChecksTest`, with a negative control).
 - A Compose popup (a dropdown menu) is its own window under Robolectric, placed at the window's
   origin, and its nodes' `boundsInWindow` are relative to that window. Where a menu opens on screen
   can't be tested there. The tiles' long-press menu opened well below the tile on a device

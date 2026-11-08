@@ -495,7 +495,14 @@ The template's behavior is docs/TEMPLATE_SPEC.md. What Shrimpl relies on:
   as a debug build: its release APK is built, and R0-checked, only in a manual run with Release
   build ticked. The template's release APK is always built, since every Shrimpl build bundles it.
   Lint for both apps reports 0 errors. Release builds skip lint vital, a subset of the release lint
-  already run on the same variant.
+  already run on the same variant. Build also checks that every APK's native libraries are 16 KB
+  page aligned (`scripts/check_page_alignment.sh`).
+- R12.4 The Emulator workflow (`.github/workflows/emulator.yml`) runs on every push except to `main`, and
+  by hand. It builds the debug APKs and test APKs, stops Gradle (the runner's 7 GB can't hold a build and
+  the 4 GB emulator), boots an x86_64 API 37 system image with KVM (`scripts/start_emulator.sh`), runs
+  `connectedDebugAndroidTest` for `:template` and `:shrimpl`, and uploads the results, logcat, a screenshot
+  and the UI hierarchy (`scripts/collect_emulator_artifacts.sh`), kept for one day. Main is only
+  fast-forwarded to commits that passed it. docs/TESTING.md lists what the tests cover.
 - R12.3 Shrimpl release builds use R8 and are signed with the debug key, for personal sideloading.
 
 ## R13 Test tags (debug builds only)
@@ -540,4 +547,6 @@ attempts, stop and report it with the log.
   devices.
 - The WebView limitations in docs/TEMPLATE_SPEC.md (sign-in blocks, no background push).
 - Losing the signing key without a backup makes web apps impossible to update.
-- There is no emulator in the cloud build container, so UI changes are verified on devices.
+- There is no emulator in the cloud build container (no KVM): instrumented tests run in the Emulator
+  workflow (R12.4). Hinges, window snapping, TalkBack, how it looks and feels, and Shizuku and Root are
+  verified on devices (docs/TESTING.md).
