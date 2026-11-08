@@ -6,7 +6,8 @@ template (`:template`, AndroidX Views + WebView), using pure-JVM logic in `:core
 `docs/ADAPTIVE.md` before changing behavior. Shrimpl works on every form factor, but its primary users
 are on Googlebooks (Android laptops, not Chromebooks): size windowing and resizing decisions for the
 screens in `docs/GOOGLEBOOKS.md` first. Keep those documents in step with the code: a change
-that alters a requirement updates the spec in the same commit.
+that alters a requirement updates the spec in the same commit. Work the owner has decided on but not
+started, with its design and open questions, is in `docs/TODO.md`.
 
 ## Non-negotiables
 
