@@ -67,9 +67,22 @@ class BuildAndInstallTest {
     private fun fingerprintOf(certificate: ByteArray): String =
         MessageDigest.getInstance("SHA-256").digest(certificate).joinToString(":") { "%02X".format(it) }
 
+    /** The emulator reaches the internet: without it the failure would read as a bug in the web app. */
+    private fun assertInternet() {
+        val code = runCatching {
+            (java.net.URL("https://example.com/").openConnection() as java.net.HttpURLConnection).run {
+                connectTimeout = 15_000
+                readTimeout = 15_000
+                responseCode
+            }
+        }
+        assertTrue("the emulator can't reach https://example.com/: $code", code.getOrNull() == 200)
+    }
+
     @Test
     fun shrimplBuildsInstallsAndLaunchesAWebApp() {
         try {
+            assertInternet()
             // A user allows "Install unknown apps" for Shrimpl once in system settings; the test does it directly.
             device.executeShellCommand("appops set ${context.packageName} REQUEST_INSTALL_PACKAGES allow")
             val request = BuildRequest(profile, IconOptions(IconOptions.Option.WEBSITE, website = IconRecord.letter('C')), emptyMap(), existing = null)

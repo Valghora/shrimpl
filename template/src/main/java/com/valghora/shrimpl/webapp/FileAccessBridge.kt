@@ -435,7 +435,10 @@ class FileAccessBridge(private val activity: ComponentActivity, private val cont
          */
         const val SCRIPT = """
 (function () {
-  if (window.showOpenFilePicker || window.showSaveFilePicker || window.showDirectoryPicker || !window.AndroidFiles) return;
+  // The WebView's own pickers throw a SecurityError without a user gesture and have no dialog to show
+  // (found on an emulator, 2026-11-08), so these replace them whether or not they exist.
+  if (window.__shrimplFiles || !window.AndroidFiles) return;
+  window.__shrimplFiles = true;
   var next = 0;
   var waiting = new Map();
   var CHUNK = 524288;

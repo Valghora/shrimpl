@@ -43,6 +43,9 @@ class PageDriver(private val scenario: ActivityScenario<MainActivity>) {
             webView.loadDataWithBaseURL(ORIGIN, "<!doctype html><html><body><p id=\"marker\">test page</p></body></html>", "text/html", "utf-8", null)
         }
         awaitJs("document.getElementById('marker') !== null && location.origin === '$ORIGIN'", "the test page to load at $ORIGIN")
+        // Let the swap of the old page for ours finish, then check ours is still the one showing.
+        Thread.sleep(1_000)
+        awaitJs("document.getElementById('marker') !== null", "the test page to stay loaded")
         // The bridges inject objects named Android*; a missing one means the origin rules didn't match.
         val bridges = js("Object.keys(window).filter(k => k.startsWith('Android')).sort().join(',')")
         check(bridges.contains("AndroidDownload") && bridges.contains("AndroidShare") && bridges.contains("AndroidFiles")) {
@@ -50,8 +53,12 @@ class PageDriver(private val scenario: ActivityScenario<MainActivity>) {
         }
     }
 
-    /** Evaluates [script] in the page and returns its JSON-decoded value as text ("null" for no value). */
-    fun js(script: String): String {
+    /**
+     * Evaluates [script] in the page and returns its JSON-decoded value as text ("null" for no value), or
+     * null when WebView never answers: it drops the callback of a script that was running when its page
+     * was replaced, so a poll must treat silence as "not yet".
+     */
+    fun jsOrNull(script: String, timeoutMs: Long = 15_000): String? {
         val latch = CountDownLatch(1)
         var raw: String? = null
         instrumentation.runOnMainSync {
@@ -60,13 +67,16 @@ class PageDriver(private val scenario: ActivityScenario<MainActivity>) {
                 latch.countDown()
             }
         }
-        check(latch.await(15, TimeUnit.SECONDS)) { "JavaScript didn't answer: $script" }
+        if (!latch.await(timeoutMs, TimeUnit.MILLISECONDS)) return null
         val value = JSONTokener(raw ?: "null").nextValue()
         return if (value == JSONObject.NULL) "null" else value.toString()
     }
 
+    /** Like [jsOrNull], but silence is a failure. */
+    fun js(script: String): String = checkNotNull(jsOrNull(script)) { "JavaScript didn't answer: $script" }
+
     fun awaitJs(condition: String, what: String, timeoutMs: Long = 20_000) {
-        awaitUntil(what, timeoutMs) { js(condition) == "true" }
+        awaitUntil(what, timeoutMs) { jsOrNull(condition, 3_000) == "true" }
     }
 
     /**

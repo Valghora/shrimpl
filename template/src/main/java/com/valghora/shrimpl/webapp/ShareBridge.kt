@@ -65,7 +65,9 @@ class ShareBridge(private val activity: Activity, private val controller: Deskto
 
         const val SCRIPT = """
 (function () {
-  if (navigator.share || !window.AndroidShare) return;
+  // Replaces a native navigator.share too: one WebView version's can't open Android's share sheet.
+  if (window.__shrimplShare || !window.AndroidShare) return;
+  window.__shrimplShare = true;
   var next = 0;
   var waiting = new Map();
   AndroidShare.onmessage = function (event) {

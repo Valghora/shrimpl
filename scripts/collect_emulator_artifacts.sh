@@ -15,6 +15,6 @@ if "$ADB" get-state >/dev/null 2>&1; then
   "$ADB" shell uiautomator dump /sdcard/window.xml >/dev/null 2>&1 && "$ADB" pull /sdcard/window.xml "$OUT/window.xml" >/dev/null 2>&1
   "$ADB" shell dumpsys activity activities 2>/dev/null | head -80 > "$OUT/activities.txt"
   # Screenshots and window dumps the tests themselves saved when they failed.
-  "$ADB" pull /sdcard/Android/data/com.valghora.shrimpl/files/test-evidence "$OUT/shrimpl-evidence" >/dev/null 2>&1 || true
+  "$ADB" pull /data/local/tmp/evidence "$OUT/evidence" >/dev/null 2>&1 || true
 fi
 echo "[collect_emulator_artifacts] $(ls "$OUT" | wc -l) files in $OUT"

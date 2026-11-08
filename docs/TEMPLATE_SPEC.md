@@ -193,7 +193,7 @@ Unit tests cover every branch with a fixed fixture config, including look-alike 
   over 1 GiB is dropped. A page outside the internal origins, or a WebView without the features, gets
   the unsupported toast. The protocol and naming are in `:core` (`PageDownloads`).
 - T6.16 Web Share API (WebView has none): a document-start script on the internal origins (nested
-  checks, as T7.1) adds `navigator.share` and `navigator.canShare` when the page lacks them. A share of
+  checks, as T7.1) adds `navigator.share` and `navigator.canShare`, replacing any the WebView has. A share of
   a title, text or link posts to a `WebMessageListener` (`AndroidShare`, internal origins only), which
   opens Android's share sheet: the text with the link on its own line after it (not repeated when the
   text has it), or the title when there is neither; the title as subject. The promise resolves once the
@@ -201,8 +201,8 @@ Unit tests cover every branch with a fixed fixture config, including look-alike 
   can share. Files aren't shared: `canShare` returns false and `share` rejects with NotAllowedError, so
   sites offer a download instead (T6.15). Parsing is `PageShare` in `:core`.
 - T6.17 Single-file File System Access (WebView has none): a document-start script on the internal
-  origins (nested checks, as T7.1) adds `showOpenFilePicker` and `showSaveFilePicker` when the page lacks
-  them (folders: T6.18). Open shows Android's Open dialog for any file
+  origins (nested checks, as T7.1) adds `showOpenFilePicker` and `showSaveFilePicker`, replacing any the WebView has
+  (its own throw a SecurityError without a user gesture and have no dialog; folders: T6.18). Open shows Android's Open dialog for any file
   (sites' own types are often unknown to Android), several with `multiple`; Save shows its Save dialog
   with the suggested name made safe (as T6.15) and the first plain MIME type from `types`, else a
   generic type so Android adds no extension. One picker at a time; backing out rejects with AbortError.
