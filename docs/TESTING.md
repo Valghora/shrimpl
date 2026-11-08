@@ -39,6 +39,12 @@ Writing an emulator test:
 - **Shrimpl.** `createAndroidComposeRule<MainActivity>()` for screens; `UiAutomator` for what is outside
   the app (the system installer's Install button). Call `Evidence.capture("name")` when a flow fails, so
   the run keeps a screenshot and the window hierarchy.
+- **Folders.** `template/src/debug` holds `TestTreeProvider`, a document provider over a folder in the
+  cache, so a test can hand the template a folder as if the user had picked it. It is in the debug build
+  only: the release APK Shrimpl bundles never has it.
+- **Display sizes.** `WindowSizesTest` resizes the display with `wm size` and `wm density` and always
+  resets them, so other tests see the emulator's own screen.
+- **System dialogs.** `InstallRobot` answers the installer's Install, Update and Uninstall screens.
 - **Memory.** The runner has 7 GB and the emulator 4: don't add steps that build while it runs.
 
 ## What the emulator tests cover
@@ -48,9 +54,12 @@ Writing an emulator test:
 | T6.15 page-made downloads (blob, data, 3 MB, safe names) | `PageDownloadsTest` | by hand |
 | T6.16 Web Share API | `ShareBridgeTest` | by hand |
 | T6.17 single-file Open and Save, write commands | `FileAccessTest` | by hand |
+| T6.18 folders: list, read, create, write, remove, rename, move, the standard's errors, the stale-handle limit | `FolderAccessTest` (against the debug build's `TestTreeProvider`) | by hand |
 | R2.1 Shrimpl starts on a real system | `HomeLaunchTest` | by hand |
 | R6, R8, R11.3: build, sign, install through the system installer, launch, see the site | `BuildAndInstallTest` | by hand |
 | R6.1, R11.4: an installed web app updates in place (the test taps Update) | `BuildAndInstallTest` | by hand |
+| R11.7: Fix replaces an app signed with another key (uninstall, rebuild with the new key; the test answers both system dialogs) | `FixFlowTest` | by hand |
+| R1.1, R2.6: two panes and four tiles on the XPS at full screen, two panes and three on a common 1536 dp laptop, one pane and three on a phone, on the real window manager | `WindowSizesTest` | by hand |
 | T2a, T6.6: a link to another site opens in the browser | `ExternalLinksTest` | by hand |
 | Accessibility (touch targets, contrast, labels) on the real screens, with a control that must fail | `AccessibilityChecksTest`, `AccessibilityChecksAreLiveTest` | TalkBack only |
 | 16 KB page alignment of every APK | `scripts/check_page_alignment.sh` (Android workflow) | not checked |
@@ -72,11 +81,9 @@ These need hardware, a person, or a service an emulator doesn't have:
 
 Each is feasible on the emulator and not written yet; the order is by how often it has cost a manual check.
 
-1. Folder access (`showDirectoryPicker`, T6.18): needs Android's real folder picker driven by UI Automator,
-   or a test document provider in the template's debug build.
-2. The Fix flow with the real installer (R11.7): a key change, then the uninstall dialog, then a rebuild.
-3. The file chooser's camera options (T6.4), which need a real tap on the page to count as a user gesture.
-4. Pop-up windows in the real WebView (T6.6).
-5. Dialog drafts surviving activity recreation (BUILD_NOTES, "Robolectric").
-6. Shrimpl at the Dell XPS's size (`wm size`, `wm density`): four tiles, two panes, on the real window manager.
-7. Notifications, permissions (camera, location) through the template's flow, full-screen video, printing.
+1. The file chooser's camera options (T6.4), which need a real tap on the page to count as a user gesture.
+2. Pop-up windows in the real WebView (T6.6).
+3. Dialog drafts surviving activity recreation (BUILD_NOTES, "Robolectric").
+4. Notifications, permissions (camera, location) through the template's flow, full-screen video, printing.
+5. Window snapping: `wm size` gives the right widths, but not a half-screen window (R1.1's sharing rule).
+6. Folder access against Android's real storage provider and picker (the tests use a fixture provider).

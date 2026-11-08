@@ -92,6 +92,10 @@ and services.gradle.org).
   goes to `/data/local/tmp/evidence` and logcat. A new workflow can't be dispatched from a branch until it
   is on the default branch, so the Emulator workflow runs on push. Run times: about 4 minutes to boot, 4
   minutes of tests (21 tests), 15 for the whole job.
+- **Test fixtures.** The template's debug build (never the release APK Shrimpl bundles) has a document
+  provider, `TestTreeProvider`, over `cache/test-tree`, so the folder tests run the template's
+  `DocumentsContract` calls against a real provider. `DocumentsProvider` insists on `MANAGE_DOCUMENTS`
+  and exported + grantUriPermissions; calls from the app's own uid are allowed anyway.
 - **What the emulator found** that Robolectric and hands-on testing hadn't: this WebView already defines
   `showOpenFilePicker`/`showSaveFilePicker` (they throw a SecurityError without a user gesture and have no
   dialog), so a bridge that skipped pages that had them never installed; and the file bridge crashed the

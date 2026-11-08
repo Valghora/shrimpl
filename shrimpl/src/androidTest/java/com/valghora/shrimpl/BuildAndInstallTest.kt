@@ -2,7 +2,6 @@ package com.valghora.shrimpl
 
 import android.content.Intent
 import android.content.pm.PackageManager
-import android.util.Log
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
@@ -18,7 +17,6 @@ import com.valghora.shrimpl.core.records.IconRecord
 import com.valghora.shrimpl.install.SessionInstaller
 import java.security.MessageDigest
 import java.util.regex.Pattern
-import kotlin.concurrent.thread
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withTimeout
 import org.junit.After
@@ -63,29 +61,9 @@ class BuildAndInstallTest {
         runBlocking { container.store.delete(profile.appId) }
     }
 
-    /**
-     * Taps Install, or Update, on the system installer's confirmation screen whenever it shows, until
-     * interrupted: Android asks for each install and each update (docs/SHRIMPL_SPEC.md R2.4). While it
-     * finds nothing it logs what is on screen, so a stuck run says why.
-     */
-    private fun acceptInstallDialog() = thread(name = "install-confirmer") {
-        var idle = 0
-        try {
-            while (true) {
-                val button = device.findObject(By.text(Pattern.compile("(?i)^(install|update)$")).clickable(true))
-                if (button != null) {
-                    button.click()
-                    idle = 0
-                } else if (++idle % 15 == 0) {
-                    val seen = device.findObjects(By.clickable(true)).mapNotNull { it.text }.joinToString(" | ")
-                    Log.w("SHRIMPL_INSTALL", "no Install or Update button after ${idle}s; clickable on screen: $seen")
-                }
-                Thread.sleep(1_000)
-            }
-        } catch (_: InterruptedException) {
-            // The install finished; stop looking.
-        }
-    }
+    private val robot = InstallRobot(device)
+
+    private fun acceptInstallDialog() = robot.acceptSystemDialogs()
 
     private fun fingerprintOf(certificate: ByteArray): String =
         MessageDigest.getInstance("SHA-256").digest(certificate).joinToString(":") { "%02X".format(it) }
@@ -123,7 +101,7 @@ class BuildAndInstallTest {
     @Test
     fun anInstalledAppIsUpdatedInPlace() {
         try {
-            device.executeShellCommand("appops set ${context.packageName} REQUEST_INSTALL_PACKAGES allow")
+            robot.allowInstalls(context.packageName)
             val icons = IconOptions(IconOptions.Option.WEBSITE, website = IconRecord.letter('C'))
             val confirmer = acceptInstallDialog()
             val first = runBlocking { withTimeout(240_000) { container.factory.build(BuildRequest(profile, icons, emptyMap(), existing = null), container.installers.preferred()) {} } }
@@ -150,7 +128,7 @@ class BuildAndInstallTest {
         try {
             assertInternet()
             // A user allows "Install unknown apps" for Shrimpl once in system settings; the test does it directly.
-            device.executeShellCommand("appops set ${context.packageName} REQUEST_INSTALL_PACKAGES allow")
+            robot.allowInstalls(context.packageName)
             val request = BuildRequest(profile, IconOptions(IconOptions.Option.WEBSITE, website = IconRecord.letter('C')), emptyMap(), existing = null)
             val confirmer = acceptInstallDialog()
             val outcome = runBlocking { withTimeout(240_000) { container.factory.build(request, container.installers.preferred()) {} } }
