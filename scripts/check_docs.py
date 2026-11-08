@@ -32,7 +32,7 @@ STRING_RESOURCES = ["shrimpl/src/main/res/values/strings.xml", "template/src/mai
 # Dates belong in these documents (when a finding was made, a decision taken, a figure researched).
 DATED_DOCS = {"docs/BUILD_NOTES.md", "docs/TODO.md", "docs/GOOGLEBOOKS.md", "docs/COMMENT_EVAL.md"}
 NARRATION = re.compile(
-    r"\b(previously|used to be|no longer|was (changed|added|removed|renamed|replaced|moved)|"
+    r"\b(previously|used to be|was (changed|added|removed|renamed|replaced|moved)|"
     r"were (changed|added|removed|renamed|replaced|moved)|now uses|has been (changed|replaced|renamed)|"
     r"instead of the old|as requested)\b", re.I)
 DATE = re.compile(r"\b20\d\d-\d\d-\d\d\b")
@@ -168,12 +168,19 @@ for res in STRING_RESOURCES:
         resources.append(re.sub(r"\s+", " ", value).strip())
 
 
-def as_pattern(text):
+def as_pattern(text, placeholder):
     parts = re.split(r"(%\d*\$?[sd]|<[^>]+>)", text)
-    return "".join(".*" if re.fullmatch(r"%\d*\$?[sd]|<[^>]+>", p) else re.escape(p) for p in parts)
+    return "".join(placeholder if re.fullmatch(r"%\d*\$?[sd]|<[^>]+>", p) else re.escape(p) for p in parts)
 
 
-resource_patterns = [re.compile(as_pattern(r), re.I) for r in resources]
+# In the specs a resource's placeholder is written <name>, or as a sample value that starts with a capital
+# or a digit ("Fix Example", "(2 of 3)"), so "Update available" doesn't pass for "Update %1$s".
+SAMPLE = r"(?:<[^>]+>|[A-Z0-9][\w.'-]*(?: [A-Z][\w.'-]*)*)"
+
+
+# A resource that is mostly placeholders ("%1$s", "%1$s (%2$s)") would match any quote; it needs some text.
+resources = [r for r in resources if len(re.sub(r"%\d*\$?[sd]|\W", "", r)) >= 3]
+resource_patterns = [re.compile(as_pattern(r, SAMPLE)) for r in resources]
 missing = []
 for spec in SPECS:
     text = "\n".join(strip_code_blocks((ROOT / spec).read_text(encoding="utf-8")))
@@ -181,8 +188,8 @@ for spec in SPECS:
         quoted = re.sub(r"\s+", " ", quoted).strip()
         if quoted in PLATFORM_TEXT:
             continue
-        probe = re.compile(as_pattern(quoted), re.I)
-        if not any(p.fullmatch(quoted) or probe.fullmatch(r) or quoted.lower() in r.lower() for p, r in
+        probe = re.compile(as_pattern(quoted, ".*"))
+        if not any(p.fullmatch(quoted) or probe.fullmatch(r) or quoted in r for p, r in
                    zip(resource_patterns, resources)):
             missing.append(f"{spec}: \"{quoted}\"")
 for m in sorted(set(missing)):

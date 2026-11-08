@@ -13,7 +13,7 @@ commit as the change. Anything not listed is followed as written.
 | R9.3 | The rendered visit's HTTP status is known only when it is an error (>= 400). | WebView reports main-document errors, not successes. |
 | R10.3 | Letter icons use the system bold font. | Native rendering; no bundled font. |
 | R6.1 | Package visibility uses `<queries>` (launcher apps, icon packs, Shizuku), not `QUERY_ALL_PACKAGES`. | Narrower, and enough: every web app has a launcher entry. |
-| Rules (lint) | `:shrimpl` lint keeps one warning: `SetJavaScriptEnabled` (the hidden discovery WebView must run page scripts). | `@SuppressLint` is allowed only in the template. |
+| CLAUDE.md rule 3 (lint) | `:shrimpl` lint keeps one warning: `SetJavaScriptEnabled` (the hidden discovery WebView must run page scripts). | `@SuppressLint` is allowed only in the template. |
 
 ## From Android's adaptive guidance
 
