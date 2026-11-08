@@ -95,8 +95,9 @@ and services.gradle.org).
   robot taps Wait if one still shows. A new workflow can't be dispatched from a branch until it
   is on the default branch, so the Emulator workflow runs on push. Run times (before the speed-ups below):
   about 4 minutes to boot and settle, 7 minutes of tests, 16.5 for the whole job. Speed-ups: the template's
-  test classes share one activity and page (`TemplatePageRule`; launching and waiting for the start page
-  cost 11 to 20 s per test); both modules run in one Gradle invocation; the SDK and system image are not
+  tests stop the start page's load and put the test page in at once instead of waiting for the start
+  page (10 to 20 s per test; sharing one activity per class doesn't work, because AndroidJUnitRunner
+  finishes every open activity after each test); both modules run in one Gradle invocation; the SDK and system image are not
   cached (restoring them took 136 s, downloading about 70); and a push that changes only `docs/**` or
   Markdown doesn't run the workflow. Not done: freeing disk in the background (90 s) and a shorter settle.
 - **Zero tests is not a pass.** Once the template's instrumentation died within seconds of starting and

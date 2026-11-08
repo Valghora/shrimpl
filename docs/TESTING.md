@@ -36,10 +36,6 @@ Writing an emulator test:
   scripts and message listeners apply as they do for a real site, then runs JavaScript in it. Android's
   dialogs (share sheet, file pickers) are answered with Espresso-Intents stubs, so the test checks what
   the template asked for and what it did with the answer.
-- **One page per class.** The template's test classes get their `MainActivity` and test page from a
-  `@ClassRule` (`TemplatePageRule`), because launching the app and waiting for its start page took 11 to
-  20 s a test. `template.page()` reloads the test page only if an earlier test navigated away; keep each
-  test independent of the order.
 - **Shrimpl.** `createAndroidComposeRule<MainActivity>()` for screens; `UiAutomator` for what is outside
   the app (the system installer's Install button). Call `Evidence.capture("name")` when a flow fails, so
   the run keeps a screenshot and the window hierarchy.

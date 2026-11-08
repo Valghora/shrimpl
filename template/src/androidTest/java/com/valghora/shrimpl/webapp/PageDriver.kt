@@ -32,14 +32,14 @@ class PageDriver(private val scenario: ActivityScenario<MainActivity>) {
             return requireNotNull(found) { "MainActivity has no WebView" }
         }
 
-    /** Waits for the start page to settle, then loads a page of our own at the same origin. */
+    /**
+     * Cancels the start page's load and loads a page of our own at the same origin. Waiting for the start page
+     * to finish first took 10 to 20 s of every test; MainActivity has issued its load by the time the
+     * scenario is resumed, so stopping it can't be overtaken by a later one.
+     */
     fun loadTestPage() {
-        awaitUntil("the start page to finish loading", 60_000) {
-            var progress = 0
-            instrumentation.runOnMainSync { progress = webView.progress }
-            progress == 100
-        }
         instrumentation.runOnMainSync {
+            webView.stopLoading()
             webView.loadDataWithBaseURL(ORIGIN, "<!doctype html><html><body><p id=\"marker\">test page</p></body></html>", "text/html", "utf-8", null)
         }
         awaitJs("document.getElementById('marker') !== null && location.origin === '$ORIGIN'", "the test page to load at $ORIGIN")
@@ -51,12 +51,6 @@ class PageDriver(private val scenario: ActivityScenario<MainActivity>) {
         check(bridges.contains("AndroidDownload") && bridges.contains("AndroidShare") && bridges.contains("AndroidFiles")) {
             "the test page is missing a bridge; it has: '$bridges'"
         }
-    }
-
-    /** Loads the test page again only if it isn't showing: an earlier test may have navigated away from it. */
-    fun ensureTestPage() {
-        if (jsOrNull("document.getElementById('marker') !== null && location.origin === '$ORIGIN'", 5_000) == "true") return
-        loadTestPage()
     }
 
     /**

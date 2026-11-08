@@ -9,12 +9,12 @@ set -uo pipefail
 
 modules=(template shrimpl)
 
-# Prints "tests failures errors" summed over a module's result files.
+# Prints "tests failures errors" from the <testsuites> total of a module's result files.
 summarize() {
   local tests=0 failures=0 errors=0 xml head
   for xml in "$1"/build/outputs/androidTest-results/connected/debug/TEST-*.xml; do
     [[ -f "$xml" ]] || continue
-    head="$(grep -o -m1 '<testsuite [^>]*>' "$xml" | head -1)"
+    head="$(grep -o -m1 '<testsuites [^>]*>' "$xml" | head -1)"
     tests=$((tests + $(grep -o 'tests="[0-9]*"' <<<"$head" | grep -o '[0-9]*' || echo 0)))
     failures=$((failures + $(grep -o 'failures="[0-9]*"' <<<"$head" | grep -o '[0-9]*' || echo 0)))
     errors=$((errors + $(grep -o 'errors="[0-9]*"' <<<"$head" | grep -o '[0-9]*' || echo 0)))
