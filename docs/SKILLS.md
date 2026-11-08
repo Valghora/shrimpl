@@ -6,10 +6,9 @@ where Claude Code loads them as project skills. Each folder keeps upstream's `LI
 2.0) and an `UPSTREAM.md` with the upstream path, the commit it was copied from and that copy's
 `last-updated` date.
 
-This file lists the skills in use, when to use each, and where the project deliberately departs
-from them. A skill is followed as written unless a row below says otherwise; a new deliberate
-deviation gets a row here in the same commit. The adaptive skill's deviations are in
-[ADAPTIVE.md](ADAPTIVE.md).
+This file lists the skills in use and when to use each. A skill is followed as written unless
+[DEVIATIONS.md](DEVIATIONS.md) says otherwise; a new deliberate deviation gets a row there in the same
+commit.
 
 ## Keeping them current
 
@@ -18,8 +17,8 @@ deviation gets a row here in the same commit. The adaptive skill's deviations ar
   differs from its recorded upstream copy, or no longer exists upstream, and when upstream adds a
   skill this file doesn't mention.
 - **Update.** `scripts/android_skills.sh update <name>` (or `--all`) copies the newest upstream
-  version and rewrites `UPSTREAM.md`. Review `git diff .claude/skills` against the deviations below,
-  adjust this file (or ADAPTIVE.md) where the guidance changed, and commit the update on its own.
+  version and rewrites `UPSTREAM.md`. Review `git diff .claude/skills` against DEVIATIONS.md,
+  adjust it (and ADAPTIVE.md) where the guidance changed, and commit the update on its own.
 - **Adopt.** `scripts/android_skills.sh add <upstream path>` vendors another android/skills skill;
   `add --repo <github url> --into <name> <file>...` vendors chosen files of another repository into
   `.claude/references/<name>/`. Add it to the tables below, and remove it from "Not adopted".
@@ -30,7 +29,7 @@ deviation gets a row here in the same commit. The adaptive skill's deviations ar
 
 | Skill | Upstream path | Use it when |
 |---|---|---|
-| adaptive | `jetpack-compose/adaptive` | Any Shrimpl UI change (CLAUDE.md rule 2). Deviations: [ADAPTIVE.md](ADAPTIVE.md). |
+| adaptive | `jetpack-compose/adaptive` | Any Shrimpl UI change (CLAUDE.md rule 2). How it applies: [ADAPTIVE.md](ADAPTIVE.md). |
 | testing-setup | `testing/testing-setup` | Adding or reviewing tests, and with every change (CLAUDE.md: look for behavior worth a Robolectric test). |
 | android-intent-security | `security/android-intent-security` | Touching manifest components, intents, `PendingIntent`s, or how the template opens links and `intent:` URLs. |
 | android-permissions-security | `security/android-permissions-security` | Adding or changing permissions, exported components, broadcasts, or the template's runtime permission prompts. |
@@ -39,66 +38,6 @@ deviation gets a row here in the same commit. The adaptive skill's deviations ar
 | anr-audit-and-fix | `performance/anr-audit-and-fix` | Moving work between threads, adding file, network, signing or package manager calls, or reading an ANR trace. |
 | r8-analyzer | `performance/r8-analyzer` | Changing keep rules or minify settings, or checking how much the template (copied into every web app) carries. |
 | jetpack-compose-performance | `jetpack-compose/jetpack-compose-performance` | Writing or reviewing Compose code that is on a hot path: the home list, animations, custom layouts, modifiers. |
-
-## Deliberate deviations
-
-### testing-setup
-
-| Skill guidance | What this project does | Why |
-|---|---|---|
-| Step 2: install a DI framework (Hilt) | Manual dependency injection: `AppContainer` builds the graph; tests construct ViewModels and fakes directly. | One activity and a small graph; Hilt would add KSP processing, generated code and build time without making the tests simpler. |
-| Step 3: Compose Preview Screenshot Testing | No screenshot tests yet; Robolectric tests check layout by measuring bounds (ADAPTIVE.md). | Test suites need AGP 9.5.0-alpha03 or later (this project uses stable 9.4.1), and the standalone plugin is deprecated. Revisit when AGP 9.5 is stable. |
-| Steps 7, 12 and 13: instrumented tests, Dropshots, UI Automator | Instrumented tests and UI Automator run in the Emulator workflow (docs/TESTING.md). No Dropshots. | The cloud container has no KVM, so the emulator runs only in CI; screenshot comparison isn't used (the owner judges how it looks, and layout is measured in Robolectric tests). |
-| Step 9: Espresso tests for Views | None for the template. | The template's UI is one WebView whose behavior depends on a real Chromium, which Robolectric doesn't run; its pure logic is unit tested. |
-| Step 8: screenshots at nine window sizes | `WindowSizeTest` runs the whole app at the nine sizes (400, 610 and 900 dp wide by 400, 500 and 1000 dp high) and checks what each shows: one or two panes, the back arrow, New app inside the window. | No screenshot tooling yet (above); behavior at each size is what regressions have broken so far. |
-| Step 9: always verify state restoration | `StateRestorationTester` for screen state (an open menu), and activity recreation for a whole flow (`EditChangesTest`). Dialogs with a text field aren't tested. | Robolectric never goes idle once a text field in a dialog window can take focus ([BUILD_NOTES.md](BUILD_NOTES.md)); those stay a device check. |
-| Step 11: `DeviceConfigurationOverride` for window sizes | Window-size tests set Robolectric's screen qualifiers and launch `MainActivity`; `DeviceConfigurationOverride` is for font scale, dark theme and locale. Layout tests of one screen give it a pane width with a sized `Box`. | `ForcedSize` doesn't change `LocalWindowInfo`, which the window size class (and so the list-detail switch) comes from ([BUILD_NOTES.md](BUILD_NOTES.md)). |
-| Step 14: the `jacoco` plugin | Shrimpl's debug build sets `enableUnitTestCoverage` (AGP's JaCoCo integration), with no threshold. `:core` keeps its own JaCoCo report and 95 % rule. The template collects none. | AGP wires JaCoCo to the variant's classes. The template's one unit test checks the profile it ships; its code runs in a WebView, on devices. |
-| Final touches: `AGENTS.md` and `docs/testing.md` | The testing rules are in CLAUDE.md; commands and setup are in [BUILD_NOTES.md](BUILD_NOTES.md) ("Robolectric"). | Claude Code reads CLAUDE.md; one place for the rules avoids two copies drifting. |
-
-### android-intent-security and android-permissions-security
-
-| Skill guidance | What this project does | Why |
-|---|---|---|
-| Intent security 3: never launch a nested intent without an allowlist (`IntentSanitizer`) | Shrimpl launches the confirmation screen PackageInstaller hands back in `Intent.EXTRA_INTENT` as it is (`SessionInstaller`). | It is the platform's documented install flow. The receiver isn't exported and its mutable `PendingIntent` is explicit (component and package), and only the system installer holds it, so the nested intent can only come from the system. |
-| Intent security 3: sanitize with an allowlist of components | The template's `intent:` links (a page's links to other apps) clear the component and selector, strip URI permission grant flags and add `CATEGORY_BROWSABLE`, as Chrome does, but name no allowed apps (TEMPLATE_SPEC T6.6). | A page may link to any app, as in a browser; the target must already accept browsable links, and the page can't reach the web app's own components or files. |
-| Permissions 6: ask in context, with a rationale | The notification permission is asked when a web app first starts, if the site uses notifications (TEMPLATE_SPEC T7). | Pages assume notifications are allowed (the polyfill reports "granted"), and asking only when the first one arrives would lose it. Camera, microphone and location are asked for when the page asks. |
-
-### edge-to-edge
-
-| Skill guidance | What this project does | Why |
-|---|---|---|
-| Prerequisites: Compose | Applies to Shrimpl only. The template (Views) handles insets itself ([TEMPLATE_SPEC.md](TEMPLATE_SPEC.md)). | The skill covers Compose only; the template stays on Views (T1.1). |
-
-### navigation-3
-
-| Skill guidance | What this project does | Why |
-|---|---|---|
-| Recipes: dialogs and bottom sheets as scenes | Confirmation dialogs and the build sheet are screen or ViewModel state, not destinations. | The build sheet follows a build that keeps running whatever the user opens, and dialogs belong to the screen that asked; both survive configuration changes (ADAPTIVE.md). |
-
-### anr-audit-and-fix
-
-| Skill guidance | What this project does | Why |
-|---|---|---|
-| Path B: diagnose ANR traces | Path A (static audit) only, unless the owner sends a trace. | No device here to produce traces. |
-
-### r8-analyzer
-
-| Skill guidance | What this project does | Why |
-|---|---|---|
-| Write analysis files under `tmp/` | `tmp/` is ignored by git. | Keeps the skill unchanged without committing its output. |
-| CONFIGURATION.md: full resource optimization | `android.enableResourceOptimizations=false`. | Resource path shortening would move the template's icon files, which Shrimpl replaces by fixed path (BUILD_NOTES.md, R7.4). |
-
-Both apps use the AGP 9.3+ `optimization { enable = true }` block; Shrimpl's one keep rule (the
-Shizuku shell service) is in `shrimpl/src/main/keepRules/`. The first analysis (2026-11-01, before
-the move, with identical APKs after it) scored Shrimpl 98 % and the template 93 % for optimization;
-every broad rule comes from a library or AGP's defaults.
-
-### jetpack-compose-performance
-
-| Skill guidance | What this project does | Why |
-|---|---|---|
-| Prerequisite 3: Baseline Profiles | None. | Generating them needs a device or emulator (Macrobenchmark); none here. Revisit if cold start or the home list feels slow on devices. |
 
 ## Other sources
 
@@ -110,15 +49,6 @@ current the same way; the version is the last upstream commit that touched them.
 |---|---|---|
 | code-comments (this project's skill, `.claude/skills/code-comments/`), written for reuse in other projects | None: drawn from the AndroidX KDoc guidelines, the AppFunctions skill's agent-facing KDoc rules (`device-ai/appfunctions/references/kdoc-refinement-optimization.md`), and requirement-traceability practice; sources in [COMMENT_EVAL.md](COMMENT_EVAL.md) | Writing, editing or reviewing any code. Checked by `scripts/check_comments.sh` in CI; scored by `scripts/comment_eval.py`. Google's android/skills has no comments skill. |
 | accessibility (this project's skill, `.claude/skills/accessibility/`) wrapping Drjacky's accessibility reference, `.claude/references/claude-android-ninja/` | [Drjacky/claude-android-ninja](https://github.com/Drjacky/claude-android-ninja) `references/android-accessibility.md` and `references/android-accessibility-quick.md` (Apache 2.0) | Every UI change; reviewing or auditing a screen; TalkBack, keyboard or contrast problems. Google's android/skills has no accessibility skill. |
-
-### accessibility (Drjacky's reference)
-
-| Guidance | What this project does | Why |
-|---|---|---|
-| The rest of claude-android-ninja (Hilt, Room 3, multi-module, Retrofit) | Only the two accessibility files are vendored, behind this project's own skill. | The full skill would apply to all Android work and contradict the architecture and the Google skills in use. |
-| Links to `INDEX-sections.md` and `android-i18n.md` | Not vendored; the table of contents in `android-accessibility.md` replaces the index. | Only accessibility is taken. |
-| Testing: Espresso accessibility checks, Accessibility Scanner | Google's Accessibility Test Framework runs on the emulator against the real screens (`AccessibilityChecksTest`, with a negative control); Robolectric semantics tests (labels, roles, toggle state, headings, touch size); TalkBack on the owner's devices. | ATF doesn't run under Robolectric ([BUILD_NOTES.md](BUILD_NOTES.md)); the emulator can't judge reading order or announcements, which TalkBack on a device does. |
-| Compose only | The template's own Views follow Android's View accessibility guidance; web content is the site's. | The template stays on Views (T1.1). |
 
 ### Considered and not adopted
 

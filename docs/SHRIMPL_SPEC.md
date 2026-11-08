@@ -10,8 +10,9 @@ This file describes what the project must be now. Companion documents:
 - [docs/TEMPLATE_SPEC.md](TEMPLATE_SPEC.md): what every web app does (requirements T1 to T8).
 - [docs/ADAPTIVE.md](ADAPTIVE.md): how Google's adaptive skill and app quality guidelines apply,
   with the deliberate deviations.
-- [docs/BUILD_NOTES.md](BUILD_NOTES.md): toolchain versions, platform findings and the deviations
-  table for this spec.
+- [docs/BUILD_NOTES.md](BUILD_NOTES.md): toolchain versions and platform findings.
+- [docs/DEVIATIONS.md](DEVIATIONS.md): every deliberate deviation from this spec, TEMPLATE_SPEC,
+  Google's guidance and the vendored skills.
 
 ## Terms
 
@@ -26,7 +27,7 @@ This file describes what the project must be now. Companion documents:
 ## Reading this spec
 
 - MUST is mandatory. SHOULD means do it unless there is a technical conflict, and record why in
-  docs/BUILD_NOTES.md's deviations table if you don't.
+  docs/DEVIATIONS.md if you don't.
 - Precedence when instructions conflict: R0; then platform correctness (builds, installs and runs on
   API 37); then this spec and TEMPLATE_SPEC; then Google's guidance (docs/ADAPTIVE.md). Every
   deviation from the last two is written down.
@@ -73,7 +74,7 @@ binary translation) on any device.
   - Two panes show when the window has room: an app filling the screen (a tablet, an unfolded
     foldable) from Material's 840 dp; a window sharing it (snapped, split screen, a desktop window)
     from 1000 dp, so any Googlebook window snapped to half the screen shows one pane at a time
-    (ADAPTIVE.md deviations). A separating hinge always splits them. With two panes the home list sits
+    (docs/DEVIATIONS.md). A separating hinge always splits them. With two panes the home list sits
     beside a detail pane as rounded cards on the window background, 24 dp apart: the list
     is Material's 412 dp list pane, three tiles across (R2.6), each about 119 dp, near the 124 dp they
     get on a phone, so none is squeezed; from Material's Extra-large width class (1600 dp, every

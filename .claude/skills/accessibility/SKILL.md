@@ -7,7 +7,7 @@ description: Accessibility for Shrimpl's Compose screens and the web app templat
 
 This project's own skill. The guidance is Drjacky's Android accessibility reference, vendored unchanged
 in `.claude/references/claude-android-ninja/` (Apache 2.0; kept current by
-`scripts/android_skills.sh`). Its deliberate deviations are in `docs/SKILLS.md`.
+`scripts/android_skills.sh`). Its deliberate deviations are in `docs/DEVIATIONS.md`.
 
 ## How to use it
 

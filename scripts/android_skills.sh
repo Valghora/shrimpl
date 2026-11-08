@@ -121,7 +121,7 @@ write_upstream_md() {
     echo "- Last updated upstream: $(upstream_date "$commit")"
     echo "- Copied: $(date -u +%F)"
     echo
-    echo "How this project applies it, and where it deliberately deviates, is in $applied. Don't edit these"
+    echo "How this project applies it is in $applied, and where it deliberately deviates in docs/DEVIATIONS.md. Don't edit these"
     echo "files: update them with \`scripts/android_skills.sh update $(basename "$V")\`, which copies the newest"
     echo "upstream version and rewrites this file."
   } > "$CLAUDE/$V/UPSTREAM.md.new"
@@ -162,7 +162,7 @@ cmd_check() {
       outdated)
         echo "android skills: $V has an upstream update (last updated $(upstream_date HEAD), ours" \
           "$(field "$V" 'Last updated upstream')); run scripts/android_skills.sh update $(basename "$V")," \
-          "then review the diff against docs/SKILLS.md"
+          "then review the diff against docs/DEVIATIONS.md"
         review=1 ;;
       modified)
         echo "android skills: $V differs from upstream at its recorded commit; vendored files stay" \
@@ -224,7 +224,7 @@ cmd_add() {
     for p in "$@"; do git -C "$(mirror "$url")" cat-file -e "HEAD:$p" 2>/dev/null || { echo "$p: not upstream" >&2; return 1; }; done
     add_folder "$url" "references/$into" "$@"
   fi
-  echo "Record what was added, when to use it and its deliberate deviations in docs/SKILLS.md."
+  echo "Record what was added and when to use it in docs/SKILLS.md, and its deliberate deviations in docs/DEVIATIONS.md."
 }
 add_folder() {
   local url="$1" p

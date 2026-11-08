@@ -1,7 +1,7 @@
 # Build notes
 
-The toolchain, platform findings that shape the code, and every deviation from docs/SHRIMPL_SPEC.md
-and docs/TEMPLATE_SPEC.md. Deviations from Google's adaptive guidance are in docs/ADAPTIVE.md.
+The toolchain and the platform findings that shape the code. Deviations from the specs and from
+Google's guidance are in docs/DEVIATIONS.md.
 
 ## Versions
 
@@ -120,16 +120,11 @@ and services.gradle.org).
   dialog), so a bridge that skipped pages that had them never installed; and the file bridge crashed the
   whole web app when a document's provider had no `last_modified` column (MediaStore's).
 
-## Deviations
+## R8
 
-| Requirement | What we do instead | Why |
-|---|---|---|
-| T3.3 (header color from the first frame) | The starting window uses the system surface color until the app applies the profile's header color at launch. | The window background is a compiled resource; making it per app would mean patching `resources.arsc`. |
-| R9.3 | Request types come from resource timing (`xhr`, `fetch`, `script`, ...); WebSocket hosts aren't seen. | WebView has no per-request resource type. |
-| R9.3 | The rendered visit's HTTP status is known only when it is an error (>= 400). | WebView reports main-document errors, not successes. |
-| R10.3 | Letter icons use the system bold font. | Native rendering; no bundled font. |
-| R6.1 | Package visibility uses `<queries>` (launcher apps, icon packs, Shizuku), not `QUERY_ALL_PACKAGES`. | Narrower, and enough: every web app has a launcher entry. |
-| Rules (lint) | `:shrimpl` lint keeps one warning: `SetJavaScriptEnabled` (the hidden discovery WebView must run page scripts). | `@SuppressLint` is allowed only in the template. |
+Both apps use the AGP 9.3+ `optimization { enable = true }` block; Shrimpl's one keep rule (the
+Shizuku shell service) is in `shrimpl/src/main/keepRules/`. The r8-analyzer skill's first analysis (2026-11-01) scored Shrimpl 98 % and the template 93 % for optimization;
+every broad rule comes from a library or AGP's defaults.
 
 ## Robolectric (Shrimpl's Compose screens in unit tests)
 

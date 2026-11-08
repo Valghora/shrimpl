@@ -112,7 +112,7 @@ fun EditScreen(appId: String, onBack: () -> Unit) {
                     paneWidth = paneWidth,
                     scroll = scroll,
                     floatingButton = false,
-                    // Beside the list the arrow closes the detail pane (docs/ADAPTIVE.md deviations).
+                    // Beside the list the arrow closes the detail pane (docs/DEVIATIONS.md).
                     navigation = {
                         TooltipIconButton(stringResource(R.string.action_back), onBack) {
                             Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.action_back))

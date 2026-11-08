@@ -9,6 +9,6 @@ Vendored unchanged from https://github.com/Drjacky/claude-android-ninja (licence
 - Last updated upstream: 2026-07-26
 - Copied: 2026-11-02
 
-How this project applies it, and where it deliberately deviates, is in docs/SKILLS.md. Don't edit these
+How this project applies it is in docs/SKILLS.md, and where it deliberately deviates in docs/DEVIATIONS.md. Don't edit these
 files: update them with `scripts/android_skills.sh update claude-android-ninja`, which copies the newest
 upstream version and rewrites this file.

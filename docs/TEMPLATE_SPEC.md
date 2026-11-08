@@ -96,7 +96,7 @@ Unit tests cover every branch with a fixed fixture config, including look-alike 
 - T4.4 `MainActivity`: exported launcher, icon and round icon, `resizeableActivity="true"`,
   `configChanges` for orientation, size, layout, keyboard, navigation, UI mode, density, font scale,
   color mode and touchscreen (a deliberate deviation from the adaptive guidance, see
-  docs/ADAPTIVE.md), launch mode, `<layout>` default and minimum sizes, and the multi-instance
+  docs/DEVIATIONS.md), launch mode, `<layout>` default and minimum sizes, and the multi-instance
   property.
   *Outside code:* `template/src/main/AndroidManifest.xml`.
 - T4.5 Multi-window: with `profile.enableMultiWindow` the launch mode is `singleInstancePerTask`,

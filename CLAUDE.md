@@ -29,7 +29,7 @@ started, with its design and open questions, is in `docs/TODO.md`.
    - 48 dp touch targets, a tooltip on every icon-only button (`TooltipIconButton`), right-click
      menus where long press has one, keyboard shortcuts listed in the Keyboard Shortcuts Helper.
 
-   A deliberate exception gets a row in `docs/ADAPTIVE.md`'s deviations table. Every UI change also
+   A deliberate exception gets a row in `docs/DEVIATIONS.md`. Every UI change also
    follows the accessibility skill (`.claude/skills/accessibility/`): labels, roles and state,
    headings, touch targets and contrast.
 3. **No suppressions.** No Kotlin `@Suppress`, no `@SuppressLint` (the single exception:
@@ -95,12 +95,11 @@ needs hardware, is still confirmed on the owner's devices.
   real installs have emulator tests (`docs/TESTING.md`): a change to them adds or updates one, and
   anything the emulator can't do (hinges, Shizuku and Root, TalkBack, how it looks) is named in that file.
 - Android skills from Google's android/skills are vendored unchanged in `.claude/skills/`;
-  `docs/SKILLS.md` says when to use each and records the deliberate deviations (the adaptive
-  skill's are in `docs/ADAPTIVE.md`). Use the skill that matches the work and follow it unless a
+  `docs/SKILLS.md` says when to use each; `docs/DEVIATIONS.md` records the deliberate deviations. Use the skill that matches the work and follow it unless a
   recorded deviation says otherwise; a new deviation gets a row in the same commit. Never edit a
   vendored skill. When a session starts with an "android skills:" note, run
   `scripts/android_skills.sh update <name>`, review the diff against the recorded deviations,
   commit it on its own and tell the owner; bring a new upstream skill to the owner with a
   recommendation before adopting it.
-- Record new toolchain or platform findings, and any deviation from the specs, in
-  `docs/BUILD_NOTES.md`.
+- Record new toolchain or platform findings in `docs/BUILD_NOTES.md`, and any deviation from the specs,
+  Google's guidance or a skill in `docs/DEVIATIONS.md`.
