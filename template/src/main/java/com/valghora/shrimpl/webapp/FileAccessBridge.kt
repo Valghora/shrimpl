@@ -3,6 +3,7 @@ package com.valghora.shrimpl.webapp
 import android.app.Activity
 import android.content.ActivityNotFoundException
 import android.content.Intent
+import android.database.Cursor
 import android.net.Uri
 import android.os.Handler
 import android.os.Looper
@@ -129,10 +130,10 @@ class FileAccessBridge(private val activity: ComponentActivity, private val cont
                         .addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION),
                 )
             }
-            is FileRequest.Read -> withFile(request.id, request.handle, reply) { uri -> io.execute { read(request.id, uri, reply) } }
+            is FileRequest.Read -> withFile(request.id, request.handle, reply) { uri -> background(request.id, reply) { read(request.id, uri, reply) } }
             is FileRequest.Write -> withFile(request.id, request.handle, reply) { io.execute { append(request.id, request.bytes) } }
             is FileRequest.Invalid -> io.execute { failedWrites += request.id }
-            is FileRequest.Commit -> withFile(request.id, request.handle, reply) { uri -> io.execute { commit(request.id, uri, reply) } }
+            is FileRequest.Commit -> withFile(request.id, request.handle, reply) { uri -> background(request.id, reply) { commit(request.id, uri, reply) } }
             is FileRequest.ListFolder -> folderWork(request.id, request.handle, reply) { key, folder -> list(request.id, key, folder, reply) }
             is FileRequest.Child -> folderWork(request.id, request.handle, reply) { key, folder ->
                 child(request.id, key, folder, request.name, request.directory, request.create, reply)
@@ -140,8 +141,23 @@ class FileAccessBridge(private val activity: ComponentActivity, private val cont
             is FileRequest.Remove -> folderWork(request.id, request.handle, reply) { _, folder ->
                 remove(request.id, folder, request.name, request.recursive, reply)
             }
-            is FileRequest.Move -> io.execute { guarded(request.id, reply) { move(request, reply) } }
+            is FileRequest.Move -> background(request.id, reply) { guarded(request.id, reply) { move(request, reply) } }
             is FileRequest.Rejected -> fail(reply, request.id, request.error, request.message)
+        }
+    }
+
+    /**
+     * Runs [block] on the IO thread. Whatever it throws becomes an error for the page: a provider's own
+     * failure (a missing column, a revoked grant) must never take the whole web app down, as an
+     * uncaught exception on this thread did (found on an emulator, 2026-11-08).
+     */
+    private fun background(id: Int, reply: JavaScriptReplyProxy, block: () -> Unit) {
+        io.execute {
+            try {
+                block()
+            } catch (e: RuntimeException) {
+                main.post { fail(reply, id, "NotReadableError", e.message ?: "The file or folder can't be used") }
+            }
         }
     }
 
@@ -223,7 +239,7 @@ class FileAccessBridge(private val activity: ComponentActivity, private val cont
         when {
             entry == null -> fail(reply, id, "NotFoundError", "The folder is no longer available; pick it again")
             !entry.directory || entry.tree == null -> fail(reply, id, "TypeMismatchError", "This is not a folder")
-            else -> io.execute { guarded(id, reply) { work(handle, entry) } }
+            else -> background(id, reply) { guarded(id, reply) { work(handle, entry) } }
         }
     }
 
@@ -398,15 +414,19 @@ class FileAccessBridge(private val activity: ComponentActivity, private val cont
         return stream ?: throw FileNotFoundException(uri.toString())
     }
 
-    private fun displayName(uri: Uri): String =
-        activity.contentResolver.query(uri, arrayOf(OpenableColumns.DISPLAY_NAME), null, null, null)?.use { cursor ->
-            if (cursor.moveToFirst()) cursor.getString(0) else null
-        } ?: uri.lastPathSegment.orEmpty()
+    /** A document's name, or its last path segment when its provider doesn't say. */
+    private fun displayName(uri: Uri): String = queryOrNull(uri, OpenableColumns.DISPLAY_NAME) { it.getString(0) } ?: uri.lastPathSegment.orEmpty()
 
+    /** When a document was last changed, or now when its provider doesn't say (MediaStore has no such column). */
     private fun lastModified(uri: Uri): Long =
-        activity.contentResolver.query(uri, arrayOf(DocumentsContract.Document.COLUMN_LAST_MODIFIED), null, null, null)?.use { cursor ->
-            if (cursor.moveToFirst() && !cursor.isNull(0)) cursor.getLong(0) else null
-        } ?: System.currentTimeMillis()
+        queryOrNull(uri, DocumentsContract.Document.COLUMN_LAST_MODIFIED) { if (it.isNull(0)) null else it.getLong(0) } ?: System.currentTimeMillis()
+
+    /** One column of [uri]'s row, or null when the row, the column or the provider's answer isn't there. */
+    private fun <T> queryOrNull(uri: Uri, column: String, read: (Cursor) -> T?): T? = try {
+        activity.contentResolver.query(uri, arrayOf(column), null, null, null)?.use { cursor -> if (cursor.moveToFirst()) read(cursor) else null }
+    } catch (_: RuntimeException) {
+        null
+    }
 
     /** Reply proxies are used on the main thread. */
     private fun post(reply: JavaScriptReplyProxy, message: JSONObject) {

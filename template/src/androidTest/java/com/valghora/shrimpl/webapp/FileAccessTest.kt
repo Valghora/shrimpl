@@ -107,6 +107,10 @@ class FileAccessTest {
         assertEquals("{\"v\":2}", read(doc))
     }
 
+    /**
+     * A MediaStore document has no `last_modified` column; asking for it threw on the bridge's IO thread
+     * and closed the whole web app (found on an emulator, 2026-11-08). It must just be read.
+     */
     @Test
     fun openReadsTheChosenFile() = withPage { page ->
         val doc = newDocument("notes-${System.nanoTime()}.txt")

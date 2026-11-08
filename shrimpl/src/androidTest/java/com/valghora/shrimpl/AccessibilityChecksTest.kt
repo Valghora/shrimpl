@@ -2,7 +2,6 @@ package com.valghora.shrimpl
 
 import androidx.compose.ui.test.junit4.accessibility.enableAccessibilityChecks
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
-import androidx.compose.ui.test.onAllNodesWithContentDescription
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
@@ -86,7 +85,7 @@ class AccessibilityChecksTest {
     fun newAppPage() {
         waitForApps()
         compose.onNodeWithText(context.getString(R.string.action_new_web_app)).performClick()
-        compose.waitUntil(10_000) { compose.onAllNodesWithContentDescription(context.getString(R.string.action_back)).fetchSemanticsNodes().isNotEmpty() }
+        compose.waitUntil(10_000) { compose.onAllNodesWithText(context.getString(R.string.create_title)).fetchSemanticsNodes().isNotEmpty() }
         compose.onRoot().tryPerformAccessibilityChecks()
     }
 }

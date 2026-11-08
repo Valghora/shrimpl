@@ -15,6 +15,7 @@ import com.valghora.shrimpl.core.profile.Profile
 import com.valghora.shrimpl.core.records.IconOptions
 import com.valghora.shrimpl.core.records.IconRecord
 import java.security.MessageDigest
+import java.util.regex.Pattern
 import kotlin.concurrent.thread
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withTimeout
@@ -79,6 +80,49 @@ class BuildAndInstallTest {
         assertTrue("the emulator can't reach https://example.com/: $code", code.getOrNull() == 200)
     }
 
+    /**
+     * Waits for [text] on screen, tapping Allow when Android asks whether the web app may send
+     * notifications: it asks on a fresh launch (docs/TEMPLATE_SPEC.md T7.5), over the page, as it does for a user.
+     */
+    private fun awaitPageAllowingNotifications(text: String, timeoutMs: Long = 120_000): Boolean {
+        val deadline = System.currentTimeMillis() + timeoutMs
+        while (System.currentTimeMillis() < deadline) {
+            if (device.hasObject(By.textContains(text))) return true
+            device.findObject(By.text(Pattern.compile("(?i)^allow$")).clickable(true))?.click()
+            Thread.sleep(1_000)
+        }
+        return false
+    }
+
+    /**
+     * Rebuilding an installed web app with the same key installs over it without asking again (R6.1, R11.4):
+     * this is how Update and Update all work. If a confirmation were needed the build would wait for one
+     * nobody gives and time out.
+     */
+    @Test
+    fun anInstalledAppIsUpdatedInPlaceWithoutAskingAgain() {
+        try {
+            device.executeShellCommand("appops set ${context.packageName} REQUEST_INSTALL_PACKAGES allow")
+            val icons = IconOptions(IconOptions.Option.WEBSITE, website = IconRecord.letter('C'))
+            val confirmer = acceptInstallDialog()
+            val first = runBlocking { withTimeout(240_000) { container.factory.build(BuildRequest(profile, icons, emptyMap(), existing = null), container.installers.preferred()) {} } }
+            confirmer.interrupt()
+            assertTrue("the first install ended with $first", first is BuildOutcome.Installed)
+            val installed = (first as BuildOutcome.Installed).record
+            fun versionCode() = context.packageManager.getPackageInfo(packageName, PackageManager.PackageInfoFlags.of(0)).longVersionCode
+
+            val before = versionCode()
+            // No confirmer this time: the update must go through on its own.
+            val second = runBlocking { withTimeout(120_000) { container.factory.build(BuildRequest(profile, icons, emptyMap(), existing = installed), container.installers.preferred()) {} } }
+            assertTrue("the update ended with $second", second is BuildOutcome.Installed)
+            assertTrue("the version code went from $before to ${versionCode()}", versionCode() > before)
+            assertEquals(installed.nextBuildNumber, (second as BuildOutcome.Installed).record.buildNumber)
+        } catch (e: Throwable) {
+            Evidence.capture("update-in-place")
+            throw e
+        }
+    }
+
     @Test
     fun shrimplBuildsInstallsAndLaunchesAWebApp() {
         try {
@@ -105,7 +149,7 @@ class BuildAndInstallTest {
             val launch = requireNotNull(context.packageManager.getLaunchIntentForPackage(packageName)).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
             context.startActivity(launch)
             assertTrue("the web app didn't come to the front", device.wait(Until.hasObject(By.pkg(packageName).depth(0)), 30_000))
-            assertTrue("the web app never showed Example Domain", device.wait(Until.hasObject(By.textContains("Example Domain")), 90_000))
+            assertTrue("the web app never showed Example Domain", awaitPageAllowingNotifications("Example Domain"))
         } catch (e: Throwable) {
             Evidence.capture("build-and-install")
             throw e

@@ -50,8 +50,15 @@ class PageDownloadBridge(context: Context, private val controller: DesktopSessio
 
     private val listener = WebViewCompat.WebMessageListener { _, message, sourceOrigin, _, _ ->
         if (controller.classify(sourceOrigin.toString()) == UrlClass.INTERNAL) {
-            message.data?.let { data -> io.execute { report(downloads.handle(data)) } }
+            message.data?.let { data -> io.execute { report(handle(data)) } }
         }
+    }
+
+    /** The page's message, with a failure of the media store counted as a failed save, not a crash of the app. */
+    private fun handle(data: String): TransferEvent<DownloadSink> = try {
+        downloads.handle(data)
+    } catch (_: RuntimeException) {
+        TransferEvent.Failed("download")
     }
 
     /**
