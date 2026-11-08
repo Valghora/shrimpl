@@ -93,33 +93,25 @@ and services.gradle.org).
 
 ## R8
 
-Both apps use the AGP 9.3+ `optimization { enable = true }` block; Shrimpl's one keep rule (the
-Shizuku shell service) is in `shrimpl/src/main/keepRules/`. The r8-analyzer skill's first analysis (2026-11-01) scored Shrimpl 98 % and the template 93 % for optimization;
-every broad rule comes from a library or AGP's defaults.
+Both apps use the AGP 9.3+ `optimization { enable = true }` block. Shrimpl's one keep rule (the Shizuku
+shell service) is in `shrimpl/src/main/keepRules/`; every broad rule comes from a library or AGP's
+defaults (r8-analyzer skill, 2026-11-01).
 
-## CI timing (2026-11)
+## CI decisions
 
-A clean profile of the full CI build on 4 cores: Shrimpl R8 209 s, Shrimpl lint 196 s, Shrimpl
-Robolectric tests 110 s, template R8 79 s, template lint 63 s, and lint vital for both release
-builds 95 s. Lint vital checks a subset of what the full release lint finds on the same variant, so
-CI excludes `lintVitalRelease` (`-x`) and runs `lintRelease` for both apps; no check stops running.
-`org.gradle.parallel=true` took the clean build from 6:24 to 5:47 locally. Parallel CI jobs would
-shorten a run to about 6 minutes, but each pays about 45 s of setup and rebuilds the template, so
-in this private repository they cost 1.5 to 2 times the runner minutes; the workflow keeps one
-Build job with a step per stage instead, and skips Build for a commit that already passed.
+- **Lint vital is skipped** (`-x :template:lintVitalRelease`): it checks a subset of what `lintRelease`,
+  which runs for both apps, finds on the same variant.
+- **One Build job, a step per stage.** Parallel jobs would shorten a run to about 6 minutes, but each pays
+  about 45 s of setup and rebuilds the template, so in a private repository they cost 1.5 to 2 times the
+  runner minutes. Build is skipped for a commit that already passed. `org.gradle.parallel=true` is on.
+- **Shrimpl's release build** (R8, about 3.5 minutes clean) runs only in a manual run with Release build
+  ticked, or when the owner asks for a release APK; a problem that only shows after shrinking is found
+  then. The template's release build runs every time: debug Shrimpl bundles it, and the core tests
+  build web apps from it.
 
-Shrimpl's own release build (R8, about 3.5 minutes clean) is left out of CI and local checks: the
-owner tests debug builds. It runs in a manual CI run with Release build ticked, or when the owner
-asks for a release APK. A problem that only shows after shrinking (such as a class R8 strips that is
-loaded by reflection) is then found at that build, not on every change. The template's release
-build stays in every run: debug Shrimpl bundles it, and the core tests build web apps from it.
+## Debug APK size
 
-## Debug APK size (2026-11)
-
-AGP packages debug APKs incrementally: it rewrites changed entries inside the existing file and
-leaves the old space behind as gaps. After many builds in one checkout the debug APK grew to 62 MB
-while its entries held only 35 MB. Deleting `shrimpl/build/outputs/apk/debug/` before
-`:shrimpl:assembleDebug` packages it fresh. A clean debug APK is about 35 MB, almost all of it dex
-stored uncompressed and not shrunk (Compose, Material 3 and the other libraries, about 33 MB); the
-release build shrinks and compresses that with R8.
-
+AGP packages debug APKs incrementally and leaves replaced entries' space behind as gaps: after many
+builds in one checkout the APK reached 62 MB for 35 MB of entries. Delete
+`shrimpl/build/outputs/apk/debug/` before `:shrimpl:assembleDebug`. A clean debug APK is about 35 MB,
+almost all of it unshrunk dex stored uncompressed; the release build shrinks and compresses it.

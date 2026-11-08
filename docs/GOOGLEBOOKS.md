@@ -5,7 +5,7 @@ Android laptops Google launched on 2026-09-21 (preorders) and 2026-10-04 (US ret
 Googlebook OS (codename Aluminium OS). They are not Chromebooks. Size windowing and resizing
 decisions for these screens first, and check them against this file.
 
-Researched 2026-11-04 from launch coverage and maker listings (sources at the end). Update this file
+Researched 2026-11-04 from launch coverage and maker listings (main sources at the end). Update this file
 when a model is added or a figure is confirmed on a device.
 
 ## Released models
@@ -51,18 +51,15 @@ pane widens to 540 dp: four tiles across at the same size as three in the 412 dp
 R1.1). The HP's 1920 × 1200 option is the exception to watch: at a scale of 1.25 or more its full
 screen is under 1600 dp, and it keeps three tiles.
 
-Shrimpl first split at 880 dp, tuned on the Dell; on the 2880 px models a snapped window would have
-landed just above that and shown two panes, so the switch moved to 1000 dp: every snapped window is
-one pane, every full screen two, with the settings at their maximum width. A user who makes the
-display size much smaller (a scale under about 1.4 on the 2880 px models) gets two panes when snapped.
+So at the default display size every snapped window shows one pane and every full screen two, with
+the settings at their maximum width. A user who makes the display size much smaller (a scale under
+about 1.4 on the 2880 px models) gets two panes when snapped.
 
-## Tested on the emulator
+## Tested
 
-`WindowSizesTest` resizes an emulator's display to these screens (`wm size`, `wm density`) and checks the
-panes and tiles: the Dell at 2560 x 1600 and 1.5 (1707 dp), and the 2880 x 1800 models at both guessed
-scales, 1.5 (1920 dp) and 1.625 (1772 dp), all two panes and four tiles. It can't snap a window to half
-the screen, so the one-pane rule for snapped windows rests on Robolectric (`PaneWidthTest`) and the
-Dell's confirmed 849 dp.
+`WindowSizesTest` (emulator) checks the full screens in the table above; snapped windows rest on
+`PaneWidthTest` (Robolectric) and the Dell's confirmed 849 dp, since the emulator can't snap a window
+(docs/TESTING.md).
 
 ## To confirm on a device
 
@@ -74,12 +71,6 @@ Dell's confirmed 849 dp.
 
 - [Notebookcheck: all the new Googlebooks](https://www.notebookcheck.net/These-are-all-the-new-Googlebooks-releasing-today-with-standardized-high-end-specs-and-premium-builds.1404726.0.html)
 - [9to5Google: Googlebook launch details](https://9to5google.com/2026/09/21/googlebook-launch/)
-- [Android Authority: Googlebook is official](https://www.androidauthority.com/google-googlebook-laptops-launch-features-models-price-specs-availability-3713215/)
-- [PCWorld: I tried all 5 Googlebooks](https://www.pcworld.com/article/3239947/the-first-googlebooks-are-here-i-tried-all-5-from-acer-dell-hp-asus-and-lenovo.html)
-- [Techlicious: all 5 models compared](https://www.techlicious.com/guide/which-googlebook-should-you-buy/)
-- [Engadget: every new Googlebook](https://www.engadget.com/2263652/i-tried-every-new-googlebook-announced-today/)
-- [Android Infotech: all 5 models explained](https://www.androidinfotech.com/all-5-googlebook-models-explained/)
 - [HP: Googlebook 14c listing](https://www.hp.com/us-en/shop/pdp/hp-googlebook-14c-cf0815nr)
 - [Notebookcheck: HP Googlebook 14c review](https://www.notebookcheck.net/HP-Googlebook-14c-Review-A-serious-Windows-rival-or-just-an-expensive-Chromebook.1418377.0.html)
-- [Wikipedia: Googlebook](https://en.wikipedia.org/wiki/Googlebook)
 - [gbookhub: Googlebook OS windowing gestures](https://gbookhub.io/en/articles/googlebook-os-windowing-gestures-demo)
