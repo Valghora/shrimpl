@@ -497,12 +497,12 @@ The template's behavior is docs/TEMPLATE_SPEC.md. What Shrimpl relies on:
   Lint for both apps reports 0 errors. Release builds skip lint vital, a subset of the release lint
   already run on the same variant. Build also checks that every APK's native libraries are 16 KB
   page aligned (`scripts/check_page_alignment.sh`).
-- R12.4 The Emulator workflow (`.github/workflows/emulator.yml`) runs on every push to `main` that
-  changes anything outside `docs/` and Markdown files, and by hand on any branch. It builds the debug APKs and test APKs, stops Gradle (the runner's 7 GB can't hold a build and
+- R12.4 The Emulator workflow (`.github/workflows/emulator.yml`) runs by hand (`workflow_dispatch`) on a
+  branch that is ready to merge, not on pushes. It builds the debug APKs and test APKs, stops Gradle (the runner's 7 GB can't hold a build and
   the 4 GB emulator), boots an x86_64 API 37 system image with KVM (`scripts/start_emulator.sh`), runs
   `connectedDebugAndroidTest` for `:template` and `:shrimpl` in one Gradle run (`scripts/run_instrumented_tests.sh`:
   a module that reports no tests at all is retried alone, then fails the job), and uploads the results, logcat, a screenshot
-  and the UI hierarchy (`scripts/collect_emulator_artifacts.sh`), kept for one day. A failure on `main` is fixed forward. docs/TESTING.md lists what the tests cover.
+  and the UI hierarchy (`scripts/collect_emulator_artifacts.sh`), kept for one day. Main is only fast-forwarded to a commit on which it passed, or to one that changes only documentation after such a commit. docs/TESTING.md lists what the tests cover.
 - R12.3 Shrimpl release builds use R8 and are signed with the debug key, for personal sideloading.
 
 ## R13 Test tags (debug builds only)

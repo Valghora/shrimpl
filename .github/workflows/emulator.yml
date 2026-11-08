@@ -5,13 +5,9 @@ name: Emulator
 # expose KVM, so the x86_64 emulator runs at hardware speed; the cloud container Claude Code works in
 # has no KVM and can't run one.
 #
-# Runs on pushes to main (the merge), not on branches: it is the slowest check. Run it on a branch by hand
-# (workflow_dispatch) when a change touches what it covers. Not run for a push that changes only
-# documentation: it can't change a test result.
+# By hand only (workflow_dispatch), on a branch that is ready to merge: it is the slowest check, so it
+# doesn't run on every push. Main only fast-forwards to a commit it passed on.
 on:
-  push:
-    branches: [main]
-    paths-ignore: ["docs/**", "**.md"]
   workflow_dispatch:
 
 permissions:

@@ -93,13 +93,12 @@ and services.gradle.org).
   (launcher, Play services, Settings) miss deadlines, so an "isn't responding" dialog can cover a test's
   screen: the script hides error dialogs (`hide_error_dialogs`) and waits 30 s after boot, and the install
   robot taps Wait if one still shows. A new workflow can't be dispatched from a branch until it
-  is on the default branch, so the Emulator workflow ran on push to branches at first (since 2026-11-08 it runs on merges to main). Run times (before the speed-ups below):
+  is on the default branch, so the Emulator workflow ran on every push at first; since 2026-11-08 it is dispatched by hand when a branch is ready to merge. Run times (before the speed-ups below):
   about 4 minutes to boot and settle, 7 minutes of tests, 16.5 for the whole job. Speed-ups: the template's
   tests stop the start page's load and put the test page in at once instead of waiting for the start
   page (10 to 20 s per test; sharing one activity per class doesn't work, because AndroidJUnitRunner
   finishes every open activity after each test); both modules run in one Gradle invocation; the SDK and system image are not
-  cached (restoring them took 136 s, downloading about 70); and a push that changes only `docs/**` or
-  Markdown doesn't run the workflow. Measured after them (run 42529408334): 14.1 minutes for the job, down from 16.5: 97 s to free disk,
+  cached (restoring them took 136 s, downloading about 70). Measured after them (run 42529408334): 14.1 minutes for the job, down from 16.5: 97 s to free disk,
   12 s of SDK setup, 36 s to build, 3.7 minutes to download the system image and boot (this absorbed the
   cache's saving), 7.5 minutes of tests. Not done: freeing disk in the background (90 s) and a shorter
   settle. `FixFlowTest` once failed with the system Uninstall dialog showing and never tapped (the same
