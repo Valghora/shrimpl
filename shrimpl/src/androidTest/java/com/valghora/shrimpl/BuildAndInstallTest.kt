@@ -148,8 +148,9 @@ class BuildAndInstallTest {
             // It launches and loads its site (R7, T3): the page's heading is on screen.
             val launch = requireNotNull(context.packageManager.getLaunchIntentForPackage(packageName)).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
             context.startActivity(launch)
-            assertTrue("the web app didn't come to the front", device.wait(Until.hasObject(By.pkg(packageName).depth(0)), 30_000))
+            // Android's notification prompt (T7.5) may be over the web app first, so the page is awaited with it.
             assertTrue("the web app never showed Example Domain", awaitPageAllowingNotifications("Example Domain"))
+            assertTrue("the page isn't the web app's", device.hasObject(By.pkg(packageName)))
         } catch (e: Throwable) {
             Evidence.capture("build-and-install")
             throw e

@@ -100,9 +100,9 @@ class FixFlowTest {
             awaitUntil("the app to be signed with the new key", 180_000) { signerOf(packageName) == other.fingerprint }
             fixing.interrupt()
 
-            val record = container.store.get(profile.appId)
-            assertNotNull("the record survived the fix", record)
-            assertEquals(other.fingerprint, record?.signerFingerprint)
+            // The record is saved only after the install succeeds (R11.3), a moment after the app is signed anew.
+            awaitUntil("the record to name the new key", 30_000) { container.store.get(profile.appId)?.signerFingerprint == other.fingerprint }
+            assertNotNull("the record survived the fix", container.store.get(profile.appId))
         } catch (e: Throwable) {
             Evidence.capture("fix-flow")
             throw e
