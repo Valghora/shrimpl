@@ -59,7 +59,7 @@ Writing an emulator test:
 | R6, R8, R11.3: build, sign, install through the system installer, launch, see the site | `BuildAndInstallTest` | by hand |
 | R6.1, R11.4: an installed web app updates in place (the test taps Update) | `BuildAndInstallTest` | by hand |
 | R11.7: Fix replaces an app signed with another key (uninstall, rebuild with the new key; the test answers both system dialogs) | `FixFlowTest` | by hand |
-| R1.1, R2.6: two panes and four tiles on the XPS at full screen, two panes and three on a common 1536 dp laptop, one pane and three on a phone, on the real window manager | `WindowSizesTest` | by hand |
+| R1.1, R2.6: two panes and four tiles at full screen on the Dell XPS (2560 x 1600) and on the 2880 x 1800 Googlebooks (Acer, ASUS, HP, Lenovo) at both guessed scales, two panes and three on a common 1536 dp laptop (also the HP's 1920 x 1200 option), one pane and three on a phone, on the real window manager | `WindowSizesTest` | by hand |
 | T2a, T6.6: a link to another site opens in the browser | `ExternalLinksTest` | by hand |
 | Accessibility (touch targets, contrast, labels) on the real screens, with a control that must fail | `AccessibilityChecksTest`, `AccessibilityChecksAreLiveTest` | TalkBack only |
 | 16 KB page alignment of every APK | `scripts/check_page_alignment.sh` (Android workflow) | not checked |

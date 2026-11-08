@@ -56,6 +56,14 @@ landed just above that and shown two panes, so the switch moved to 1000 dp: ever
 one pane, every full screen two, with the settings at their maximum width. A user who makes the
 display size much smaller (a scale under about 1.4 on the 2880 px models) gets two panes when snapped.
 
+## Tested on the emulator
+
+`WindowSizesTest` resizes an emulator's display to these screens (`wm size`, `wm density`) and checks the
+panes and tiles: the Dell at 2560 x 1600 and 1.5 (1707 dp), and the 2880 x 1800 models at both guessed
+scales, 1.5 (1920 dp) and 1.625 (1772 dp), all two panes and four tiles. It can't snap a window to half
+the screen, so the one-pane rule for snapped windows rests on Robolectric (`PaneWidthTest`) and the
+Dell's confirmed 849 dp.
+
 ## To confirm on a device
 
 - The default scale of the 2880 px models: Settings, Display, Display size, or over adb `wm size` and
