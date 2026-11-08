@@ -55,13 +55,27 @@ jobs:
       - name: Set up Android SDK
         run: scripts/setup_android_sdk.sh
 
+      # The runner has 7 GB and the emulator takes 4: building with it running killed the runner (2026-11-08,
+      # "AAPT2 daemon unexpectedly exit", then a shutdown signal). So everything is built first and the
+      # Gradle daemons stopped before the emulator starts; the test step then only installs and runs.
+      - name: Build the APKs and test APKs
+        run: >-
+          ./gradlew --console=plain :template:assembleDebugAndroidTest :shrimpl:assembleDebugAndroidTest
+          -x :template:lintVitalRelease
+
+      - name: Free memory for the emulator
+        run: |
+          ./gradlew --stop
+          pkill -f KotlinCompileDaemon || true
+          free -m | head -2
+
       - name: Start the emulator
         run: scripts/start_emulator.sh
 
       # Both modules run even if one fails, so a run shows every failure at once.
       - name: Instrumented tests
         run: >-
-          ./gradlew --console=plain --continue :template:connectedDebugAndroidTest :shrimpl:connectedDebugAndroidTest
+          ./gradlew --console=plain --no-daemon --continue :template:connectedDebugAndroidTest :shrimpl:connectedDebugAndroidTest
           -x :template:lintVitalRelease
 
       - name: Collect emulator evidence
