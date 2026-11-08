@@ -93,8 +93,8 @@ and services.gradle.org).
   (launcher, Play services, Settings) miss deadlines, so an "isn't responding" dialog can cover a test's
   screen: the script hides error dialogs (`hide_error_dialogs`) and waits 30 s after boot, and the install
   robot taps Wait if one still shows. A new workflow can't be dispatched from a branch until it
-  is on the default branch, so the Emulator workflow runs on push. Run times: about 4 minutes to boot, 4
-  minutes of tests (21 tests), 15 for the whole job.
+  is on the default branch, so the Emulator workflow runs on push. Run times: about 4 minutes to boot and
+  settle, 7 minutes of tests, under 20 for the whole job.
 - **Test fixtures.** The template's debug build (never the release APK Shrimpl bundles) has a document
   provider, `TestTreeProvider`, over `cache/test-tree`, so the folder tests run the template's
   `DocumentsContract` calls against a real provider. `DocumentsProvider` insists on `MANAGE_DOCUMENTS`
