@@ -1,0 +1,77 @@
+name: Emulator
+
+# Instrumented tests on a real Android system (docs/BUILD_NOTES.md, "Emulator"): the template's WebView
+# and its bridges, and Shrimpl building, installing and launching a web app. GitHub's Linux runners
+# expose KVM, so the x86_64 emulator runs at hardware speed; the cloud container Claude Code works in
+# has no KVM and can't run one.
+#
+# Not run on main: it only fast-forwards to commits that already passed here on their branch.
+on:
+  push:
+    branches-ignore: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  ANDROID_HOME: /home/runner/android-sdk
+  EMULATOR_DIR: ${{ github.workspace }}/emulator-out
+
+jobs:
+  instrumented:
+    name: Instrumented tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      - uses: gradle/actions/setup-gradle@v6
+        with:
+          cache-read-only: false
+
+      - name: Cache Android SDK and system image
+        uses: actions/cache@v6
+        with:
+          path: ${{ env.ANDROID_HOME }}
+          key: android-sdk-emulator-${{ runner.os }}-api37-${{ hashFiles('scripts/setup_android_sdk.sh', 'scripts/start_emulator.sh') }}
+
+      - name: Set up Android SDK
+        run: scripts/setup_android_sdk.sh
+
+      - name: Start the emulator
+        run: scripts/start_emulator.sh
+
+      # Both modules run even if one fails, so a run shows every failure at once.
+      - name: Instrumented tests
+        run: >-
+          ./gradlew --console=plain --continue :template:connectedDebugAndroidTest :shrimpl:connectedDebugAndroidTest
+          -x :template:lintVitalRelease
+
+      - name: Collect emulator evidence
+        if: always()
+        run: scripts/collect_emulator_artifacts.sh
+
+      - name: Upload test results and evidence
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: instrumented-results
+          path: |
+            emulator-out/
+            template/build/reports/androidTests/
+            template/build/outputs/androidTest-results/
+            shrimpl/build/reports/androidTests/
+            shrimpl/build/outputs/androidTest-results/
+          if-no-files-found: ignore
+          retention-days: 1

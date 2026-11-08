@@ -118,6 +118,11 @@ jobs:
           if [[ -f shrimpl/build/outputs/apk/release/shrimpl-release.apk ]]; then
             scripts/check_native_code.sh --all-abis shrimpl/build/outputs/apk/release/shrimpl-release.apk
           fi
+          # Android 15+ devices may use 16 KB memory pages; a library that isn't aligned for them can't load.
+          scripts/check_page_alignment.sh template/build/outputs/apk/release/template-release.apk shrimpl/build/outputs/apk/debug/shrimpl-debug.apk
+          if [[ -f shrimpl/build/outputs/apk/release/shrimpl-release.apk ]]; then
+            scripts/check_page_alignment.sh shrimpl/build/outputs/apk/release/shrimpl-release.apk
+          fi
 
       - name: Upload template and Shrimpl APKs
         uses: actions/upload-artifact@v7

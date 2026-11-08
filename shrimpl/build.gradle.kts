@@ -41,6 +41,8 @@ android {
         targetSdk = 37
         versionCode = 1
         versionName = "0.1"
+        // Instrumented tests run on an emulator in CI (docs/BUILD_NOTES.md, "Emulator").
+        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
     testOptions {
@@ -121,6 +123,14 @@ dependencies {
     testImplementation(libs.androidx.test.core)
     testImplementation(libs.androidx.test.runner)
     debugImplementation(libs.androidx.compose.ui.test.manifest)
+    androidTestImplementation(platform(libs.androidx.compose.bom))
+    androidTestImplementation(libs.androidx.compose.ui.test.junit4)
+    androidTestImplementation(libs.androidx.test.ext.junit)
+    androidTestImplementation(libs.androidx.test.runner)
+    androidTestImplementation(libs.androidx.test.rules)
+    androidTestImplementation(libs.androidx.test.core)
+    androidTestImplementation(libs.androidx.test.espresso.core)
+    androidTestImplementation(libs.androidx.test.uiautomator)
 }
 
 // Robolectric's Android runtime comes through Gradle (cached, retried, the same repositories as every

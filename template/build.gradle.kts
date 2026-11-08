@@ -20,6 +20,8 @@ android {
         targetSdk = 37
         versionCode = templateVersion
         versionName = "$templateVersion.0"
+        // Instrumented tests run on an emulator in CI (docs/BUILD_NOTES.md, "Emulator").
+        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
     buildTypes {
@@ -58,4 +60,10 @@ dependencies {
     implementation(libs.androidx.activity.ktx)
     implementation(libs.androidx.webkit)
     testImplementation(libs.junit)
+    androidTestImplementation(libs.androidx.test.ext.junit)
+    androidTestImplementation(libs.androidx.test.runner)
+    androidTestImplementation(libs.androidx.test.rules)
+    androidTestImplementation(libs.androidx.test.core)
+    androidTestImplementation(libs.androidx.test.espresso.core)
+    androidTestImplementation(libs.androidx.test.espresso.intents)
 }
