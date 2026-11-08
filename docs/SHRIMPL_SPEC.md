@@ -98,7 +98,8 @@ binary translation) on any device.
   transparent with no contrast scrim, so the screen's body color shows through, and their icons follow
   Shrimpl's own Theme setting. Navigation is Jetpack Navigation 3 with Material's list-detail scene
   strategy (`adaptive-navigation3`), not `ListDetailPaneScaffold`. Content descriptions on every
-  icon, font scaling supported. The template stays on Views (T1.1).
+  icon, font scaling supported. The template stays on Views (T1.1). Shrimpl's launcher icon is a white
+  shrimp on #CC5500, with a monochrome layer for themed icons.
 - R1.4 Three install methods behind one interface (R6): System (the platform installer), Shizuku and
   Root.
 - R1.5 Shapes: rounded corners from Material's shape scale, one size per role, all defined in one
@@ -464,12 +465,15 @@ The template's behavior is docs/TEMPLATE_SPEC.md. What Shrimpl relies on:
 - R11.3 Rebuilds increment the build number; a failed install doesn't use one up.
 - R11.4 The template version is one integer, `shrimpl.templateVersion` in `gradle.properties`, which
   is also the template's versionCode. It MUST be incremented whenever template code or resources
-  change. Records built with an older version show "Update available"; Update rebuilds with the
+  change, and a number is never reused, even for a build that was thrown away (apps built with it
+  would show no update). A bump with no template change is allowed, to offer every installed app an
+  Update. Records built with an older version show "Update available"; Update rebuilds with the
   bundled template.
 - R11.5 Shrimpl never reads or modifies web apps' private data.
   *Outside code:* a rule that no code reads web apps' data.
 - R11.6 Each built web app carries what is needed to list it again: its profile, and its icon
-  options as `assets/shrimpl/icons.json` with their images beside it (from template version 7). On
+  options as `assets/shrimpl/icons.json` with their images beside it (from template version 7; the
+  builder adds them, `WebAppSpec.extras`, not the template). On
   its first start with no records (after a reinstall, say), Shrimpl reads every installed
   `com.valghora.shrimpl.app.*` APK and rebuilds its record: profile, icon options, build number
   (versionCode), template version (versionName) and signer. Apps built before icons.json come back

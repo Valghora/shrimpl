@@ -1,8 +1,7 @@
 # Build notes
 
-Baseline of 2026-10-28: the toolchain, platform findings that shape the code, and every deviation
-from docs/SHRIMPL_SPEC.md and docs/TEMPLATE_SPEC.md. Deviations from Google's adaptive guidance are
-in docs/ADAPTIVE.md. The log of how the project got here is in `docs/history/`.
+The toolchain, platform findings that shape the code, and every deviation from docs/SHRIMPL_SPEC.md
+and docs/TEMPLATE_SPEC.md. Deviations from Google's adaptive guidance are in docs/ADAPTIVE.md.
 
 ## Versions
 
@@ -53,6 +52,8 @@ and services.gradle.org).
 - **`.gitignore` and `build/`.** `core/.../build/` is a source package; `!**/src/**/build/` keeps it
   tracked.
 - **KDoc gotcha.** `https://*.d` inside `/** */` opens a nested comment in Kotlin.
+- **Git remote.** The cloud session's git remote uses the repository's former URL; GitHub redirects
+  it to `Valghora/shrimpl` ("This repository moved" on every push is expected).
 - **Library sources.** The Maven sources jars of some AndroidX KMP libraries lack `androidMain`;
   inspect the AAR's `classes.jar` with `javap` instead.
 
@@ -75,6 +76,8 @@ and services.gradle.org).
   caption-bar insets give the header color (T3). From API 36, `resizeableActivity` is ignored on
   displays of 600 dp and wider, and API 37 ignores orientation and aspect ratio limits on large
   screens. `singleInstancePerTask` plus `FLAG_ACTIVITY_MULTIPLE_TASK` gives multiple windows.
+- **Network state.** `ACCESS_NETWORK_STATE` (a normal permission) lets discovery tell "No internet
+  connection" from a site that can't be reached (R3.2).
 - **Data extraction.** With targetSdk 31+, `allowBackup="false"` doesn't stop device-to-device
   transfer; `data_extraction_rules.xml` excludes everything.
 - **Emulator (2026-11-08).** The cloud container can't run one: no `/dev/kvm` and no `vmx`/`svm` CPU flags,
@@ -127,77 +130,6 @@ and services.gradle.org).
 | R10.3 | Letter icons use the system bold font. | Native rendering; no bundled font. |
 | R6.1 | Package visibility uses `<queries>` (launcher apps, icon packs, Shizuku), not `QUERY_ALL_PACKAGES`. | Narrower, and enough: every web app has a launcher entry. |
 | Rules (lint) | `:shrimpl` lint keeps one warning: `SetJavaScriptEnabled` (the hidden discovery WebView must run page scripts). | `@SuppressLint` is allowed only in the template. |
-
-## Rename to Shrimpl (2026-10-29)
-
-UniWrap became Shrimpl everywhere except `docs/history/`: the app (`com.valghora.shrimpl`, module
-`:shrimpl`), the core package (`com.valghora.shrimpl.core`), the template's namespace
-(`com.valghora.shrimpl.webapp`) and placeholder package (`com.valghora.shrimpl.template`), the
-apps' package prefix (`com.valghora.shrimpl.app`), the profile asset (`assets/shrimpl/`), the
-signing key's alias and common name, the launcher icon (a white shrimp on #CC5500, with a themed monochrome layer) and the repository (`Valghora/shrimpl`; the cloud session's git
-access still uses the old URL, which GitHub redirects). An interim name, Shrimple, never shipped
-beyond test builds. Shrimpl is a new
-package, so it installs beside UniWrap rather than updating it, and can't update apps UniWrap made
-(their packages start `com.valghora.uniwrap.app`). Template version 4.
-
-## Icon options (2026-10-30)
-
-- Records keep every icon option (`IconOptions`: brand glyph, website icon, custom icon, selected),
-  next to `icon`, the one the last build used. Records saved before keep working: a glyph becomes
-  Brand, a letter Website, and an image Website when its origin names one of the site's icons, else
-  Custom (its file stays `icon-image`). Without a stored site image, their Website option is a letter.
-- `:core` holds the editing model (`WebAppDraft`: form, options and unsaved images, with the edits the
-  form makes), so the form takes one draft and one change callback.
-- Discovery's core rules only list the site's icons; `Discovery.websiteIcon` fetches one, after the
-  draft, when the best icon was a brand glyph, so the recorded fixtures keep their fetch order.
-- Images are stored as centered square PNGs of at most 512 px (never enlarged); saving a record
-  deletes icon images no option uses any more.
-- Previews draw only the foreground layer straight to a bitmap over the background color; the full
-  renderer (four PNG layers) runs only for builds.
-- Custom icons come from Photos, Files or an icon pack's own picker
-  (`org.adw.launcher.icons.ACTION_PICK_ICON`, result in the `icon` extra). Shrimpl no longer reads
-  icon packs' `appfilter.xml` or drawables, so the `DiscouragedApi` lint warning is gone.
-
-## Template versions (2026-10-31)
-
-Template version 5 was used twice: by a discarded build (the first-load fade-in, never merged) and
-by the app-list work. Apps built with the discarded build were recorded as version 5 and so showed
-no update. The template is now version 6. A version number is never reused, even for a build that is
-thrown away.
-
-- Template version 7 has no template code change: it is bumped so every installed web app shows
-  Update and, rebuilt, gains `assets/shrimpl/icons.json` (R11.6) for recovery after a reinstall of
-  Shrimpl. The extra assets are added by `WebAppBuilder` (`WebAppSpec.extras`), not by the template.
-
-- Template version 8 has no template code change either: it was bumped at the owner's request, to
-  exercise Update and Update all on installed web apps.
-
-- Template version 9 (2026-11-01): fixes from the Android skills audits. `intent:` links lose URI
-  permission grant flags; only the toggle shortcut's token toggles desktop/mobile; `onNewIntent`
-  keeps the latest intent; cookies are flushed once per stop, off the main thread.
-
-- Template version 10 (2026-11-01): the camera, microphone and location steps of T6.5 (explain after
-  one refusal, a snackbar with Settings once Android stops asking), with Material's
-  `MaterialAlertDialogBuilder` and `Snackbar`, which the template already depended on for its theme.
-  Android's `shouldShowRequestPermissionRationale` is false both before the first request and after
-  "Don't allow" twice, so the template keeps an "asked" flag per permission in its preferences.
-
-- Template version 11 (2026-11-02): page text follows the system font size (T5.7). WebView's own
-  default text zoom already is 100 x the font scale, but the template set it to a fixed 100 %, so
-  enlarged system text never reached web pages.
-
-- Template version 12 (2026-11-02): text punctuation only. The permission explanation and the
-  "can't be downloaded" toast end with a period (CLAUDE.md: sentences with punctuation in them, or
-  more than one sentence, end with one).
-
-- Template version 13 (2026-11-02): those two periods removed again: the period rule covers settings
-  descriptions only, and the template has none.
-
-- Template version 14 (2026-11-02): the permission explanation (two sentences) ends with a period
-  again, per the owner's review of all strings.
-
-- `ACCESS_NETWORK_STATE` (a normal permission) lets the search tell "No internet connection" apart
-  from a site that can't be reached.
 
 ## Robolectric (Shrimpl's Compose screens in unit tests)
 
