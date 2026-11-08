@@ -5,8 +5,7 @@ gets an installable app for that site. Each generated app is a separate Android 
 process, storage, launcher entry and windows) and behaves like an installed PWA on Android desktops
 (desktop windowing, Googlebook OS), tablets, foldables and phones.
 
-This file is the baseline as of 2026-10-28. It describes what the project must be now; how it got
-here is in `docs/history/`. Companion documents:
+This file describes what the project must be now. Companion documents:
 
 - [docs/TEMPLATE_SPEC.md](TEMPLATE_SPEC.md): what every web app does (requirements T1 to T8).
 - [docs/ADAPTIVE.md](ADAPTIVE.md): how Google's adaptive skill and app quality guidelines apply,
@@ -335,8 +334,9 @@ binary translation) on any device.
 ## R6 Install methods
 
 - R6.1 One `Installer` interface (install, uninstall, availability) with three implementations:
-  - **Session:** `PackageInstaller` sessions; REQUEST_INSTALL_PACKAGES; first installs ask the user,
-    updates don't need to (`USER_ACTION_NOT_REQUIRED`).
+  - **Session:** `PackageInstaller` sessions; REQUEST_INSTALL_PACKAGES. Sessions ask for
+    `USER_ACTION_NOT_REQUIRED`, but Android still asks the user to confirm every install and every
+    update (the emulator's `BuildAndInstallTest` taps Update), hence R2.4's warning.
   - **Shizuku:** a Shizuku user service running `pm install -S` with the APK piped in; no prompts.
   - **Root:** `su -c pm install -S` with the APK piped in; `pm uninstall` for uninstalls.
 - R6.2 Settings has one Method choice: System (default; every install asks for confirmation),
@@ -497,13 +497,13 @@ The template's behavior is docs/TEMPLATE_SPEC.md. What Shrimpl relies on:
   Lint for both apps reports 0 errors. Release builds skip lint vital, a subset of the release lint
   already run on the same variant. Build also checks that every APK's native libraries are 16 KB
   page aligned (`scripts/check_page_alignment.sh`).
+- R12.3 Shrimpl release builds use R8 and are signed with the debug key, for personal sideloading.
 - R12.4 The Emulator workflow (`.github/workflows/emulator.yml`) runs by hand (`workflow_dispatch`) on a
   branch that is ready to merge, not on pushes. It builds the debug APKs and test APKs, stops Gradle (the runner's 7 GB can't hold a build and
   the 4 GB emulator), boots an x86_64 API 37 system image with KVM (`scripts/start_emulator.sh`), runs
   `connectedDebugAndroidTest` for `:template` and `:shrimpl` in one Gradle run (`scripts/run_instrumented_tests.sh`:
   a module that reports no tests at all is retried alone, then fails the job), and uploads the results, logcat, a screenshot
   and the UI hierarchy (`scripts/collect_emulator_artifacts.sh`), kept for one day. Main is only fast-forwarded to a commit on which it passed, or to one that changes only documentation after such a commit. docs/TESTING.md lists what the tests cover.
-- R12.3 Shrimpl release builds use R8 and are signed with the debug key, for personal sideloading.
 
 ## R13 Test tags (debug builds only)
 

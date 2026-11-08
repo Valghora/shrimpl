@@ -21,7 +21,8 @@ import kotlinx.coroutines.withContext
 
 /**
  * The system installer (docs/SHRIMPL_SPEC.md R6.1): a PackageInstaller session, confirmed by the user.
- * Updates of web apps Shrimpl installed itself can skip the confirmation (USER_ACTION_NOT_REQUIRED).
+ * It asks for USER_ACTION_NOT_REQUIRED, yet Android still asks the user to confirm updates as well as first
+ * installs (R2.4).
  */
 class SessionInstaller(private val context: Context) : Installer {
     override val method = InstallMethod.SESSION
