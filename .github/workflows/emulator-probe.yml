@@ -1,5 +1,8 @@
 name: Emulator probe
 on:
+  push:
+    paths:
+      - .github/workflows/emulator-probe.yml
   workflow_dispatch:
 jobs:
   probe:
