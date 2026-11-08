@@ -500,7 +500,8 @@ The template's behavior is docs/TEMPLATE_SPEC.md. What Shrimpl relies on:
 - R12.4 The Emulator workflow (`.github/workflows/emulator.yml`) runs on every push except to `main`, and
   by hand. It builds the debug APKs and test APKs, stops Gradle (the runner's 7 GB can't hold a build and
   the 4 GB emulator), boots an x86_64 API 37 system image with KVM (`scripts/start_emulator.sh`), runs
-  `connectedDebugAndroidTest` for `:template` and `:shrimpl`, and uploads the results, logcat, a screenshot
+  `connectedDebugAndroidTest` for `:template` and `:shrimpl` (`scripts/run_instrumented_tests.sh`: a module that
+  reports no tests at all is retried once, then fails the job), and uploads the results, logcat, a screenshot
   and the UI hierarchy (`scripts/collect_emulator_artifacts.sh`), kept for one day. Main is only
   fast-forwarded to commits that passed it. docs/TESTING.md lists what the tests cover.
 - R12.3 Shrimpl release builds use R8 and are signed with the debug key, for personal sideloading.

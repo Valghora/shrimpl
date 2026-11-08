@@ -95,6 +95,11 @@ and services.gradle.org).
   robot taps Wait if one still shows. A new workflow can't be dispatched from a branch until it
   is on the default branch, so the Emulator workflow runs on push. Run times: about 4 minutes to boot and
   settle, 7 minutes of tests, under 20 for the whole job.
+- **Zero tests is not a pass.** Once the template's instrumentation died within seconds of starting and
+  Gradle reported success with `tests="0"`; the run looked green apart from Shrimpl's. So
+  `scripts/run_instrumented_tests.sh` retries a module that reports no tests and fails the job if it still
+  doesn't. Reading the layout the instant the first tile appeared saw 2 of 4 across, so
+  `WindowSizesTest` waits for every tile and two agreeing readings.
 - **Test fixtures.** The template's debug build (never the release APK Shrimpl bundles) has a document
   provider, `TestTreeProvider`, over `cache/test-tree`, so the folder tests run the template's
   `DocumentsContract` calls against a real provider. `DocumentsProvider` insists on `MANAGE_DOCUMENTS`

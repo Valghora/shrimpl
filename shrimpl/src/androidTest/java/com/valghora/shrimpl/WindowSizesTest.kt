@@ -81,14 +81,25 @@ class WindowSizesTest {
         Thread.sleep(1_500)
         return try {
             ActivityScenario.launch(MainActivity::class.java).use {
-                compose.waitUntil(30_000) { compose.onAllNodesWithText("Tilea").fetchSemanticsNodes().isNotEmpty() }
-                val tiles = compose.onAllNodes(hasText("Tile", substring = true) and SemanticsMatcher.keyIsDefined(SemanticsActions.OnLongClick))
-                    .fetchSemanticsNodes().map { it.boundsInRoot }
-                val firstRow = tiles.minOf { it.top }
-                val across = tiles.count { abs(it.top - firstRow) < 2f }
-                val twoPanes = compose.onAllNodesWithText(context.getString(R.string.home_pick_app)).fetchSemanticsNodes().isNotEmpty()
-                val tileWidthDp = tiles.first().width / (dpi / 160f)
-                Triple(across, twoPanes, tileWidthDp)
+                // The grid composes tiles as the apps load and the display change settles: measure once every
+                // tile is there and two readings in a row agree (found 2026-11-08: a first reading saw 2 of 4).
+                var last: Triple<Int, Boolean, Float>? = null
+                var stable: Triple<Int, Boolean, Float>? = null
+                awaitUntil("the tiles to settle", 30_000) {
+                    val tiles = compose.onAllNodes(hasText("Tile", substring = true) and SemanticsMatcher.keyIsDefined(SemanticsActions.OnLongClick))
+                        .fetchSemanticsNodes().map { it.boundsInRoot }
+                    if (tiles.size < names.size) return@awaitUntil false
+                    val firstRow = tiles.minOf { it.top }
+                    val reading = Triple(
+                        tiles.count { abs(it.top - firstRow) < 2f },
+                        compose.onAllNodesWithText(context.getString(R.string.home_pick_app)).fetchSemanticsNodes().isNotEmpty(),
+                        tiles.first().width / (dpi / 160f),
+                    )
+                    if (reading == last) stable = reading
+                    last = reading
+                    stable != null
+                }
+                requireNotNull(stable)
             }
         } finally {
             resetDisplay()

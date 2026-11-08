@@ -72,11 +72,10 @@ jobs:
       - name: Start the emulator
         run: scripts/start_emulator.sh
 
-      # Both modules run even if one fails, so a run shows every failure at once.
+      # Both modules run even if one fails, so a run shows every failure at once; a module that reports no
+      # tests at all is retried once and then fails the job.
       - name: Instrumented tests
-        run: >-
-          ./gradlew --console=plain --no-daemon --continue :template:connectedDebugAndroidTest :shrimpl:connectedDebugAndroidTest
-          -x :template:lintVitalRelease
+        run: scripts/run_instrumented_tests.sh
 
       - name: Collect emulator evidence
         if: always()
