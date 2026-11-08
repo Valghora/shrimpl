@@ -12,6 +12,7 @@ import androidx.compose.ui.test.onRoot
 import androidx.compose.ui.test.tryPerformAccessibilityChecks
 import androidx.compose.ui.unit.dp
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import org.junit.Assert.assertTrue
 import org.junit.Assert.fail
 import org.junit.Rule
 import org.junit.Test
@@ -31,11 +32,14 @@ class AccessibilityChecksAreLiveTest {
     fun anUnlabelledTinyClickableFailsTheChecks() {
         compose.enableAccessibilityChecks()
         compose.setContent { Box(Modifier.size(10.dp).background(Color.Gray).clickable { }) }
-        try {
+        val failure = try {
             compose.onRoot().tryPerformAccessibilityChecks()
-        } catch (_: AssertionError) {
-            return
+            null
+        } catch (e: Exception) {
+            // The framework reports results as an AccessibilityViewCheckException.
+            e
         }
-        fail("an unlabelled 10 dp clickable passed the accessibility checks: they aren't running")
+        if (failure == null) fail("an unlabelled 10 dp clickable passed the accessibility checks: they aren't running")
+        assertTrue("the failure isn't an accessibility result: $failure", failure!!.message.orEmpty().contains("accessibility results"))
     }
 }

@@ -50,7 +50,9 @@ Writing an emulator test:
 | T6.17 single-file Open and Save, write commands | `FileAccessTest` | by hand |
 | R2.1 Shrimpl starts on a real system | `HomeLaunchTest` | by hand |
 | R6, R8, R11.3: build, sign, install through the system installer, launch, see the site | `BuildAndInstallTest` | by hand |
-| Accessibility (touch targets, contrast, labels) on the real screens | `AccessibilityChecksTest` | TalkBack only |
+| R6.1, R11.4: an installed web app updates in place (the test taps Update) | `BuildAndInstallTest` | by hand |
+| T2a, T6.6: a link to another site opens in the browser | `ExternalLinksTest` | by hand |
+| Accessibility (touch targets, contrast, labels) on the real screens, with a control that must fail | `AccessibilityChecksTest`, `AccessibilityChecksAreLiveTest` | TalkBack only |
 | 16 KB page alignment of every APK | `scripts/check_page_alignment.sh` (Android workflow) | not checked |
 
 ## Still the owner's devices
@@ -72,9 +74,9 @@ Each is feasible on the emulator and not written yet; the order is by how often 
 
 1. Folder access (`showDirectoryPicker`, T6.18): needs Android's real folder picker driven by UI Automator,
    or a test document provider in the template's debug build.
-2. Update and Fix flows with the real installer (R11.4, R11.7), including the uninstall dialog.
+2. The Fix flow with the real installer (R11.7): a key change, then the uninstall dialog, then a rebuild.
 3. The file chooser's camera options (T6.4), which need a real tap on the page to count as a user gesture.
-4. External link routing and pop-up windows in the real WebView (T2a, T6.6).
+4. Pop-up windows in the real WebView (T6.6).
 5. Dialog drafts surviving activity recreation (BUILD_NOTES, "Robolectric").
 6. Shrimpl at the Dell XPS's size (`wm size`, `wm density`): four tiles, two panes, on the real window manager.
 7. Notifications, permissions (camera, location) through the template's flow, full-screen video, printing.

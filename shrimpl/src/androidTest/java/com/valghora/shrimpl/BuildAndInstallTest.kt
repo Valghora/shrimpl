@@ -2,6 +2,7 @@ package com.valghora.shrimpl
 
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.util.Log
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
@@ -14,6 +15,7 @@ import com.valghora.shrimpl.core.build.WebAppBuilder
 import com.valghora.shrimpl.core.profile.Profile
 import com.valghora.shrimpl.core.records.IconOptions
 import com.valghora.shrimpl.core.records.IconRecord
+import com.valghora.shrimpl.install.SessionInstaller
 import java.security.MessageDigest
 import java.util.regex.Pattern
 import kotlin.concurrent.thread
@@ -55,14 +57,34 @@ class BuildAndInstallTest {
 
     @After
     fun cleanUp() {
+        // A confirmation nobody answered would otherwise block the next test's install.
+        (container.installers.preferred() as? SessionInstaller)?.cancelConfirmation()
         device.executeShellCommand("pm uninstall $packageName")
         runBlocking { container.store.delete(profile.appId) }
     }
 
-    /** Taps Install on the system installer's confirmation screen when it appears; a first install needs it. */
+    /**
+     * Taps Install, or Update, on the system installer's confirmation screen whenever it shows, until
+     * interrupted: Android asks for each install and each update (docs/SHRIMPL_SPEC.md R2.4). While it
+     * finds nothing it logs what is on screen, so a stuck run says why.
+     */
     private fun acceptInstallDialog() = thread(name = "install-confirmer") {
-        val install = device.wait(Until.findObject(By.text("Install").clickable(true)), 120_000)
-        install?.click()
+        var idle = 0
+        try {
+            while (true) {
+                val button = device.findObject(By.text(Pattern.compile("(?i)^(install|update)$")).clickable(true))
+                if (button != null) {
+                    button.click()
+                    idle = 0
+                } else if (++idle % 15 == 0) {
+                    val seen = device.findObjects(By.clickable(true)).mapNotNull { it.text }.joinToString(" | ")
+                    Log.w("SHRIMPL_INSTALL", "no Install or Update button after ${idle}s; clickable on screen: $seen")
+                }
+                Thread.sleep(1_000)
+            }
+        } catch (_: InterruptedException) {
+            // The install finished; stop looking.
+        }
     }
 
     private fun fingerprintOf(certificate: ByteArray): String =
@@ -95,12 +117,11 @@ class BuildAndInstallTest {
     }
 
     /**
-     * Rebuilding an installed web app with the same key installs over it without asking again (R6.1, R11.4):
-     * this is how Update and Update all work. If a confirmation were needed the build would wait for one
-     * nobody gives and time out.
+     * Rebuilding an installed web app with the same key installs over it (R6.1, R11.4): this is how Update
+     * and Update all work. Android asks the user to confirm each update (R2.4), so the test taps Update.
      */
     @Test
-    fun anInstalledAppIsUpdatedInPlaceWithoutAskingAgain() {
+    fun anInstalledAppIsUpdatedInPlace() {
         try {
             device.executeShellCommand("appops set ${context.packageName} REQUEST_INSTALL_PACKAGES allow")
             val icons = IconOptions(IconOptions.Option.WEBSITE, website = IconRecord.letter('C'))
@@ -112,8 +133,9 @@ class BuildAndInstallTest {
             fun versionCode() = context.packageManager.getPackageInfo(packageName, PackageManager.PackageInfoFlags.of(0)).longVersionCode
 
             val before = versionCode()
-            // No confirmer this time: the update must go through on its own.
-            val second = runBlocking { withTimeout(120_000) { container.factory.build(BuildRequest(profile, icons, emptyMap(), existing = installed), container.installers.preferred()) {} } }
+            val updater = acceptInstallDialog()
+            val second = runBlocking { withTimeout(180_000) { container.factory.build(BuildRequest(profile, icons, emptyMap(), existing = installed), container.installers.preferred()) {} } }
+            updater.interrupt()
             assertTrue("the update ended with $second", second is BuildOutcome.Installed)
             assertTrue("the version code went from $before to ${versionCode()}", versionCode() > before)
             assertEquals(installed.nextBuildNumber, (second as BuildOutcome.Installed).record.buildNumber)
