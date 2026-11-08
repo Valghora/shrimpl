@@ -1,0 +1,14 @@
+name: Emulator probe
+on:
+  workflow_dispatch:
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: What does this runner offer?
+        run: |
+          echo "cpus: $(nproc)"; free -g | head -2
+          ls -la /dev/kvm || echo "no /dev/kvm"
+          grep -c -E 'vmx|svm' /proc/cpuinfo || true
+          echo "kvm group: $(getent group kvm || true)"
