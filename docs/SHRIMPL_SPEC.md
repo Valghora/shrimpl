@@ -42,18 +42,22 @@ binary translation) on any device.
 
 - R0.1 The template, and so every web app, contains **no native code**: zero `.so` files, no NDK,
   no JNI, no `abiFilters`, no ABI splits. Only dependencies without native code may be added to it.
+  *Outside code:* `template/build.gradle.kts` and its dependencies; checked by `scripts/check_native_code.sh` in CI.
 - R0.2 Shrimpl adds no native code of its own. A third-party library that ships native code is
   allowed only if it ships it for all four ABIs: `arm64-v8a`, `armeabi-v7a`, `x86_64` and `x86`.
   Today that is one library, `libandroidx.graphics.path.so` from Compose's androidx.graphics:graphics-path,
   which is loaded unconditionally on Android and can't be excluded.
+  *Outside code:* Shrimpl's dependencies; checked by `scripts/check_native_code.sh` in CI.
 - R0.3 Building a web app on the device uses only Kotlin and Java code (apksig, the manifest
   patcher); no native tools such as aapt2 run on the device. Shrimpl MUST NOT bundle native
   executables.
+  *Outside code:* the build pipeline (R8) uses only apksig and the manifest patcher.
 - R0.4 Enforcement: `scripts/check_native_code.sh --none` on the template and `--all-abis` on both
   Shrimpl builds, in CI (R12.2), and the core test `webAppsHaveNoNativeCode` on every web app it
   builds.
 - R0.5 The build host is not constrained by this rule (Android's aapt2 from Maven is x86_64 on
   Linux); only the APKs are.
+  *Outside code:* a rule about the build host.
 
 ## R1 Shrimpl
 
@@ -88,6 +92,7 @@ binary translation) on any device.
     together as one block between the top bar and the top of the New app button.
 - R1.2 Kotlin only. The single exception: discovery injects JavaScript into a hidden WebView to read
   what only exists in the rendered page (R9.3).
+  *Outside code:* a rule for the whole repository.
 - R1.3 Material 3 in Jetpack Compose (latest stable, Expressive components where stable), dynamic
   color, light and dark themes. The status and navigation bars (including the 3-button bar) are
   transparent with no contrast scrim, so the screen's body color shows through, and their icons follow
@@ -296,6 +301,7 @@ binary translation) on any device.
 - R4.1 Three Gradle modules: `:core` (Kotlin JVM), `:template` (Android app, the web app) and
   `:shrimpl` (Android app, the manager). Both apps depend on `:core`; `:shrimpl` bundles the
   template's release APK (R8.1).
+  *Outside code:* `settings.gradle.kts` and each module's build file.
 - R4.2 `:core` MUST NOT import `android.*`, `androidx.*` or `com.google.android.*`. It holds:
   - the profile model, JSON codec (kotlinx.serialization) and validator with field-level messages
     (domains, an https start address covered by the internal domains, colors, window sizes,
@@ -308,6 +314,7 @@ binary translation) on any device.
 - R4.3 `:core` tests reach at least 95 % line coverage (JaCoCo, verified by `:core:check`); they
   include the patcher and builder run against the real template release APK, and discovery on stored
   fixtures of three real sites and a made-up one.
+  *Outside code:* `core/build.gradle.kts` (JaCoCo verification in `:core:check`).
 - R4.4 Dependencies, as in `gradle/libs.versions.toml`:
   - `:core`: kotlinx-serialization-json, apksig.
   - `:template`: T1.1.
@@ -317,6 +324,7 @@ binary translation) on any device.
     and provider.
 
   New runtime dependencies MUST satisfy R0 and be recorded in docs/BUILD_NOTES.md.
+  *Outside code:* `gradle/libs.versions.toml` and the modules' build files.
 
 ## R5 Signing key
 
@@ -372,6 +380,7 @@ The template's behavior is docs/TEMPLATE_SPEC.md. What Shrimpl relies on:
   patcher rewrites.
 - R7.6 The template's package is the placeholder `com.valghora.shrimpl.template`; its namespace is
   fixed at `com.valghora.shrimpl.webapp`, so classes keep their names in every web app.
+  *Outside code:* `template/build.gradle.kts` (applicationId and namespace).
 
 ## R8 Building a web app (on the device)
 
@@ -458,6 +467,7 @@ The template's behavior is docs/TEMPLATE_SPEC.md. What Shrimpl relies on:
   change. Records built with an older version show "Update available"; Update rebuilds with the
   bundled template.
 - R11.5 Shrimpl never reads or modifies web apps' private data.
+  *Outside code:* a rule that no code reads web apps' data.
 - R11.6 Each built web app carries what is needed to list it again: its profile, and its icon
   options as `assets/shrimpl/icons.json` with their images beside it (from template version 7). On
   its first start with no records (after a reinstall, say), Shrimpl reads every installed
@@ -486,6 +496,7 @@ The template's behavior is docs/TEMPLATE_SPEC.md. What Shrimpl relies on:
   and `:shrimpl`. Developer scripts: `scripts/setup_android_sdk.sh` (SDK and tool check),
   `scripts/check_native_code.sh` (R0), and `scripts/dev/` (placeholder icons, Public Suffix List
   refresh).
+  *Outside code:* the repository layout and `scripts/`.
 - R12.2 CI (`.github/workflows/android.yml`) on every push and pull request runs two jobs. Checks
   (no Gradle, seconds) runs the comment check and asks whether this commit already passed the
   workflow, as it has when main is fast-forwarded to a tested branch; if so, Build is skipped.
@@ -497,13 +508,16 @@ The template's behavior is docs/TEMPLATE_SPEC.md. What Shrimpl relies on:
   Lint for both apps reports 0 errors. Release builds skip lint vital, a subset of the release lint
   already run on the same variant. Build also checks that every APK's native libraries are 16 KB
   page aligned (`scripts/check_page_alignment.sh`).
+  *Outside code:* `.github/workflows/android.yml`.
 - R12.3 Shrimpl release builds use R8 and are signed with the debug key, for personal sideloading.
+  *Outside code:* `shrimpl/build.gradle.kts` (the release build type).
 - R12.4 The Emulator workflow (`.github/workflows/emulator.yml`) runs by hand (`workflow_dispatch`) on a
   branch that is ready to merge, not on pushes. It builds the debug APKs and test APKs, stops Gradle (the runner's 7 GB can't hold a build and
   the 4 GB emulator), boots an x86_64 API 37 system image with KVM (`scripts/start_emulator.sh`), runs
   `connectedDebugAndroidTest` for `:template` and `:shrimpl` in one Gradle run (`scripts/run_instrumented_tests.sh`:
   a module that reports no tests at all is retried alone, then fails the job), and uploads the results, logcat, a screenshot
   and the UI hierarchy (`scripts/collect_emulator_artifacts.sh`), kept for one day. Main is only fast-forwarded to a commit on which it passed, or to one that changes only documentation after such a commit. docs/TESTING.md lists what the tests cover.
+  *Outside code:* `.github/workflows/emulator.yml`.
 
 ## R13 Test tags (debug builds only)
 

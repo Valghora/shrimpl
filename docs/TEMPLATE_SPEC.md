@@ -14,13 +14,16 @@ docs/SHRIMPL_SPEC.md. Profile fields are written `profile.field`.
   androidx.appcompat, com.google.android.material, androidx.activity:activity-ktx and
   androidx.webkit; tests use junit 4. No Compose (every web app is a copy of the template, and Compose
   would add megabytes to each), and no native code at all (docs/SHRIMPL_SPEC.md R0).
+  *Outside code:* `template/build.gradle.kts` (dependencies).
 - T1.2 Release builds use R8 with code and resource optimization and the optimized default rules
   (`optimization { enable = true }`); keep rules only when code genuinely needs them, in
   `src/main/keepRules/*.keep` (there are none).
+  *Outside code:* `template/build.gradle.kts` (release optimization).
 - T1.3 SDK checks: minSdk is 37, so no `SDK_INT` guards for APIs at or below 37. androidx.webkit
   features are checked at runtime, each call directly inside its own
   `if (WebViewFeature.isFeatureSupported(X))` (nested, never `a && b`: lint's RequiresFeature does not
   follow it).
+  *Outside code:* lint's RequiresFeature check and CLAUDE.md.
 
 ## T2 Core logic (`DesktopSessionController`, pure JVM)
 
@@ -74,23 +77,28 @@ Unit tests cover every branch with a fixed fixture config, including look-alike 
 - T3.4 Every user-visible string is a resource and every resource is used (zero UnusedResources).
   Labels that name the app (task description, notification channel, the site's shortcut group) use
   `profile.name`.
+  *Outside code:* the template's resources; lint's UnusedResources at 0.
 
 ## T4 Manifest and windowing
 
 - T4.1 No `screenOrientation`, `minAspectRatio`, `maxAspectRatio`, `resizeableActivity="false"` or
   `setRequestedOrientation`.
+  *Outside code:* `template/src/main/AndroidManifest.xml`.
 - T4.2 Features, all `required="false"`: type.pc, touchscreen, microphone, camera,
   camera.autofocus, location, location.gps. Permissions: INTERNET, POST_NOTIFICATIONS, RECORD_AUDIO,
   MODIFY_AUDIO_SETTINGS, CAMERA, ACCESS_FINE_LOCATION, ACCESS_COARSE_LOCATION. Shrimpl's patcher
   removes those the profile doesn't enable (docs/SHRIMPL_SPEC.md R8.2).
+  *Outside code:* `template/src/main/AndroidManifest.xml`.
 - T4.3 `<application>`: label, icon, round icon, theme, hardware acceleration, `allowBackup="false"`,
   data extraction rules that exclude everything from cloud backup and device transfer (sign-ins never
   leave the device), `enableOnBackInvokedCallback="true"`, no cleartext traffic.
+  *Outside code:* `template/src/main/AndroidManifest.xml` and `res/xml/data_extraction_rules.xml`.
 - T4.4 `MainActivity`: exported launcher, icon and round icon, `resizeableActivity="true"`,
   `configChanges` for orientation, size, layout, keyboard, navigation, UI mode, density, font scale,
   color mode and touchscreen (a deliberate deviation from the adaptive guidance, see
   docs/ADAPTIVE.md), launch mode, `<layout>` default and minimum sizes, and the multi-instance
   property.
+  *Outside code:* `template/src/main/AndroidManifest.xml`.
 - T4.5 Multi-window: with `profile.enableMultiWindow` the launch mode is `singleInstancePerTask`,
   `PROPERTY_SUPPORTS_MULTI_INSTANCE_SYSTEM_UI` is true, and NEW_WINDOW starts `MainActivity` with
   `FLAG_ACTIVITY_NEW_TASK | FLAG_ACTIVITY_MULTIPLE_TASK` at the start URL. Otherwise `singleTask`.
@@ -242,6 +250,7 @@ Unit tests cover every branch with a fixed fixture config, including look-alike 
   ID from the tag, else a counter. Dropped silently without POST_NOTIFICATIONS.
 - T7.5 POST_NOTIFICATIONS is requested on a fresh launch when not granted.
 - T7.6 No `addJavascriptInterface` or `@JavascriptInterface` anywhere.
+  *Outside code:* a rule that no JavaScript interface exists.
 
 ## T8 Power and visibility
 

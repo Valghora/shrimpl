@@ -10,7 +10,7 @@ finds code by searching for text, reads excerpts rather than whole files, and te
 comment or instruction says over what the code does. A wrong comment is worse than none, so every
 comment must stay true, and the checks below catch what habits miss.
 
-Project settings (the spec files, the requirement-ID pattern, the doc-only list) are at the top of
+Project settings (the spec files, the requirement-ID pattern, the outside-code marker) are at the top of
 `scripts/check_comments.sh`; everything else here applies to any Kotlin project.
 
 ## What to comment
@@ -58,8 +58,8 @@ A requirement ID is the stable search key from a spec to the code. Put it where 
 - **Tests cite the IDs they verify** in their KDoc, so a requirement leads to its test as well.
 - Cite the most specific ID (`R2.6`, not `R2`). A file path to another document is written in full
   from the repository root (`docs/BUILD_NOTES.md`).
-- A requirement met outside the code (build files, CI, the manifest, a "never do X" rule) goes in the
-  doc-only list with a reason, so nothing is silently untraced.
+- A requirement met outside the code (build files, CI, the manifest, a "never do X" rule) ends its spec
+  entry with a line `*Outside code:* <where>`, so nothing is silently untraced.
 
 `scripts/spec_map.sh <ID>` lists every place that cites an ID: the spec line, then code, then tests.
 Use it before changing behavior a requirement covers.
@@ -104,7 +104,7 @@ split the file instead.
 
 - **Fails** on a requirement ID cited in code that the specs don't define, a `docs/` or `scripts/`
   path in a comment that doesn't exist, and a TODO or FIXME without an ID or issue.
-- **Reports** requirements nothing cites and that aren't in the doc-only list.
+- **Reports** requirements nothing cites and that aren't marked `*Outside code:*`.
 - **Warns** (with `--diff <base>`) about added comment lines that narrate history.
 
 `scripts/comment_eval.py` scores comment quality 0-100 (method in `docs/COMMENT_EVAL.md`).

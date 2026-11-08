@@ -1,7 +1,7 @@
 # Comment-quality evaluation
 
 A reproducible 0-100 score for the comments in the Kotlin sources, so that changes to how comments are
-written can be measured. `scripts/comment_eval.py` computes it; the method is frozen at the commit that
+written can be measured. Temporary: see Results. `scripts/comment_eval.py` computes it; the method is frozen at the commit that
 added it, and a comparison is only valid between runs of the same script version.
 
 ```bash
@@ -17,7 +17,7 @@ Five metrics come straight from the source; the sixth is a graded rubric. Each i
 | Metric | Weight | What it measures | Why it matters |
 |---|---|---|---|
 | Reference integrity | 15 | Requirement IDs (R2.6, T6.5, "(R13)"), `docs/`/`scripts/` paths and source paths named in comments (main and test) that exist | A dangling reference sends a reader, or an agent, to nothing |
-| Requirement traceability | 10 | Leaf requirements in the specs cited somewhere in Kotlin (main or test), or listed in `docs/comment-eval/doc-only-requirements.txt` with a reason | A requirement nothing cites can't be found from the code, and may be unimplemented or untested |
+| Requirement traceability | 10 | Leaf requirements in the specs cited somewhere in Kotlin (main or test), or whose spec entry is marked `*Outside code:*` with where it is met | A requirement nothing cites can't be found from the code, and may be unimplemented or untested |
 | KDoc coverage | 15 | Non-private top-level declarations, and non-private, non-override functions of top-level classes and objects, with KDoc | Other code calls these; their contract should be readable without opening the body |
 | Noise | 10 | Comment blocks with none of: history narration, commented-out code, shouting (IMPORTANT, CRITICAL, !!!), a TODO/FIXME without a requirement or issue | Each is a known way comments mislead or waste reading |
 | Anchoring | 15 | Of the requirements main code cites, the share cited in a declaration's KDoc | Searching for an ID then lands on the code that implements it, not only on a line inside it |
@@ -43,13 +43,10 @@ key `concision` for the third criterion:
 
 Each grade records a one-line note for any score below 2, so a second grader can audit it.
 
-## Versions
+## Version
 
-- **v1** (the baseline commit): skipped every path containing `/build/`, meant for Gradle output, which
-  also skipped the source packages named `build` (the manifest patcher, the web app builder, the
-  signing keys, `WebAppFactory` and their tests).
-- **v2**: skips only `<module>/build/`. Runs are compared within one version; both runs were scored
-  again with v2, the baseline from its own commit.
+The script is v2 (it measures the source packages named `build`, which v1 skipped with Gradle output).
+Compare only runs of the same version.
 
 ## Limits
 
@@ -57,7 +54,7 @@ Each grade records a one-line note for any score below 2, so a second grader can
   averaged across graders. An independent grader on the same sample is the best check.
 - The declaration and comment parsing is regex-based: Kotlin strings, nested block comments and
   templates are handled, but unusual formatting may be missed.
-- The doc-only list can raise traceability; each entry needs a reason and is reviewed like code.
+- The outside-code markers raise traceability; each says where it is met and is reviewed like code.
 
 ## Sources
 
@@ -73,13 +70,11 @@ requirement traceability through code comments (OpenFastTrace, StrictDoc, Doorst
 
 ## Results
 
+The last run, to compare the final one against (the per-item files were removed; git keeps them):
+
 | Run | Commit | Integrity | Traceability | KDoc | Noise | Anchoring | Rubric | Combined |
 |---|---|---|---|---|---|---|---|---|
-| baseline, v1 | 0400b7d | 99.7 | 48.1 | 66.7 | 100.0 | 78.9 | 97.2 | **85.6** |
-| after, v1 | c7fa96b | 100.0 | 91.7 | 68.0 | 100.0 | 86.6 | 98.4 | **91.8** |
-| baseline, v2 | 0400b7d | 99.7 | 52.8 | 64.8 | 100.0 | 80.6 | 97.2 | **86.1** |
-| after, v2 | 3bae287 | 100.0 | 100.0 | 66.0 | 100.0 | 87.8 | 98.8 | **92.6** |
 | KDoc pass, v2 | 5dcbfaf | 100.0 | 100.0 | 100.0 | 100.0 | 89.0 | 98.4 | **97.8** |
 
-Rubric grades for comments unchanged between runs are carried over; only new or rewritten comments
-are graded again (one grader, the agent that made the changes; see Limits).
+One more run follows the documentation rework; then this file, `scripts/comment_eval.py` and
+`docs/comment-eval/` are deleted.

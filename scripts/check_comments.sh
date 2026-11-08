@@ -16,7 +16,9 @@ SPECS=(docs/SHRIMPL_SPEC.md docs/TEMPLATE_SPEC.md)
 DEFINITION='^(#+[[:space:]]+|[[:space:]]*-[[:space:]]+)[RT][0-9]+(\.[0-9]+)*\b'
 DOTTED='\b[RT][0-9]+(\.[0-9]+)+\b'
 BARE='(\(|, )[RT][0-9]+[),]'
-DOC_ONLY=docs/comment-eval/doc-only-requirements.txt
+# A requirement met outside the Kotlin code (build files, CI, the manifest, a "never" rule) says where, in a
+# line of its own spec entry; check 4 then doesn't ask code to cite it.
+OUTSIDE_CODE='*Outside code:*'
 NARRATION='\b(previously|used to be|as requested|we (added|changed|removed)|(was|were) (changed|added|removed|renamed)|now uses|updated to|instead of the old)\b|\b(new|old):'
 
 fail=0
@@ -50,19 +52,18 @@ while IFS= read -r hit; do
   [ -n "$hit" ] && problem "${hit%%:*}:$(cut -d: -f2 <<<"$hit") has a TODO or FIXME without a requirement or issue"
 done <<<"$(grep -E '\b(TODO|FIXME)\b' <<<"$comments" | grep -vE '\b(TODO|FIXME)\((R|T)[0-9]|\b(TODO|FIXME)\(#[0-9]' || true)"
 
-# 4. Requirements that nothing cites and that aren't listed as met outside the code (a report, not a failure).
+# 4. Requirements that nothing cites and that aren't marked as met outside the code (a report, not a failure).
 cited="$(git grep -hoE "$DOTTED" -- "${SOURCES[@]}" | sort -u)"
-listed=""
-[ -f "$DOC_ONLY" ] && listed="$(grep -vE '^\s*(#|$)' "$DOC_ONLY" | awk '{print $1}' | sort -u)"
+# Each marker belongs to the last requirement defined above it.
+listed="$(awk -v mark="$OUTSIDE_CODE" '
+  /^(#+[ \t]+|[ \t]*-[ \t]+)[RT][0-9]+(\.[0-9]+)*([ \t]|$)/ { match($0, /[RT][0-9]+(\.[0-9]+)*/); id = substr($0, RSTART, RLENGTH) }
+  index($0, mark) { print id }' "${SPECS[@]}" | sort -u)"
 untraced=()
 for id in $(grep -E '\.' <<<"$defined"); do
   grep -q "^$id\." <<<"$defined" && continue  # not a leaf
   grep -qx "$id" <<<"$cited" || grep -q "^$id\." <<<"$cited" || grep -qx "$id" <<<"$listed" || untraced+=("$id")
 done
-for id in $listed; do
-  grep -qx "$id" <<<"$defined" || problem "$DOC_ONLY lists $id, which the specs don't define"
-done
-[ "${#untraced[@]}" -eq 0 ] || echo "check_comments: not cited in code or tests, and not in $DOC_ONLY: ${untraced[*]}"
+[ "${#untraced[@]}" -eq 0 ] || echo "check_comments: not cited in code or tests, and not marked $OUTSIDE_CODE: ${untraced[*]}"
 
 # 5. With --diff: narration in added comment lines (a warning; history belongs in commit messages).
 if [ "${1:-}" = --diff ]; then

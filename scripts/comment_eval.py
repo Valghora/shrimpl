@@ -23,7 +23,7 @@ SPECS = ["docs/SHRIMPL_SPEC.md", "docs/TEMPLATE_SPEC.md"]
 ID_DOTTED = re.compile(r"\b([RT]\d+(?:\.\d+)+)\b")
 ID_BARE = re.compile(r"(?<=[(,] )([RT]\d+)(?=[),])|(?<=\()([RT]\d+)(?=[),])")
 SPEC_DEFINITION = re.compile(r"^(?:#+\s+|\s*-\s+)([RT]\d+(?:\.\d+)*)\b")
-DOC_ONLY = "docs/comment-eval/doc-only-requirements.txt"  # requirements met outside Kotlin, one ID per line with a reason
+OUTSIDE_CODE = "*Outside code:*"  # a line of a spec entry: the requirement is met outside Kotlin, and where
 OUT = ROOT / "docs/comment-eval"
 SEED = "comment-eval-v1"
 VERSION = 2  # 2: source packages named "build" are measured (v1 skipped them with Gradle output)
@@ -195,8 +195,14 @@ def evaluate(label):
     for p in files(MAIN_GLOBS + TEST_GLOBS):
         citations |= cited(p.read_text(encoding="utf-8"))
     doc_only = set()
-    if (ROOT / DOC_ONLY).exists():
-        doc_only = {l.split()[0] for l in (ROOT / DOC_ONLY).read_text().split("\n") if l.strip() and not l.startswith("#")}
+    for spec in SPECS:
+        current = None
+        for line in (ROOT / spec).read_text(encoding="utf-8").split("\n"):
+            m = SPEC_DEFINITION.match(line)
+            if m:
+                current = m.group(1)
+            if OUTSIDE_CODE in line and current:
+                doc_only.add(current)
     traced = {i for i in leaves if i in citations or any(c.startswith(i + ".") for c in citations) or i in doc_only}
     traceability = 100 * len(traced) / len(leaves) if leaves else 100
 
