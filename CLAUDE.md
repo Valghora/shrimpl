@@ -61,7 +61,8 @@ scripts/check_comments.sh --diff origin/main
 There is no emulator in the cloud container (no KVM, and ARM images can't run on an x86 host). Instrumented
 tests run in CI instead, in the Emulator workflow on a real Android 37 system image: push the branch and
 read its result (`docs/TESTING.md` says what it covers and how to read a failure). A merge to main needs
-both the Android and the Emulator workflow green on that commit. How a screen looks and feels, and what
+both the Android and the Emulator workflow green on that commit, or, when the commit changes only
+docs and Markdown (the Emulator workflow skips those), on the last commit that changed anything else. How a screen looks and feels, and what
 needs hardware, is still confirmed on the owner's devices.
 
 ## Working practice

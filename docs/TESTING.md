@@ -22,12 +22,12 @@ host. GitHub's Linux runners do expose KVM, so the emulator runs there (BUILD_NO
 ## The Emulator workflow
 
 `.github/workflows/emulator.yml`, on every push except to `main` (it only fast-forwards to commits that
-already passed here), and by hand. It builds the APKs and test APKs first, stops Gradle, boots the
-emulator (`scripts/start_emulator.sh`), runs `connectedDebugAndroidTest` for both modules, and uploads
+already passed here) and except pushes that change only `docs/` or Markdown files, and by hand. It builds the APKs and test APKs first, stops Gradle, boots the
+emulator (`scripts/start_emulator.sh`), runs `connectedDebugAndroidTest` for both modules in one Gradle run, and uploads
 `instrumented-results`: the JUnit XML, `emulator-out/logcat.txt`, a screenshot, the UI hierarchy, and the
 screenshots and hierarchy dumps that failed tests saved (`emulator-out/evidence/`, and in logcat under
 the tag `SHRIMPL_EVIDENCE`). A fast-forward merge to `main` needs this workflow green on the branch's
-last commit, as well as the Android workflow.
+last commit that changed anything outside docs, as well as the Android workflow.
 
 Writing an emulator test:
 
@@ -36,6 +36,10 @@ Writing an emulator test:
   scripts and message listeners apply as they do for a real site, then runs JavaScript in it. Android's
   dialogs (share sheet, file pickers) are answered with Espresso-Intents stubs, so the test checks what
   the template asked for and what it did with the answer.
+- **One page per class.** The template's test classes get their `MainActivity` and test page from a
+  `@ClassRule` (`TemplatePageRule`), because launching the app and waiting for its start page took 11 to
+  20 s a test. `template.page()` reloads the test page only if an earlier test navigated away; keep each
+  test independent of the order.
 - **Shrimpl.** `createAndroidComposeRule<MainActivity>()` for screens; `UiAutomator` for what is outside
   the app (the system installer's Install button). Call `Evidence.capture("name")` when a flow fails, so
   the run keeps a screenshot and the window hierarchy.
