@@ -104,7 +104,7 @@ class BuildAndInstallTest {
             robot.allowInstalls(context.packageName)
             val icons = IconOptions(IconOptions.Option.WEBSITE, website = IconRecord.letter('C'))
             val confirmer = acceptInstallDialog()
-            val first = runBlocking { withTimeout(240_000) { container.factory.build(BuildRequest(profile, icons, emptyMap(), existing = null), container.installers.preferred()) {} } }
+            val first = runBlocking { withTimeout(150_000) { container.factory.build(BuildRequest(profile, icons, emptyMap(), existing = null), container.installers.preferred()) {} } }
             confirmer.interrupt()
             assertTrue("the first install ended with $first", first is BuildOutcome.Installed)
             val installed = (first as BuildOutcome.Installed).record
@@ -112,7 +112,7 @@ class BuildAndInstallTest {
 
             val before = versionCode()
             val updater = acceptInstallDialog()
-            val second = runBlocking { withTimeout(180_000) { container.factory.build(BuildRequest(profile, icons, emptyMap(), existing = installed), container.installers.preferred()) {} } }
+            val second = runBlocking { withTimeout(120_000) { container.factory.build(BuildRequest(profile, icons, emptyMap(), existing = installed), container.installers.preferred()) {} } }
             updater.interrupt()
             assertTrue("the update ended with $second", second is BuildOutcome.Installed)
             assertTrue("the version code went from $before to ${versionCode()}", versionCode() > before)
@@ -131,7 +131,7 @@ class BuildAndInstallTest {
             robot.allowInstalls(context.packageName)
             val request = BuildRequest(profile, IconOptions(IconOptions.Option.WEBSITE, website = IconRecord.letter('C')), emptyMap(), existing = null)
             val confirmer = acceptInstallDialog()
-            val outcome = runBlocking { withTimeout(240_000) { container.factory.build(request, container.installers.preferred()) {} } }
+            val outcome = runBlocking { withTimeout(150_000) { container.factory.build(request, container.installers.preferred()) {} } }
             confirmer.interrupt()
 
             assertTrue("the build ended with $outcome", outcome is BuildOutcome.Installed)

@@ -89,7 +89,10 @@ and services.gradle.org).
   workflow frees ~20 GB first); building with the 4 GB emulator running made the runner run out of
   memory and die ("AAPT2 daemon unexpectedly exit", "received a shutdown signal"), so everything is built
   and the Gradle daemon stopped first; a failed test's files vanish with Gradle's uninstall, so evidence
-  goes to `/data/local/tmp/evidence` and logcat. A new workflow can't be dispatched from a branch until it
+  goes to `/data/local/tmp/evidence` and logcat; and a freshly booted 2-core emulator makes system apps
+  (launcher, Play services, Settings) miss deadlines, so an "isn't responding" dialog can cover a test's
+  screen: the script hides error dialogs (`hide_error_dialogs`) and waits 30 s after boot, and the install
+  robot taps Wait if one still shows. A new workflow can't be dispatched from a branch until it
   is on the default branch, so the Emulator workflow runs on push. Run times: about 4 minutes to boot, 4
   minutes of tests (21 tests), 15 for the whole job.
 - **Test fixtures.** The template's debug build (never the release APK Shrimpl bundles) has a document

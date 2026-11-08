@@ -23,6 +23,8 @@ class InstallRobot(private val device: UiDevice) {
         var idle = 0
         try {
             while (true) {
+                // A system app that is slow to answer can put "isn't responding" over everything: keep waiting.
+                device.findObject(By.text(WAIT).clickable(true))?.takeIf { device.hasObject(By.text(CLOSE_APP)) }?.click()
                 val button = device.findObject(By.text(INSTALL_OR_UPDATE).clickable(true))
                     ?: device.findObject(By.pkg(INSTALLER_PACKAGE).text(UNINSTALL_OR_OK).clickable(true))
                 if (button != null) {
@@ -45,6 +47,8 @@ class InstallRobot(private val device: UiDevice) {
         val INSTALL_OR_UPDATE: Pattern = Pattern.compile("(?i)^(install|update)$")
         val UNINSTALL_OR_OK: Pattern = Pattern.compile("(?i)^(uninstall|ok)$")
         val INSTALLER_PACKAGE: Pattern = Pattern.compile(".*packageinstaller.*")
+        val WAIT: Pattern = Pattern.compile("(?i)^wait$")
+        val CLOSE_APP: Pattern = Pattern.compile("(?i)^close app$")
     }
 }
 

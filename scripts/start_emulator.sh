@@ -73,6 +73,13 @@ for _ in $(seq 1 240); do
 done
 [[ "$("$ADB" shell getprop sys.boot_completed 2>/dev/null | tr -d '\r')" == "1" ]] || { echo "ERROR: Android didn't finish booting in 8 minutes" >&2; exit 1; }
 
+# A 2-core emulator that has just booted makes system apps (launcher, Google Play services, Settings) miss
+# their deadlines, and Android then puts an "isn't responding" dialog over whatever a test is doing (found
+# 2026-11-08: a run's installs all timed out behind one). Don't show error dialogs, and let startup settle.
+"$ADB" shell settings put global hide_error_dialogs 1
+log "letting the system settle"
+sleep 30
+
 # Tests tap and type: no animations, no lock screen, no soft keyboard in the way.
 "$ADB" shell settings put global window_animation_scale 0
 "$ADB" shell settings put global transition_animation_scale 0
@@ -80,4 +87,5 @@ done
 "$ADB" shell settings put secure show_ime_with_hard_keyboard 0
 "$ADB" shell input keyevent 82 || true
 "$ADB" shell wm dismiss-keyguard || true
+"$ADB" shell input keyevent KEYCODE_HOME || true
 log "ready: $("$ADB" shell getprop ro.build.version.release | tr -d '\r') (API $("$ADB" shell getprop ro.build.version.sdk | tr -d '\r'))"

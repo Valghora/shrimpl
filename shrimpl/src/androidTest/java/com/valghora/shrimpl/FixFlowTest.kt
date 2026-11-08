@@ -82,7 +82,7 @@ class FixFlowTest {
             // An app signed with the key Shrimpl has now.
             val icons = IconOptions(IconOptions.Option.WEBSITE, website = IconRecord.letter('C'))
             val installing = robot.acceptSystemDialogs()
-            val built = runBlocking { withTimeout(240_000) { container.factory.build(BuildRequest(profile, icons, emptyMap(), existing = null), container.installers.preferred()) {} } }
+            val built = runBlocking { withTimeout(150_000) { container.factory.build(BuildRequest(profile, icons, emptyMap(), existing = null), container.installers.preferred()) {} } }
             installing.interrupt()
             assertTrue("the first install ended with $built", built is BuildOutcome.Installed)
             assertEquals(current.fingerprint, signerOf(packageName))
@@ -97,7 +97,7 @@ class FixFlowTest {
             // Fix: the system asks to uninstall, then to install the rebuilt app.
             compose.onNodeWithContentDescription(fix).performClick()
             val fixing = robot.acceptSystemDialogs()
-            awaitUntil("the app to be signed with the new key", 300_000) { signerOf(packageName) == other.fingerprint }
+            awaitUntil("the app to be signed with the new key", 180_000) { signerOf(packageName) == other.fingerprint }
             fixing.interrupt()
 
             val record = container.store.get(profile.appId)
