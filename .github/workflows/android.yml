@@ -47,9 +47,19 @@ jobs:
             echo "verified=false" >> "$GITHUB_OUTPUT"
           fi
 
-      # Comments: requirement IDs and doc paths resolve, TODOs are tracked (code-comments skill).
+      # On a branch, also warn about narration added since main (history belongs in commit messages).
+      - name: Fetch main to compare against
+        if: github.ref_name != 'main'
+        run: git fetch -q --depth=1 origin main
+
+      # Comments: requirement IDs and doc paths resolve, TODOs are tracked, every requirement is traced
+      # (code-comments skill).
       - name: Comment references
-        run: scripts/check_comments.sh
+        run: scripts/check_comments.sh ${{ github.ref_name != 'main' && '--diff origin/main' || '' }}
+
+      # Documents: requirement IDs and paths resolve; UI text the specs quote has a string resource.
+      - name: Document references
+        run: scripts/check_docs.py ${{ github.ref_name != 'main' && '--diff origin/main' || '' }}
 
   build:
     name: Build

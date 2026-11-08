@@ -56,13 +56,16 @@ started, with its design and open questions, is in `docs/TODO.md`.
 scripts/check_native_code.sh --none template/build/outputs/apk/release/template-release.apk
 scripts/check_native_code.sh --all-abis shrimpl/build/outputs/apk/debug/shrimpl-debug.apk
 scripts/check_comments.sh --diff origin/main
+scripts/check_docs.py --diff origin/main
 ```
 
 There is no emulator in the cloud container (no KVM, and ARM images can't run on an x86 host). Instrumented
 tests run in CI instead, in the Emulator workflow on a real Android 37 system image. It is slow (about 14
 minutes), so it does not run on pushes: dispatch it by hand on the branch only when the work is done and
 ready to merge (`gh api -X POST repos/Valghora/shrimpl/actions/workflows/emulator.yml/dispatches -f ref=<branch>`),
-not after every commit. A merge to main needs both the Android and the Emulator workflow green on that
+not after every commit. Before dispatching it, run `scripts/spec_map.sh` for each requirement the branch
+touched and reread those spec lines against the change: no check compares the spec's prose with
+what the code does. A merge to main needs both the Android and the Emulator workflow green on that
 commit, or, when the commits since the Emulator run changed only docs and Markdown, on the last commit
 that changed anything else (`docs/TESTING.md` says what it covers and how to read a failure). How a screen looks and feels, and what
 needs hardware, is still confirmed on the owner's devices.

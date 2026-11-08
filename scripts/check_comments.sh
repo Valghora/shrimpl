@@ -1,8 +1,8 @@
 #!/bin/bash
 # Checks comments against the code-comments skill (.claude/skills/code-comments/SKILL.md).
 #
-#   scripts/check_comments.sh                 fail on broken references and untracked TODOs; report
-#                                             requirements nothing cites
+#   scripts/check_comments.sh                 fail on broken references, untracked TODOs and requirements
+#                                             nothing cites
 #   scripts/check_comments.sh --diff <base>   also warn about narration in comment lines added since <base>
 #
 # Exits 1 when a check fails. Settings for another project are the variables below.
@@ -52,7 +52,7 @@ while IFS= read -r hit; do
   [ -n "$hit" ] && problem "${hit%%:*}:$(cut -d: -f2 <<<"$hit") has a TODO or FIXME without a requirement or issue"
 done <<<"$(grep -E '\b(TODO|FIXME)\b' <<<"$comments" | grep -vE '\b(TODO|FIXME)\((R|T)[0-9]|\b(TODO|FIXME)\(#[0-9]' || true)"
 
-# 4. Requirements that nothing cites and that aren't marked as met outside the code (a report, not a failure).
+# 4. Every leaf requirement is cited by code or a test, or marked as met outside the code.
 cited="$(git grep -hoE "$DOTTED" -- "${SOURCES[@]}" | sort -u)"
 # Each marker belongs to the last requirement defined above it.
 listed="$(awk -v mark="$OUTSIDE_CODE" '
@@ -63,7 +63,7 @@ for id in $(grep -E '\.' <<<"$defined"); do
   grep -q "^$id\." <<<"$defined" && continue  # not a leaf
   grep -qx "$id" <<<"$cited" || grep -q "^$id\." <<<"$cited" || grep -qx "$id" <<<"$listed" || untraced+=("$id")
 done
-[ "${#untraced[@]}" -eq 0 ] || echo "check_comments: not cited in code or tests, and not marked $OUTSIDE_CODE: ${untraced[*]}"
+[ "${#untraced[@]}" -eq 0 ] || problem "not cited in code or tests, and not marked $OUTSIDE_CODE: ${untraced[*]}"
 
 # 5. With --diff: narration in added comment lines (a warning; history belongs in commit messages).
 if [ "${1:-}" = --diff ]; then
@@ -72,5 +72,5 @@ if [ "${1:-}" = --diff ]; then
     grep -iE "$NARRATION" | sed 's/^/check_comments: warning: narration in an added comment: /' || true
 fi
 
-[ "$fail" = 0 ] && echo "check_comments: references and TODOs are in order"
+[ "$fail" = 0 ] && echo "check_comments: references, TODOs and requirement traces are in order"
 exit "$fail"

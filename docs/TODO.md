@@ -49,7 +49,7 @@ shortcuts) that overrides it.
   request, with the 95 % coverage rule.
 - Never block the app's internal domains or its sign-in domains (the existing routing classes, T2a), so
   logins and payments keep working. Only third-party requests count.
-- Lists are an asset in the web app (`shrimpl/adblock.txt`), written by the builder like the profile and
+- Lists are an asset in the web app (`assets/shrimpl/adblock.txt`), written by the builder like the profile and
   chosen by Shrimpl; start with one compact host list. Check its license and add attribution (About).
 - Cosmetic hiding (CSS selectors) later, through the document-start script mechanism the bridges use.
 - Limits to tell the user: no resource-type rules (WebView doesn't expose the type), no POST bodies, ads

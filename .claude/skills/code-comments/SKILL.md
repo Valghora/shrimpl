@@ -103,8 +103,9 @@ split the file instead.
 `scripts/check_comments.sh` runs in CI:
 
 - **Fails** on a requirement ID cited in code that the specs don't define, a `docs/` or `scripts/`
-  path in a comment that doesn't exist, and a TODO or FIXME without an ID or issue.
-- **Reports** requirements nothing cites and that aren't marked `*Outside code:*`.
+  path in a comment that doesn't exist, a TODO or FIXME without an ID or issue, and a requirement
+  nothing cites that isn't marked `*Outside code:*`.
 - **Warns** (with `--diff <base>`) about added comment lines that narrate history.
 
-`scripts/comment_eval.py` scores comment quality 0-100 (method in `docs/COMMENT_EVAL.md`).
+`scripts/check_docs.py` is its twin for the documents (requirement IDs, links and paths, quoted UI
+text). `scripts/comment_eval.py` scores comment quality 0-100 (method in `docs/COMMENT_EVAL.md`).

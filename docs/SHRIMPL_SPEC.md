@@ -368,7 +368,7 @@ binary translation) on any device.
 
 The template's behavior is docs/TEMPLATE_SPEC.md. What Shrimpl relies on:
 
-- R7.1 The template reads its profile from the asset `shrimpl/profile.json` once at application
+- R7.1 The template reads its profile from the asset `assets/shrimpl/profile.json` once at application
   start and fails loudly (a crash with a clear message) if it is missing or invalid.
 - R7.2 Labels come from the patched manifest (application label) and the profile (task description,
   notification channel, the site's shortcut group).
@@ -503,7 +503,7 @@ The template's behavior is docs/TEMPLATE_SPEC.md. What Shrimpl relies on:
   refresh).
   *Outside code:* the repository layout and `scripts/`.
 - R12.2 CI (`.github/workflows/android.yml`) on every push and pull request runs two jobs. Checks
-  (no Gradle, seconds) runs the comment check and asks whether this commit already passed the
+  (no Gradle, seconds) runs the comment and document checks and asks whether this commit already passed the
   workflow, as it has when main is fast-forwarded to a tested branch; if so, Build is skipped.
   Build, one step per stage, runs Core (`:core:check`, tests and coverage), Template (unit tests,
   release lint, release build), Shrimpl tests, Shrimpl lint (release lint, which covers all its code)
