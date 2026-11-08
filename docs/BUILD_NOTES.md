@@ -99,7 +99,11 @@ and services.gradle.org).
   page (10 to 20 s per test; sharing one activity per class doesn't work, because AndroidJUnitRunner
   finishes every open activity after each test); both modules run in one Gradle invocation; the SDK and system image are not
   cached (restoring them took 136 s, downloading about 70); and a push that changes only `docs/**` or
-  Markdown doesn't run the workflow. Not done: freeing disk in the background (90 s) and a shorter settle.
+  Markdown doesn't run the workflow. Measured after them (run 42529408334): 14.1 minutes for the job, down from 16.5: 97 s to free disk,
+  12 s of SDK setup, 36 s to build, 3.7 minutes to download the system image and boot (this absorbed the
+  cache's saving), 7.5 minutes of tests. Not done: freeing disk in the background (90 s) and a shorter
+  settle. `FixFlowTest` once failed with the system Uninstall dialog showing and never tapped (the same
+  commit passed on rerun); if it recurs, look at `InstallRobot`'s selector for that dialog first.
 - **Zero tests is not a pass.** Once the template's instrumentation died within seconds of starting and
   Gradle reported success with `tests="0"`; the run looked green apart from Shrimpl's. So
   `scripts/run_instrumented_tests.sh` retries a module that reports no tests and fails the job if it still
