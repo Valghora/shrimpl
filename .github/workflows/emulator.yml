@@ -55,10 +55,12 @@ jobs:
 
       # The runner has 7 GB and the emulator takes 4: building with it running killed the runner (2026-11-08,
       # "AAPT2 daemon unexpectedly exit", then a shutdown signal). So everything is built first and the
-      # Gradle daemons stopped before the emulator starts; the test step then only installs and runs.
+      # Gradle daemons stopped before the emulator starts; the test step then only installs and runs. The app
+      # APKs are built here too: the connected-test tasks would otherwise build them with the emulator running.
       - name: Build the APKs and test APKs
         run: >-
-          ./gradlew --console=plain :template:assembleDebugAndroidTest :shrimpl:assembleDebugAndroidTest
+          ./gradlew --console=plain :template:assembleDebug :shrimpl:assembleDebug
+          :template:assembleDebugAndroidTest :shrimpl:assembleDebugAndroidTest
           -x :template:lintVitalRelease
 
       - name: Free memory for the emulator

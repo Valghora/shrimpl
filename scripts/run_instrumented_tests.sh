@@ -22,7 +22,8 @@ summarize() {
   echo "$tests $failures $errors"
 }
 
-./gradlew --console=plain --no-daemon --continue \
+# --no-parallel: both tasks drive the one emulator, and run side by side they uninstall each other's app.
+./gradlew --console=plain --no-daemon --no-parallel --continue \
   :template:connectedDebugAndroidTest :shrimpl:connectedDebugAndroidTest -x :template:lintVitalRelease
 first_rc=$?
 
