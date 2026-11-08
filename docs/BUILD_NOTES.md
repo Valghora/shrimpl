@@ -90,8 +90,8 @@ and services.gradle.org).
   memory and die ("AAPT2 daemon unexpectedly exit", "received a shutdown signal"), so everything is built
   and the Gradle daemon stopped first; a failed test's files vanish with Gradle's uninstall, so evidence
   goes to `/data/local/tmp/evidence` and logcat. A new workflow can't be dispatched from a branch until it
-  is on the default branch, so the Emulator workflow runs on push. Run times: about 4 minutes to boot,
-  25 to 30 for the whole job.
+  is on the default branch, so the Emulator workflow runs on push. Run times: about 4 minutes to boot, 4
+  minutes of tests (21 tests), 15 for the whole job.
 - **What the emulator found** that Robolectric and hands-on testing hadn't: this WebView already defines
   `showOpenFilePicker`/`showSaveFilePicker` (they throw a SecurityError without a user gesture and have no
   dialog), so a bridge that skipped pages that had them never installed; and the file bridge crashed the
