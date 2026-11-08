@@ -9,6 +9,7 @@ unnoticed (the code-side twin is scripts/check_comments.sh).
 Exits 1 when a check fails.
 """
 import html
+import os
 import re
 import subprocess
 import sys
@@ -72,9 +73,14 @@ tracked_dirs = {str(Path(t).parent) for t in tracked} | {d for t in tracked for 
                                                         (str(p) for p in Path(t).parents)}
 
 
+BUILD_OUTPUT = re.compile(r"(^|/)build/")
+
+
 def path_exists(path):
-    path = path.rstrip("/")
-    return path in tracked_set or path in tracked_dirs or (ROOT / path).exists()
+    """Tracked files and folders only, so the answer is the same in a fresh checkout as after a build.
+    Gradle output (any path through a build/ folder) is generated, and not checked."""
+    path = os.path.normpath(path.rstrip("/"))
+    return path in tracked_set or path in tracked_dirs or bool(BUILD_OUTPUT.search(path))
 
 
 def suffix_exists(path):
@@ -111,15 +117,14 @@ def check_file(rel, report_only):
             if re.match(r"^[a-z]+:", target) or target.startswith("#"):
                 continue
             target = target.split("#")[0]
-            resolved = (Path(rel).parent / target).as_posix()
-            if not path_exists(str(Path(resolved))) and not (ROOT / rel).parent.joinpath(target).exists():
+            if not path_exists((Path(rel).parent / target).as_posix()):
                 say(f"{where} links to {target}, which doesn't exist")
         for token in CODE.findall(line):
             token = token.strip()
             if any(c in token for c in "<>*{} $=|") or "..." in token or token in NOT_IN_REPOSITORY:
                 continue  # a pattern, placeholder or command, not a path
             if token.startswith("../"):
-                if not (ROOT / rel).parent.joinpath(token).exists():
+                if not path_exists((Path(rel).parent / token).as_posix()):
                     say(f"{where} names {token}, which doesn't exist")
             elif token.startswith(ROOTED) and "/" in token:
                 if not path_exists(token):
