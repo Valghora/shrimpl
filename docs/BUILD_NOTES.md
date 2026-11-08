@@ -93,8 +93,12 @@ and services.gradle.org).
   (launcher, Play services, Settings) miss deadlines, so an "isn't responding" dialog can cover a test's
   screen: the script hides error dialogs (`hide_error_dialogs`) and waits 30 s after boot, and the install
   robot taps Wait if one still shows. A new workflow can't be dispatched from a branch until it
-  is on the default branch, so the Emulator workflow runs on push. Run times: about 4 minutes to boot and
-  settle, 7 minutes of tests, under 20 for the whole job.
+  is on the default branch, so the Emulator workflow runs on push. Run times (before the speed-ups below):
+  about 4 minutes to boot and settle, 7 minutes of tests, 16.5 for the whole job. Speed-ups: the template's
+  test classes share one activity and page (`TemplatePageRule`; launching and waiting for the start page
+  cost 11 to 20 s per test); both modules run in one Gradle invocation; the SDK and system image are not
+  cached (restoring them took 136 s, downloading about 70); and a push that changes only `docs/**` or
+  Markdown doesn't run the workflow. Not done: freeing disk in the background (90 s) and a shorter settle.
 - **Zero tests is not a pass.** Once the template's instrumentation died within seconds of starting and
   Gradle reported success with `tests="0"`; the run looked green apart from Shrimpl's. So
   `scripts/run_instrumented_tests.sh` retries a module that reports no tests and fails the job if it still

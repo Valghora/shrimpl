@@ -5,10 +5,13 @@ name: Emulator
 # expose KVM, so the x86_64 emulator runs at hardware speed; the cloud container Claude Code works in
 # has no KVM and can't run one.
 #
-# Not run on main: it only fast-forwards to commits that already passed here on their branch.
+# Not run on main: it only fast-forwards to commits that already passed here on their branch. Not run for a
+# push that changes only documentation: it can't change a test result, and main needs this workflow green
+# on the last commit that changed anything else.
 on:
   push:
     branches-ignore: [main]
+    paths-ignore: ["docs/**", "**.md"]
   workflow_dispatch:
 
 permissions:
@@ -46,12 +49,7 @@ jobs:
           sudo rm -rf /usr/share/dotnet /opt/ghc /usr/local/lib/android /usr/local/share/boost /usr/share/swift
           df -h / | tail -1
 
-      - name: Cache Android SDK and system image
-        uses: actions/cache@v6
-        with:
-          path: ${{ env.ANDROID_HOME }}
-          key: android-sdk-emulator-${{ runner.os }}-api37-${{ hashFiles('scripts/setup_android_sdk.sh', 'scripts/start_emulator.sh') }}
-
+      # Not cached: restoring the SDK and system image from the Actions cache took 136 s, downloading takes about 70.
       - name: Set up Android SDK
         run: scripts/setup_android_sdk.sh
 
@@ -72,8 +70,8 @@ jobs:
       - name: Start the emulator
         run: scripts/start_emulator.sh
 
-      # Both modules run even if one fails, so a run shows every failure at once; a module that reports no
-      # tests at all is retried once and then fails the job.
+      # One Gradle run for both modules, which continues past a failure so a run shows every failure at once;
+      # a module that reports no tests at all is retried alone and then fails the job.
       - name: Instrumented tests
         run: scripts/run_instrumented_tests.sh
 

@@ -3,13 +3,13 @@ package com.valghora.shrimpl.webapp
 import android.app.Activity
 import android.app.Instrumentation
 import android.content.Intent
-import androidx.test.core.app.ActivityScenario
 import androidx.test.espresso.intent.Intents
 import androidx.test.espresso.intent.Intents.intending
 import androidx.test.espresso.intent.matcher.IntentMatchers.hasAction
 import androidx.test.espresso.intent.rule.IntentsRule
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import org.junit.Assert.assertEquals
+import org.junit.ClassRule
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -27,7 +27,14 @@ class ShareBridgeTest {
     private fun withPage(block: (PageDriver) -> Unit) {
         // Answer the chooser ourselves: the test checks what the template asks Android to share.
         intending(hasAction(Intent.ACTION_CHOOSER)).respondWith(Instrumentation.ActivityResult(Activity.RESULT_CANCELED, null))
-        ActivityScenario.launch(MainActivity::class.java).use { scenario -> block(PageDriver(scenario).also { it.loadTestPage() }) }
+        block(template.page())
+    }
+
+    companion object {
+        /** One activity and page for the class (see [TemplatePageRule]). */
+        @ClassRule
+        @JvmField
+        val template = TemplatePageRule()
     }
 
     /** The text intent inside the chooser the template started. */

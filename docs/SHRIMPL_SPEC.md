@@ -497,8 +497,8 @@ The template's behavior is docs/TEMPLATE_SPEC.md. What Shrimpl relies on:
   Lint for both apps reports 0 errors. Release builds skip lint vital, a subset of the release lint
   already run on the same variant. Build also checks that every APK's native libraries are 16 KB
   page aligned (`scripts/check_page_alignment.sh`).
-- R12.4 The Emulator workflow (`.github/workflows/emulator.yml`) runs on every push except to `main`, and
-  by hand. It builds the debug APKs and test APKs, stops Gradle (the runner's 7 GB can't hold a build and
+- R12.4 The Emulator workflow (`.github/workflows/emulator.yml`) runs on every push except to `main` that
+  changes anything outside `docs/` and Markdown files, and by hand. It builds the debug APKs and test APKs, stops Gradle (the runner's 7 GB can't hold a build and
   the 4 GB emulator), boots an x86_64 API 37 system image with KVM (`scripts/start_emulator.sh`), runs
   `connectedDebugAndroidTest` for `:template` and `:shrimpl` (`scripts/run_instrumented_tests.sh`: a module that
   reports no tests at all is retried once, then fails the job), and uploads the results, logcat, a screenshot

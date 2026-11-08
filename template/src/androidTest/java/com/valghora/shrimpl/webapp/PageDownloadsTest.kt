@@ -3,10 +3,10 @@ package com.valghora.shrimpl.webapp
 import android.content.ContentResolver
 import android.net.Uri
 import android.provider.MediaStore
-import androidx.test.core.app.ActivityScenario
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import org.junit.After
+import org.junit.ClassRule
 import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertEquals
 import org.junit.Test
@@ -50,8 +50,13 @@ class PageDownloadsTest {
 
     private fun read(uri: Uri): ByteArray = requireNotNull(resolver.openInputStream(uri)).use { it.readBytes() }
 
-    private fun withPage(block: (PageDriver) -> Unit) = ActivityScenario.launch(MainActivity::class.java).use { scenario ->
-        PageDriver(scenario).also { it.loadTestPage() }.let(block)
+    private fun withPage(block: (PageDriver) -> Unit) = block(template.page())
+
+    companion object {
+        /** One activity and page for the class (see [TemplatePageRule]). */
+        @ClassRule
+        @JvmField
+        val template = TemplatePageRule()
     }
 
     /** The link is revoked right after the click, as sites do: the template must have taken the file by then. */

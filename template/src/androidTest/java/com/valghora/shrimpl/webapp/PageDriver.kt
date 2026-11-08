@@ -53,6 +53,12 @@ class PageDriver(private val scenario: ActivityScenario<MainActivity>) {
         }
     }
 
+    /** Loads the test page again only if it isn't showing: an earlier test may have navigated away from it. */
+    fun ensureTestPage() {
+        if (jsOrNull("document.getElementById('marker') !== null && location.origin === '$ORIGIN'", 5_000) == "true") return
+        loadTestPage()
+    }
+
     /**
      * Evaluates [script] in the page and returns its JSON-decoded value as text ("null" for no value), or
      * null when WebView never answers: it drops the callback of a script that was running when its page

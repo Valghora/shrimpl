@@ -8,7 +8,6 @@ import android.content.Intent
 import android.net.Uri
 import android.os.Environment
 import android.provider.MediaStore
-import androidx.test.core.app.ActivityScenario
 import androidx.test.espresso.intent.Intents
 import androidx.test.espresso.intent.Intents.intending
 import androidx.test.espresso.intent.matcher.IntentMatchers.hasAction
@@ -17,6 +16,7 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import org.junit.After
 import org.junit.Assert.assertEquals
+import org.junit.ClassRule
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -61,8 +61,13 @@ class FileAccessTest {
         intending(hasAction(action)).respondWith(Instrumentation.ActivityResult(Activity.RESULT_CANCELED, null))
     }
 
-    private fun withPage(block: (PageDriver) -> Unit) = ActivityScenario.launch(MainActivity::class.java).use { scenario ->
-        block(PageDriver(scenario).also { it.loadTestPage() })
+    private fun withPage(block: (PageDriver) -> Unit) = block(template.page())
+
+    companion object {
+        /** One activity and page for the class (see [TemplatePageRule]). */
+        @ClassRule
+        @JvmField
+        val template = TemplatePageRule()
     }
 
     @Test

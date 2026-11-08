@@ -5,7 +5,6 @@ import android.app.Instrumentation
 import android.content.Intent
 import android.net.Uri
 import android.provider.DocumentsContract
-import androidx.test.core.app.ActivityScenario
 import androidx.test.espresso.intent.Intents.intending
 import androidx.test.espresso.intent.matcher.IntentMatchers.hasAction
 import androidx.test.espresso.intent.rule.IntentsRule
@@ -17,6 +16,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Before
+import org.junit.ClassRule
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -49,9 +49,16 @@ class FolderAccessTest {
         root.deleteRecursively()
     }
 
-    private fun withPickedFolder(block: (PageDriver) -> Unit) = ActivityScenario.launch(MainActivity::class.java).use { scenario ->
+    private fun withPickedFolder(block: (PageDriver) -> Unit) {
         intending(hasAction(Intent.ACTION_OPEN_DOCUMENT_TREE)).respondWith(Instrumentation.ActivityResult(Activity.RESULT_OK, Intent().setData(tree)))
-        block(PageDriver(scenario).also { it.loadTestPage() })
+        block(template.page())
+    }
+
+    companion object {
+        /** One activity and page for the class (see [TemplatePageRule]). */
+        @ClassRule
+        @JvmField
+        val template = TemplatePageRule()
     }
 
     @Test
@@ -170,10 +177,7 @@ class FolderAccessTest {
 
     @Test
     fun backingOutOfTheFolderPickerIsAnAbortError() {
-        ActivityScenario.launch(MainActivity::class.java).use { scenario ->
-            intending(hasAction(Intent.ACTION_OPEN_DOCUMENT_TREE)).respondWith(Instrumentation.ActivityResult(Activity.RESULT_CANCELED, null))
-            val page = PageDriver(scenario).also { it.loadTestPage() }
-            assertEquals("error:AbortError:The user aborted a request", page.runAsync("await showDirectoryPicker(); window.__r = 'picked';"))
-        }
+        intending(hasAction(Intent.ACTION_OPEN_DOCUMENT_TREE)).respondWith(Instrumentation.ActivityResult(Activity.RESULT_CANCELED, null))
+        assertEquals("error:AbortError:The user aborted a request", template.page().runAsync("await showDirectoryPicker(); window.__r = 'picked';"))
     }
 }
