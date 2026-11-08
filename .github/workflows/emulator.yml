@@ -40,6 +40,12 @@ jobs:
         with:
           cache-read-only: false
 
+      # The runner's disk is small next to an emulator's data partition; drop software this job never uses.
+      - name: Free disk space
+        run: |
+          sudo rm -rf /usr/share/dotnet /opt/ghc /usr/local/lib/android /usr/local/share/boost /usr/share/swift
+          df -h / | tail -1
+
       - name: Cache Android SDK and system image
         uses: actions/cache@v6
         with:

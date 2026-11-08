@@ -41,7 +41,7 @@ log "creating the AVD"
 echo no | "$AVDMANAGER" create avd -n ci -k "$IMAGE" -d pixel_6 --force 2>&1 | grep -v '^Picked up JAVA_TOOL_OPTIONS' | tail -2
 cat >> "$ANDROID_AVD_HOME/ci.avd/config.ini" <<'INI'
 hw.ramSize=3072
-disk.dataPartition.size=6G
+disk.dataPartition.size=3G
 hw.keyboard=yes
 INI
 
@@ -50,18 +50,28 @@ nohup "$ANDROID_HOME/emulator/emulator" -avd ci -no-window -no-audio -no-boot-an
   -gpu swiftshader_indirect -no-metrics -accel on > "$OUT/emulator.log" 2>&1 &
 echo $! > "$OUT/emulator.pid"
 
-"$ADB" wait-for-device
-log "waiting for Android to boot"
-for _ in $(seq 1 180); do
-  if [[ "$("$ADB" shell getprop sys.boot_completed 2>/dev/null | tr -d '\r')" == "1" ]]; then break; fi
+# adb wait-for-device never returns if the emulator died at once (no space, no KVM), so watch the process.
+emulator_died() {
   if ! kill -0 "$(cat "$OUT/emulator.pid")" 2>/dev/null; then
-    echo "ERROR: the emulator exited while booting; see $OUT/emulator.log" >&2
-    tail -20 "$OUT/emulator.log" >&2
+    echo "ERROR: the emulator exited; its log:" >&2
+    tail -30 "$OUT/emulator.log" >&2
     exit 1
   fi
+}
+log "waiting for the emulator to connect"
+for _ in $(seq 1 90); do
+  emulator_died
+  [[ "$("$ADB" get-state 2>/dev/null || true)" == "device" ]] && break
   sleep 2
 done
-[[ "$("$ADB" shell getprop sys.boot_completed | tr -d '\r')" == "1" ]] || { echo "ERROR: Android didn't finish booting in 6 minutes" >&2; exit 1; }
+[[ "$("$ADB" get-state 2>/dev/null || true)" == "device" ]] || { echo "ERROR: the emulator didn't connect in 3 minutes" >&2; tail -30 "$OUT/emulator.log" >&2; exit 1; }
+log "waiting for Android to boot"
+for _ in $(seq 1 240); do
+  emulator_died
+  [[ "$("$ADB" shell getprop sys.boot_completed 2>/dev/null | tr -d '\r')" == "1" ]] && break
+  sleep 2
+done
+[[ "$("$ADB" shell getprop sys.boot_completed 2>/dev/null | tr -d '\r')" == "1" ]] || { echo "ERROR: Android didn't finish booting in 8 minutes" >&2; exit 1; }
 
 # Tests tap and type: no animations, no lock screen, no soft keyboard in the way.
 "$ADB" shell settings put global window_animation_scale 0
