@@ -70,7 +70,7 @@ requirement traceability through code comments (OpenFastTrace, StrictDoc, Doorst
 
 ## Results
 
-The last run, to compare the final one against (the per-item files were removed; git keeps them):
+The last run, to compare the final one against:
 
 | Run | Commit | Integrity | Traceability | KDoc | Noise | Anchoring | Rubric | Combined |
 |---|---|---|---|---|---|---|---|---|

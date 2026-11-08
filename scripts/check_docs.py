@@ -2,8 +2,8 @@
 """Checks the project's own documents against the specs and the repository, so they can't drift apart
 unnoticed (the code-side twin is scripts/check_comments.sh).
 
-  scripts/check_docs.py                 fail on undefined requirement IDs and missing paths; report UI text
-                                        the specs quote that no string resource has
+  scripts/check_docs.py                 fail on undefined requirement IDs, missing paths and missing cited
+                                        sections; report UI text the specs quote that no string resource has
   scripts/check_docs.py --diff <base>   also warn about narration and dates in document lines added since <base>
 
 Exits 1 when a check fails.
@@ -136,7 +136,25 @@ for rel in expand(DOCS):
 for rel in expand(REPORT_ONLY):
     check_file(rel, report_only=True)
 
-# 3. UI text the specs quote that no string resource has (a report: some quoted text is a site's or the
+# 3. Sections cited by name ('docs/BUILD_NOTES.md, "Robolectric"', 'BUILD_NOTES, "Emulator"') exist, as a
+# heading or a bold label, in documents and in the code's comments alike.
+SECTION_CITE = re.compile(r'(?:docs/)?([A-Z][A-Z_]{3,})(?:\.md)?(?:\]\([^)]*\))?,? +\(?"([^"]+)"')
+doc_names = {Path(d).stem: d for d in expand(["docs/*.md"])}
+for rel in [t for t in tracked if re.search(r"\.(kt|kts|sh|yml|py|md)$", t) and not t.startswith(".claude/references/")
+            and t != "scripts/check_docs.py"]:
+    if rel.startswith(".claude/skills/") and rel not in DOCS:
+        continue
+    for n, line in enumerate((ROOT / rel).read_text(encoding="utf-8", errors="replace").split("\n"), 1):
+        for name, section in SECTION_CITE.findall(line):
+            if name not in doc_names:
+                continue
+            text = (ROOT / doc_names[name]).read_text(encoding="utf-8")
+            labels = re.findall(r"^#+\s+(.+)$", text, re.M) + re.findall(r"\*\*([^*]+)\*\*", text)
+            if not any(l.lower().startswith(section.lower()) for l in labels):
+                say = (lambda m: print(f"check_docs: report: {m}")) if rel in REPORT_ONLY else problem
+                say(f"{rel}:{n} cites the section \"{section}\" of {doc_names[name]}, which has no such heading")
+
+# 4. UI text the specs quote that no string resource has (a report: some quoted text is a site's or the
 # platform's, not ours). A resource's placeholders (%1$s) match anything, as does the spec's <name>.
 resources = []
 for res in STRING_RESOURCES:
@@ -165,7 +183,7 @@ for spec in SPECS:
 for m in sorted(set(missing)):
     print(f"check_docs: report: no string resource has {m}")
 
-# 4. With --diff: narration and dates in added document lines (a warning; history belongs in commit messages).
+# 5. With --diff: narration and dates in added document lines (a warning; history belongs in commit messages).
 if len(sys.argv) >= 2 and sys.argv[1] == "--diff":
     base = sys.argv[2]
     diff = subprocess.run(["git", "diff", "-U0", base, "--", *expand(DOCS)], cwd=ROOT, capture_output=True,

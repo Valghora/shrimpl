@@ -1,7 +1,7 @@
 # Build notes
 
-The toolchain and the platform findings that shape the code. Deviations from the specs and from
-Google's guidance are in docs/DEVIATIONS.md.
+The toolchain and the platform findings that shape the code. Testing setups and their quirks are in
+docs/TESTING.md; deviations from the specs and from Google's guidance are in docs/DEVIATIONS.md.
 
 ## Versions
 
@@ -80,103 +80,22 @@ and services.gradle.org).
   connection" from a site that can't be reached (R3.2).
 - **Data extraction.** With targetSdk 31+, `allowBackup="false"` doesn't stop device-to-device
   transfer; `data_extraction_rules.xml` excludes everything.
-- **Emulator (2026-11-08).** The cloud container can't run one: no `/dev/kvm` and no `vmx`/`svm` CPU flags,
-  so x86_64 images fail ("KVM requires a CPU that supports vmx or svm"), and ARM images can't run on an
-  x86 host at all ("Avd's CPU Architecture 'arm64' is not supported by the QEMU2 emulator on x86_64
-  host"). GitHub's `ubuntu-latest` runners (2 cores, 7 GB, 14 GB free disk) do have `/dev/kvm`, even for a
-  private repository, so the Emulator workflow runs `system-images;android-37.2;google_apis_ps16k;x86_64`
-  there (`scripts/start_emulator.sh`); every 37.x image is a 16 KB page one, so a native library that isn't
-  16 KB aligned can't load on it (`scripts/check_page_alignment.sh`). Things that went wrong and why the
-  workflow looks as it does: the first run had too little disk for a 6 GB data partition (the emulator
-  exits at once, `adb wait-for-device` then blocks forever, so the script watches the process; the
-  workflow frees ~20 GB first); building with the 4 GB emulator running made the runner run out of
-  memory and die ("AAPT2 daemon unexpectedly exit", "received a shutdown signal"), so everything is built
-  and the Gradle daemon stopped first; a failed test's files vanish with Gradle's uninstall, so evidence
-  goes to `/data/local/tmp/evidence` and logcat; and a freshly booted 2-core emulator makes system apps
-  (launcher, Play services, Settings) miss deadlines, so an "isn't responding" dialog can cover a test's
-  screen: the script hides error dialogs (`hide_error_dialogs`) and waits 30 s after boot, and the install
-  robot taps Wait if one still shows. A new workflow can't be dispatched from a branch until it
-  is on the default branch, so the Emulator workflow ran on every push at first; since 2026-11-08 it is dispatched by hand when a branch is ready to merge. Run times (before the speed-ups below):
-  about 4 minutes to boot and settle, 7 minutes of tests, 16.5 for the whole job. Speed-ups: the template's
-  tests stop the start page's load and put the test page in at once instead of waiting for the start
-  page (10 to 20 s per test; sharing one activity per class doesn't work, because AndroidJUnitRunner
-  finishes every open activity after each test); both modules run in one Gradle invocation; the SDK and system image are not
-  cached (restoring them took 136 s, downloading about 70). Measured after them (run 42529408334): 14.1 minutes for the job, down from 16.5: 97 s to free disk,
-  12 s of SDK setup, 36 s to build, 3.7 minutes to download the system image and boot (this absorbed the
-  cache's saving), 7.5 minutes of tests. Not done: freeing disk in the background (90 s) and a shorter
-  settle. `FixFlowTest` once failed with the system Uninstall dialog showing and never tapped (the same
-  commit passed on rerun); if it recurs, look at `InstallRobot`'s selector for that dialog first.
-- **Zero tests is not a pass.** Once the template's instrumentation died within seconds of starting and
-  Gradle reported success with `tests="0"`; the run looked green apart from Shrimpl's. So
-  `scripts/run_instrumented_tests.sh` retries a module that reports no tests and fails the job if it still
-  doesn't. Reading the layout the instant the first tile appeared saw 2 of 4 across, so
-  `WindowSizesTest` waits for every tile and two agreeing readings.
-- **Test fixtures.** The template's debug build (never the release APK Shrimpl bundles) has a document
-  provider, `TestTreeProvider`, over `cache/test-tree`, so the folder tests run the template's
-  `DocumentsContract` calls against a real provider. `DocumentsProvider` insists on `MANAGE_DOCUMENTS`
-  and exported + grantUriPermissions; calls from the app's own uid are allowed anyway.
-- **What the emulator found** that Robolectric and hands-on testing hadn't: this WebView already defines
-  `showOpenFilePicker`/`showSaveFilePicker` (they throw a SecurityError without a user gesture and have no
-  dialog), so a bridge that skipped pages that had them never installed; and the file bridge crashed the
-  whole web app when a document's provider had no `last_modified` column (MediaStore's).
+- **WebView's own file pickers.** This WebView defines `showOpenFilePicker` and `showSaveFilePicker`
+  itself; they throw a SecurityError without a user gesture and open no dialog, so the template's
+  bridge replaces them rather than filling a gap (T6.17).
+- **Providers without `last_modified`.** MediaStore's document provider has no `last_modified` column;
+  querying it throws, so the template queries each column on its own and falls back when one is
+  missing (the modification time becomes now; T6.17).
+- **Compose dropdown menus.** A `DropdownMenu` opens below its anchor and adds its `offset` to the
+  anchor's bottom, so offsetting the menu put it far below a tile. App menus are anchored to an empty
+  box at the pressed point, kept there after the menu closes so the menu doesn't jump as it fades out
+  (found on a device, 2026-11-02).
 
 ## R8
 
 Both apps use the AGP 9.3+ `optimization { enable = true }` block; Shrimpl's one keep rule (the
 Shizuku shell service) is in `shrimpl/src/main/keepRules/`. The r8-analyzer skill's first analysis (2026-11-01) scored Shrimpl 98 % and the template 93 % for optimization;
 every broad rule comes from a library or AGP's defaults.
-
-## Robolectric (Shrimpl's Compose screens in unit tests)
-
-- Robolectric 4.17 (September 2026) supports API 37 with the Android 17 runtime
-  `android-all-instrumented:17-robolectric-15733970-i7` (about 240 MB) and needs Java 21, which the
-  build already uses.
-- Robolectric's own downloader fetches that runtime at test time from Maven Central, which answered
-  429 (rate limited) here. Gradle fetches it instead (the `robolectricRuntime` configuration and
-  `prepareRobolectricRuntime` task in `shrimpl/build.gradle.kts`), and the tests run Robolectric
-  offline against it: cached, retried, and the same repositories as every other dependency.
-- On Java 17 and later the test JVM needs `--add-exports=java.base/jdk.internal.access=ALL-UNNAMED`
-  (and `--add-opens=java.base/java.io=ALL-UNNAMED`): Robolectric emulates Android's file descriptors
-  through those internals.
-- `ui-test-junit4` brings Espresso 3.5.0 and androidx.test 1.5.0, which call
-  `InputManager.getInstance()`, gone in API 37. The tests pin Espresso 3.7.0 and androidx.test 1.7.0.
-- Robolectric's default screen is 320 dp wide; layout tests set a larger one with
-  `@Config(qualifiers = "w1600dp-h1200dp")` so the pane sizes they try aren't squeezed.
-- There is no Android Keystore under Robolectric, so tests run without a signing key: every saved app
-  counts as signed with another key (R11.7). Installed apps are faked with `ShadowPackageManager`,
-  which also needs `setApplicationIcon` for each, since Shrimpl reads the icon.
-- `ui-test-manifest` is a debug-only dependency (it declares the activity Compose tests host screens
-  in); it adds no code to release builds and no native code.
-- Window sizes: `DeviceConfigurationOverride.ForcedSize` overrides `LocalConfiguration` and
-  `LocalDensity` but not `LocalWindowInfo`, which `currentWindowAdaptiveInfo` reads, so the list-detail
-  switch ignores it. `WindowSizeTest` sets the screen with `RuntimeEnvironment.setQualifiers` and then
-  launches `MainActivity`, for each of the testing-setup skill's nine sizes (400, 610 and 900 dp wide
-  by 400, 500 and 1000 dp high).
-- Robolectric runs out of touch mode, so Compose gives keyboard focus to the first focusable item of
-  each new window, as for a keyboard user. A focused icon button shows its tooltip, which appears in
-  tests as a second, small root.
-- A dialog with a text field never lets Compose go idle (`AppNotIdleException` after 60 s) once the
-  field can take focus: opening such a dialog from a click, focusing the field or typing into it.
-  Pausing the test clock, `setInTouchMode(true)` and turning off initial focus
-  (`ComposeUiFlags.isInitialFocusOnFocusableAvailable`) don't help. Tests change values through
-  switches and menus instead; dialog drafts surviving recreation stay a device check.
-- Coverage: debug builds set `enableUnitTestCoverage`, so
-  `./gradlew :shrimpl:createDebugUnitTestCoverageReport` writes a JaCoCo report of the unit and
-  Robolectric tests to `shrimpl/build/reports/coverage/test/debug/`. JaCoCo has to include classes
-  without a source location (Robolectric loads the app's classes itself) and leave out `jdk.internal`.
-  There is no threshold for Shrimpl; the 95 % rule is for `:core`. The first report (2026-11-01)
-  covered 34 % of Shrimpl's lines.
-- Google's Accessibility Test Framework checks for Compose (`enableAccessibilityChecks()` from
-  `androidx.compose.ui:ui-test-junit4-accessibility` 1.12.1, ATF 4.1.1) don't work under Robolectric:
-  with them enabled, an unlabelled, clickable 10 dp box with near-invisible text passes, whether the
-  checks are enabled before or after the content, with Robolectric's native graphics and with its
-  accessibility manager switched on. Accessibility is tested with semantics assertions instead
-  (docs/SKILLS.md); ATF runs on the emulator (`AccessibilityChecksTest`, with a negative control).
-- A Compose popup (a dropdown menu) is its own window under Robolectric, placed at the window's
-  origin, and its nodes' `boundsInWindow` are relative to that window. Where a menu opens on screen
-  can't be tested there. The tiles' long-press menu opened well below the tile on a device
-  (2026-11-02): a `DropdownMenu` opens below its anchor and its `offset` is added to the anchor's
-  bottom, so the menu is now anchored to an empty box at the pressed point.
 
 ## CI timing (2026-11)
 

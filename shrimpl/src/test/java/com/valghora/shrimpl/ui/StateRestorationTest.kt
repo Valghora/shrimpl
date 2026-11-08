@@ -24,7 +24,7 @@ import org.robolectric.annotation.Config
 /**
  * What the user was doing survives the activity being recreated (rotation, folding, resizing) and
  * process death (docs/ADAPTIVE.md, Tier 3 Config_Changes; the testing-setup skill: always verify
- * state restoration). Dialogs with a text field can't be tested here yet (docs/BUILD_NOTES.md).
+ * state restoration). Dialogs with a text field can't be tested here yet (docs/TESTING.md, "Robolectric").
  */
 @Config(qualifiers = "w420dp-h900dp")
 @RunWith(RobolectricTestRunner::class)

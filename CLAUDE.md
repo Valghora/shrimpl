@@ -92,7 +92,7 @@ needs hardware, is still confirmed on the owner's devices.
   buttons under the Badge theme setting, R2.5).
 - Shrimpl's Compose screens are tested with Robolectric in `shrimpl/src/test` (layout at the nine
   window sizes of the testing-setup skill, what a state shows, simple interactions, state surviving
-  recreation; docs/BUILD_NOTES.md). With every change,
+  recreation; docs/TESTING.md, "Robolectric"). With every change,
   look for behavior worth a new Robolectric test, and add it where it makes sense; a layout or state
   bug found on a device gets a test that would have caught it. The template's WebView and bridges and
   real installs have emulator tests (`docs/TESTING.md`): a change to them adds or updates one, and

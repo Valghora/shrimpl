@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Installs the emulator and a system image, creates an AVD, boots it headless and waits until it is
-# ready for instrumented tests (docs/SHRIMPL_SPEC.md R12.4, docs/BUILD_NOTES.md, "Emulator").
+# ready for instrumented tests (docs/SHRIMPL_SPEC.md R12.4, docs/TESTING.md, "The emulator's environment").
 #
 # It needs hardware virtualization (/dev/kvm): GitHub's Linux runners have it, the cloud container
 # Claude Code works in does not, and Android's emulator can't run ARM images on an x86 host.

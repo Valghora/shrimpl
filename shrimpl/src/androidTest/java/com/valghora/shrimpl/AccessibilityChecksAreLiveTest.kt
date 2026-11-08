@@ -20,7 +20,7 @@ import org.junit.runner.RunWith
 
 /**
  * A control for [AccessibilityChecksTest]: a clickable 10 dp box with no label must fail the checks. Under
- * Robolectric the same checks passed it silently (docs/BUILD_NOTES.md), so without this a green run
+ * Robolectric the same checks passed it silently (docs/TESTING.md, "Robolectric"), so without this a green run
  * could mean "the checks didn't run".
  */
 @RunWith(AndroidJUnit4::class)

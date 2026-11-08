@@ -25,7 +25,7 @@ import org.junit.runner.RunWith
 /**
  * Google's Accessibility Test Framework on Shrimpl's real screens (docs/SKILLS.md, accessibility
  * skill): touch target sizes, text contrast, missing labels and duplicate bounds, measured on a real
- * display with real fonts and colors. Robolectric can't run these checks (docs/BUILD_NOTES.md), so until
+ * display with real fonts and colors. Robolectric can't run these checks (docs/TESTING.md, "Robolectric"), so until
  * the emulator they were left to TalkBack on the owner's devices.
  */
 @RunWith(AndroidJUnit4::class)

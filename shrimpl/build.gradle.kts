@@ -41,12 +41,12 @@ android {
         targetSdk = 37
         versionCode = 1
         versionName = "0.1"
-        // Instrumented tests run on an emulator in CI (docs/BUILD_NOTES.md, "Emulator").
+        // Instrumented tests run on an emulator in CI (docs/TESTING.md, "The emulator's environment").
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
     testOptions {
-        // Robolectric runs Shrimpl's Compose screens in unit tests (docs/BUILD_NOTES.md).
+        // Robolectric runs Shrimpl's Compose screens in unit tests (docs/TESTING.md, "Robolectric").
         unitTests.isIncludeAndroidResources = true
     }
 
@@ -136,7 +136,7 @@ dependencies {
 
 // Robolectric's Android runtime comes through Gradle (cached, retried, the same repositories as every
 // other dependency) and the tests run Robolectric offline against it, so they never download at test
-// time (docs/BUILD_NOTES.md).
+// time (docs/TESTING.md, "Robolectric").
 val robolectricRuntime: Configuration by configurations.creating
 dependencies { robolectricRuntime(libs.robolectric.android.all) { isTransitive = false } }
 val robolectricRuntimeDir = layout.buildDirectory.dir("robolectric-runtime")

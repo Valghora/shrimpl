@@ -40,5 +40,5 @@ in `.claude/references/claude-android-ninja/` (Apache 2.0; kept current by
   `assertTouchHeightIsAtLeast`, `hasContentDescription`).
 - Not available here: Google's Accessibility Test Framework checks
   (`enableAccessibilityChecks()` from `ui-test-junit4-accessibility`) don't run under Robolectric; they
-  flag nothing, not even an unlabelled 10 dp button (docs/BUILD_NOTES.md). The reference's Espresso
+  flag nothing, not even an unlabelled 10 dp button (docs/TESTING.md, "Robolectric"). The reference's Espresso
   checks and Accessibility Scanner need a device; TalkBack checks happen on the owner's devices.

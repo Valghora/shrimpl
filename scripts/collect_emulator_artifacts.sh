@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Collects what is needed to understand a failed instrumented test: logcat, a screenshot, the UI
-# hierarchy and the emulator's own log (docs/BUILD_NOTES.md, "Emulator"). Safe to run when no
+# hierarchy and the emulator's own log (docs/TESTING.md, "The emulator's environment"). Safe to run when no
 # emulator is up: it then collects nothing.
 set -uo pipefail
 

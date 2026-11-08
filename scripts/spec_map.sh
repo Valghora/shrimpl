@@ -9,7 +9,7 @@ set -euo pipefail
 cd "$(dirname "$0")/.."
 
 # ----- Settings -----
-SPECS=(docs/SHRIMPL_SPEC.md docs/TEMPLATE_SPEC.md docs/ADAPTIVE.md docs/BUILD_NOTES.md)
+SPECS=(docs/SHRIMPL_SPEC.md docs/TEMPLATE_SPEC.md docs/ADAPTIVE.md docs/BUILD_NOTES.md docs/TESTING.md docs/DEVIATIONS.md)
 MAIN=(':(glob)**/src/main/**/*.kt')
 TESTS=(':(glob)**/src/test/**/*.kt' ':(glob)**/src/androidTest/**/*.kt')
 

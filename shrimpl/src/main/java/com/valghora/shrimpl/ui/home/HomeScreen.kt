@@ -401,7 +401,7 @@ private fun AppItem(
     val locked = otherKey
     // The menu opens where the item was pressed.
     // Invariant: the menu keeps its place after it closes, so it doesn't jump while it fades out
-    // (found on a device, docs/BUILD_NOTES.md "Robolectric").
+    // (found on a device, docs/BUILD_NOTES.md "Compose dropdown menus").
     var menuOpen by remember { mutableStateOf(false) }
     var menuAt by remember { mutableStateOf(DpOffset.Zero) }
     val openMenu = { at: DpOffset ->
@@ -432,7 +432,7 @@ private fun AppItem(
     val actions = menuActions(locked, installed != null, updateAvailable, onOpen, onEdit, onRebuild, onUninstall, onFix, onRemove)
     // Invariant: the anchor is an empty box at the pressed point. A dropdown menu opens below its anchor
     // and adds its offset to the anchor's bottom, so offsetting the menu itself put it far below a tile
-    // (found on a device, docs/BUILD_NOTES.md "Robolectric").
+    // (found on a device, docs/BUILD_NOTES.md "Compose dropdown menus").
     val menu: @Composable () -> Unit = {
         Box(Modifier.offset { IntOffset(menuAt.x.roundToPx(), menuAt.y.roundToPx()) }) {
             AppMenu(expanded = menuOpen, onDismissRequest = { menuOpen = false }) {

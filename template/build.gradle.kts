@@ -20,7 +20,7 @@ android {
         targetSdk = 37
         versionCode = templateVersion
         versionName = "$templateVersion.0"
-        // Instrumented tests run on an emulator in CI (docs/BUILD_NOTES.md, "Emulator").
+        // Instrumented tests run on an emulator in CI (docs/TESTING.md, "The emulator's environment").
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 

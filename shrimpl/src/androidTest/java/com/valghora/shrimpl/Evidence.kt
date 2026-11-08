@@ -6,8 +6,8 @@ import androidx.test.uiautomator.UiDevice
 import java.io.File
 
 /**
- * What a failed instrumented test leaves behind for whoever reads the CI run (docs/BUILD_NOTES.md,
- * "Emulator"): a screenshot and the window hierarchy. Gradle uninstalls the app when the run ends,
+ * What a failed instrumented test leaves behind for whoever reads the CI run (docs/TESTING.md,
+ * "The emulator's environment"): a screenshot and the window hierarchy. Gradle uninstalls the app when the run ends,
  * taking its own files with it, so they are copied to /data/local/tmp/evidence, which the workflow's
  * evidence step pulls; the hierarchy also goes to logcat, in pieces, under the tag SHRIMPL_EVIDENCE.
  */

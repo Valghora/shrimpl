@@ -11,7 +11,7 @@ import org.json.JSONObject
 import org.json.JSONTokener
 
 /**
- * Drives the template's real WebView in its real [MainActivity] (docs/BUILD_NOTES.md, "Emulator"): it
+ * Drives the template's real WebView in its real [MainActivity] (docs/TESTING.md, "The emulator's environment"): it
  * replaces the start page with a test page whose origin is the web app's own (https://example.com, the
  * neutral template's internal domain), so the document-start scripts and message listeners of the
  * bridges (T6.15 to T6.18) apply exactly as they do for a real site, then runs JavaScript in it.
