@@ -12,7 +12,7 @@ commit. Build details (versions, quirks, workarounds) are in [BUILD_NOTES.md](BU
 | Shrimpl Robolectric tests (`shrimpl/src/test`) | JVM, in CI and the cloud container | every push | Compose layout at the nine window sizes, what a state shows, simple interactions, state surviving recreation |
 | Template unit test (`template/src/test`) | JVM | every push | The profile asset |
 | Static checks | CI | every push | Lint (0 errors), no native code (R0), 16 KB page alignment, comment references |
-| **Emulator tests** (`src/androidTest` in `:template` and `:shrimpl`) | A real Android 37 system image (x86_64, KVM) in the Emulator workflow | every push to a branch other than `main` | What only a real system does: the real WebView and its bridges, real installs, real accessibility checks, real window manager |
+| **Emulator tests** (`src/androidTest` in `:template` and `:shrimpl`) | A real Android 37 system image (x86_64, KVM) in the Emulator workflow | every merge to `main` (and by hand) | What only a real system does: the real WebView and its bridges, real installs, real accessibility checks, real window manager |
 | The owner's devices | A Dell XPS Googlebook and others | when the owner tries a build | Everything in the last section |
 
 Robolectric runs in the cloud container; the emulator does not, and cannot: the container has no KVM
@@ -21,13 +21,12 @@ host. GitHub's Linux runners do expose KVM, so the emulator runs there (BUILD_NO
 
 ## The Emulator workflow
 
-`.github/workflows/emulator.yml`, on every push except to `main` (it only fast-forwards to commits that
-already passed here) and except pushes that change only `docs/` or Markdown files, and by hand. It builds the APKs and test APKs first, stops Gradle, boots the
+`.github/workflows/emulator.yml`, on every push to `main` that changes anything outside `docs/` and Markdown files (that is, on a merge),
+and by hand on any branch (`workflow_dispatch`); it is the slowest check, so branches don't run it. It builds the APKs and test APKs first, stops Gradle, boots the
 emulator (`scripts/start_emulator.sh`), runs `connectedDebugAndroidTest` for both modules in one Gradle run, and uploads
 `instrumented-results`: the JUnit XML, `emulator-out/logcat.txt`, a screenshot, the UI hierarchy, and the
 screenshots and hierarchy dumps that failed tests saved (`emulator-out/evidence/`, and in logcat under
-the tag `SHRIMPL_EVIDENCE`). A fast-forward merge to `main` needs this workflow green on the branch's
-last commit that changed anything outside docs, as well as the Android workflow.
+the tag `SHRIMPL_EVIDENCE`). Read its result after a merge; a red run on `main` is fixed forward.
 
 Writing an emulator test:
 

@@ -93,7 +93,7 @@ and services.gradle.org).
   (launcher, Play services, Settings) miss deadlines, so an "isn't responding" dialog can cover a test's
   screen: the script hides error dialogs (`hide_error_dialogs`) and waits 30 s after boot, and the install
   robot taps Wait if one still shows. A new workflow can't be dispatched from a branch until it
-  is on the default branch, so the Emulator workflow runs on push. Run times (before the speed-ups below):
+  is on the default branch, so the Emulator workflow ran on push to branches at first (since 2026-11-08 it runs on merges to main). Run times (before the speed-ups below):
   about 4 minutes to boot and settle, 7 minutes of tests, 16.5 for the whole job. Speed-ups: the template's
   tests stop the start page's load and put the test page in at once instead of waiting for the start
   page (10 to 20 s per test; sharing one activity per class doesn't work, because AndroidJUnitRunner
