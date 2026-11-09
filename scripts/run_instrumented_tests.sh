@@ -8,6 +8,15 @@
 set -uo pipefail
 
 modules=(template shrimpl)
+# ONLY_TESTS=module:class runs that one module, filtered to that class (or class#method), for trying a test.
+filter=()
+if [[ -n "${ONLY_TESTS:-}" ]]; then
+  modules=("${ONLY_TESTS%%:*}")
+  filter=("-Pandroid.testInstrumentationRunnerArguments.class=${ONLY_TESTS#*:}")
+  echo "::warning::running only ${ONLY_TESTS}; a merge needs the whole suite"
+fi
+tasks=()
+for module in "${modules[@]}"; do tasks+=(":$module:connectedDebugAndroidTest"); done
 
 # Prints "tests failures errors" from the <testsuites> total of a module's result files.
 summarize() {
@@ -24,7 +33,7 @@ summarize() {
 
 # --no-parallel: both tasks drive the one emulator, and run side by side they uninstall each other's app.
 ./gradlew --console=plain --no-daemon --no-parallel --continue \
-  :template:connectedDebugAndroidTest :shrimpl:connectedDebugAndroidTest -x :template:lintVitalRelease
+  "${tasks[@]}" "${filter[@]}" -x :template:lintVitalRelease
 first_rc=$?
 
 status=0
@@ -34,7 +43,7 @@ for module in "${modules[@]}"; do
   echo "[run_instrumented_tests] $module: $tests tests, $failures failures, $errors errors"
   if [[ $tests -eq 0 ]]; then
     echo "::warning::$module reported 0 tests; running it again alone"
-    ./gradlew --console=plain --no-daemon ":$module:connectedDebugAndroidTest" --rerun -x :template:lintVitalRelease
+    ./gradlew --console=plain --no-daemon ":$module:connectedDebugAndroidTest" "${filter[@]}" --rerun -x :template:lintVitalRelease
     read -r tests failures errors <<<"$(summarize "$module")"
     echo "[run_instrumented_tests] $module again: $tests tests, $failures failures, $errors errors"
   fi

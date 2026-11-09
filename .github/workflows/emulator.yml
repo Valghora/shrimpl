@@ -9,6 +9,13 @@ name: Emulator
 # doesn't run on every push. Main only fast-forwards to a commit it passed on.
 on:
   workflow_dispatch:
+    inputs:
+      tests:
+        description: >-
+          Only these tests, as module:class (shrimpl:com.valghora.shrimpl.WindowSizesTest), for trying new
+          tests quickly. Leave empty before a merge: a merge needs the whole suite.
+        required: false
+        default: ""
 
 permissions:
   contents: read
@@ -71,6 +78,8 @@ jobs:
       # One Gradle run for both modules, which continues past a failure so a run shows every failure at once;
       # a module that reports no tests at all is retried alone and then fails the job.
       - name: Instrumented tests
+        env:
+          ONLY_TESTS: ${{ inputs.tests }}
         run: scripts/run_instrumented_tests.sh
 
       - name: Collect emulator evidence
