@@ -16,8 +16,8 @@ import com.valghora.shrimpl.core.profile.allowedOriginRules
 
 /**
  * The page's colors along its top and bottom edges, for the Dynamic header (docs/TEMPLATE_SPEC.md T3.3):
- * a document-start script samples them after loading, scrolling, resizing and theme changes, and
- * posts them here; [onColors] gets them on the main thread whenever they change.
+ * a document-start script samples them after loads, history navigation, resizing and theme changes
+ * (the color scheme, or a theme class or attribute on the root or body), and posts them here; [onColors] gets them on the main thread whenever they change.
  */
 class PageColors(private val controller: DesktopSessionController, private val onColors: (top: Int, bottom: Int) -> Unit) {
     private val listener = WebViewCompat.WebMessageListener { _, message, sourceOrigin, isMainFrame, _ ->

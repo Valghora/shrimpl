@@ -6,7 +6,7 @@ import kotlin.system.exitProcess
 /**
  * Shizuku's user service (docs/SHRIMPL_SPEC.md R6.1): Shizuku starts this class in its own process
  * as the shell user, so `pm` runs with the shell's install permissions and needs no prompt.
- * Shizuku needs a public no-argument constructor, and R8 must keep it (proguard-rules.pro).
+ * Shizuku needs a public no-argument constructor, and R8 must keep it (`src/main/keepRules/shell-service.keep`).
  */
 class ShellService : IShellService.Stub() {
     override fun destroy() {
