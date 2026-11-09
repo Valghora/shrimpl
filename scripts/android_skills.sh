@@ -199,7 +199,7 @@ cmd_update() {
       *) copy_upstream ;;
     esac
   done
-  echo "Review the changes (git diff .claude) against docs/SKILLS.md and commit them on their own."
+  echo "Review the changes (git diff .claude) against docs/DEVIATIONS.md and commit them on their own."
 }
 
 cmd_add() {
