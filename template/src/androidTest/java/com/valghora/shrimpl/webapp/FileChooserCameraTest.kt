@@ -11,7 +11,7 @@ import androidx.core.content.ContextCompat
 import androidx.test.core.app.ActivityScenario
 import androidx.test.espresso.intent.Intents
 import androidx.test.espresso.intent.Intents.intending
-import androidx.test.espresso.intent.matcher.IntentMatchers.anyIntent
+import androidx.test.espresso.intent.matcher.IntentMatchers.hasAction
 import androidx.test.espresso.intent.rule.IntentsRule
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
@@ -24,11 +24,13 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.MethodSorters
+import org.hamcrest.Matchers.anyOf
 
 /**
  * The file chooser's camera options (docs/TEMPLATE_SPEC.md T6.4), opened by a real tap on a file input:
- * WebView shows a chooser only after a user gesture, so a script can't open it. Every launched activity
- * is answered with Cancel, so the test checks what the template asked Android for.
+ * WebView shows a chooser only after a user gesture, so a script can't open it. The chooser, the file
+ * picker and the cameras are answered with Cancel, so the test checks what the template asked Android
+ * for. Only those are stubbed: stubbing every intent would also swallow the launch of MainActivity.
  *
  * The test template declares the camera permission (its manifest is the superset, R7.3), so the camera
  * is offered only once the permission is granted. The first test runs without it; the others grant it,
@@ -44,8 +46,15 @@ class FileChooserCameraTest {
     private val context = instrumentation.targetContext
 
     @Before
-    fun cancelEveryActivity() {
-        intending(anyIntent()).respondWith(Instrumentation.ActivityResult(Activity.RESULT_CANCELED, null))
+    fun cancelTheChooserAndTheCameras() {
+        val chooserOrCamera = anyOf(
+            hasAction(Intent.ACTION_CHOOSER),
+            hasAction(Intent.ACTION_GET_CONTENT),
+            hasAction(Intent.ACTION_OPEN_DOCUMENT),
+            hasAction(MediaStore.ACTION_IMAGE_CAPTURE),
+            hasAction(MediaStore.ACTION_VIDEO_CAPTURE),
+        )
+        intending(chooserOrCamera).respondWith(Instrumentation.ActivityResult(Activity.RESULT_CANCELED, null))
     }
 
     private fun cameraGranted() = ContextCompat.checkSelfPermission(context, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED
@@ -60,8 +69,9 @@ class FileChooserCameraTest {
             it.loadTestPage("<input id=\"pick\" type=\"file\" $attributes style=\"display:block;width:100%;height:240px\">")
         }
         page.tap("#pick")
-        awaitUntil("the template to open a chooser for $attributes", 15_000) { Intents.getIntents().isNotEmpty() }
-        Intents.getIntents().first()
+        val chooserActions = setOf(Intent.ACTION_CHOOSER, Intent.ACTION_GET_CONTENT, Intent.ACTION_OPEN_DOCUMENT, MediaStore.ACTION_IMAGE_CAPTURE, MediaStore.ACTION_VIDEO_CAPTURE)
+        awaitUntil("the template to open a chooser for $attributes", 15_000) { Intents.getIntents().any { it.action in chooserActions } }
+        Intents.getIntents().first { it.action in chooserActions }
     }
 
     private fun Intent.assertCamera(action: String) {

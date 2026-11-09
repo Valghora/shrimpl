@@ -79,6 +79,9 @@ Why the workflow and the scripts look as they do; each rule fixed a run that wen
   instead: `PageDriver` stops its load and puts the test page in at once.
 - **No SDK cache.** Restoring the SDK and system image from the Actions cache took 136 s; downloading
   them takes about 70.
+- **Stub intents by action.** Espresso-Intents also intercepts the intent that launches the activity
+  under test, so `intending(anyIntent())` stops `MainActivity` from ever starting and the test waits
+  until the job times out (it did, at 45 minutes). Stub the actions the test expects instead.
 - **Readings on a busy emulator.** Reading the layout the instant the first tile appeared once saw 2 of
   4 across, so `WindowSizesTest` waits for every tile and two agreeing readings.
 - **Folders.** `TestTreeProvider` (debug build only) is a real `DocumentsProvider`, which insists on
