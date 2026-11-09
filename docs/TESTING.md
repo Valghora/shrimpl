@@ -47,8 +47,14 @@ Writing an emulator test:
 - **User gestures.** Where a page needs one (a file chooser opens only after a real tap),
   `PageDriver.tap` sends touch events to the WebView at the element and waits for the page to see the
   click; pages may open popups from a script.
-- **Dialogs.** Espresso can't find a dialog the template shows (it finds no resumed activity), so tests
-  look for its window with `WindowInspector`.
+- **Profiles.** The neutral profile allows notifications (the default) but not the camera, microphone
+  or location. `withProfile(profileAllowingEverything()) { ... }` (`TestProfile.kt`) runs a block with
+  another profile, swapped in before the activity starts; `answerPermissionPrompt` answers Android's own
+  permission prompts. A fresh launch asks for the notification permission until it is granted (T7.5),
+  so a test that needs the screen to itself answers that prompt first.
+- **Dialogs.** Espresso can't find a dialog the template shows (it finds no resumed activity, likely because
+  the notification prompt of a fresh launch is the resumed one), so tests look for its window with
+  `WindowInspector`.
 - **Memory.** Don't add workflow steps that build while the emulator runs (below).
 
 ## The emulator's environment
@@ -169,6 +175,9 @@ Shrimpl's Compose screens run in unit tests under Robolectric (`shrimpl/src/test
 | T6.4: the file chooser offers the camera for photo and video inputs once the camera permission is granted, opens it alone for `capture`, and leaves it out without the permission (a real tap opens the chooser) | `FileChooserCameraTest` |
 | T6.6: a popup on the app's own site opens in a dialog at 90 % of the window and closes when the page closes it; one to another site goes to the browser | `PopupsTest` |
 | R2.3, CLAUDE.md rule 2: a dialog's half-typed text survives the activity being recreated | `DialogDraftTest` |
+| T7: a fresh launch asks for the notification permission, the page is told it may notify, and its `new Notification` becomes an Android notification with its title, body and channel | `NotificationsTest` |
+| T6.5: the microphone through all three steps (Android asks; after one refusal the template explains first; after two the page is turned down with a snackbar), and location given only when the profile allows it | `PagePermissionsTest` |
+| T6.14: Ctrl+P opens Android's print screen; T6.13, T5.3: a page's element goes full screen with the system bars hidden, and Esc leaves it | `PrintAndFullScreenTest` |
 | Accessibility (touch targets, contrast, labels) on the real screens, with a control that must fail | `AccessibilityChecksTest`, `AccessibilityChecksAreLiveTest` |
 | 16 KB page alignment of every APK | `scripts/check_page_alignment.sh` (Android workflow) |
 
@@ -189,9 +198,7 @@ These need hardware, a person, or a service an emulator doesn't have:
 
 Each is feasible on the emulator and not written yet; the order is by how often it has cost a manual check.
 
-1. Notifications, permissions (camera, location) through the template's flow, full-screen video, printing.
-   The neutral template's profile allows none of them, so these need the template started with a test
-   profile first.
+1. Full screen from a playing video: the tests use an element, since the image has no video to play.
 2. Window snapping: `wm size` gives the right widths, but not a half-screen window (R1.1's sharing rule).
    Split screen may stand in for it, since it sets `isInMultiWindowMode`.
 3. Folder access against Android's real storage provider and picker (the tests use a fixture provider).
