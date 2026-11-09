@@ -135,30 +135,35 @@ Unit tests cover every branch with a fixed fixture config, including look-alike 
 - T6.3 Downloads (http and https) go to `DownloadManager` with the page's cookies and user
   agent, into Downloads, with a completion notification. Files the page made itself (`blob:`, `data:`)
   follow T6.15; other schemes show a toast. "Save image" takes the same routes.
-- T6.4 File chooser: the page's chooser intent (multiple when asked), results from clip data and
-  data, the callback called exactly once. An input that takes images (or names no type) also offers the
-  camera for a photo, one that takes video for a video (`CaptureChoice` in `:core`), beside the files;
-  with the `capture` attribute the camera opens on its own. The camera app writes a full-size file into
-  the cache (`camera/`, shared through the template's FileProvider, `<package>.files`, which the
-  patcher renames with the package); files a day old are cleared when a chooser opens. A web app that
-  declares the camera permission (camera allowed, R7.3) must hold it to start a camera app: a `capture`
-  input asks through T6.5's flow first and falls back to the file picker if refused, and a plain input
-  leaves the camera out until it is granted. One that doesn't declare it starts the camera freely.
-- T6.5 Media permissions: only for internal origins and only resources the profile allows
-  (microphone, camera, protected media); Android's runtime permission is requested when missing and
-  only granted resources are passed on. Location (with `profile.allowLocation`): internal origins
-  only; Android's location permission (precise or approximate) is asked for, and the page is answered
-  with the result. A missing permission is handled in three steps (`PermissionPlan` in `:core`):
-  - the first time, Android asks directly;
-  - after one "Don't allow", a dialog explains first ("Use your camera and microphone?", the page's
-    host and the app's name; Not now or Continue). Continue brings Android's prompt back; Not now,
-    Back or tapping outside turns the page down;
-  - once Android no longer asks (a second "Don't allow"), the page is turned down and a snackbar says
-    so ("Camera and microphone are off for <app>") with Settings, which opens the app's info page.
-    It shows once per window for each permission.
-
-  The app remembers which permissions it asked for, since Android can't tell "never asked" from
-  "Don't allow" twice; a permission seen granted is forgotten, so a later revoke asks again.
+- T6.4 File chooser.
+  - The page's chooser intent (multiple when asked); results from clip data and data; the callback is
+    called exactly once.
+  - An input that takes images (or names no type) also offers the camera for a photo, one that takes
+    video for a video (`CaptureChoice` in `:core`), beside the files. With the `capture` attribute
+    the camera opens on its own.
+  - The camera app writes a full-size file into the cache (`camera/`, shared through the template's
+    FileProvider, `<package>.files`, which the patcher renames with the package); files a day old
+    are cleared when a chooser opens.
+  - A web app that declares the camera permission (camera allowed, R7.3) must hold it to start a
+    camera app: a `capture` input asks through T6.5's flow first and falls back to the file picker
+    if refused, and a plain input leaves the camera out until it is granted. One that doesn't
+    declare it starts the camera freely.
+- T6.5 Media and location permissions.
+  - Media: only for internal origins and only the resources the profile allows (microphone, camera,
+    protected media); Android's runtime permission is requested when missing, and only granted
+    resources are passed on.
+  - Location (with `profile.allowLocation`): internal origins only; Android's location permission
+    (precise or approximate) is asked for, and the page is answered with the result.
+  - A missing permission is handled in three steps (`PermissionPlan` in `:core`):
+    1. the first time, Android asks directly;
+    2. after one "Don't allow", a dialog explains first ("Use your camera and microphone?", the
+       page's host and the app's name; Not now or Continue). Continue brings Android's prompt back;
+       Not now, Back or tapping outside turns the page down;
+    3. once Android no longer asks (a second "Don't allow"), the page is turned down and a snackbar
+       says so ("Camera and microphone are off for <app>") with Settings, which opens the app's info
+       page. It shows once per window for each permission.
+  - The app remembers which permissions it asked for, since Android can't tell "never asked" from
+    "Don't allow" twice; a permission seen granted is forgotten, so a later revoke asks again.
 - T6.6 Routing through T2a. Main frame: INTERNAL, OAUTH and PASSTHROUGH load in place; EXTERNAL
   opens the browser (`ACTION_VIEW`, `CATEGORY_BROWSABLE`); SPECIAL_SCHEME intents are sanitized
   (no component or selector, no URI permission grant flags, `CATEGORY_BROWSABLE`) with a
@@ -186,56 +191,71 @@ Unit tests cover every branch with a fixed fixture config, including look-alike 
   (`requestFullscreenMode`). Esc and Back leave it.
 - T6.14 Printing: Ctrl+P prints the page (`PrintManager` with the WebView's print adapter), which can
   also save a PDF.
-- T6.15 Page-made downloads (`blob:` and `data:`, such as an editor's Export or Save to disk): a
-  document-start script on the internal origins (nested `WEB_MESSAGE_LISTENER` and
-  `DOCUMENT_START_SCRIPT` checks, as T7.1) remembers the `download` name of each link the page clicks
-  and takes hold of a `blob:` file at once, since sites often revoke the link right after the click.
-  When WebView reports the download, the template asks the page for the file, which arrives in 512 KiB
-  base64 chunks over a `WebMessageListener` (`AndroidDownload`, internal origins only) and is written
-  in order, off the main thread, to a pending MediaStore entry in Downloads (no storage permission).
-  The name is made safe (no path, no reserved characters, at most 120 characters, an extension from the
-  type when it has none; "download" when the page gave none) and MediaStore numbers a duplicate. The
-  toast says "Downloading…"; when the file is complete a low-importance "Downloads" notification
-  ("<name>", "Saved to Downloads") opens it, or without notification permission a toast says "Saved
-  <name> to Downloads". A failure removes the partial file and says "Couldn't save <name>"; a transfer
-  over 1 GiB is dropped. A page outside the internal origins, or a WebView without the features, gets
-  the unsupported toast. The protocol and naming are in `:core` (`PageDownloads`).
-- T6.16 Web Share API (WebView has none): a document-start script on the internal origins (nested
-  checks, as T7.1) adds `navigator.share` and `navigator.canShare`, replacing any the WebView has. A share of
-  a title, text or link posts to a `WebMessageListener` (`AndroidShare`, internal origins only), which
-  opens Android's share sheet: the text with the link on its own line after it (not repeated when the
-  text has it), or the title when there is neither; the title as subject. The promise resolves once the
-  sheet opens (Android doesn't report whether the user shared) and rejects with AbortError when no app
-  can share. Files aren't shared: `canShare` returns false and `share` rejects with NotAllowedError, so
-  sites offer a download instead (T6.15). Parsing is `PageShare` in `:core`.
-- T6.17 Single-file File System Access (WebView has none): a document-start script on the internal
-  origins (nested checks, as T7.1) adds `showOpenFilePicker` and `showSaveFilePicker`, replacing any the WebView has
-  (its own throw a SecurityError without a user gesture and have no dialog; folders: T6.18). Open shows Android's Open dialog for any file
-  (sites' own types are often unknown to Android), several with `multiple`; Save shows its Save dialog
-  with the suggested name made safe (as T6.15) and the first plain MIME type from `types`, else a
-  generic type so Android adds no extension. One picker at a time; backing out rejects with AbortError.
-  Each picked file gets a handle key for this session (`FileAccessBridge`, main thread), so the site
-  reads it (`getFile`, sent in 512 KiB parts with its name, type and modification time) and saves back
-  to it silently: `createWritable` gives a WritableStream with `write`, `seek` and `truncate` (strings,
-  buffers, Blobs and write commands; `keepExistingData` starts from the file), which on close sends the
-  whole content in parts to a temporary file, then replaces the picked file (`wt`, else `w`), so a
-  failed save leaves it as it was. Permission queries answer "granted". Handles don't survive a restart
-  of the app: a handle the site kept elsewhere fails with NotFoundError, and the site asks again.
-  Parsing is `FileAccess` in `:core`.
-- T6.18 Folders: `showDirectoryPicker` shows Android's folder picker (read and write); Android doesn't
-  offer the top of internal storage, of Downloads, or `Android/data`, and some cloud providers offer
-  no folders. The folder's handle and every entry found in it get keys for the session, one per
-  document, so `isSameEntry` holds. Folder handles list entries (`entries`, `keys`, `values`, `for
-  await`), get or create a file or folder (`getFileHandle`, `getDirectoryHandle`; a TypeMismatchError
-  when the name is the other kind, NotFoundError without `create`), remove one (`removeEntry`; a folder
-  with entries only with `recursive`, else InvalidModificationError), and `resolve` a descendant's path
-  (handles keep their path from the picked folder). `move` renames an entry or moves it to another
-  folder of the same picked folder, never over an existing name; a picked file or folder can't move.
-  Names follow the standard: empty, `.`, `..` and names with a separator are a TypeError. Files are
-  created with a generic type so Android keeps the name as given; reads and writes are T6.17's. All of
-  it goes through `DocumentsContract` on the IO thread, one call per listing, so a folder of thousands
-  of entries is slow to walk. Changes other apps make aren't reported.
-
+- T6.15 Page-made downloads (`blob:` and `data:`, such as an editor's Export or Save to disk).
+  - A document-start script on the internal origins (nested `WEB_MESSAGE_LISTENER` and
+    `DOCUMENT_START_SCRIPT` checks, as T7.1) remembers the `download` name of each link the page
+    clicks and takes hold of a `blob:` file at once, since sites often revoke the link right after the
+    click.
+  - When WebView reports the download, the template asks the page for the file, which arrives in
+    512 KiB base64 chunks over a `WebMessageListener` (`AndroidDownload`, internal origins only) and
+    is written in order, off the main thread, to a pending MediaStore entry in Downloads (no storage
+    permission). A transfer over 1 GiB is dropped.
+  - The name is made safe: no path, no reserved characters, at most 120 characters, an extension from
+    the type when it has none, "download" when the page gave none. MediaStore numbers a duplicate.
+  - Feedback: the toast says "Downloading…". When the file is complete, a low-importance "Downloads"
+    notification ("<name>", "Saved to Downloads") opens it, or without notification permission a
+    toast says "Saved <name> to Downloads". A failure removes the partial file and says "Couldn't save
+    <name>".
+  - A page outside the internal origins, or a WebView without the features, gets the unsupported
+    toast.
+  - The protocol and naming are `PageDownloads` in `:core`.
+- T6.16 Web Share API (WebView has none).
+  - A document-start script on the internal origins (nested checks, as T7.1) adds `navigator.share`
+    and `navigator.canShare`, replacing any the WebView has.
+  - A share of a title, text or link posts to a `WebMessageListener` (`AndroidShare`, internal origins
+    only), which opens Android's share sheet: the text with the link on its own line after it (not
+    repeated when the text has it), or the title when there is neither; the title as subject.
+  - The promise resolves once the sheet opens (Android doesn't report whether the user shared) and
+    rejects with AbortError when no app can share.
+  - Files aren't shared: `canShare` returns false and `share` rejects with NotAllowedError, so sites
+    offer a download instead (T6.15).
+  - Parsing is `PageShare` in `:core`.
+- T6.17 Single-file File System Access (WebView's own pickers throw a SecurityError without a user
+  gesture and open no dialog; folders are T6.18).
+  - A document-start script on the internal origins (nested checks, as T7.1) adds
+    `showOpenFilePicker` and `showSaveFilePicker`, replacing the WebView's.
+  - Open shows Android's Open dialog for any file (sites' own types are often unknown to Android),
+    several with `multiple`. Save shows its Save dialog with the suggested name made safe (as T6.15)
+    and the first plain MIME type from `types`, else a generic type so Android adds no extension.
+  - One picker at a time; backing out rejects with AbortError.
+  - Each picked file gets a handle key for this session (`FileAccessBridge`, main thread). The site
+    reads it with `getFile`, sent in 512 KiB parts with its name, type and modification time.
+  - Saving back is silent: `createWritable` gives a WritableStream with `write`, `seek` and `truncate`
+    (strings, buffers, Blobs and write commands; `keepExistingData` starts from the file). On close it
+    sends the whole content in parts to a temporary file, then replaces the picked file (`wt`, else
+    `w`), so a failed save leaves it as it was.
+  - Permission queries answer "granted".
+  - Handles don't survive a restart of the app: a handle the site kept elsewhere fails with
+    NotFoundError, and the site asks again.
+  - Parsing is `FileAccess` in `:core`.
+- T6.18 Folders.
+  - `showDirectoryPicker` shows Android's folder picker (read and write). Android doesn't offer the
+    top of internal storage, of Downloads, or `Android/data`, and some cloud providers offer no
+    folders.
+  - The folder's handle and every entry found in it get keys for the session, one per document, so
+    `isSameEntry` holds.
+  - Folder handles list entries (`entries`, `keys`, `values`, `for await`); get or create a file or
+    folder (`getFileHandle`, `getDirectoryHandle`; a TypeMismatchError when the name is the other
+    kind, NotFoundError without `create`); remove one (`removeEntry`; a folder with entries only with
+    `recursive`, else InvalidModificationError); and `resolve` a descendant's path (handles keep their
+    path from the picked folder).
+  - `move` renames an entry or moves it to another folder of the same picked folder, never over an
+    existing name; a picked file or folder can't move.
+  - Names follow the standard: empty, `.`, `..` and names with a separator are a TypeError.
+  - Files are created with a generic type so Android keeps the name as given; reads and writes are
+    T6.17's.
+  - All of it goes through `DocumentsContract` on the IO thread, one call per listing, so a folder of
+    thousands of entries is slow to walk. Changes other apps make aren't reported.
 ## T7 Notifications (with `profile.allowNotifications`)
 
 - T7.1 Needs `WEB_MESSAGE_LISTENER` and `DOCUMENT_START_SCRIPT` (nested checks); without them it is
