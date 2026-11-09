@@ -85,8 +85,13 @@ Why the workflow and the scripts look as they do; each rule fixed a run that wen
 - **Run time.** About 14 minutes: 97 s to free disk, 12 s of SDK setup, 36 s to build, 3.7 minutes to
   download the system image and boot, 7.5 minutes of tests. Not done: freeing disk in the background
   (90 s) and a shorter settle.
-- **Known flake.** `FixFlowTest` once failed with the system Uninstall dialog showing and never tapped
-  (a rerun passed); if it recurs, look at `InstallRobot`'s selector for that dialog first.
+- **Known flakes,** both in `FixFlowTest` and both passing on a rerun:
+  - the system Uninstall dialog showed and was never tapped; if it recurs, look at `InstallRobot`'s
+    selector for that dialog first;
+  - Android's PackageManager crashed during install verification (`DirectoryIteratorException`, a
+    `/data/app/vmdl*.tmp` staging folder gone while it was measured), restarting the system: the run
+    then reports one empty failure and stops early, without the tests after it. That is the image's
+    bug, not Shrimpl's.
 
 ## Robolectric
 
