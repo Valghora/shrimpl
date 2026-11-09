@@ -45,7 +45,10 @@ Writing an emulator test:
   resets them, so other tests see the emulator's own screen.
 - **System dialogs.** `InstallRobot` answers the installer's Install, Update and Uninstall screens.
 - **User gestures.** Where a page needs one (a file chooser opens only after a real tap),
-  `PageDriver.tap` taps the element with UiAutomator; pages may open popups from a script.
+  `PageDriver.tap` sends touch events to the WebView at the element and waits for the page to see the
+  click; pages may open popups from a script.
+- **Dialogs.** Espresso can't find a dialog the template shows (it finds no resumed activity), so tests
+  look for its window with `WindowInspector`.
 - **Memory.** Don't add workflow steps that build while the emulator runs (below).
 
 ## The emulator's environment

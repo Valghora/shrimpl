@@ -66,5 +66,4 @@ dependencies {
     androidTestImplementation(libs.androidx.test.core)
     androidTestImplementation(libs.androidx.test.espresso.core)
     androidTestImplementation(libs.androidx.test.espresso.intents)
-    androidTestImplementation(libs.androidx.test.uiautomator)
 }

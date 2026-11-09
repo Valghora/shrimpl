@@ -4,17 +4,16 @@ import android.app.Activity
 import android.app.Instrumentation
 import android.content.Intent
 import android.view.View
+import android.view.ViewGroup
+import android.view.inspector.WindowInspector
 import android.webkit.WebView
 import androidx.test.core.app.ActivityScenario
-import androidx.test.espresso.Espresso.onView
-import androidx.test.espresso.NoMatchingRootException
 import androidx.test.espresso.intent.Intents
 import androidx.test.espresso.intent.Intents.intending
 import androidx.test.espresso.intent.matcher.IntentMatchers.hasAction
 import androidx.test.espresso.intent.rule.IntentsRule
-import androidx.test.espresso.matcher.RootMatchers.isDialog
-import androidx.test.espresso.matcher.ViewMatchers.isAssignableFrom
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import androidx.test.platform.app.InstrumentationRegistry
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
@@ -32,16 +31,27 @@ class PopupsTest {
     @get:Rule
     val intents = IntentsRule()
 
-    /** The popup's WebView in a dialog window, or null while there is none. */
-    private fun popupView(): View? = try {
+    /**
+     * The popup's WebView: one in a window of this app other than the activity's, or null while there is
+     * none. Espresso's dialog roots can't be used, since it finds no resumed activity once WebView shows
+     * the dialog.
+     */
+    private fun popupView(scenario: ActivityScenario<MainActivity>): View? {
+        var activityRoot: View? = null
+        scenario.onActivity { activityRoot = it.window.decorView }
         var found: View? = null
-        onView(isAssignableFrom(WebView::class.java)).inRoot(isDialog()).check { view, _ -> found = view }
-        found
-    } catch (_: NoMatchingRootException) {
-        null
-    } catch (_: RuntimeException) {
-        // Espresso reports a missing view in an existing root as NoMatchingViewException.
-        null
+        InstrumentationRegistry.getInstrumentation().runOnMainSync {
+            found = WindowInspector.getGlobalWindowViews()
+                .filter { it !== activityRoot && it.isShown }
+                .firstNotNullOfOrNull { findWebView(it) }
+        }
+        return found
+    }
+
+    private fun findWebView(view: View): WebView? {
+        if (view is WebView) return view
+        if (view is ViewGroup) for (i in 0 until view.childCount) findWebView(view.getChildAt(i))?.let { return it }
+        return null
     }
 
     @Test
@@ -49,7 +59,7 @@ class PopupsTest {
         ActivityScenario.launch(MainActivity::class.java).use { scenario ->
             val page = PageDriver(scenario).also { it.loadTestPage() }
             page.js("window.__popup = window.open('https://example.com/popup'); 0")
-            awaitUntil("the popup's dialog", 15_000) { popupView() != null }
+            awaitUntil("the popup's dialog", 15_000) { popupView(scenario) != null }
 
             var windowWidth = 0
             var windowHeight = 0
@@ -57,14 +67,14 @@ class PopupsTest {
                 windowWidth = it.window.decorView.width
                 windowHeight = it.window.decorView.height
             }
-            val popup = requireNotNull(popupView())
+            val popup = requireNotNull(popupView(scenario))
             // The dialog is 90 % of the root, which is the window less its system bar insets.
             assertTrue("popup width ${popup.width} of window $windowWidth", popup.width in (windowWidth * 0.75).toInt()..(windowWidth * 0.92).toInt())
             assertTrue("popup height ${popup.height} of window $windowHeight", popup.height in (windowHeight * 0.6).toInt()..(windowHeight * 0.92).toInt())
             assertFalse("a popup on the app's own site went to the browser", Intents.getIntents().any { it.action == Intent.ACTION_VIEW })
 
             page.js("window.__popup.close(); 0")
-            awaitUntil("the popup's dialog to close", 15_000) { popupView() == null }
+            awaitUntil("the popup's dialog to close", 15_000) { popupView(scenario) == null }
         }
     }
 
@@ -79,7 +89,7 @@ class PopupsTest {
             }
             val opened = Intents.getIntents().first { it.action == Intent.ACTION_VIEW }
             assertEquals(setOf(Intent.CATEGORY_BROWSABLE), opened.categories)
-            assertTrue("a popup to another site showed a dialog", popupView() == null)
+            assertTrue("a popup to another site showed a dialog", popupView(scenario) == null)
         }
     }
 }

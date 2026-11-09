@@ -1,11 +1,13 @@
 package com.valghora.shrimpl.webapp
 
+import android.os.SystemClock
+import android.view.InputDevice
+import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
 import android.webkit.WebView
 import androidx.test.core.app.ActivityScenario
 import androidx.test.platform.app.InstrumentationRegistry
-import androidx.test.uiautomator.UiDevice
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 import org.json.JSONObject
@@ -57,23 +59,27 @@ class PageDriver(private val scenario: ActivityScenario<MainActivity>) {
     }
 
     /**
-     * Taps the middle of the element [selector] finds with a real touch, as a user would. Scripts can't
-     * stand in for it where the page needs a user gesture, such as opening a file chooser (T6.4).
+     * Taps the middle of the element [selector] finds with touch events sent to the WebView, as a finger
+     * would, and waits for the page to see the click. Scripts can't stand in for it where the page needs
+     * a user gesture, such as opening a file chooser (T6.4).
      */
     fun tap(selector: String) {
+        js("window.__tapped = false; document.querySelector('$selector').addEventListener('click', () => { window.__tapped = true; }, { once: true }); 0")
         val box = JSONObject(js("JSON.stringify((() => { const r = document.querySelector('$selector').getBoundingClientRect(); " +
             "return { x: r.left + r.width / 2, y: r.top + r.height / 2, width: window.innerWidth }; })())"))
-        val origin = IntArray(2)
-        var widthPx = 0
         instrumentation.runOnMainSync {
-            webView.getLocationOnScreen(origin)
-            widthPx = webView.width
+            // CSS pixels to the WebView's own pixels: the page is as wide as the WebView (width=device-width).
+            val scale = webView.width / box.getDouble("width")
+            val x = (box.getDouble("x") * scale).toFloat()
+            val y = (box.getDouble("y") * scale).toFloat()
+            val start = SystemClock.uptimeMillis()
+            for ((action, at) in listOf(MotionEvent.ACTION_DOWN to start, MotionEvent.ACTION_UP to start + 80)) {
+                val event = MotionEvent.obtain(start, at, action, x, y, 0).apply { source = InputDevice.SOURCE_TOUCHSCREEN }
+                webView.dispatchTouchEvent(event)
+                event.recycle()
+            }
         }
-        // CSS pixels to screen pixels: the page is as wide as the WebView (width=device-width).
-        val scale = widthPx / box.getDouble("width")
-        val x = origin[0] + (box.getDouble("x") * scale).toInt()
-        val y = origin[1] + (box.getDouble("y") * scale).toInt()
-        check(UiDevice.getInstance(instrumentation).click(x, y)) { "couldn't tap $selector at $x, $y" }
+        awaitJs("window.__tapped === true", "the page to see the tap on $selector", 10_000)
     }
 
     /**
