@@ -1,0 +1,143 @@
+package com.valghora.shrimpl
+
+import android.app.Activity
+import androidx.compose.ui.test.junit4.createEmptyComposeRule
+import androidx.compose.ui.test.onAllNodesWithText
+import androidx.test.core.app.ActivityScenario
+import androidx.test.ext.junit.runners.AndroidJUnit4
+import androidx.test.platform.app.InstrumentationRegistry
+import androidx.test.runner.lifecycle.ActivityLifecycleMonitorRegistry
+import androidx.test.runner.lifecycle.Stage
+import androidx.test.uiautomator.UiDevice
+import com.valghora.shrimpl.core.profile.Profile
+import com.valghora.shrimpl.core.records.IconOptions
+import com.valghora.shrimpl.core.records.IconRecord
+import com.valghora.shrimpl.core.records.WebAppRecord
+import kotlin.math.abs
+import kotlinx.coroutines.runBlocking
+import org.junit.After
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
+import org.junit.Before
+import org.junit.Rule
+import org.junit.Test
+import org.junit.runner.RunWith
+
+/**
+ * Shrimpl in a window that shares the screen (docs/SHRIMPL_SPEC.md R1.1): from 1000 dp it shows two
+ * panes, below that one, so every Googlebook window snapped to half the screen shows one
+ * (docs/GOOGLEBOOKS.md). The emulator can't snap like Googlebook OS, but two of Android's own ways to
+ * share the screen put the app in multi-window mode just the same: split screen, which halves the Dell
+ * XPS's screen (2560 x 1600 at 1.5) into an 848 dp window, as snapping it does (849 dp, confirmed on the
+ * device); and a freeform window resized to an exact width on either side of 1000 dp.
+ */
+@RunWith(AndroidJUnit4::class)
+class WindowSnappingTest {
+    @get:Rule
+    val compose = createEmptyComposeRule()
+
+    private val instrumentation = InstrumentationRegistry.getInstrumentation()
+    private val context = instrumentation.targetContext
+    private val device = UiDevice.getInstance(instrumentation)
+    private val container get() = (context.applicationContext as ShrimplApp).container
+    private val names = listOf("Snapa", "Snapb")
+
+    @Before
+    fun seedAppsOnTheDellsScreen() {
+        runBlocking {
+            names.forEach { name ->
+                val profile = Profile(name = name, appId = "snap${name.lowercase()}", startUrl = "https://${name.lowercase()}.example/", internalDomains = listOf("${name.lowercase()}.example"), iconBackground = "#3367D6")
+                val icons = IconOptions(IconOptions.Option.WEBSITE, website = IconRecord.letter(name.first()))
+                container.store.save(WebAppRecord.create(profile, icons, templateVersion = 1, signerFingerprint = "AA:BB", now = 0L), emptyMap())
+            }
+        }
+        device.executeShellCommand("wm size 2560x1600")
+        device.executeShellCommand("wm density 240")
+        Thread.sleep(1_500)
+    }
+
+    @After
+    fun cleanUp() {
+        device.executeShellCommand("am force-stop com.android.settings")
+        device.executeShellCommand("wm size reset")
+        device.executeShellCommand("wm density reset")
+        runBlocking { names.forEach { container.store.delete("snap${it.lowercase()}") } }
+    }
+
+    private fun resumed(): Activity? {
+        var found: Activity? = null
+        instrumentation.runOnMainSync { found = ActivityLifecycleMonitorRegistry.getInstance().getActivitiesInStage(Stage.RESUMED).firstOrNull { it is MainActivity } }
+        return found
+    }
+
+    /** The window's width in dp and whether it shares the screen, read on the main thread. */
+    private fun window(activity: Activity): Pair<Int, Boolean> {
+        var reading = 0 to false
+        instrumentation.runOnMainSync {
+            val bounds = activity.windowManager.currentWindowMetrics.bounds
+            reading = (bounds.width() / activity.resources.displayMetrics.density).toInt() to activity.isInMultiWindowMode
+        }
+        return reading
+    }
+
+    /** Whether two panes show, once the list is up and two readings in a row agree. */
+    private fun twoPanes(): Boolean {
+        compose.waitUntil(20_000) { compose.onAllNodesWithText(names.first()).fetchSemanticsNodes().isNotEmpty() }
+        var last: Boolean? = null
+        var stable: Boolean? = null
+        compose.waitUntil(15_000) {
+            val reading = compose.onAllNodesWithText(context.getString(R.string.home_pick_app)).fetchSemanticsNodes().isNotEmpty()
+            if (reading == last) stable = reading
+            last = reading
+            Thread.sleep(300)
+            stable != null
+        }
+        return requireNotNull(stable)
+    }
+
+    @Test
+    fun halfTheDellsScreenInSplitScreenShowsOnePane() {
+        device.executeShellCommand("am start -W -n com.android.settings/.Settings")
+        ActivityScenario.launch(MainActivity::class.java).use { scenario ->
+            var task = 0
+            scenario.onActivity { task = it.taskId }
+            device.executeShellCommand("dumpsys activity service SystemUIService WMShell splitscreen moveToSideStage $task 1")
+            compose.waitUntil(15_000) { resumed()?.let { window(it).second } == true }
+            val (widthDp, sharing) = window(requireNotNull(resumed()))
+            assertTrue("split screen puts Shrimpl in multi-window mode", sharing)
+            assertTrue("half the Dell's screen is about 849 dp, not $widthDp", abs(widthDp - 849) <= 12)
+            assertEquals("panes in half the Dell's screen", false, twoPanes())
+        }
+    }
+
+    /** Opens Shrimpl in a freeform window [widthDp] wide on the Dell's screen and returns whether two panes show. */
+    private fun freeformPanes(widthDp: Int): Boolean {
+        device.executeShellCommand("settings put global enable_freeform_support 1")
+        device.executeShellCommand("am start -W --windowingMode 5 -n ${context.packageName}/.MainActivity")
+        compose.waitUntil(15_000) { resumed() != null }
+        val activity = requireNotNull(resumed())
+        try {
+            val widthPx = (widthDp * 1.5f).toInt()
+            device.executeShellCommand("am task resize ${activity.taskId} 100 100 ${100 + widthPx} 1300")
+            compose.waitUntil(15_000) { resumed()?.let { abs(window(it).first - widthDp) <= 2 } == true }
+            val (actualDp, sharing) = window(requireNotNull(resumed()))
+            assertTrue("a freeform window is in multi-window mode", sharing)
+            assertTrue("the window is $widthDp dp wide, not $actualDp", abs(actualDp - widthDp) <= 2)
+            return twoPanes()
+        } finally {
+            instrumentation.runOnMainSync { resumed()?.finish() }
+            device.executeShellCommand("settings delete global enable_freeform_support")
+        }
+    }
+
+    @Test
+    fun aSharedWindowJustUnder1000DpShowsOnePane() {
+        // The 2880 px Googlebooks snapped at the Dell's scale: about 956 dp, one pane (docs/GOOGLEBOOKS.md).
+        assertEquals("panes in a shared 956 dp window", false, freeformPanes(956))
+    }
+
+    @Test
+    fun aSharedWindowFrom1000DpShowsTwoPanes() {
+        assertEquals("panes in a shared 1100 dp window", true, freeformPanes(1100))
+    }
+}
