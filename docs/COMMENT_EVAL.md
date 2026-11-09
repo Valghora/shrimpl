@@ -75,6 +75,7 @@ The last run, to compare the final one against:
 | Run | Commit | Integrity | Traceability | KDoc | Noise | Anchoring | Rubric | Combined |
 |---|---|---|---|---|---|---|---|---|
 | KDoc pass, v2 | 5dcbfaf | 100.0 | 100.0 | 100.0 | 100.0 | 89.0 | 98.4 | **97.8** |
+| final, v2 | baccecf | 100.0 | 100.0 | 99.1 | 100.0 | 91.7 | 97.2 | **97.6** |
 
 One more run follows the documentation rework; then this file, `scripts/comment_eval.py` and
 `docs/comment-eval/` are deleted.
