@@ -37,6 +37,9 @@ NARRATION = re.compile(
     r"instead of the old|as requested)\b", re.I)
 DATE = re.compile(r"\b20\d\d-\d\d-\d\d\b")
 # Paths the documents name on purpose although they aren't in the repository, each with why.
+# The checking tools name sample IDs, paths and sections in their own usage text.
+DOCS_AND_SCRIPTS_SELF = {"scripts/check_docs.py", "scripts/check_comments.sh", "scripts/spec_map.sh",
+                         "scripts/comment_eval.py"}
 NOT_IN_REPOSITORY = {
     "docs/testing.md": "the testing-setup skill's suggested file, which this project doesn't create (docs/DEVIATIONS.md)",
     "docs/comment-eval/": "scripts/comment_eval.py's output, written when it runs",
@@ -141,12 +144,27 @@ for rel in expand(DOCS):
 for rel in expand(REPORT_ONLY):
     check_file(rel, report_only=True)
 
-# 3. Sections cited by name ('docs/BUILD_NOTES.md, "Robolectric"', 'BUILD_NOTES, "Emulator"') exist, as a
+# 3. Every other tracked text file of the project's own (build files, manifests, scripts, resources,
+# assets): the requirement IDs and docs/ or scripts/ paths it names resolve. Kotlin is check_comments.sh's.
+OTHER_FILES = re.compile(r"(\.(kts|sh|yml|yaml|py|toml|properties|xml|aidl|js|pro|keep|gitignore)|/\.gitignore|^\.gitignore)$")
+for rel in tracked:
+    if (not OTHER_FILES.search(rel) or rel.startswith(".claude/references/") or rel in DOCS_AND_SCRIPTS_SELF
+            or (rel.startswith(".claude/skills/") and rel not in DOCS)):
+        continue
+    for n, line in enumerate((ROOT / rel).read_text(encoding="utf-8", errors="replace").split("\n"), 1):
+        for id_ in DOTTED.findall(line):
+            if id_ not in defined:
+                problem(f"{rel}:{n} cites {id_}, which the specs don't define")
+        for path in re.findall(r"(?<![\w/`.-])((?:docs|scripts)/[\w./-]+\.\w+)", line):
+            if path not in NOT_IN_REPOSITORY and not path_exists(path.rstrip(".")):
+                problem(f"{rel}:{n} names {path}, which doesn't exist")
+
+# 4. Sections cited by name ('docs/BUILD_NOTES.md, "Robolectric"', 'BUILD_NOTES, "Emulator"') exist, as a
 # heading or a bold label, in documents and in the code's comments alike.
 SECTION_CITE = re.compile(r'(?:docs/)?([A-Z][A-Z_]{3,})(?:\.md)?(?:\]\([^)]*\))?,? +\(?"([^"]+)"')
 doc_names = {Path(d).stem: d for d in expand(["docs/*.md"])}
-for rel in [t for t in tracked if re.search(r"\.(kt|kts|sh|yml|py|md)$", t) and not t.startswith(".claude/references/")
-            and t != "scripts/check_docs.py"]:
+for rel in [t for t in tracked if (t.endswith((".kt", ".md")) or OTHER_FILES.search(t))
+            and not t.startswith(".claude/references/") and t not in DOCS_AND_SCRIPTS_SELF]:
     if rel.startswith(".claude/skills/") and rel not in DOCS:
         continue
     for n, line in enumerate((ROOT / rel).read_text(encoding="utf-8", errors="replace").split("\n"), 1):
@@ -159,7 +177,7 @@ for rel in [t for t in tracked if re.search(r"\.(kt|kts|sh|yml|py|md)$", t) and 
                 say = (lambda m: print(f"check_docs: report: {m}")) if rel in REPORT_ONLY else problem
                 say(f"{rel}:{n} cites the section \"{section}\" of {doc_names[name]}, which has no such heading")
 
-# 4. UI text the specs quote that no string resource has (a report: some quoted text is a site's or the
+# 5. UI text the specs quote that no string resource has (a report: some quoted text is a site's or the
 # platform's, not ours). A resource's placeholders (%1$s) match anything, as does the spec's <name>.
 resources = []
 for res in STRING_RESOURCES:
@@ -195,7 +213,7 @@ for spec in SPECS:
 for m in sorted(set(missing)):
     print(f"check_docs: report: no string resource has {m}")
 
-# 5. With --diff: narration and dates in added document lines (a warning; history belongs in commit messages).
+# 6. With --diff: narration and dates in added document lines (a warning; history belongs in commit messages).
 if len(sys.argv) >= 2 and sys.argv[1] == "--diff":
     base = sys.argv[2]
     diff = subprocess.run(["git", "diff", "-U0", base, "--", *expand(DOCS)], cwd=ROOT, capture_output=True,

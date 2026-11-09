@@ -22,7 +22,7 @@ commit.
 - **Adopt.** `scripts/android_skills.sh add <upstream path>` vendors another android/skills skill;
   `add --repo <github url> --into <name> <file>...` vendors chosen files of another repository into
   `.claude/references/<name>/`. Add it to the tables below, and remove it from "Not adopted".
-- **Never edit a vendored skill.** Record a departure here instead; `check` flags local edits.
+- **Never edit a vendored skill.** Record a departure in DEVIATIONS.md instead; `check` flags local edits.
 - `scripts/android_skills.sh list` shows each skill's upstream date and when it was copied.
 
 ## Skills in use

@@ -1,22 +1,11 @@
 # Adaptive apps: how this project applies Google's guidance
 
-Every UI change to Shrimpl or the template MUST be checked against two sources, and this file
-records how each applies here:
-
-1. **The adaptive skill**, vendored at [`.claude/skills/adaptive/`](../.claude/skills/adaptive/SKILL.md)
-   (Google's [android/skills](https://github.com/android/skills) `jetpack-compose/adaptive`, see
-   `UPSTREAM.md` for the commit; [SKILLS.md](SKILLS.md) covers how it is kept current). Claude Code
-   loads it as a project skill. Read it, and the reference it points to for the feature at hand
-   (keyboard shortcuts, tooltips, cursors, list-detail, saved state), before changing a screen.
-2. **The [Adaptive app quality guidelines](https://developer.android.com/docs/quality-guidelines/adaptive-app-quality)**
-   (Tier 3 adaptive ready, Tier 2 adaptive optimized, Tier 1 adaptive differentiated) and the
-   [desktop app quality checklist](https://developer.android.com/docs/quality-guidelines/large-screen-app-quality).
-
-When a change can't follow them, add a row to docs/DEVIATIONS.md with the reason. A deviation that
-isn't written down is a bug.
-
-Behavior is specified in the specs; this file maps each guideline to the requirements that meet it and
-the code that implements them, plus the implementation details the specs leave out.
+This file maps Google's adaptive guidance to the requirements that meet it and the code that implements
+them, with the implementation details the specs leave out. The guidance is the adaptive skill
+(`.claude/skills/adaptive/SKILL.md`, and the reference it names for the feature at hand) and the
+[Adaptive app quality guidelines](https://developer.android.com/docs/quality-guidelines/adaptive-app-quality)
+with the [desktop app quality checklist](https://developer.android.com/docs/quality-guidelines/large-screen-app-quality).
+Where the project departs from it: docs/DEVIATIONS.md.
 
 ## Shrimpl (Compose)
 
@@ -41,7 +30,7 @@ the code that implements them, plus the implementation details the specs leave o
 |---|---|---|
 | Multi-window / multi-instance | T4.1, T4.5, R7.5 | `AndroidManifest.xml`, `MainActivity.kt` |
 | Desktop header | T3.2, T3.3 | `MainActivity.kt`, `PageColors.kt` |
-| Keyboard_Input / Shortcuts | T2 (c), T5.3, T5.4 | `DesktopSessionController`, `MainActivity.kt` |
+| Keyboard_Input / Shortcuts | T2c, T5.3, T5.4 | `DesktopSessionController`, `MainActivity.kt` |
 | Mouse / Content_Zoom | T5.7 | `MainActivity.kt` |
 | Context_Menus | T5.5 | `MainActivity.kt` |
 | Drag and drop | T5.2 | `MainActivity.kt` |

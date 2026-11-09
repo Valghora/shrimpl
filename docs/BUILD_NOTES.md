@@ -5,37 +5,18 @@ docs/TESTING.md; deviations from the specs and from Google's guidance are in doc
 
 ## Versions
 
-All in `gradle/libs.versions.toml` (latest stable when checked on maven.google.com, Maven Central
-and services.gradle.org).
+Every version is in `gradle/libs.versions.toml`, each the latest stable when last checked (maven.google.com,
+Maven Central, services.gradle.org). compileSdk, minSdk and targetSdk are 37; the JDK toolchain is 21 with
+Java 17 bytecode.
 
-| Component | Version |
-|---|---|
-| Android Gradle Plugin, apksig | 9.4.1 |
-| Gradle | 9.8.2 |
-| Kotlin (AGP built-in, `kotlin.jvm`, serialization and Compose plugins) | 2.4.21 |
-| JDK toolchain / bytecode | 21 / Java 17 |
-| compileSdk, minSdk, targetSdk | 37 |
-| kotlinx-serialization-json | 1.12.0 |
-| Compose BOM (Compose 1.12.1, Material 3 1.4.0) | 2026.09.00 |
-| material3-adaptive (adaptive, adaptive-layout, adaptive-navigation3) | 1.3.0 |
-| Navigation 3 (runtime, ui) | 1.2.0 |
-| lifecycle (incl. viewmodel-navigation3) | 2.11.0 |
-| activity-compose, activity-ktx | 1.13.0 |
-| androidx.webkit | 1.18.0 |
-| androidx.core, appcompat, material | 1.19.1, 1.8.0, 1.14.0 |
-| Shizuku api / provider | 13.1.5 |
-| junit | 4.13.2 |
+## Lint and native code
 
-## Architecture neutrality (R0)
-
-- `scripts/check_native_code.sh` checks APKs: `--none` (template: no `.so` at all) and `--all-abis`
-  (Shrimpl: each library present for arm64-v8a, armeabi-v7a, x86_64 and x86, nothing else).
-- Shrimpl's only native library is `libandroidx.graphics.path.so` (androidx.graphics:graphics-path,
-  pulled in by Compose UI). Its `PathIteratorImpl` loads it unconditionally on Android, also in
-  older versions, so it can't be excluded; it ships for all four ABIs.
-- The Shizuku libraries, apksig, kotlinx-serialization and the AndroidX libraries the template uses
-  contain no native code.
-- The build host's aapt2 (from Maven) is an x86_64 Linux binary; R0 applies to APKs, not hosts.
+- Lint reports 0 errors for both apps. `:shrimpl` keeps one warning, `SetJavaScriptEnabled`: the hidden
+  discovery WebView must run page scripts, and `@SuppressLint` is allowed only in the template
+  (CLAUDE.md rule 3).
+- Checked for native code (R0) and found to have none: the Shizuku libraries, apksig,
+  kotlinx-serialization and the AndroidX libraries the template uses. `scripts/check_native_code.sh`
+  enforces R0 on the APKs.
 
 ## Toolchain findings
 
@@ -76,6 +57,8 @@ and services.gradle.org).
   caption-bar insets give the header color (T3). From API 36, `resizeableActivity` is ignored on
   displays of 600 dp and wider, and API 37 ignores orientation and aspect ratio limits on large
   screens. `singleInstancePerTask` plus `FLAG_ACTIVITY_MULTIPLE_TASK` gives multiple windows.
+- **Package visibility.** `<queries>` (launcher apps, icon packs, Shizuku) instead of
+  `QUERY_ALL_PACKAGES` (R6.1): narrower, and enough, since every web app has a launcher entry.
 - **Network state.** `ACCESS_NETWORK_STATE` (a normal permission) lets discovery tell "No internet
   connection" from a site that can't be reached (R3.2).
 - **Data extraction.** With targetSdk 31+, `allowBackup="false"` doesn't stop device-to-device

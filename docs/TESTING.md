@@ -11,7 +11,7 @@ commit. Toolchain versions and platform findings are in [BUILD_NOTES.md](BUILD_N
 | `:core` unit tests (JUnit, JaCoCo, 95 % line coverage) | JVM, in CI and the cloud container | every push | Pure logic: profiles, the manifest patcher and web app builder (against the real template APK), discovery rules, icons, the page download, file access, share and camera-choice protocols |
 | Shrimpl Robolectric tests (`shrimpl/src/test`) | JVM, in CI and the cloud container | every push | Compose layout at the nine window sizes, what a state shows, simple interactions, state surviving recreation |
 | Template unit test (`template/src/test`) | JVM | every push | The profile asset |
-| Static checks | CI | every push | Lint (0 errors), no native code (R0), 16 KB page alignment, comment references |
+| Static checks | CI | every push | Lint (0 errors), no native code (R0), 16 KB page alignment, and the comment and document checks (`scripts/check_comments.sh`, `scripts/check_docs.py`): references resolve and every requirement is traced |
 | **Emulator tests** (`src/androidTest` in `:template` and `:shrimpl`) | A real Android 37 system image (x86_64, KVM) in the Emulator workflow | by hand, on a branch ready to merge | What only a real system does: the real WebView and its bridges, real installs, real accessibility checks, real window manager |
 | The owner's devices | A Dell XPS Googlebook and others | when the owner tries a build | Everything in the last section |
 
@@ -141,20 +141,20 @@ Shrimpl's Compose screens run in unit tests under Robolectric (`shrimpl/src/test
 
 ## What the emulator tests cover
 
-| Requirement | Test | Before |
-|---|---|---|
-| T6.15 page-made downloads (blob, data, 3 MB, safe names) | `PageDownloadsTest` | by hand |
-| T6.16 Web Share API | `ShareBridgeTest` | by hand |
-| T6.17 single-file Open and Save, write commands | `FileAccessTest` | by hand |
-| T6.18 folders: list, read, create, write, remove, rename, move, the standard's errors, the stale-handle limit | `FolderAccessTest` (against the debug build's `TestTreeProvider`) | by hand |
-| R2.1 Shrimpl starts on a real system | `HomeLaunchTest` | by hand |
-| R6, R8, R11.3: build, sign, install through the system installer, launch, see the site | `BuildAndInstallTest` | by hand |
-| R6.1, R11.4: an installed web app updates in place (the test taps Update) | `BuildAndInstallTest` | by hand |
-| R11.7: Fix replaces an app signed with another key (uninstall, rebuild with the new key; the test answers both system dialogs) | `FixFlowTest` | by hand |
-| R1.1, R2.6: two panes and four tiles at full screen on the Dell XPS (2560 x 1600) and on the 2880 x 1800 Googlebooks (Acer, ASUS, HP, Lenovo) at both guessed scales, two panes and three on a common 1536 dp laptop (also the HP's 1920 x 1200 option), one pane and three on a phone, on the real window manager | `WindowSizesTest` | by hand |
-| T2a, T6.6: a link to another site opens in the browser | `ExternalLinksTest` | by hand |
-| Accessibility (touch targets, contrast, labels) on the real screens, with a control that must fail | `AccessibilityChecksTest`, `AccessibilityChecksAreLiveTest` | TalkBack only |
-| 16 KB page alignment of every APK | `scripts/check_page_alignment.sh` (Android workflow) | not checked |
+| Requirement | Test |
+|---|---|
+| T6.15 page-made downloads (blob, data, 3 MB, safe names) | `PageDownloadsTest` |
+| T6.16 Web Share API | `ShareBridgeTest` |
+| T6.17 single-file Open and Save, write commands | `FileAccessTest` |
+| T6.18 folders: list, read, create, write, remove, rename, move, the standard's errors, the stale-handle limit | `FolderAccessTest` (against the debug build's `TestTreeProvider`) |
+| R2.1 Shrimpl starts on a real system | `HomeLaunchTest` |
+| R6, R8, R11.3: build, sign, install through the system installer, launch, see the site | `BuildAndInstallTest` |
+| R6.1, R11.4: an installed web app updates in place (the test taps Update) | `BuildAndInstallTest` |
+| R11.7: Fix replaces an app signed with another key (uninstall, rebuild with the new key; the test answers both system dialogs) | `FixFlowTest` |
+| R1.1, R2.6: two panes and four tiles at full screen on the Dell XPS (2560 x 1600) and on the 2880 x 1800 Googlebooks (Acer, ASUS, HP, Lenovo) at both guessed scales, two panes and three on a common 1536 dp laptop (also the HP's 1920 x 1200 option), one pane and three on a phone, on the real window manager | `WindowSizesTest` |
+| T2a, T6.6: a link to another site opens in the browser | `ExternalLinksTest` |
+| Accessibility (touch targets, contrast, labels) on the real screens, with a control that must fail | `AccessibilityChecksTest`, `AccessibilityChecksAreLiveTest` |
+| 16 KB page alignment of every APK | `scripts/check_page_alignment.sh` (Android workflow) |
 
 ## Still the owner's devices
 
@@ -175,7 +175,7 @@ Each is feasible on the emulator and not written yet; the order is by how often 
 
 1. The file chooser's camera options (T6.4), which need a real tap on the page to count as a user gesture.
 2. Pop-up windows in the real WebView (T6.6).
-3. Dialog drafts surviving activity recreation ("Robolectric", below).
+3. Dialog drafts surviving activity recreation ("Robolectric", above).
 4. Notifications, permissions (camera, location) through the template's flow, full-screen video, printing.
 5. Window snapping: `wm size` gives the right widths, but not a half-screen window (R1.1's sharing rule).
 6. Folder access against Android's real storage provider and picker (the tests use a fixture provider).

@@ -9,11 +9,6 @@ commit as the change. Anything not listed is followed as written.
 | Requirement | What we do instead | Why |
 |---|---|---|
 | T3.3 (header color from the first frame) | The starting window uses the system surface color until the app applies the profile's header color at launch. | The window background is a compiled resource; making it per app would mean patching `resources.arsc`. |
-| R9.3 | Request types come from resource timing (`xhr`, `fetch`, `script`, ...); WebSocket hosts aren't seen. | WebView has no per-request resource type. |
-| R9.3 | The rendered visit's HTTP status is known only when it is an error (>= 400). | WebView reports main-document errors, not successes. |
-| R10.3 | Letter icons use the system bold font. | Native rendering; no bundled font. |
-| R6.1 | Package visibility uses `<queries>` (launcher apps, icon packs, Shizuku), not `QUERY_ALL_PACKAGES`. | Narrower, and enough: every web app has a launcher entry. |
-| CLAUDE.md rule 3 (lint) | `:shrimpl` lint keeps one warning: `SetJavaScriptEnabled` (the hidden discovery WebView must run page scripts). | `@SuppressLint` is allowed only in the template. |
 
 ## From Android's adaptive guidance
 
@@ -25,7 +20,7 @@ is met is in docs/ADAPTIVE.md.
 | Material's list-detail: two panes from the Expanded width class (840 dp) | Filling the screen (a tablet, an unfolded foldable), two panes from 840 dp, as Material. Sharing it (`isInMultiWindowMode`: snapped, split screen, a desktop window), two panes from 1000 dp. A separating hinge still splits the panes. | Shrimpl's primary users are on Googlebooks (docs/GOOGLEBOOKS.md), where a window snapped to half the screen is 849 dp (Dell XPS, confirmed) to about 956 dp (the 2880 px models). Beside Material's 412 dp list those widths leave the settings narrower than a phone or barely wider; from 1000 dp every snapped Googlebook window shows one pane and every full screen (1707 dp and up) two. Unfolded foldables fill their screen, so they keep Material's split. |
 | Skill step 6: never add `android:configChanges` | The template declares `configChanges` for size, orientation, density, keyboard, UI mode and font scale, and handles them in `onConfigurationChanged`. | Recreating the activity would reload the WebView and lose page state (scroll, forms, media, sign-in flows) that `saveState` can't restore. The window still resizes freely and re-applies colors and insets. Shrimpl itself never opts out. |
 | Skill prerequisites: Compose and Navigation 3 everywhere | The template stays on AndroidX Views. | Every web app is a copy of the template; Compose would add megabytes to each one, and the UI is one WebView. |
-| Adaptive skill: detail screens in a list-detail layout show no back arrow | Every settings page keeps its back arrow beside the list, on the line of its large title, where it closes the detail pane (`PageTopBar`). | The owner's design: one bar for every settings page in every layout, the arrow lined up with the page's content. Back still closes the detail first, as before. |
+| Adaptive skill: detail screens in a list-detail layout show no back arrow | Every settings page keeps its back arrow beside the list, on the line of its large title, where it closes the detail pane (`PageTopBar`). | The owner's design: one bar for every settings page in every layout, the arrow lined up with the page's content. Back still closes the detail first. |
 | Skill step 2: `NavigationSuiteScaffold` | Not used. | Shrimpl has one top-level destination (the home list); there is no navigation bar to adapt. |
 | Skill step 4.2: `Grid` for non-lazy lists | Settings and form sections stay `Column`s. | Their items are different kinds of settings, not repeated items; `Grid` is also still experimental. |
 | Skill step 8: tabletop posture | Not used. | No media, camera or video-call screens in Shrimpl; web apps get the page's own layout. |

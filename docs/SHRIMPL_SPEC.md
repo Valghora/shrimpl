@@ -464,6 +464,9 @@ The template's behavior is docs/TEMPLATE_SPEC.md. What Shrimpl relies on:
   CSS custom properties named brand, primary or accent (ranked in `:core`), visible button colors,
   and use of getUserMedia, Notification, Push, WebRTC and geolocation (suggesting microphone,
   camera, notifications and location). At most 20 s in total; on timeout the static result stands.
+  WebView exposes no per-request resource type, so request types come from resource timing (`xhr`,
+  `fetch`, `script`, ...) and WebSocket hosts aren't seen; the visit's HTTP status is known only when
+  it is an error (400 or above).
 - R9.4 Network: HTTPS only (http is upgraded), 15 s per request, 5 MB per response (scripts have a
   20 MB budget), no cookies kept.
 
@@ -485,7 +488,7 @@ The template's behavior is docs/TEMPLATE_SPEC.md. What Shrimpl relies on:
   that request aren't listed.
 - R10.3 Rendering: adaptive background and foreground layers at 432x432 px (foreground inside the
   66 % safe zone, or 80 % for maskable images), a monochrome layer (the glyph or letter; a letter for
-  images), and a 96x96 px white notification icon.
+  images), and a 96x96 px white notification icon. Letters use the system bold font; none is bundled.
 
 ## R11 Data and versions
 

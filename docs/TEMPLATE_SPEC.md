@@ -1,4 +1,4 @@
-# Web app template: behavior baseline
+# Web app template: specification
 
 The behavior every web app has, implemented once in `:template` (package `com.valghora.shrimpl.webapp`) and
 `:core`'s `DesktopSessionController`. Shrimpl never changes this code per site; a web app differs

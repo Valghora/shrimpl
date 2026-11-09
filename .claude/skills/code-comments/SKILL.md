@@ -107,5 +107,6 @@ split the file instead.
   nothing cites that isn't marked `*Outside code:*`.
 - **Warns** (with `--diff <base>`) about added comment lines that narrate history.
 
-`scripts/check_docs.py` is its twin for the documents (requirement IDs, links and paths, quoted UI
-text). `scripts/comment_eval.py` scores comment quality 0-100 (method in `docs/COMMENT_EVAL.md`).
+`scripts/check_docs.py` is its twin for the documents (requirement IDs, links and paths, cited
+sections, quoted UI text) and for every other file's references: build files, manifests, resources,
+scripts and assets. `scripts/comment_eval.py` scores comment quality 0-100 (method in `docs/COMMENT_EVAL.md`).
