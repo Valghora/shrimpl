@@ -109,4 +109,16 @@ split the file instead.
 
 `scripts/check_docs.py` is its twin for the documents (requirement IDs, links and paths, cited
 sections, quoted UI text) and for every other file's references: build files, manifests, resources,
-scripts and assets. `scripts/comment_eval.py` scores comment quality 0-100 (method in `docs/COMMENT_EVAL.md`).
+scripts and assets.
+
+## Sources
+
+This skill draws on the
+[AndroidX KDoc guidelines](https://android.googlesource.com/platform/frameworks/support/+/refs/heads/androidx-main/docs/kdoc_guidelines.md);
+the agent-facing KDoc rules in Google's AppFunctions skill (android/skills,
+`device-ai/appfunctions/references/kdoc-refinement-optimization.md`);
+[detekt's comments rules](https://detekt.dev/docs/next/rules/comments);
+requirement traceability through code comments (OpenFastTrace, StrictDoc, Doorstop);
+[stale instruction files override the code](https://www.emergentmind.com/papers/2610.30571);
+[comments placed at the code they constrain](https://caiopizzol-com.pages.dev/writing/comments-matter-when-the-code-does-not);
+and [inaccurate generated comments](https://arxiv.org/abs/2406.14836v1).

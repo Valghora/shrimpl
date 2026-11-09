@@ -47,7 +47,7 @@ current the same way; the version is the last upstream commit that touched them.
 
 | What | Upstream | Use it when |
 |---|---|---|
-| code-comments (this project's skill, `.claude/skills/code-comments/`), written for reuse in other projects | None: drawn from the AndroidX KDoc guidelines, the AppFunctions skill's agent-facing KDoc rules (`device-ai/appfunctions/references/kdoc-refinement-optimization.md`), and requirement-traceability practice; sources in [COMMENT_EVAL.md](COMMENT_EVAL.md) | Writing, editing or reviewing any code. Checked by `scripts/check_comments.sh` in CI; scored by `scripts/comment_eval.py`. Google's android/skills has no comments skill. |
+| code-comments (this project's skill, `.claude/skills/code-comments/`), written for reuse in other projects | None: drawn from the AndroidX KDoc guidelines, the AppFunctions skill's agent-facing KDoc rules and requirement-traceability practice (sources in the skill) | Writing, editing or reviewing any code. Checked by `scripts/check_comments.sh` and `scripts/check_docs.py` in CI. Google's android/skills has no comments skill. |
 | accessibility (this project's skill, `.claude/skills/accessibility/`) wrapping Drjacky's accessibility reference, `.claude/references/claude-android-ninja/` | [Drjacky/claude-android-ninja](https://github.com/Drjacky/claude-android-ninja) `references/android-accessibility.md` and `references/android-accessibility-quick.md` (Apache 2.0) | Every UI change; reviewing or auditing a screen; TalkBack, keyboard or contrast problems. Google's android/skills has no accessibility skill. |
 
 ### Considered and not adopted

@@ -30,7 +30,7 @@ DOTTED = re.compile(r"\b([RT]\d+(?:\.\d+)+)\b")
 PLATFORM_TEXT = {"Install unknown apps", "Don't allow"}
 STRING_RESOURCES = ["shrimpl/src/main/res/values/strings.xml", "template/src/main/res/values/strings.xml"]
 # Dates belong in these documents (when a finding was made, a decision taken, a figure researched).
-DATED_DOCS = {"docs/BUILD_NOTES.md", "docs/TODO.md", "docs/GOOGLEBOOKS.md", "docs/COMMENT_EVAL.md"}
+DATED_DOCS = {"docs/BUILD_NOTES.md", "docs/TODO.md", "docs/GOOGLEBOOKS.md"}
 NARRATION = re.compile(
     r"\b(previously|used to be|was (changed|added|removed|renamed|replaced|moved)|"
     r"were (changed|added|removed|renamed|replaced|moved)|now uses|has been (changed|replaced|renamed)|"
@@ -38,11 +38,9 @@ NARRATION = re.compile(
 DATE = re.compile(r"\b20\d\d-\d\d-\d\d\b")
 # Paths the documents name on purpose although they aren't in the repository, each with why.
 # The checking tools name sample IDs, paths and sections in their own usage text.
-DOCS_AND_SCRIPTS_SELF = {"scripts/check_docs.py", "scripts/check_comments.sh", "scripts/spec_map.sh",
-                         "scripts/comment_eval.py"}
+DOCS_AND_SCRIPTS_SELF = {"scripts/check_docs.py", "scripts/check_comments.sh", "scripts/spec_map.sh"}
 NOT_IN_REPOSITORY = {
     "docs/testing.md": "the testing-setup skill's suggested file, which this project doesn't create (docs/DEVIATIONS.md)",
-    "docs/comment-eval/": "scripts/comment_eval.py's output, written when it runs",
 }
 
 fail = False
