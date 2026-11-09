@@ -125,7 +125,7 @@ class WindowSnappingTest {
             assertTrue("the window is $widthDp dp wide, not $actualDp", abs(actualDp - widthDp) <= 2)
             return twoPanes()
         } finally {
-            instrumentation.runOnMainSync { resumed()?.finish() }
+            resumed()?.let { open -> instrumentation.runOnMainSync { open.finish() } }
             device.executeShellCommand("settings delete global enable_freeform_support")
         }
     }
