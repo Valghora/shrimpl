@@ -5,6 +5,7 @@ import android.view.ViewGroup
 import android.webkit.WebView
 import androidx.test.core.app.ActivityScenario
 import androidx.test.platform.app.InstrumentationRegistry
+import androidx.test.uiautomator.UiDevice
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 import org.json.JSONObject
@@ -37,10 +38,12 @@ class PageDriver(private val scenario: ActivityScenario<MainActivity>) {
      * to finish first took 10 to 20 s of every test; MainActivity has issued its load by the time the
      * scenario is resumed, so stopping it can't be overtaken by a later one.
      */
-    fun loadTestPage() {
+    fun loadTestPage(body: String = "") {
+        val page = "<!doctype html><html><head><meta name=\"viewport\" content=\"width=device-width, initial-scale=1\"></head>" +
+            "<body><p id=\"marker\">test page</p>$body</body></html>"
         instrumentation.runOnMainSync {
             webView.stopLoading()
-            webView.loadDataWithBaseURL(ORIGIN, "<!doctype html><html><body><p id=\"marker\">test page</p></body></html>", "text/html", "utf-8", null)
+            webView.loadDataWithBaseURL(ORIGIN, page, "text/html", "utf-8", null)
         }
         awaitJs("document.getElementById('marker') !== null && location.origin === '$ORIGIN'", "the test page to load at $ORIGIN")
         // Let the swap of the old page for ours finish, then check ours is still the one showing.
@@ -51,6 +54,26 @@ class PageDriver(private val scenario: ActivityScenario<MainActivity>) {
         check(bridges.contains("AndroidDownload") && bridges.contains("AndroidShare") && bridges.contains("AndroidFiles")) {
             "the test page is missing a bridge; it has: '$bridges'"
         }
+    }
+
+    /**
+     * Taps the middle of the element [selector] finds with a real touch, as a user would. Scripts can't
+     * stand in for it where the page needs a user gesture, such as opening a file chooser (T6.4).
+     */
+    fun tap(selector: String) {
+        val box = JSONObject(js("JSON.stringify((() => { const r = document.querySelector('$selector').getBoundingClientRect(); " +
+            "return { x: r.left + r.width / 2, y: r.top + r.height / 2, width: window.innerWidth }; })())"))
+        val origin = IntArray(2)
+        var widthPx = 0
+        instrumentation.runOnMainSync {
+            webView.getLocationOnScreen(origin)
+            widthPx = webView.width
+        }
+        // CSS pixels to screen pixels: the page is as wide as the WebView (width=device-width).
+        val scale = widthPx / box.getDouble("width")
+        val x = origin[0] + (box.getDouble("x") * scale).toInt()
+        val y = origin[1] + (box.getDouble("y") * scale).toInt()
+        check(UiDevice.getInstance(instrumentation).click(x, y)) { "couldn't tap $selector at $x, $y" }
     }
 
     /**

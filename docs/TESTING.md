@@ -44,6 +44,8 @@ Writing an emulator test:
 - **Display sizes.** `WindowSizesTest` resizes the display with `wm size` and `wm density` and always
   resets them, so other tests see the emulator's own screen.
 - **System dialogs.** `InstallRobot` answers the installer's Install, Update and Uninstall screens.
+- **User gestures.** Where a page needs one (a file chooser opens only after a real tap),
+  `PageDriver.tap` taps the element with UiAutomator; pages may open popups from a script.
 - **Memory.** Don't add workflow steps that build while the emulator runs (below).
 
 ## The emulator's environment
@@ -128,7 +130,7 @@ Shrimpl's Compose screens run in unit tests under Robolectric (`shrimpl/src/test
   field can take focus: opening such a dialog from a click, focusing the field or typing into it.
   Pausing the test clock, `setInTouchMode(true)` and turning off initial focus
   (`ComposeUiFlags.isInitialFocusOnFocusableAvailable`) don't help. Tests change values through
-  switches and menus instead; dialog drafts surviving recreation stay a device check.
+  switches and menus instead; dialog drafts surviving recreation are tested on the emulator (`DialogDraftTest`).
 - Coverage: debug builds set `enableUnitTestCoverage`, so
   `./gradlew :shrimpl:createDebugUnitTestCoverageReport` writes a JaCoCo report of the unit and
   Robolectric tests to `shrimpl/build/reports/coverage/test/debug/`. JaCoCo has to include classes
@@ -158,6 +160,9 @@ Shrimpl's Compose screens run in unit tests under Robolectric (`shrimpl/src/test
 | R11.7: Fix replaces an app signed with another key (uninstall, rebuild with the new key; the test answers both system dialogs) | `FixFlowTest` |
 | R1.1, R2.6: two panes and four tiles at full screen on the Dell XPS (2560 x 1600) and on the 2880 x 1800 Googlebooks (Acer, ASUS, HP, Lenovo) at both guessed scales, two panes and three on a common 1536 dp laptop (also the HP's 1920 x 1200 option), one pane and three on a phone, on the real window manager | `WindowSizesTest` |
 | T2a, T6.6: a link to another site opens in the browser | `ExternalLinksTest` |
+| T6.4: the file chooser offers the camera for photo and video inputs once the camera permission is granted, opens it alone for `capture`, and leaves it out without the permission (a real tap opens the chooser) | `FileChooserCameraTest` |
+| T6.6: a popup on the app's own site opens in a dialog at 90 % of the window and closes when the page closes it; one to another site goes to the browser | `PopupsTest` |
+| R2.3, CLAUDE.md rule 2: a dialog's half-typed text survives the activity being recreated | `DialogDraftTest` |
 | Accessibility (touch targets, contrast, labels) on the real screens, with a control that must fail | `AccessibilityChecksTest`, `AccessibilityChecksAreLiveTest` |
 | 16 KB page alignment of every APK | `scripts/check_page_alignment.sh` (Android workflow) |
 
@@ -178,9 +183,9 @@ These need hardware, a person, or a service an emulator doesn't have:
 
 Each is feasible on the emulator and not written yet; the order is by how often it has cost a manual check.
 
-1. The file chooser's camera options (T6.4), which need a real tap on the page to count as a user gesture.
-2. Pop-up windows in the real WebView (T6.6).
-3. Dialog drafts surviving activity recreation ("Robolectric", above).
-4. Notifications, permissions (camera, location) through the template's flow, full-screen video, printing.
-5. Window snapping: `wm size` gives the right widths, but not a half-screen window (R1.1's sharing rule).
-6. Folder access against Android's real storage provider and picker (the tests use a fixture provider).
+1. Notifications, permissions (camera, location) through the template's flow, full-screen video, printing.
+   The neutral template's profile allows none of them, so these need the template started with a test
+   profile first.
+2. Window snapping: `wm size` gives the right widths, but not a half-screen window (R1.1's sharing rule).
+   Split screen may stand in for it, since it sets `isInMultiWindowMode`.
+3. Folder access against Android's real storage provider and picker (the tests use a fixture provider).
