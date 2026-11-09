@@ -109,7 +109,8 @@ split the file instead.
 
 `scripts/check_docs.py` is its twin for the documents (requirement IDs, links and paths, cited
 sections, quoted UI text) and for every other file's references: build files, manifests, resources,
-scripts and assets.
+scripts and assets. It also fails on a file name a comment gives (`shell-service.keep`,
+`keepRules/shell-service.keep`) that no tracked file matches.
 
 ## Sources
 

@@ -157,7 +157,36 @@ for rel in tracked:
             if path not in NOT_IN_REPOSITORY and not path_exists(path.rstrip(".")):
                 problem(f"{rel}:{n} names {path}, which doesn't exist")
 
-# 4. Sections cited by name ('docs/BUILD_NOTES.md, "Robolectric"', 'BUILD_NOTES, "Emulator"') exist, as a
+# 4. File names that comments give, alone or as partial paths ("proguard-rules.pro",
+# "keepRules/shell-service.keep"), match a tracked file. Comments only: code's string literals name files
+# the code writes or reads at run time.
+SOURCE_NAME = re.compile(r"(?<![\w/.$-])((?:\.\./)*[\w-]+(?:/[\w.-]+)*\.(?:kt|kts|java|xml|pro|keep|toml|properties|sh|py|yml|yaml|js|aidl))(?![\w(])")
+HASH_COMMENTS = re.compile(r"\.(sh|py|toml|properties|yml|yaml|pro|keep)$|(^|/)\.gitignore$")
+
+
+def comment_text(rel, line):
+    """The comment part of a source line, or "" when it has none."""
+    stripped = line.strip()
+    if HASH_COMMENTS.search(rel):
+        return line.split("#", 1)[1] if "#" in line else ""
+    if rel.endswith(".xml"):
+        # A comment's first line, or a later line of one that isn't markup.
+        return line.split("<!--", 1)[1] if "<!--" in line else ("" if stripped.startswith("<") else line)
+    if stripped.startswith(("*", "/*")):
+        return stripped
+    return line.split("//", 1)[1] if re.search(r'(^|[^:"])//', line) and line.count('"', 0, line.find("//")) % 2 == 0 else ""
+
+
+for rel in [t for t in tracked if (t.endswith(".kt") or OTHER_FILES.search(t)) and not t.startswith(".claude/")
+            and t not in DOCS_AND_SCRIPTS_SELF]:
+    for n, line in enumerate((ROOT / rel).read_text(encoding="utf-8", errors="replace").split("\n"), 1):
+        for name in SOURCE_NAME.findall(comment_text(rel, line)):
+            if name.startswith("../") or "/build/" in f"/{name}":
+                continue
+            if not suffix_exists(name):
+                problem(f"{rel}:{n} names {name}, which no tracked file matches")
+
+# 5. Sections cited by name ('docs/BUILD_NOTES.md, "Robolectric"', 'BUILD_NOTES, "Emulator"') exist, as a
 # heading or a bold label, in documents and in the code's comments alike.
 SECTION_CITE = re.compile(r'(?:docs/)?([A-Z][A-Z_]{3,})(?:\.md)?(?:\]\([^)]*\))?,? +\(?"([^"]+)"')
 doc_names = {Path(d).stem: d for d in expand(["docs/*.md"])}
@@ -175,7 +204,7 @@ for rel in [t for t in tracked if (t.endswith((".kt", ".md")) or OTHER_FILES.sea
                 say = (lambda m: print(f"check_docs: report: {m}")) if rel in REPORT_ONLY else problem
                 say(f"{rel}:{n} cites the section \"{section}\" of {doc_names[name]}, which has no such heading")
 
-# 5. UI text the specs quote that no string resource has (a report: some quoted text is a site's or the
+# 6. UI text the specs quote that no string resource has (a report: some quoted text is a site's or the
 # platform's, not ours). A resource's placeholders (%1$s) match anything, as does the spec's <name>.
 resources = []
 for res in STRING_RESOURCES:
@@ -211,7 +240,7 @@ for spec in SPECS:
 for m in sorted(set(missing)):
     print(f"check_docs: report: no string resource has {m}")
 
-# 6. With --diff: narration and dates in added document lines (a warning; history belongs in commit messages).
+# 7. With --diff: narration and dates in added document lines (a warning; history belongs in commit messages).
 if len(sys.argv) >= 2 and sys.argv[1] == "--diff":
     base = sys.argv[2]
     diff = subprocess.run(["git", "diff", "-U0", base, "--", *expand(DOCS)], cwd=ROOT, capture_output=True,
