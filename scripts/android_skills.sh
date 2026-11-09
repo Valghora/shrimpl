@@ -161,8 +161,8 @@ cmd_check() {
       current) ;;
       outdated)
         echo "android skills: $V has an upstream update (last updated $(upstream_date HEAD), ours" \
-          "$(field "$V" 'Last updated upstream')); run scripts/android_skills.sh update $(basename "$V")," \
-          "then review the diff against docs/DEVIATIONS.md"
+          "$(field "$V" 'Last updated upstream')); ask the owner whether to check it against the project" \
+          "(scripts/android_skills.sh update $(basename "$V"), then review the diff against docs/DEVIATIONS.md)"
         review=1 ;;
       modified)
         echo "android skills: $V differs from upstream at its recorded commit; vendored files stay" \

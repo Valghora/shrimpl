@@ -115,8 +115,10 @@ pushes.
   decides and record the deviation in `docs/DEVIATIONS.md`.
 - **Vendored skills.** Google's android/skills are vendored unchanged in `.claude/skills/`. Use the
   one that matches the work and follow it unless `docs/DEVIATIONS.md` says otherwise. Never edit a
-  vendored skill. When a session starts with an "android skills:" note, run
-  `scripts/android_skills.sh update <name>`, review the diff against the recorded deviations, commit
-  it on its own and tell the owner. Bring a new upstream skill to the owner with a recommendation
+  vendored skill. The SessionStart hook checks every vendored skill for an
+  upstream update at the start of each session. When the session starts with an "android skills:"
+  note of an update, ask the owner, before other work, whether to check that skill's update against
+  the project. Only on a yes: run `scripts/android_skills.sh update <name>`, review the diff against
+  `docs/DEVIATIONS.md`, commit it on its own and report what changed. Bring a new upstream skill to the owner with a recommendation
   before adopting it.
 - **Findings.** Record new toolchain or platform findings in `docs/BUILD_NOTES.md`.

@@ -13,9 +13,10 @@ commit.
 ## Keeping them current
 
 - **Check.** `scripts/android_skills.sh check` compares every vendored skill with upstream. The
-  SessionStart hook runs it, so a session starts with a note when a skill has an upstream update,
-  differs from its recorded upstream copy, or no longer exists upstream, and when upstream adds a
-  skill this file doesn't mention.
+  SessionStart hook runs it at the start of every session, so a session starts with a note when a
+  skill has an upstream update, differs from its recorded upstream copy, or no longer exists upstream,
+  and when upstream adds a skill this file doesn't mention. For an update, the owner is asked first
+  whether to check it against the project; only then is it applied and reviewed (below).
 - **Update.** `scripts/android_skills.sh update <name>` (or `--all`) copies the newest upstream
   version and rewrites `UPSTREAM.md`. Review `git diff .claude/skills` against DEVIATIONS.md,
   adjust it (and ADAPTIVE.md) where the guidance changed, and commit the update on its own.
