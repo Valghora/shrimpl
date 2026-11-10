@@ -77,6 +77,9 @@ done
 # their deadlines, and Android then puts an "isn't responding" dialog over whatever a test is doing (found
 # 2026-11-08: a run's installs all timed out behind one). Don't show error dialogs, and let startup settle.
 "$ADB" shell settings put global hide_error_dialogs 1
+# Logcat holds the whole run: at its default size the template's tests had scrolled out of it by the end,
+# so a failure there came with no log (found 2026-11-10).
+"$ADB" logcat -G 256M || echo "[start_emulator] couldn't enlarge the logcat buffer; keeping its default size"
 log "letting the system settle"
 sleep 30
 

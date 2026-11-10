@@ -113,6 +113,13 @@ class FullScreenVideoTest {
                 scenario.onActivity { children = (it.window.decorView as ViewGroup).childCount }
                 return "templateView=${children > decorChildren} pageFullScreen=${page.js("document.fullscreenElement !== null")} barsShown=${statusBarShown()}"
             }
+            // A notification prompt the launch asked for (T7.5) may still be on top; it would take the Back.
+            answerPermissionPrompt("^allow$", 2_000)
+            awaitUntil("the template's window to have focus for Back", 10_000) {
+                var focused = false
+                scenario.onActivity { focused = it.hasWindowFocus() }
+                focused
+            }
             device.pressBack()
             Thread.sleep(3_000)
             val afterSystemBack = state()

@@ -81,13 +81,16 @@ class BuildAndInstallTest {
     }
 
     /**
-     * Waits for [text] on screen, tapping Allow when Android asks whether the web app may send
-     * notifications: it asks on a fresh launch (docs/TEMPLATE_SPEC.md T7.5), over the page, as it does for a user.
+     * Waits for [text] in the web app [pkg]'s own window with nothing over it, tapping Allow when Android
+     * asks whether the web app may send notifications: it asks on a fresh launch (docs/TEMPLATE_SPEC.md
+     * T7.5), over the page, as it does for a user. The prompt can appear after the page does, so the page
+     * only counts once no prompt is showing.
      */
-    private fun awaitPageAllowingNotifications(text: String, timeoutMs: Long = 120_000): Boolean {
+    private fun awaitPageAllowingNotifications(pkg: String, text: String, timeoutMs: Long = 120_000): Boolean {
+        val prompt = By.pkg(Pattern.compile(".*permissioncontroller.*"))
         val deadline = System.currentTimeMillis() + timeoutMs
         while (System.currentTimeMillis() < deadline) {
-            if (device.hasObject(By.textContains(text))) return true
+            if (device.hasObject(By.pkg(pkg).textContains(text)) && !device.hasObject(prompt)) return true
             device.findObject(By.text(Pattern.compile("(?i)^allow$")).clickable(true))?.click()
             Thread.sleep(1_000)
         }
@@ -149,7 +152,7 @@ class BuildAndInstallTest {
             val launch = requireNotNull(context.packageManager.getLaunchIntentForPackage(packageName)).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
             context.startActivity(launch)
             // Android's notification prompt (T7.5) may be over the web app first, so the page is awaited with it.
-            assertTrue("the web app never showed Example Domain", awaitPageAllowingNotifications("Example Domain"))
+            assertTrue("the web app never showed Example Domain", awaitPageAllowingNotifications(packageName, "Example Domain"))
             assertTrue("the page isn't the web app's", device.hasObject(By.pkg(packageName)))
         } catch (e: Throwable) {
             Evidence.capture("build-and-install")

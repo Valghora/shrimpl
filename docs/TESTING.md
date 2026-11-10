@@ -88,6 +88,12 @@ Why the workflow and the scripts look as they do; each rule fixed a run that wen
 - **A fresh boot.** A freshly booted 2-core emulator makes system apps miss deadlines, and an "isn't
   responding" dialog can cover a test's screen: the script hides error dialogs (`hide_error_dialogs`)
   and waits 30 s after boot, and `InstallRobot` taps Wait if one still shows.
+- **Logcat.** The buffer is 256 MB (`scripts/start_emulator.sh`): at its default size, the template's
+  tests, which run first, had scrolled out of it by the end of the run.
+- **Notification prompts.** A fresh launch of the template, and of a web app, asks for the notification
+  permission (T7.5), and the prompt can appear after the page does. A test that reads the screen or
+  presses Back first answers it and waits for its own window (`BuildAndInstallTest`,
+  `FullScreenVideoTest`): left on top, the prompt took the Back and covered the page.
 - **Evidence.** Gradle uninstalls the app at the end of a run, taking a failed test's files with it, so
   `Evidence` writes to `/data/local/tmp/evidence` and to logcat (`SHRIMPL_EVIDENCE`).
 - **Zero tests is not a pass.** Gradle reports success when the instrumentation dies at once
