@@ -38,6 +38,9 @@ Writing an emulator test:
 - **Shrimpl.** `createAndroidComposeRule<MainActivity>()` for screens; `UiAutomator` for what is outside
   the app (the system installer's Install button). Call `Evidence.capture("name")` when a flow fails, so
   the run keeps a screenshot and the window hierarchy.
+- **The real folder picker.** DocumentsUI opens at the top of shared storage, where no folder can be
+  used; `RealFolderPickerTest` taps Documents, the folder, USE THIS FOLDER and ALLOW. The shell that
+  UiAutomator runs has no redirects, so seed files are copied (`cp`), not written with `>`.
 - **Folders.** `template/src/debug` holds `TestTreeProvider`, a document provider over a folder in the
   cache, so a test can hand the template a folder as if the user had picked it. It is in the debug build
   only: the release APK Shrimpl bundles never has it.
@@ -175,6 +178,7 @@ Shrimpl's Compose screens run in unit tests under Robolectric (`shrimpl/src/test
 | T6.16 Web Share API | `ShareBridgeTest` |
 | T6.17 single-file Open and Save, write commands | `FileAccessTest` |
 | T6.18 folders: list, read, create, write, remove, rename, move, the standard's errors, the stale-handle limit | `FolderAccessTest` (against the debug build's `TestTreeProvider`) |
+| T6.18 through Android's real folder picker and shared storage: the test picks `Documents/ShrimplPick` in DocumentsUI, and the page lists, reads, writes, creates and removes, each checked on disk | `RealFolderPickerTest` |
 | R2.1 Shrimpl starts on a real system | `HomeLaunchTest` |
 | R6, R8, R11.3: build, sign, install through the system installer, launch, see the site | `BuildAndInstallTest` |
 | R6.1, R11.4: an installed web app updates in place (the test taps Update) | `BuildAndInstallTest` |
@@ -210,4 +214,3 @@ These need hardware, a person, or a service an emulator doesn't have:
 Each is feasible on the emulator and not written yet; the order is by how often it has cost a manual check.
 
 1. Full screen from a playing video: the tests use an element, since the image has no video to play.
-2. Folder access against Android's real storage provider and picker (the tests use a fixture provider).
