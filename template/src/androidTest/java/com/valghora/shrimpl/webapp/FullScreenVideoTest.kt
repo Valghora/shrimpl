@@ -108,8 +108,22 @@ class FullScreenVideoTest {
             assertTrue("the video stopped playing in full screen: ${page.videoState()}", page.videoAdvances())
 
             // Back leaves full screen first, before going back in the page or leaving the app.
+            fun state(): String {
+                var children = 0
+                scenario.onActivity { children = (it.window.decorView as ViewGroup).childCount }
+                return "templateView=${children > decorChildren} pageFullScreen=${page.js("document.fullscreenElement !== null")} barsShown=${statusBarShown()}"
+            }
             device.pressBack()
-            page.awaitJs("document.fullscreenElement === null", "Back to leave full screen", 10_000)
+            Thread.sleep(3_000)
+            val afterSystemBack = state()
+            if (page.js("document.fullscreenElement !== null") == "true") {
+                // A control: the template's own Back handling, called directly, tells a Back that never
+                // arrived from one that arrived and didn't leave.
+                scenario.onActivity { it.onBackPressedDispatcher.onBackPressed() }
+                Thread.sleep(3_000)
+                throw AssertionError("Back didn't leave full screen. After the system's Back: $afterSystemBack. " +
+                    "After the template's back handling was called directly: ${state()}")
+            }
             awaitUntil("the full-screen view to go", 10_000) {
                 var children = 0
                 scenario.onActivity { children = (it.window.decorView as ViewGroup).childCount }
