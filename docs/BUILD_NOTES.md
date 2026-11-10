@@ -69,6 +69,17 @@ Java 17 bytecode.
 - **Providers without `last_modified`.** MediaStore's document provider has no `last_modified` column;
   querying it throws, so the template queries each column on its own and falls back when one is
   missing (the modification time becomes now; T6.17).
+- **Back in full screen.** While WebView's full-screen view shows, a Back key (the emulator's, a
+  keyboard's, a 3-button bar's) reaches neither the activity's `OnBackPressedDispatcher` nor a window
+  `OnBackInvokedCallback`, even at `PRIORITY_OVERLAY`: it comes as a key event and the full-screen view
+  swallows it (`FullScreenVideoTest`, 2026-11-10). The template catches `KEYCODE_BACK` in
+  `dispatchKeyEvent` while full screen shows, as it does Esc, and keeps an overlay callback for the back
+  gesture, which comes the other way.
+- **The full-screen confirmation.** The first time an app hides the system bars, Android shows its
+  own "Viewing full screen" confirmation, and that window takes focus, so a Back key goes to it, not
+  the app (`FullScreenVideoTest` in a full run, 2026-11-10: `mCurrentFocus` was
+  `ImmersiveModeConfirmation`). Users see it once; the test sets
+  `secure immersive_mode_confirmations` to `confirmed`, as after that first time.
 - **Compose dropdown menus.** A `DropdownMenu` opens below its anchor and adds its `offset` to the
   anchor's bottom, so offsetting the menu put it far below a tile. App menus are anchored to an empty
   box at the pressed point, kept there after the menu closes so the menu doesn't jump as it fades out

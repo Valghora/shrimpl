@@ -88,6 +88,12 @@ Why the workflow and the scripts look as they do; each rule fixed a run that wen
 - **A fresh boot.** A freshly booted 2-core emulator makes system apps miss deadlines, and an "isn't
   responding" dialog can cover a test's screen: the script hides error dialogs (`hide_error_dialogs`)
   and waits 30 s after boot, and `InstallRobot` taps Wait if one still shows.
+- **Logcat.** The buffer is 256 MB (`scripts/start_emulator.sh`): at its default size, the template's
+  tests, which run first, had scrolled out of it by the end of the run.
+- **Notification prompts.** A fresh launch of the template, and of a web app, asks for the notification
+  permission (T7.5), and the prompt can appear after the page does. A test that reads the screen or
+  presses Back first answers it and waits for its own window (`BuildAndInstallTest`,
+  `FullScreenVideoTest`): left on top, the prompt took the Back and covered the page.
 - **Evidence.** Gradle uninstalls the app at the end of a run, taking a failed test's files with it, so
   `Evidence` writes to `/data/local/tmp/evidence` and to logcat (`SHRIMPL_EVIDENCE`).
 - **Zero tests is not a pass.** Gradle reports success when the instrumentation dies at once
@@ -191,6 +197,7 @@ Shrimpl's Compose screens run in unit tests under Robolectric (`shrimpl/src/test
 | T7: a fresh launch asks for the notification permission, the page is told it may notify, and its `new Notification` becomes an Android notification with its title, body and channel | `NotificationsTest` |
 | T6.5: the microphone through all three steps (Android asks; after one refusal the template explains first; after two the page is turned down with a snackbar), and location given only when the profile allows it | `PagePermissionsTest` |
 | R1.1: a window sharing the screen shows two panes only from 1000 dp: split screen on half the Dell's screen (about 849 dp, as snapped) shows one, freeform windows of 956 dp (a 2880 px Googlebook snapped) and 1100 dp show one and two | `WindowSnappingTest` |
+| T6.13, T5.6: a playing video (recorded in the page with MediaRecorder and decoded by WebView) goes full screen from a tap, keeps playing, and Back leaves full screen before anything else | `FullScreenVideoTest` |
 | T6.14: Ctrl+P opens Android's print screen; T6.13, T5.3: a page's element goes full screen with the system bars hidden, and Esc leaves it | `PrintAndFullScreenTest` |
 | Accessibility (touch targets, contrast, labels) on the real screens, with a control that must fail | `AccessibilityChecksTest`, `AccessibilityChecksAreLiveTest` |
 | 16 KB page alignment of every APK | `scripts/check_page_alignment.sh` (Android workflow) |
@@ -211,6 +218,5 @@ These need hardware, a person, or a service an emulator doesn't have:
 
 ## Not covered yet, and could be
 
-Each is feasible on the emulator and not written yet; the order is by how often it has cost a manual check.
-
-1. Full screen from a playing video: the tests use an element, since the image has no video to play.
+Nothing known: every gap the emulator can close has a test. A new feature that only the emulator can
+check adds its gap here until it has one.
