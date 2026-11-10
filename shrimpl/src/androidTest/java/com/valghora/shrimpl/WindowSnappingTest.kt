@@ -119,10 +119,24 @@ class WindowSnappingTest {
         try {
             val widthPx = (widthDp * 1.5f).toInt()
             device.executeShellCommand("am task resize ${activity.taskId} 100 100 ${100 + widthPx} 1300")
-            compose.waitUntil(15_000) { resumed()?.let { abs(window(it).first - widthDp) <= 2 } == true }
-            val (actualDp, sharing) = window(requireNotNull(resumed()))
+            // Record what the window reports while it resizes, so a miss says what it saw.
+            val seen = mutableListOf<String>()
+            val deadline = System.currentTimeMillis() + 30_000
+            while (System.currentTimeMillis() < deadline) {
+                val reading = resumed()?.let { open ->
+                    var configDp = 0
+                    instrumentation.runOnMainSync { configDp = open.resources.configuration.screenWidthDp }
+                    window(open).first to configDp
+                }
+                seen += "metrics=${reading?.first} config=${reading?.second}"
+                if (reading != null && abs(reading.first - widthDp) <= 2) break
+                Thread.sleep(500)
+            }
+            val bounds = device.executeShellCommand("dumpsys activity activities").lines()
+                .filter { "shrimpl" in it && ("Task{" in it || "bounds" in it.lowercase()) }.take(6)
+            val (actualDp, sharing) = window(requireNotNull(resumed()) { "no MainActivity resumed; seen ${seen.takeLast(5)}" })
+            assertTrue("the window is $widthDp dp wide, not $actualDp; seen ${seen.distinct().takeLast(6)}; tasks $bounds", abs(actualDp - widthDp) <= 2)
             assertTrue("a freeform window is in multi-window mode", sharing)
-            assertTrue("the window is $widthDp dp wide, not $actualDp", abs(actualDp - widthDp) <= 2)
             return twoPanes()
         } finally {
             resumed()?.let { open -> instrumentation.runOnMainSync { open.finish() } }
