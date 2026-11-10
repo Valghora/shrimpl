@@ -16,9 +16,11 @@ import com.valghora.shrimpl.core.records.WebAppRecord
 import kotlin.math.abs
 import kotlinx.coroutines.runBlocking
 import org.junit.After
+import org.junit.AfterClass
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Before
+import org.junit.BeforeClass
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -35,6 +37,22 @@ import org.junit.runner.RunWith
 class WindowSnappingTest {
     @get:Rule
     val compose = createEmptyComposeRule()
+
+    companion object {
+        /** Freeform windows stay on for the whole class: switched on right before a launch, they weren't always used. */
+        @BeforeClass
+        @JvmStatic
+        fun allowFreeformWindows() {
+            UiDevice.getInstance(InstrumentationRegistry.getInstrumentation()).executeShellCommand("settings put global enable_freeform_support 1")
+            Thread.sleep(2_000)
+        }
+
+        @AfterClass
+        @JvmStatic
+        fun restoreFreeformWindows() {
+            UiDevice.getInstance(InstrumentationRegistry.getInstrumentation()).executeShellCommand("settings delete global enable_freeform_support")
+        }
+    }
 
     private val instrumentation = InstrumentationRegistry.getInstrumentation()
     private val context = instrumentation.targetContext
@@ -59,7 +77,6 @@ class WindowSnappingTest {
     @After
     fun cleanUp() {
         device.executeShellCommand("am force-stop com.android.settings")
-        device.executeShellCommand("settings delete global enable_freeform_support")
         device.executeShellCommand("wm size reset")
         device.executeShellCommand("wm density reset")
         runBlocking { names.forEach { container.store.delete("snap${it.lowercase()}") } }
@@ -111,12 +128,25 @@ class WindowSnappingTest {
         }
     }
 
+    /**
+     * Opens Shrimpl in a freeform window. Android sometimes opens it full screen all the same (it did
+     * for the second launch of a run), so a full-screen window is closed with its task and opened again.
+     */
+    private fun openFreeform(): Activity {
+        repeat(3) {
+            device.executeShellCommand("am start -W --windowingMode 5 -n ${context.packageName}/.MainActivity")
+            compose.waitUntil(15_000) { resumed() != null }
+            val activity = requireNotNull(resumed())
+            if (window(activity).second) return activity
+            instrumentation.runOnMainSync { activity.finishAndRemoveTask() }
+            Thread.sleep(2_000)
+        }
+        throw AssertionError("Android opened Shrimpl full screen three times instead of in a freeform window")
+    }
+
     /** Opens Shrimpl in a freeform window [widthDp] wide on the Dell's screen and returns whether two panes show. */
     private fun freeformPanes(widthDp: Int): Boolean {
-        device.executeShellCommand("settings put global enable_freeform_support 1")
-        device.executeShellCommand("am start -W --windowingMode 5 -n ${context.packageName}/.MainActivity")
-        compose.waitUntil(15_000) { resumed() != null }
-        val activity = requireNotNull(resumed())
+        val activity = openFreeform()
         try {
             val widthPx = (widthDp * 1.5f).toInt()
             device.executeShellCommand("am task resize ${activity.taskId} 100 100 ${100 + widthPx} 1300")
