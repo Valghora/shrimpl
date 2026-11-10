@@ -308,9 +308,20 @@ binary translation) on any device.
       left or right.
     - A one-paragraph notice with no other button, whose Dismiss fits on its line, keeps it there, so
       short notices stay one line tall. Otherwise the buttons sit in a row under the text, their
-      labels 12 dp below it and 12 dp above the card's bottom, Dismiss at the row's end.
-    - Another button (such as Open settings) sits under the start of the text on a notice narrower
-      than 480 dp; from 480 dp it sits beside Dismiss, 16 dp apart.
+      labels 12 dp below it and 12 dp above the card's bottom.
+    - Dismiss always ends the row, its button as far from the card's end as the text is from the
+      card's start (the icon column mirrored), whatever the card's width.
+    - Another button (such as Open settings) depends on the card's width, not the window's:
+      - narrower than 480 dp (a phone, or a narrow pane), the two split to the row's ends: the other
+        button starts where the text starts, and Dismiss ends at its mirrored inset;
+      - from 480 dp, where splitting would leave a wide gap between them, both sit together at the
+        end, the other button 16 dp before Dismiss.
+    - A site that needs a Google sign-in gets a Caution notice: "Google doesn't allow signing in from
+      apps like this one. To use your Google account, open the site in Chrome and install it from
+      Chrome's menu." Its button, Open in Chrome, opens the start address in Chrome, where the user can
+      sign in and install the site as an app (Android lets no other app start that install). Without
+      Chrome it reads Open in browser, the text says "your browser" and "the browser's menu", and the
+      default browser opens; with no browser, a toast says so. Create stays available.
 - R3.4 Create builds, signs and installs (R8, R6), in a bottom sheet.
   - Its title: "Creating an app for <name>…", "Updating <name>…" for an update, or "Reinstalling
     <name>…" for a known app that isn't installed, with "(n of m)" during Update all and Reinstall
@@ -459,7 +470,11 @@ The template's behavior is docs/TEMPLATE_SPEC.md. What Shrimpl relies on:
     the mask-icon color, manifest theme_color, theme-color meta, CSS brand variables (R9.3), button
     colors and manifest background_color, else any non-white theme color, else blue gray;
   - no header color is suggested (apps default to System);
-  - notes for pages that refuse WebViews and for Play Store redirects.
+  - notes for pages that refuse WebViews and for Play Store redirects;
+  - instead of the WebView note, a Google sign-in note carrying the start address (R3.3) when the
+    site is google.com or one of its subdomains, the WebView pass went to accounts.google.com, or the
+    rendered page shows Google's refusal (`disallowed_useragent`, `Couldn't sign you in`, `This
+    browser or app may not be secure`).
 - R9.3 Rendered pass (SHOULD), in a hidden WebView with desktop (light and dark) and phone viewports:
   CSS custom properties named brand, primary or accent (ranked in `:core`), visible button colors,
   and use of getUserMedia, Notification, Push, WebRTC and geolocation (suggesting microphone,

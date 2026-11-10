@@ -18,6 +18,8 @@
     <string name="action_more">More options</string>
     <string name="action_new_web_app">New app</string>
     <string name="action_open">Open</string>
+    <string name="action_open_in_browser">Open in browser</string>
+    <string name="action_open_in_chrome">Open in Chrome</string>
     <string name="action_open_settings">Open settings</string>
     <string name="action_rebuild">Rebuild</string>
     <string name="action_reinstall">Reinstall</string>
@@ -284,4 +286,8 @@
     <!-- An app tile's status line (R2.2). -->
     <string name="status_fix_required">Fix required</string>
     <string name="status_update_ready">Update ready</string>
+    <!-- The Google sign-in notice on the Create app page (R3.3); two sentences, so it ends with a period. -->
+    <string name="google_sign_in_notice">Google doesn\'t allow signing in from apps like this one. To use your Google account, open the site in Chrome and install it from Chrome\'s menu.</string>
+    <string name="google_sign_in_notice_browser">Google doesn\'t allow signing in from apps like this one. To use your Google account, open the site in your browser and install it from the browser\'s menu.</string>
+    <string name="no_browser">No browser can open the site</string>
 </resources>

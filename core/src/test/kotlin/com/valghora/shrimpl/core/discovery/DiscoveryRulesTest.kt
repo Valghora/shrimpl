@@ -383,6 +383,29 @@ class DiscoveryRulesTest {
     }
 
     @Test
+    fun googleSignInIsNotedWithItsAddressInsteadOfTheWebViewWarning() {
+        // A Google site, by its host, even before its sign-in page refuses.
+        val gmail = draft(
+            Evidence(Visit(requestedUrl = "https://mail.google.com/mail/", finalUrl = "https://mail.google.com/mail/", page = PageInfo(title = "Gmail"))),
+            "https://mail.google.com/mail/",
+        ).notes
+        assertTrue(gmail.toString(), Note(Note.Level.CAUTION, Discovery.GOOGLE_SIGN_IN, "https://mail.google.com/mail/") in gmail)
+
+        // Another site whose sign-in goes to Google, which refuses the WebView.
+        val refused = Evidence(
+            visit(PageInfo(title = "X")),
+            webview = SlimVisit(status = 403, text = "Couldn't sign you in. This browser or app may not be secure."),
+        )
+        val notes = draft(refused).notes
+        assertTrue(notes.toString(), notes.any { it.text == Discovery.GOOGLE_SIGN_IN && it.openInBrowser != null })
+        assertTrue("the Google note replaces the WebView one", notes.none { it.text.startsWith("The site may refuse Android WebViews") })
+
+        val redirected = Evidence(visit(PageInfo(title = "X")), webview = SlimVisit(navigations = listOf("https://accounts.google.com/o/oauth2/auth?client_id=x")))
+        assertTrue(draft(redirected).notes.any { it.text == Discovery.GOOGLE_SIGN_IN })
+        assertTrue(Urls.isGoogleHost("google.com") && !Urls.isGoogleHost("notgoogle.com") && !Urls.isGoogleHost("google.com.evil.example"))
+    }
+
+    @Test
     fun unloadablePageFails() {
         val evidence = Evidence(Visit(requestedUrl = "https://x.com/", error = "net::ERR_NAME_NOT_RESOLVED"))
         assertThrows(DiscoveryException::class.java) { draft(evidence, "https://x.com/") }
