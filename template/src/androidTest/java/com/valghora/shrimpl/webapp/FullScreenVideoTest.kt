@@ -115,10 +115,17 @@ class FullScreenVideoTest {
             }
             // A notification prompt the launch asked for (T7.5) may still be on top; it would take the Back.
             answerPermissionPrompt("^allow$", 2_000)
-            awaitUntil("the template's window to have focus for Back", 10_000) {
+            fun focused(): Boolean {
                 var focused = false
                 scenario.onActivity { focused = it.hasWindowFocus() }
-                focused
+                return focused
+            }
+            // Back goes to the focused window. On a busy emulator the window has stayed unfocused after the
+            // prompt closed, with no other window focused either; a tap gives the touched window focus.
+            if (!pollUntil(5_000) { focused() }) device.click(device.displayWidth / 2, device.displayHeight / 2)
+            if (!pollUntil(10_000) { focused() }) {
+                val focus = device.executeShellCommand("dumpsys window").lines().filter { "mCurrentFocus" in it || "mFocusedApp" in it }
+                throw AssertionError("the template's window never got focus for Back, even after a tap: ${focus.map(String::trim)}")
             }
             device.pressBack()
             Thread.sleep(3_000)
