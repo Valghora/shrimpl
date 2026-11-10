@@ -125,15 +125,10 @@ class PageDriver(private val scenario: ActivityScenario<MainActivity>) {
 
 /** Polls [condition] until it holds, failing with a message naming [what] after [timeoutMs]. */
 fun awaitUntil(what: String, timeoutMs: Long = 20_000, condition: () -> Boolean) {
-    if (!pollUntil(timeoutMs, condition)) throw AssertionError("Timed out after ${timeoutMs / 1000} s waiting for $what")
-}
-
-/** Whether [condition] became true within [timeoutMs], checked every 200 ms; for a wait with a fallback. */
-fun pollUntil(timeoutMs: Long, condition: () -> Boolean): Boolean {
     val deadline = System.currentTimeMillis() + timeoutMs
     while (System.currentTimeMillis() < deadline) {
-        if (condition()) return true
+        if (condition()) return
         Thread.sleep(200)
     }
-    return false
+    throw AssertionError("Timed out after ${timeoutMs / 1000} s waiting for $what")
 }

@@ -8,6 +8,7 @@ import androidx.test.platform.app.InstrumentationRegistry
 import androidx.test.uiautomator.UiDevice
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
+import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 
@@ -76,6 +77,15 @@ class FullScreenVideoTest {
         return after > before
     }
 
+    /**
+     * Android shows a "Viewing full screen" confirmation the first time an app hides the system bars, and
+     * it takes focus, so the Back would go to it; marking it seen keeps it away, as after a user's first time.
+     */
+    @Before
+    fun skipTheFullScreenConfirmation() {
+        device.executeShellCommand("settings put secure immersive_mode_confirmations confirmed")
+    }
+
     @Test
     fun aPlayingVideoGoesFullScreenKeepsPlayingAndBackLeaves() {
         ActivityScenario.launch(MainActivity::class.java).use { scenario ->
@@ -115,17 +125,10 @@ class FullScreenVideoTest {
             }
             // A notification prompt the launch asked for (T7.5) may still be on top; it would take the Back.
             answerPermissionPrompt("^allow$", 2_000)
-            fun focused(): Boolean {
+            awaitUntil("the template's window to have focus for Back", 10_000) {
                 var focused = false
                 scenario.onActivity { focused = it.hasWindowFocus() }
-                return focused
-            }
-            // Back goes to the focused window. On a busy emulator the window has stayed unfocused after the
-            // prompt closed, with no other window focused either; a tap gives the touched window focus.
-            if (!pollUntil(5_000) { focused() }) device.click(device.displayWidth / 2, device.displayHeight / 2)
-            if (!pollUntil(10_000) { focused() }) {
-                val focus = device.executeShellCommand("dumpsys window").lines().filter { "mCurrentFocus" in it || "mFocusedApp" in it }
-                throw AssertionError("the template's window never got focus for Back, even after a tap: ${focus.map(String::trim)}")
+                focused
             }
             device.pressBack()
             Thread.sleep(3_000)

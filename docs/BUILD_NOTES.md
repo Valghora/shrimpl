@@ -75,6 +75,11 @@ Java 17 bytecode.
   swallows it (`FullScreenVideoTest`, 2026-11-10). The template catches `KEYCODE_BACK` in
   `dispatchKeyEvent` while full screen shows, as it does Esc, and keeps an overlay callback for the back
   gesture, which comes the other way.
+- **The full-screen confirmation.** The first time an app hides the system bars, Android shows its
+  own "Viewing full screen" confirmation, and that window takes focus, so a Back key goes to it, not
+  the app (`FullScreenVideoTest` in a full run, 2026-11-10: `mCurrentFocus` was
+  `ImmersiveModeConfirmation`). Users see it once; the test sets
+  `secure immersive_mode_confirmations` to `confirmed`, as after that first time.
 - **Compose dropdown menus.** A `DropdownMenu` opens below its anchor and adds its `offset` to the
   anchor's bottom, so offsetting the menu put it far below a tile. App menus are anchored to an empty
   box at the pressed point, kept there after the menu closes so the menu doesn't jump as it fades out
