@@ -43,8 +43,12 @@ data class Draft(
     )
 }
 
-/** Something the user should know about a draft, shown as an in-app notification. */
-data class Note(val level: Level, val text: String) {
+/**
+ * Something the user should know about a draft, shown as an in-app notification. [openInBrowser] is
+ * an address the notification offers to open in Chrome; Shrimpl words such a note itself (R9.2), so
+ * [text] is the English fallback.
+ */
+data class Note(val level: Level, val text: String, val openInBrowser: String? = null) {
     enum class Level { INFO, CAUTION }
 }
 
@@ -114,6 +118,12 @@ object Discovery {
         "unsupported browser",
         "please (use|open this in) (a|another|your) (supported )?browser",
         "embedded browsers? (are|is) not supported",
+    )
+    /** Google's own refusal of a sign-in in an embedded WebView. */
+    private val GOOGLE_REFUSAL_PATTERNS = listOf(
+        "disallowed_useragent",
+        "couldn.t sign you in",
+        "this browser or app may not be secure",
     )
     private val TITLE_SEPARATOR = Regex("\\s+[|\\-–—:·•]\\s+")
 
@@ -252,7 +262,12 @@ object Discovery {
         val webview = evidence.webview
         val blob = listOf(webview.title, webview.text, webview.error).joinToString(" ") { it.orEmpty() }
         val blocked = WEBVIEW_BLOCK_PATTERNS.filter { Regex(it, RegexOption.IGNORE_CASE).containsMatchIn(blob) }
-        if ((webview.status ?: 0) >= 400 || blocked.isNotEmpty()) {
+        val googleSignIn = Urls.isGoogleHost(startHost) ||
+            webview.navigations.any { Urls.hostOf(it) == "accounts.google.com" } ||
+            GOOGLE_REFUSAL_PATTERNS.any { Regex(it, RegexOption.IGNORE_CASE).containsMatchIn(blob) }
+        if (googleSignIn) {
+            notes += Note(Note.Level.CAUTION, GOOGLE_SIGN_IN, openInBrowser = start.value)
+        } else if ((webview.status ?: 0) >= 400 || blocked.isNotEmpty()) {
             notes += Note(
                 Note.Level.CAUTION,
                 "The site may refuse Android WebViews (status ${webview.status ?: "unknown"}, " +
@@ -341,6 +356,9 @@ object Discovery {
         return variables.maxByOrNull(::score)
     }
 
+    /** The Google sign-in note's English wording; Shrimpl shows its own string (R9.2). */
+    const val GOOGLE_SIGN_IN = "Google doesn't allow signing in from apps like this one. To use your Google account, " +
+        "open the site in Chrome and install it from Chrome's menu."
     const val NO_GLYPH = "No brand icon was found for this site, so the app uses the site's own icon. You can choose another one under Custom."
 
     /**

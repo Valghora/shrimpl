@@ -63,8 +63,11 @@ enum class Tone(private val pastel: Color?, private val deep: Color?) {
 @Composable
 fun isDarkTheme(): Boolean = MaterialTheme.colorScheme.surface.luminance() < 0.5f
 
-/** An in-app notification: what kind it is and what it says. */
-data class Notice(val kind: Kind, val text: String) {
+/**
+ * An in-app notification: what kind it is and what it says. [openInBrowser] is an address its Open in
+ * Chrome button opens (R3.3), for a site that needs a Google sign-in.
+ */
+data class Notice(val kind: Kind, val text: String, val openInBrowser: String? = null) {
     /** Each kind has its own icon and tone. */
     enum class Kind(val tone: Tone) {
         INFO(Tone.INFO),
@@ -73,7 +76,7 @@ data class Notice(val kind: Kind, val text: String) {
     }
 
     companion object {
-        fun of(note: Note) = Notice(if (note.level == Note.Level.CAUTION) Kind.CAUTION else Kind.INFO, note.text)
+        fun of(note: Note) = Notice(if (note.level == Note.Level.CAUTION) Kind.CAUTION else Kind.INFO, note.text, note.openInBrowser)
     }
 }
 

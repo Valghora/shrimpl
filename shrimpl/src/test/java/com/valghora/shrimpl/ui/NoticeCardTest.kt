@@ -112,7 +112,7 @@ class NoticeCardTest {
         assertTrue("Dismiss ends inside the text's end", dismiss.right <= note.right)
     }
 
-    /** R3.3: on a narrow card the action sits under the start of the text, Dismiss at the end of the row. */
+    /** R3.3: on a narrow card the buttons split: the action under the start of the text, Dismiss at the row's end. */
     @Test
     fun onANarrowCardTheActionSitsUnderTheStartOfTheText() {
         show(action = "Open settings" to {})
@@ -122,6 +122,8 @@ class NoticeCardTest {
         assertEquals("under the start of the text", note.left, action.left, 1f)
         assertEquals(labelSpace(action), dp(action.top - note.bottom), 1f)
         assertTrue("Dismiss on the same row, at its end", dismiss.top == action.top && dismiss.left > action.right)
+        // The two split to the row's ends: Dismiss as far from the card's end (360 dp) as the action from its start.
+        assertEquals("Dismiss's inset mirrors the action's", dp(action.left), 360f - dp(dismiss.right), 1f)
     }
 
     /** R3.3: from 480 dp the action sits beside Dismiss at the end, 16 dp between their buttons. */
@@ -135,5 +137,6 @@ class NoticeCardTest {
         assertEquals(16f, dp(dismiss.left - action.right), 1f)
         assertTrue("away from the text's start", dp(action.left - note.left) > 200f)
         assertTrue("on Dismiss's row", action.top == dismiss.top)
+        assertEquals("Dismiss keeps its mirrored inset", dp(note.left), 600f - dp(dismiss.right), 1f)
     }
 }

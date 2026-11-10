@@ -31,11 +31,13 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
@@ -53,6 +55,7 @@ import com.valghora.shrimpl.core.records.IconOptions
 import com.valghora.shrimpl.core.records.IconRecord
 import com.valghora.shrimpl.core.records.WebAppDraft
 import com.valghora.shrimpl.ui.common.AppTextField
+import com.valghora.shrimpl.ui.common.Browser
 import com.valghora.shrimpl.ui.common.ColorSwatch
 import com.valghora.shrimpl.ui.common.DropdownItem
 import com.valghora.shrimpl.ui.common.FormColumnLayout
@@ -113,13 +116,29 @@ fun ProfileFormFields(
 }
 
 
-/** Discovery's notes as dismissible notifications; a dismissed note stays hidden while the page is open. */
+/**
+ * Discovery's notes as dismissible notifications; a dismissed note stays hidden while the page is open.
+ * A note with an address to open is the Google sign-in note (R3.3), worded here and given Open in
+ * Chrome, or Open in browser when Chrome isn't installed.
+ */
 @Composable
 private fun Notes(notes: List<Notice>) {
     var dismissed by rememberSaveable(notes, stateSaver = NoticeSetSaver) { mutableStateOf(emptySet<Notice>()) }
+    val context = LocalContext.current
+    val chrome = remember(context) { Browser.hasChrome(context) }
+    val signInText = stringResource(if (chrome) R.string.google_sign_in_notice else R.string.google_sign_in_notice_browser)
+    val openLabel = stringResource(if (chrome) R.string.action_open_in_chrome else R.string.action_open_in_browser)
     notes.filter { it !in dismissed }.forEach { note ->
         // Keyed, so a card's swipe state stays with its note when an earlier one goes.
-        key(note) { NoticeCard(note, Modifier.padding(top = 12.dp), onDismiss = { dismissed = dismissed + note }) }
+        key(note) {
+            val address = note.openInBrowser
+            NoticeCard(
+                if (address == null) note else note.copy(text = signInText),
+                Modifier.padding(top = 12.dp),
+                onDismiss = { dismissed = dismissed + note },
+                action = address?.let { openLabel to { Browser.open(context, it, chrome) } },
+            )
+        }
     }
 }
 

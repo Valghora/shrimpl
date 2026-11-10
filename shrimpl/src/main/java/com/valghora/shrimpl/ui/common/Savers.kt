@@ -11,8 +11,13 @@ val StringListSaver: Saver<List<String>, ArrayList<String>> = Saver(
     restore = { it.toList() },
 )
 
-/** Saves a set of notices across recreation, each as its kind and text. */
+/** Saves a set of notices across recreation, each as its kind, its address to open (or none) and its text, a line each. */
 val NoticeSetSaver: Saver<Set<Notice>, ArrayList<String>> = Saver(
-    save = { notices -> notices.mapTo(ArrayList()) { "${it.kind.name}\n${it.text}" } },
-    restore = { saved -> saved.mapTo(mutableSetOf()) { Notice(Notice.Kind.valueOf(it.substringBefore('\n')), it.substringAfter('\n')) } },
+    save = { notices -> notices.mapTo(ArrayList()) { "${it.kind.name}\n${it.openInBrowser.orEmpty()}\n${it.text}" } },
+    restore = { saved ->
+        saved.mapTo(mutableSetOf()) {
+            val (kind, address, text) = it.split('\n', limit = 3)
+            Notice(Notice.Kind.valueOf(kind), text, address.ifEmpty { null })
+        }
+    },
 )

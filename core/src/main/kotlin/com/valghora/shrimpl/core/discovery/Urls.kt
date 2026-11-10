@@ -36,6 +36,9 @@ internal object Urls {
     /** The lowercase host of [url], or null when there is none. */
     fun hostOf(url: String?): String? = url?.let { split(it).hostname }
 
+    /** Whether [host] is google.com or one of its subdomains, whose sites need a Google sign-in. */
+    fun isGoogleHost(host: String): Boolean = host == "google.com" || host.endsWith(".google.com")
+
     /** RFC 3986 reference resolution (urllib's `urljoin`); falls back to [ref] if either can't be parsed. */
     fun join(base: String, ref: String): String {
         if (base.isEmpty()) return ref
