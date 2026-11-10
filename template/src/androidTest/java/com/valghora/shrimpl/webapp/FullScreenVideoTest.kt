@@ -116,14 +116,7 @@ class FullScreenVideoTest {
             device.pressBack()
             Thread.sleep(3_000)
             val afterSystemBack = state()
-            if (page.js("document.fullscreenElement !== null") == "true") {
-                // A control: the template's own Back handling, called directly, tells a Back that never
-                // arrived from one that arrived and didn't leave.
-                scenario.onActivity { it.onBackPressedDispatcher.onBackPressed() }
-                Thread.sleep(3_000)
-                throw AssertionError("Back didn't leave full screen. After the system's Back: $afterSystemBack. " +
-                    "After the template's back handling was called directly: ${state()}")
-            }
+            check(page.js("document.fullscreenElement === null") == "true") { "Back didn't leave full screen: $afterSystemBack" }
             awaitUntil("the full-screen view to go", 10_000) {
                 var children = 0
                 scenario.onActivity { children = (it.window.decorView as ViewGroup).childCount }

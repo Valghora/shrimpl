@@ -168,9 +168,9 @@ class MainActivity : AppCompatActivity() {
     private var requestedFullscreenMode = false
 
     /**
-     * Back leaves full screen first (T6.13, T5.6). It is registered on the window at overlay priority while
-     * full screen shows, not with [onBackPressedDispatcher]: WebView's full-screen view takes the system's
-     * Back before an ordinary callback sees it (docs/BUILD_NOTES.md "Back in full screen").
+     * A back gesture leaves full screen first (T6.13, T5.6): registered on the window at overlay priority
+     * while full screen shows. A Back key is caught in [dispatchKeyEvent] instead, since WebView's
+     * full-screen view would swallow it (docs/BUILD_NOTES.md "Back in full screen").
      */
     private val fullscreenBackCallback = OnBackInvokedCallback { leaveFullscreen(notifyPage = true) }
 
@@ -1144,8 +1144,10 @@ class MainActivity : AppCompatActivity() {
 
     /** Keys reach the page unchanged unless they are the app's own shortcuts (T5.3); Esc first leaves full-screen video. */
     override fun dispatchKeyEvent(event: KeyEvent): Boolean {
-        // Esc leaves full-screen video (Tier 2 Keyboard_Exit).
-        if (fullscreenView != null && event.keyCode == KeyEvent.KEYCODE_ESCAPE) {
+        // Esc leaves full-screen video (Tier 2 Keyboard_Exit), and so does a Back key: it arrives here as a
+        // key event, not through the back callbacks, and WebView's full-screen view would swallow it
+        // (docs/BUILD_NOTES.md "Back in full screen").
+        if (fullscreenView != null && (event.keyCode == KeyEvent.KEYCODE_ESCAPE || event.keyCode == KeyEvent.KEYCODE_BACK)) {
             if (event.action == KeyEvent.ACTION_UP) leaveFullscreen(notifyPage = true)
             return true
         }
