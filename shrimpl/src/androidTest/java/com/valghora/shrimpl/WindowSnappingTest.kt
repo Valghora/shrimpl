@@ -59,6 +59,7 @@ class WindowSnappingTest {
     @After
     fun cleanUp() {
         device.executeShellCommand("am force-stop com.android.settings")
+        device.executeShellCommand("settings delete global enable_freeform_support")
         device.executeShellCommand("wm size reset")
         device.executeShellCommand("wm density reset")
         runBlocking { names.forEach { container.store.delete("snap${it.lowercase()}") } }
@@ -139,8 +140,8 @@ class WindowSnappingTest {
             assertTrue("a freeform window is in multi-window mode", sharing)
             return twoPanes()
         } finally {
-            resumed()?.let { open -> instrumentation.runOnMainSync { open.finish() } }
-            device.executeShellCommand("settings delete global enable_freeform_support")
+            // Remove the task too: a later launch would reuse it, and a reused task keeps its windowing mode.
+            resumed()?.let { open -> instrumentation.runOnMainSync { open.finishAndRemoveTask() } }
         }
     }
 
