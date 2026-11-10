@@ -57,9 +57,10 @@ about 1.4 on the 2880 px models) gets two panes when snapped.
 
 ## Tested
 
-`WindowSizesTest` (emulator) checks the full screens in the table above; snapped windows rest on
-`PaneWidthTest` (Robolectric) and the Dell's confirmed 849 dp, since the emulator can't snap a window
-(docs/TESTING.md).
+On the emulator (docs/TESTING.md): `WindowSizesTest` checks the full screens in the table above, and
+`WindowSnappingTest` the snapped ones. The emulator can't snap like Googlebook OS, so it shares the
+screen the ways Android can: split screen on the Dell's screen (about 849 dp) and freeform windows of
+956 and 1100 dp. `PaneWidthTest` (Robolectric) checks the same rule's widths without a window manager.
 
 ## To confirm on a device
 

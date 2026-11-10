@@ -41,6 +41,15 @@ Writing an emulator test:
 - **Folders.** `template/src/debug` holds `TestTreeProvider`, a document provider over a folder in the
   cache, so a test can hand the template a folder as if the user had picked it. It is in the debug build
   only: the release APK Shrimpl bundles never has it.
+- **Sharing the screen.** `WindowSnappingTest` puts Shrimpl in split screen with the system UI's shell
+  command (`dumpsys activity service SystemUIService WMShell splitscreen moveToSideStage <task> 1`, beside
+  Settings) and in freeform windows (`am start --windowingMode 5`, then `am task resize`). Freeform
+  windows need `enable_freeform_support`, set once for the class: switched on just before a launch, it
+  wasn't always used. Close a freeform window with `finishAndRemoveTask`: a later launch reuses a
+  leftover task, and a reused task keeps its windowing mode.
+- **Trying a new test.** Dispatch the Emulator workflow with `-f "inputs[tests]=module:class"` (for
+  example `shrimpl:com.valghora.shrimpl.WindowSnappingTest`) to run only that class, in about half the
+  time. A merge still needs a run of the whole suite.
 - **Display sizes.** `WindowSizesTest` resizes the display with `wm size` and `wm density` and always
   resets them, so other tests see the emulator's own screen.
 - **System dialogs.** `InstallRobot` answers the installer's Install, Update and Uninstall screens.
@@ -177,6 +186,7 @@ Shrimpl's Compose screens run in unit tests under Robolectric (`shrimpl/src/test
 | R2.3, CLAUDE.md rule 2: a dialog's half-typed text survives the activity being recreated | `DialogDraftTest` |
 | T7: a fresh launch asks for the notification permission, the page is told it may notify, and its `new Notification` becomes an Android notification with its title, body and channel | `NotificationsTest` |
 | T6.5: the microphone through all three steps (Android asks; after one refusal the template explains first; after two the page is turned down with a snackbar), and location given only when the profile allows it | `PagePermissionsTest` |
+| R1.1: a window sharing the screen shows two panes only from 1000 dp: split screen on half the Dell's screen (about 849 dp, as snapped) shows one, freeform windows of 956 dp (a 2880 px Googlebook snapped) and 1100 dp show one and two | `WindowSnappingTest` |
 | T6.14: Ctrl+P opens Android's print screen; T6.13, T5.3: a page's element goes full screen with the system bars hidden, and Esc leaves it | `PrintAndFullScreenTest` |
 | Accessibility (touch targets, contrast, labels) on the real screens, with a control that must fail | `AccessibilityChecksTest`, `AccessibilityChecksAreLiveTest` |
 | 16 KB page alignment of every APK | `scripts/check_page_alignment.sh` (Android workflow) |
@@ -186,8 +196,9 @@ Shrimpl's Compose screens run in unit tests under Robolectric (`shrimpl/src/test
 These need hardware, a person, or a service an emulator doesn't have:
 
 - **Shizuku and Root installs** (R6): no Shizuku on an emulator; `su` isn't available to apps on its images.
-- **Hinges and foldable postures**, and **window snapping** on a Googlebook (docs/GOOGLEBOOKS.md): the
-  emulator's windowing is not Googlebook OS's. Layout at the right widths is covered by Robolectric.
+- **Hinges and foldable postures**, and **window snapping** itself on a Googlebook (docs/GOOGLEBOOKS.md):
+  the emulator's windowing is not Googlebook OS's. What snapping does to Shrimpl, a window that shares
+  the screen at half its width, is tested with split screen and freeform windows (`WindowSnappingTest`).
 - **TalkBack** itself (reading order, announcements), and how haptics, animation and scrolling *feel*.
 - **Sign-in flows** that block embedded WebViews (Google, others), and background push (not possible).
 - **Cameras, microphones and location** with real hardware (the emulator has virtual ones).
@@ -199,6 +210,4 @@ These need hardware, a person, or a service an emulator doesn't have:
 Each is feasible on the emulator and not written yet; the order is by how often it has cost a manual check.
 
 1. Full screen from a playing video: the tests use an element, since the image has no video to play.
-2. Window snapping: `wm size` gives the right widths, but not a half-screen window (R1.1's sharing rule).
-   Split screen may stand in for it, since it sets `isInMultiWindowMode`.
-3. Folder access against Android's real storage provider and picker (the tests use a fixture provider).
+2. Folder access against Android's real storage provider and picker (the tests use a fixture provider).
