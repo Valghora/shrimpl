@@ -39,10 +39,16 @@ class FullScreenVideoTest {
         await new Promise(done => setTimeout(done, ${seconds * 1000}));
         recorder.stop(); drawing = false; await stopped;
         const v = document.getElementById('v');
+        // Looping, so a short clip can't run out while the test is in full screen.
+        v.loop = true;
         v.src = URL.createObjectURL(new Blob(parts, { type: 'video/webm' }));
         await v.play();
         window.__r = 'playing';
     """.trimIndent().replace("\n", " ")
+
+    /** #v's state, for a failure message. */
+    private fun PageDriver.videoState() =
+        js("(v => 'paused=' + v.paused + ' ended=' + v.ended + ' time=' + v.currentTime + ' duration=' + v.duration + ' ready=' + v.readyState)(document.getElementById('v'))")
 
     /** Whether #v's playback position moves over half a second. */
     private fun PageDriver.videoAdvances(): Boolean {
@@ -60,7 +66,7 @@ class FullScreenVideoTest {
                 it.loadTestPage("<video id=\"v\" muted playsinline style=\"display:block;width:100%;height:240px;background:#000\"></video>")
             }
             assertEquals("playing", page.runAsync(recordAndPlay(8), timeoutMs = 60_000))
-            assertTrue("the recorded video doesn't play", page.videoAdvances())
+            assertTrue("the recorded video doesn't play: ${page.videoState()}", page.videoAdvances())
 
             var decorChildren = 0
             scenario.onActivity { decorChildren = (it.window.decorView as ViewGroup).childCount }
@@ -80,7 +86,7 @@ class FullScreenVideoTest {
                 children > decorChildren
             }
             awaitUntil("the system bars to hide", 10_000) { !statusBarShown() }
-            assertTrue("the video stopped playing in full screen", page.videoAdvances())
+            assertTrue("the video stopped playing in full screen: ${page.videoState()}", page.videoAdvances())
 
             // Back leaves full screen first, before going back in the page or leaving the app.
             device.pressBack()
