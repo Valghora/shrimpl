@@ -34,6 +34,8 @@ import android.view.KeyboardShortcutInfo
 import android.view.Menu
 import android.view.MotionEvent
 import android.view.View
+import android.window.OnBackInvokedCallback
+import android.window.OnBackInvokedDispatcher
 import android.view.ViewGroup
 import android.view.WindowInsetsController
 import android.webkit.CookieManager
@@ -165,12 +167,12 @@ class MainActivity : AppCompatActivity() {
     /** The window itself was made full screen (it was a desktop or split-screen window). */
     private var requestedFullscreenMode = false
 
-    /** Back leaves full screen first; it is added after [backCallback], so it takes precedence. */
-    private val fullscreenBackCallback = object : OnBackPressedCallback(false) {
-        override fun handleOnBackPressed() {
-            leaveFullscreen(notifyPage = true)
-        }
-    }
+    /**
+     * Back leaves full screen first (T6.13, T5.6). It is registered on the window at overlay priority while
+     * full screen shows, not with [onBackPressedDispatcher]: WebView's full-screen view takes the system's
+     * Back before an ordinary callback sees it (docs/BUILD_NOTES.md "Back in full screen").
+     */
+    private val fullscreenBackCallback = OnBackInvokedCallback { leaveFullscreen(notifyPage = true) }
 
     private val fileChooserLauncher =
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
@@ -442,7 +444,6 @@ class MainActivity : AppCompatActivity() {
         }
         if (WebApp.profile.nativeContextMenu) registerForContextMenu(webView)
         onBackPressedDispatcher.addCallback(this, backCallback)
-        onBackPressedDispatcher.addCallback(this, fullscreenBackCallback)
         // Ctrl + mouse wheel (or trackpad scroll) zooms like Ctrl +/- (Tier 2 Content_Zoom); pinch zoom
         // is WebView's own.
         webView.setOnGenericMotionListener { _, event ->
@@ -1202,7 +1203,7 @@ class MainActivity : AppCompatActivity() {
             requestFullscreenMode(FULLSCREEN_MODE_REQUEST_ENTER, null)
             requestedFullscreenMode = true
         }
-        fullscreenBackCallback.isEnabled = true
+        onBackInvokedDispatcher.registerOnBackInvokedCallback(OnBackInvokedDispatcher.PRIORITY_OVERLAY, fullscreenBackCallback)
     }
 
     /** Restores the window; [notifyPage] when the user (Back, Esc) rather than the page ended full screen. */
@@ -1211,7 +1212,7 @@ class MainActivity : AppCompatActivity() {
         val callback = fullscreenCallback
         fullscreenView = null
         fullscreenCallback = null
-        fullscreenBackCallback.isEnabled = false
+        onBackInvokedDispatcher.unregisterOnBackInvokedCallback(fullscreenBackCallback)
         (window.decorView as ViewGroup).removeView(view)
         WindowInsetsControllerCompat(window, root).show(WindowInsetsCompat.Type.systemBars())
         if (requestedFullscreenMode) {
