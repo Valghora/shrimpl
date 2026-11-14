@@ -7,7 +7,7 @@ import java.util.zip.ZipFile
 object TemplateFixture {
     val apk: File = File(requireNotNull(System.getProperty("templateApk")) { "templateApk not set by Gradle" })
 
-    /** shrimpl.templateVersion from gradle.properties: the version the template APK must carry. */
+    /** The code of shrimpl.templateVersion in gradle.properties (R11.8): the versionCode the template APK must carry. */
     val version: Int = requireNotNull(System.getProperty("templateVersion")) { "templateVersion not set by Gradle" }.toInt()
 
     val manifest: ByteArray by lazy { entry(apk, WebAppBuilder.Paths.MANIFEST) }

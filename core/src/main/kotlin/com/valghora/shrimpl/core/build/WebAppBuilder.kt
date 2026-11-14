@@ -3,6 +3,7 @@ package com.valghora.shrimpl.core.build
 import com.android.apksig.ApkSigner
 import com.android.apksig.ApkVerifier
 import com.android.apksig.KeyConfig
+import com.valghora.shrimpl.core.Versions
 import com.valghora.shrimpl.core.profile.Profile
 import com.valghora.shrimpl.core.profile.ProfileCodec
 import com.valghora.shrimpl.core.profile.ProfileValidator
@@ -105,7 +106,7 @@ object WebAppBuilder {
         return permissions to features
     }
 
-    /** The template's version: its own versionCode (R11.4). */
+    /** The template's version code: its own versionCode (R11.4, R11.8). */
     fun templateVersion(template: File): Int = ZipFile(template).use { zip ->
         val entry = zip.getEntry(Paths.MANIFEST) ?: throw BuildException("The template has no manifest")
         ManifestPatcher.read(zip.getInputStream(entry).use { it.readBytes() }).versionCode
@@ -144,7 +145,7 @@ object WebAppBuilder {
         try {
             onStage(Stage.PATCHING)
             val templateVersion = templateVersion(template)
-            val versionName = "$templateVersion.${spec.buildNumber}"
+            val versionName = Versions.webAppVersionName(templateVersion, spec.buildNumber)
             val (permissions, features) = removals(spec.profile)
             val edits = ManifestEdits(
                 packageName = packageName,
