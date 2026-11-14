@@ -184,10 +184,10 @@ fun SettingsScreen(inPane: Boolean, onBack: () -> Unit) {
                     )
                     when (method) {
                         InstallMethod.SESSION -> Unit
-                        InstallMethod.SHIZUKU -> AccessItem(R.string.request_shizuku, R.string.request_shizuku_failed, shizukuAccess) {
+                        InstallMethod.SHIZUKU -> AccessItem(R.string.request_shizuku, R.string.request_shizuku_detail, R.string.request_shizuku_failed, shizukuAccess) {
                             model.requestAccess(InstallMethod.SHIZUKU)
                         }
-                        InstallMethod.ROOT -> AccessItem(R.string.request_root, R.string.request_root_failed, rootAccess) {
+                        InstallMethod.ROOT -> AccessItem(R.string.request_root, R.string.request_root_detail, R.string.request_root_failed, rootAccess) {
                             model.requestAccess(InstallMethod.ROOT)
                         }
                     }
@@ -213,7 +213,7 @@ fun SettingsScreen(inPane: Boolean, onBack: () -> Unit) {
                         stringResource(R.string.resolve_on_tap),
                         resolveOnTap,
                         model::setResolveOnTap,
-                        summary = stringResource(if (resolveOnTap) R.string.resolve_on_tap_on_detail else R.string.resolve_on_tap_off_detail),
+                        summary = stringResource(R.string.resolve_on_tap_detail),
                     )
                     SwitchItem(
                         stringResource(R.string.haptic_feedback),
@@ -294,7 +294,7 @@ fun SettingsScreen(inPane: Boolean, onBack: () -> Unit) {
  * Retry (error tone) with the failure described below the title.
  */
 @Composable
-private fun AccessItem(title: Int, failed: Int, access: SettingsViewModel.Access, onRequest: () -> Unit) {
+private fun AccessItem(title: Int, detail: Int, failed: Int, access: SettingsViewModel.Access, onRequest: () -> Unit) {
     val (background, content) = when (access) {
         SettingsViewModel.Access.GRANTED -> Tone.SUCCESS.container to Tone.SUCCESS.content
         SettingsViewModel.Access.FAILED -> Tone.ERROR.container to Tone.ERROR.content
@@ -303,7 +303,7 @@ private fun AccessItem(title: Int, failed: Int, access: SettingsViewModel.Access
     SettingsItem(
         stringResource(title),
         summary = if (access == SettingsViewModel.Access.NOT_REQUESTED || access == SettingsViewModel.Access.REQUESTING) {
-            stringResource(R.string.request_access_detail)
+            stringResource(detail)
         } else {
             null
         },

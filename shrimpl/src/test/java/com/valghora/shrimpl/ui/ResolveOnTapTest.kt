@@ -80,10 +80,11 @@ class ResolveOnTapTest {
         compose.setContent { MaterialTheme { SettingsScreen(inPane = false, onBack = {}) } }
         val switch = compose.onNode(hasText(string(R.string.resolve_on_tap)) and SemanticsMatcher.keyIsDefined(SemanticsProperties.ToggleableState))
         switch.performScrollTo().assertIsOff()
-        compose.onNodeWithText(string(R.string.resolve_on_tap_off_detail)).assertExists()
+        compose.onNodeWithText(string(R.string.resolve_on_tap_detail)).assertExists()
         switch.performClick()
         switch.assertIsOn()
-        compose.onNodeWithText(string(R.string.resolve_on_tap_on_detail)).assertExists()
+        // A switch's description says what it does when on and stays the same; the switch shows the state.
+        compose.onNodeWithText(string(R.string.resolve_on_tap_detail)).assertExists()
         assertTrue("the choice is saved", settings.resolveOnTap.value)
     }
 
