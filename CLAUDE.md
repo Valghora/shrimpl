@@ -48,7 +48,7 @@ same commit, and a deviation gets its row in the same commit.
 5. **The template stays small.** AndroidX Views only (T1.1), no site values in its code or resources.
    Raise `shrimpl.templateVersion` in `gradle.properties` whenever template code or resources change
    (R11.4).
-6. **Versions (R11.8).** Each change merged to main raises the version of each APK it changes by one
+6. **Versions (R11.8).** Each change merged to develop raises the version of each APK it changes by one
    in its last part (`shrimpl.appVersion`, `shrimpl.templateVersion`; 1.1.9, then 1.2.0); a template
    change raises both, since Shrimpl bundles the template. A new major version only on the owner's
    explicit instruction; past x.9.9, ask.
@@ -97,20 +97,27 @@ scripts/check_docs.py --diff origin/main
 
 There is no emulator in the cloud container (no KVM, and ARM images can't run on an x86 host).
 Instrumented tests run in CI, in the Emulator workflow, which takes about 14 minutes and doesn't run on
-pushes.
+pushes; it is required only before a merge into `main`.
 
 ## Workflow
 
-- Branch from the default branch for new work. Commit locally as work is done. Never force-push.
-- **Before a merge to main:**
+- **Branches (R12.5).** `develop` is where work lands; `main` holds releases. Branch from `develop`
+  for new work and offer to merge into `develop` only. Never commit to, merge into or tag `main`
+  unless the owner explicitly says so. Commit locally as work is done. Never force-push.
+- **Documentation only:** a branch that changes only docs and Markdown needs no workflow run before
+  either merge below; the spec rereading still applies.
+- **Before a merge to develop:**
   1. Run `scripts/spec_map.sh` for each requirement the branch touched and reread those spec lines
      against the change: no check compares the spec's prose with what the code does.
-  2. Dispatch the Emulator workflow on the branch, only now, not after every commit:
-     `gh api -X POST repos/Valghora/shrimpl/actions/workflows/emulator.yml/dispatches -f ref=<branch>`.
+  2. Merge only with the Android workflow green on the branch's last commit, and only once the owner
+     says to. The Emulator workflow isn't required here; dispatch it by hand only to try a test.
+- **A merge to main, only when the owner says so** (a release):
+  1. Dispatch the Emulator workflow on `develop`:
+     `gh api -X POST repos/Valghora/shrimpl/actions/workflows/emulator.yml/dispatches -f ref=develop`.
      `docs/TESTING.md` says how to read a failure.
-  3. Merge only with both the Android and the Emulator workflow green on the branch's last commit; if
-     the commits since the Emulator run changed only docs and Markdown, the last commit that changed
-     anything else counts for it.
+  2. Merge `develop` into `main` only with both the Android and the Emulator workflow green on
+     `develop`'s last commit; if the commits since the Emulator run changed only docs and Markdown,
+     the last commit that changed anything else counts for it.
 - **APK, only when asked** ("Build and push it, then send the APK"): push the branch, check the
   Android workflow, and send `shrimpl-debug.apk`, built after deleting
   `shrimpl/build/outputs/apk/debug/` (docs/BUILD_NOTES.md, "Debug APK size").
