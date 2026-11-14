@@ -46,18 +46,22 @@ jobs:
           verified=false
           if [[ "${{ github.event_name }}" != "workflow_dispatch" ]]; then
             tree=$(git rev-parse HEAD^{tree})
-            candidates=$(gh api "repos/${{ github.repository }}/actions/runs?status=success&per_page=50" \
-              --jq '[.workflow_runs[] | select(.name == "${{ github.workflow }}" and .id != ${{ github.run_id }}) | .head_sha] | unique | .[]')
-            for sha in $candidates; do
+            # Recent passing runs of this workflow, as "run-id head-sha" (the Actions API, which the
+            # job's token can read; check runs need a permission it doesn't have).
+            runs=$(gh api "repos/${{ github.repository }}/actions/runs?status=success&per_page=50" \
+              --jq '.workflow_runs[] | select(.name == "${{ github.workflow }}" and .id != ${{ github.run_id }}) | "\(.id) \(.head_sha)"')
+            while read -r run sha; do
+              [[ -n "$run" ]] || continue
               [[ "$(gh api "repos/${{ github.repository }}/git/commits/$sha" --jq .tree.sha 2>/dev/null)" == "$tree" ]] || continue
-              built=$(gh api "repos/${{ github.repository }}/commits/$sha/check-runs?check_name=Build" \
-                --jq '[.check_runs[] | select(.conclusion == "success")] | length' 2>/dev/null || echo 0)
-              if [[ "$built" -gt 0 ]]; then
-                echo "::notice::${sha::7} has the same files and passed Build; skipping Build"
+              # A passing run whose Build was skipped (documentation only, or itself verified) proves nothing.
+              built=$(gh api "repos/${{ github.repository }}/actions/runs/$run/jobs" \
+                --jq '[.jobs[] | select(.name == "Build" and .conclusion == "success")] | length' 2>/dev/null) || built=0
+              if [[ "$built" =~ ^[0-9]+$ && "$built" -gt 0 ]]; then
+                echo "::notice::${sha::7} has the same files and passed Build in run $run; skipping Build"
                 verified=true
                 break
               fi
-            done
+            done <<<"$runs"
           fi
           echo "verified=$verified" >> "$GITHUB_OUTPUT"
 
