@@ -1,5 +1,6 @@
 package com.valghora.shrimpl.core.records
 
+import com.valghora.shrimpl.core.Versions
 import com.valghora.shrimpl.core.build.WebAppBuilder
 import com.valghora.shrimpl.core.profile.ProfileCodec
 import com.valghora.shrimpl.core.profile.ProfileException
@@ -61,7 +62,7 @@ object EmbeddedRecord {
         if (WebAppBuilder.packageNameFor(profile.appId) != installed.packageName) {
             throw RecoveryException("the profile is for ${profile.appId}, not ${installed.packageName}")
         }
-        val templateVersion = installed.versionName.substringBefore('.').toIntOrNull()
+        val templateVersion = Versions.templateCodeOf(installed.versionName)
             ?: throw RecoveryException("unexpected version ${installed.versionName}")
         val buildNumber = installed.versionCode.toInt().takeIf { it >= WebAppRecord.FIRST_BUILD }
             ?: throw RecoveryException("unexpected build number ${installed.versionCode}")

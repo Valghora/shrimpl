@@ -219,7 +219,7 @@
     <string name="settings_appearance">Appearance</string>
     <string name="signing_certificate">Certificate</string>
     <string name="about_app">App version %1$s</string>
-    <string name="about_template">Template version %1$d.0</string>
+    <string name="about_template">Template version %1$s</string>
     <string name="action_retry">Retry</string>
     <string name="action_dismiss">Dismiss</string>
     <string name="notice_info">Information</string>

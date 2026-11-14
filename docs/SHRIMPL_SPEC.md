@@ -231,7 +231,7 @@ binary translation) on any device.
   | Behavior | Selecting fixes first | a switch, off by default: "When an app needs an update, fix or reinstall, selecting it does that instead." | On: tapping an installed app with a pending action (Fix or Update) does that action instead, in rows and tiles, and accessibility services hear the tap named after it ("Fix Example"). Off: the Selecting an app choice applies, and an app signed with another key still does nothing on a tap. An app that isn't installed ignores the switch (R2.2). |
   | Behavior | Haptic feedback | a switch at the end of the section, on by default: "Vibrates when a long press opens a menu" | On: a long press that opens an app's menu vibrates (R2.1); the system's touch feedback setting still applies. |
   | Signing | | the certificate's SHA-256 fingerprint with a copy button, "Export…" and "Import…" | Export and import the certificate (R5). |
-  | About | | "App version <version>" and "Template version <N>.0" | |
+  | About | | "App version <version>" and "Template version <version>" (R11.8) | |
 
 - R2.6 Tiles: the layout switch shows the apps as tiles instead of rows, and the choice is kept.
   - Tiles flow three across on phones (at least 100 dp wide, 8 dp apart, 12 dp in from the sides),
@@ -454,7 +454,7 @@ The template's behavior is docs/TEMPLATE_SPEC.md. What Shrimpl relies on:
   `assets/template/template.apk`, with its version (R11.4).
 - R8.2 Manifest patching (binary XML, in `:core`): package `com.valghora.shrimpl.app.<appId>` (and
   every string derived from the template package), the literal label, versionCode = build number,
-  versionName = `<template version>.<build>` (for example `3.12`), removal of disabled permissions
+  versionName = `<template version>.<build>` (for example `1.0.12`, R11.8), removal of disabled permissions
   and features, launch mode, `<layout>` sizes and the multi-instance flag.
 - R8.3 Assembly replaces `assets/shrimpl/profile.json` and the icon PNGs, keeps every other entry and
   its compression, drops old signatures, and signs with the Shrimpl key using apksig (v2 and v3 as
@@ -534,11 +534,11 @@ The template's behavior is docs/TEMPLATE_SPEC.md. What Shrimpl relies on:
 - R11.2 The app ID comes from the name (lowercase letters and digits, starting with a letter),
   deduplicated with a numeric suffix, and is fixed at creation.
 - R11.3 Rebuilds increment the build number; a failed install doesn't use one up.
-- R11.4 The template version is one integer, `shrimpl.templateVersion` in `gradle.properties`, which
-  is also the template's versionCode.
-  - It MUST be incremented whenever template code or resources change.
-  - A number is never reused, even for a build that was thrown away (apps built with it would show
-    no update). A bump with no template change is allowed, to offer every installed app an Update.
+- R11.4 The template version is `shrimpl.templateVersion` in `gradle.properties` (R11.8), and its code
+  is the template's versionCode.
+  - It MUST be raised whenever template code or resources change (R11.8).
+  - A version is never reused, even for a build that was thrown away (apps built with it would show
+    no update). A raise with no template change is allowed, to offer every installed app an Update.
   - Records built with an older version are in the Update ready state (R2.2); Update rebuilds with the
     bundled template.
 - R11.5 Shrimpl never reads or modifies web apps' private data.
@@ -568,6 +568,20 @@ The template's behavior is docs/TEMPLATE_SPEC.md. What Shrimpl relies on:
     the end (or a swipe, R3.3). Dismiss hides it for the apps it covered; another such app shows it
     again.
   - Only installed apps count for the notice and Fix all.
+- R11.8 Versions. Shrimpl (`shrimpl.appVersion`) and the template (`shrimpl.templateVersion`) each
+  have a version `major.minor`, in `gradle.properties`; both started again at 1.0 on 2026-11-14.
+  - Each change merged to main raises the minor version of the APK it changes by one: 1.0, 1.1 … 1.9,
+    1.10 … 1.99. Shrimpl's version rises with any change to Shrimpl's APK, including a new template
+    (which Shrimpl bundles); the template's rises with any change to template code or resources (R11.4).
+    A merge that changes neither APK, such as docs, tests or CI only, leaves both.
+  - A new major version (2.0, 3.0 …) only on the owner's explicit instruction. A change that would
+    go past x.99 waits for the owner's decision.
+  - Each version is stored as a code, major × 100 + minor (1.0 is 100, 1.12 is 112): the APK's
+    versionCode, and what Shrimpl compares to offer an Update. Codes only rise, so Shrimpl always
+    installs over itself, and the whole-number template versions from before this scheme (1 to 19)
+    are older than every version since, so their apps are offered an Update once.
+  - Recovery (R11.6) reads a web app's template version from its versionName in either form:
+    `1.0.12` (template 1.0, build 12) or, from before this scheme, `19.12`.
 
 ## R12 Repository, CI and releases
 

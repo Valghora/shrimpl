@@ -39,8 +39,9 @@ android {
         applicationId = "com.valghora.shrimpl"
         minSdk = 37
         targetSdk = 37
-        versionCode = 1
-        versionName = "0.1"
+        // R11.8: shrimpl.appVersion, as its code; the code only ever rises, so Shrimpl always updates in place.
+        versionCode = rootProject.extra["shrimplVersionCode"] as Int
+        versionName = providers.gradleProperty("shrimpl.appVersion").get()
         // Instrumented tests run on an emulator in CI (docs/TESTING.md, "The emulator's environment").
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -83,7 +84,7 @@ androidComponents {
         val bundle = tasks.register<BundleTemplate>("bundle${variant.name.replaceFirstChar { it.uppercase() }}Template") {
             dependsOn(":template:assembleRelease")
             templateApk.set(neutralTemplateApk)
-            templateVersion.set(providers.gradleProperty("shrimpl.templateVersion").map(String::toInt))
+            templateVersion.set(rootProject.extra["templateVersionCode"] as Int)
         }
         variant.sources.assets?.addGeneratedSourceDirectory(bundle, BundleTemplate::outputDir)
     }
