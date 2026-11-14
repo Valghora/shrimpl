@@ -91,8 +91,8 @@ same commit, and a deviation gets its row in the same commit.
   :template:assembleRelease :shrimpl:testDebugUnitTest :shrimpl:lintRelease :shrimpl:assembleDebug
 scripts/check_native_code.sh --none template/build/outputs/apk/release/template-release.apk
 scripts/check_native_code.sh --all-abis shrimpl/build/outputs/apk/debug/shrimpl-debug.apk
-scripts/check_comments.sh --diff origin/main
-scripts/check_docs.py --diff origin/main
+scripts/check_comments.sh --diff origin/develop
+scripts/check_docs.py --diff origin/develop
 ```
 
 There is no emulator in the cloud container (no KVM, and ARM images can't run on an x86 host).

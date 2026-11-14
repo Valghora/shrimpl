@@ -592,13 +592,14 @@ The template's behavior is docs/TEMPLATE_SPEC.md. What Shrimpl relies on:
   `scripts/check_native_code.sh` (R0), and `scripts/dev/` (placeholder icons, Public Suffix List
   refresh).
   *Outside code:* the repository layout and `scripts/`.
-- R12.2 CI (`.github/workflows/android.yml`) runs on every push and pull request: the comment and
-  document checks, then a Build job (skipped for a commit that already passed, as when a branch is
-  fast-forwarded to a tested commit, and for a change to documentation only, docs/ and Markdown, R12.5)
-  that tests `:core` with coverage, the template and Shrimpl,
-  lints both apps' release variants to 0 errors, builds the template's release APK and Shrimpl's
+- R12.2 CI (`.github/workflows/android.yml`) runs on every push, and on pull requests from forks: the
+  comment and document checks (new lines measured against the branch it comes from, R12.5), then a
+  Build job (skipped for a commit whose files already passed Build, as when a branch merges into a
+  develop that hadn't moved, and for a change to documentation only, docs/ and Markdown) that tests
+  `:core` with coverage, the template and Shrimpl, lints both apps' release variants to 0 errors, builds the template's release APK and Shrimpl's
   debug APK, and checks both for R0 and 16 KB page alignment (`scripts/check_page_alignment.sh`).
-  Shrimpl's release APK is built and checked only in a manual run with Release build ticked.
+  Shrimpl's release APK is built and checked only in a manual run with Release build ticked. Test and
+  lint reports are uploaded only when a step fails; APKs are never uploaded.
   *Outside code:* `.github/workflows/android.yml`.
 - R12.3 Shrimpl release builds use R8 and are signed with the debug key, for personal sideloading.
   *Outside code:* `shrimpl/build.gradle.kts` (the release build type).
