@@ -28,6 +28,7 @@ jobs:
     timeout-minutes: 5
     outputs:
       verified: ${{ steps.verified.outputs.verified }}
+      docs_only: ${{ steps.docs.outputs.docs_only }}
     steps:
       - uses: actions/checkout@v7
 
@@ -47,6 +48,28 @@ jobs:
             echo "verified=false" >> "$GITHUB_OUTPUT"
           fi
 
+      # R12.2: a change to documentation only (docs/ and Markdown) needs only these checks, not Build.
+      # Compared with the pushed range, the pull request's base, or develop for a new branch; a manual
+      # run always builds.
+      - name: Documentation only?
+        id: docs
+        run: |
+          before="${{ github.event.before }}"
+          case "${{ github.event_name }}" in
+            pull_request) base="${{ github.event.pull_request.base.sha }}" ;;
+            push) if [[ -n "$before" && "$before" != 0000000000000000000000000000000000000000 ]]; then base="$before"; else base=develop; fi ;;
+            *) base="" ;;
+          esac
+          docs_only=false
+          if [[ -n "$base" ]] && git fetch -q --depth=1 origin "$base"; then
+            changed=$(git diff --name-only FETCH_HEAD HEAD)
+            if [[ -n "$changed" ]] && ! grep -qvE '^docs/|\.md$' <<<"$changed"; then
+              docs_only=true
+              echo "::notice::only documentation changed; skipping Build"
+            fi
+          fi
+          echo "docs_only=$docs_only" >> "$GITHUB_OUTPUT"
+
       # On a branch, also warn about narration added since main (history belongs in commit messages).
       - name: Fetch main to compare against
         if: github.ref_name != 'main'
@@ -64,7 +87,7 @@ jobs:
   build:
     name: Build
     needs: checks
-    if: needs.checks.outputs.verified != 'true'
+    if: needs.checks.outputs.verified != 'true' && needs.checks.outputs.docs_only != 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:

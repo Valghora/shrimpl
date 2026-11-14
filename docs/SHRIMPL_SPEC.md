@@ -594,7 +594,8 @@ The template's behavior is docs/TEMPLATE_SPEC.md. What Shrimpl relies on:
   *Outside code:* the repository layout and `scripts/`.
 - R12.2 CI (`.github/workflows/android.yml`) runs on every push and pull request: the comment and
   document checks, then a Build job (skipped for a commit that already passed, as when a branch is
-  fast-forwarded to a tested commit) that tests `:core` with coverage, the template and Shrimpl,
+  fast-forwarded to a tested commit, and for a change to documentation only, docs/ and Markdown, R12.5)
+  that tests `:core` with coverage, the template and Shrimpl,
   lints both apps' release variants to 0 errors, builds the template's release APK and Shrimpl's
   debug APK, and checks both for R0 and 16 KB page alignment (`scripts/check_page_alignment.sh`).
   Shrimpl's release APK is built and checked only in a manual run with Release build ticked.
