@@ -55,6 +55,7 @@ class BuildAndInstallTest {
 
     @After
     fun cleanUp() {
+        robot.stopAll()
         // A confirmation nobody answered would otherwise block the next test's install.
         (container.installers.preferred() as? SessionInstaller)?.cancelConfirmation()
         device.executeShellCommand("pm uninstall $packageName")
@@ -108,7 +109,7 @@ class BuildAndInstallTest {
             val icons = IconOptions(IconOptions.Option.WEBSITE, website = IconRecord.letter('C'))
             val confirmer = acceptInstallDialog()
             val first = runBlocking { withTimeout(150_000) { container.factory.build(BuildRequest(profile, icons, emptyMap(), existing = null), container.installers.preferred()) {} } }
-            confirmer.interrupt()
+            confirmer.stop()
             assertTrue("the first install ended with $first", first is BuildOutcome.Installed)
             val installed = (first as BuildOutcome.Installed).record
             fun versionCode() = context.packageManager.getPackageInfo(packageName, PackageManager.PackageInfoFlags.of(0)).longVersionCode
@@ -116,7 +117,7 @@ class BuildAndInstallTest {
             val before = versionCode()
             val updater = acceptInstallDialog()
             val second = runBlocking { withTimeout(120_000) { container.factory.build(BuildRequest(profile, icons, emptyMap(), existing = installed), container.installers.preferred()) {} } }
-            updater.interrupt()
+            updater.stop()
             assertTrue("the update ended with $second", second is BuildOutcome.Installed)
             assertTrue("the version code went from $before to ${versionCode()}", versionCode() > before)
             assertEquals(installed.nextBuildNumber, (second as BuildOutcome.Installed).record.buildNumber)
@@ -135,7 +136,7 @@ class BuildAndInstallTest {
             val request = BuildRequest(profile, IconOptions(IconOptions.Option.WEBSITE, website = IconRecord.letter('C')), emptyMap(), existing = null)
             val confirmer = acceptInstallDialog()
             val outcome = runBlocking { withTimeout(150_000) { container.factory.build(request, container.installers.preferred()) {} } }
-            confirmer.interrupt()
+            confirmer.stop()
 
             assertTrue("the build ended with $outcome", outcome is BuildOutcome.Installed)
             val record = (outcome as BuildOutcome.Installed).record

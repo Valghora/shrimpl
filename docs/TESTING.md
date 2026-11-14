@@ -128,7 +128,9 @@ Why the workflow and the scripts look as they do; each rule fixed a run that wen
     use` (2026-11-14);
   - the rebuilt app installed with the new key, but Shrimpl's record wasn't saved within the test's
     30 s, the install's success arriving late while the installer service logged errors (2026-11-14).
-    Both runs were on a busy emulator, and the same commit then passed all 50 tests.
+    Both runs were on a busy emulator, and the same commit then passed all 50 tests. Until
+    2026-11-14 an install confirmer could outlive its test and tap the next test's dialogs (see
+    docs/BUILD_NOTES.md, "UiAutomator swallows interrupts"), which may explain these two.
 
 ## Robolectric
 
