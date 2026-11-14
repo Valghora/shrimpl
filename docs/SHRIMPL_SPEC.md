@@ -134,6 +134,16 @@ binary translation) on any device.
   | Pane | 16 dp, tighter than sheets so the desktop layout stays crisp | the two-pane cards |
   | Surface | 28 dp | bottom sheets and dialogs |
   | Round | circle | app icons, badges, color swatches, progress marks, icon-only buttons without a container |
+- R1.6 Settings wording, on the web app form (R3.3) and in Settings (R2.5):
+  - A switch has a fixed label naming what it controls and a fixed description of what it does when
+    on; the switch shows the state, and accessibility services announce it. The description says what
+    off does only when that isn't simply "it doesn't happen".
+  - A choice (dropdown or list) shows a description of the selected value.
+  - Descriptions start with a present-tense verb and no subject (Keeps, Opens), say what changes
+    for the user, and use "app" and plain words, not internals such as the user agent or ADB.
+  - "Select" is the pointing verb, since Googlebooks have touch and a trackpad; labels are sentence
+    case.
+  *Outside code:* the wording of `shrimpl/src/main/res/values/strings.xml`, kept by review.
 
 ## R2 Home
 
@@ -164,10 +174,10 @@ binary translation) on any device.
 
     | State | When | Row button | Tile badge (R2.6) | Accessibility state | Tap | Menu, in order |
     |---|---|---|---|---|---|---|
-    | Fix required | installed, signed with another key (R11.7) | Fix: a wrench, red | red wrench | "Fix required" | nothing (with Resolve on tap: Fix) | Fix, Edit, Remove |
-    | Update ready | installed, built from an older template (R11.4) | Update: an up arrow, green, right of the name | green up arrow | "Update ready" | the Default click action (with Resolve on tap: Update) | Update, Open, Edit, Uninstall |
-    | Not installed | a record whose app isn't installed | Reinstall: Material's "replay", yellow | yellow "replay" | "Not installed" | nothing, and no tap is offered to accessibility services; Resolve on tap doesn't apply | Reinstall, Edit, Remove |
-    | Installed | none of the above | none | none | none | the Default click action (R2.5) | Open, Edit, Rebuild, Uninstall |
+    | Fix required | installed, signed with another key (R11.7) | Fix: a wrench, red | red wrench | "Fix required" | nothing (with Selecting fixes first: Fix) | Fix, Edit, Remove |
+    | Update ready | installed, built from an older template (R11.4) | Update: an up arrow, green, right of the name | green up arrow | "Update ready" | the Selecting an app choice (with Selecting fixes first: Update) | Update, Open, Edit, Uninstall |
+    | Not installed | a record whose app isn't installed | Reinstall: Material's "replay", yellow | yellow "replay" | "Not installed" | nothing, and no tap is offered to accessibility services; Selecting fixes first doesn't apply | Reinstall, Edit, Remove |
+    | Installed | none of the above | none | none | none | the Selecting an app choice (R2.5) | Open, Edit, Rebuild, Uninstall |
 
   - The ⋮ menu, the right-click menu and the long-press menu ("Show options") offer the same actions.
     The pending action is always first; Rebuild appears only when there is none.
@@ -210,18 +220,18 @@ binary translation) on any device.
     perform each update. To update your apps without prompts, switch your installation method to
     Shizuku or Root via Settings.", with Cancel and Update all.
   - Fix all (R11.7) sits in the same place and works the same way.
-- R2.5 Settings, from the top bar button or Ctrl+,. Descriptions are quoted exactly.
+- R2.5 Settings, from the top bar button or Ctrl+,. Descriptions are quoted exactly and follow R1.6.
 
   | Section | Setting | Values | Behavior |
   |---|---|---|---|
-  | Appearance | Theme | System (dynamic color from the wallpaper), Light, Dark | |
-  | Appearance | Badge theme | Shrimpl (default): "Badges follow the stock pastel color palette regardless of system theme"; Harmony: "Badge color is lightly skewed to blend with your wallpaper's color palette"; Mono: "Badge color corresponds to your wallpaper's primary color" | Home badges and row buttons (R2.2, R2.6) only, not notices. Shrimpl: each status's fixed pastel and deep shade. Harmony: both run through Material's harmonize with the theme's primary color, the hue turned up to 15 degrees and the tone kept, so 7:1 contrast holds. Mono: the theme's primary container and on-primary-container colors for every status, which the symbols then tell apart. |
-  | Installation | Method | System, Shizuku, Root (R6.2) | Shizuku and Root add the Request Shizuku / Request Root item. |
-  | Behavior | Default click action | Edit (default): "Edit the application on click"; Open: "Launch the application on click" | What a tap does on an installed app with no pending action, or with Resolve on tap off. |
-  | Behavior | Resolve on tap | a switch, off by default: on "Override default tap preference and automatically perform pending actions", off "Always respect default tap preference" | On: tapping an installed app with a pending action (Fix or Update) does that action instead, in rows and tiles, and accessibility services hear the tap named after it ("Fix Example"). Off: the default click action applies, and an app signed with another key still does nothing on a tap. An app that isn't installed ignores the switch (R2.2). |
-  | Behavior | Haptic feedback | a switch at the end of the section, on by default: "Vibrate when a long press opens a menu" | On: a long press that opens an app's menu vibrates (R2.1); the system's touch feedback setting still applies. |
+  | Appearance | Theme | System (default): "Follows the system's light or dark theme"; Light: "Always uses the light theme"; Dark: "Always uses the dark theme" | Light or dark only: every choice uses the wallpaper's dynamic colors (R1.3). |
+  | Appearance | Badge theme | Shrimpl (default): "Each status keeps its own pastel color"; Harmony: "Status colors are tinted toward your wallpaper's colors"; Mono: "Every status uses your wallpaper's main color" | Home badges and row buttons (R2.2, R2.6) only, not notices. Shrimpl: each status's fixed pastel and deep shade. Harmony: both run through Material's harmonize with the theme's primary color, the hue turned up to 15 degrees and the tone kept, so 7:1 contrast holds. Mono: the theme's primary container and on-primary-container colors for every status, which the symbols then tell apart. |
+  | Installation | Method | System: "Android asks you to confirm each install"; Shizuku: "Installs without asking, through Shizuku."; Root: "Installs without asking, using root access." (R6.2) | Shizuku and Root add the Request Shizuku / Request Root item. |
+  | Behavior | Selecting an app | Edit (default): "Opens the app's settings"; Open: "Opens the app" | What a tap does on an installed app with no pending action, or with Selecting fixes first off. |
+  | Behavior | Selecting fixes first | a switch, off by default: "When an app needs an update, fix or reinstall, selecting it does that instead." | On: tapping an installed app with a pending action (Fix or Update) does that action instead, in rows and tiles, and accessibility services hear the tap named after it ("Fix Example"). Off: the Selecting an app choice applies, and an app signed with another key still does nothing on a tap. An app that isn't installed ignores the switch (R2.2). |
+  | Behavior | Haptic feedback | a switch at the end of the section, on by default: "Vibrates when a long press opens a menu" | On: a long press that opens an app's menu vibrates (R2.1); the system's touch feedback setting still applies. |
   | Signing | | the certificate's SHA-256 fingerprint with a copy button, "Export…" and "Import…" | Export and import the certificate (R5). |
-  | About | | "App Version: <version>" and "Template Version: <version>" (R11.8) | |
+  | About | | "App version <version>" and "Template version <version>" (R11.8) | |
 
 - R2.6 Tiles: the layout switch shows the apps as tiles instead of rows, and the choice is kept.
   - Tiles flow three across on phones (at least 100 dp wide, 8 dp apart, 12 dp in from the sides),
@@ -291,14 +301,18 @@ binary translation) on any device.
     - **Icon:** the icon options as preview tiles, then the selected option's settings (R10.1):
       Glyph color (`#FFFFFF` by default) and Background color (the site's brand color by default)
       for Brand, Fill icon canvas for a Website image, Background color for Custom.
-    - **Appearance:** Header color (System, matching the system theme, the default; Dynamic, the
-      site's own colors, T3.3; Custom) and Custom header color (disabled unless Custom).
-    - **Behavior:** User agent (Auto, Desktop or Mobile, its description following the choice); Menu
-      interaction behavior (Shrimpl: a long press or right-click on a link or image opens Shrimpl's
-      menu to copy, open or save, T5.5; Site: the site's own menu); Run in background; Pause in
-      battery saver.
-    - **Window:** Allow multiple windows (off by default), default and minimum window size.
-    - **Permissions:** microphone, camera, notifications, location (off by default).
+    - **Appearance:** Header color (System, "Matches the system's light or dark theme", the default;
+      Dynamic, "Uses the site's own colors", T3.3; Custom, "Uses the color you choose below") and
+      Custom header color (disabled unless Custom).
+    - **Behavior:** Site layout, the user agent (Auto, "Picks the desktop or mobile site
+      automatically"; Desktop, "Asks for the site's desktop layout"; Mobile, "Asks for the site's
+      mobile layout"); Link and image menu (Shrimpl, "A long press or right-click shows Shrimpl's
+      menu to copy, open or save links and images.", T5.5; Site, "A long press or right-click shows
+      the site's own menu."); Run in background; Pause in battery saver.
+    - **Window:** Allow multiple windows ("Lets the app open in more than one window", off by
+      default), default and minimum window size.
+    - **Permissions:** Microphone, Camera, Notifications and Location, off by default, each saying what
+      it lets the site do ("Lets the site ask to use your microphone").
   - Site keyboard shortcuts (`appShortcuts`) are not editable in the form; a profile keeps any it has.
   - Values discovered with low or medium confidence say where they came from; discovery's notes
     appear as Info, Caution or Error notices.
@@ -397,8 +411,9 @@ binary translation) on any device.
   - **Shizuku:** a Shizuku user service running `pm install -S` with the APK piped in; no prompts.
   - **Root:** `su -c pm install -S` with the APK piped in; `pm uninstall` for uninstalls.
 - R6.2 Settings has one Method choice: System (default; every install asks for confirmation),
-  Shizuku (silent, through ADB) or Root (silent, through superuser).
-  - Choosing Shizuku or Root shows a Request item ("Click to request", button Request). Success turns
+  Shizuku (silent, through ADB) or Root (silent, through superuser), described in R2.5.
+  - Choosing Shizuku or Root shows a Request item ("Asks Shizuku for access" or "Asks for root
+    access", button Request). Success turns
     the button into Success; failure shows "Failed to acquire root" / "Failed to acquire Shizuku" and
     the button becomes Retry.
   - If the chosen method fails at install time, Shrimpl says so and offers the system installer for

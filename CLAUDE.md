@@ -65,6 +65,9 @@ same commit, and a deviation gets its row in the same commit.
   count); a single sentence without any goes without one.
 - Other text (labels, titles, errors, notifications, toasts, dialogs) has no ending period unless it
   is two or more sentences.
+- Settings wording follows `docs/SHRIMPL_SPEC.md` R1.6: a switch's label and description stay fixed
+  (the description says what it does when on); a choice describes the selected value; descriptions
+  start with a present-tense verb; "select", not "tap" or "click".
 - Colors follow `ui/common/Notice.kt` and the theme: Info follows the Material theme; Caution, Error
   and Success use pastel containers with dark text in both themes; status text on plain surfaces is
   pastel in dark theme and deep in light theme. None is harmonized with the theme, except home badges

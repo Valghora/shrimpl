@@ -58,6 +58,7 @@ class FixFlowTest {
 
     @After
     fun cleanUp() {
+        robot.stopAll()
         (container.installers.preferred() as? SessionInstaller)?.cancelConfirmation()
         device.executeShellCommand("pm uninstall $packageName")
         runBlocking { container.store.delete(profile.appId) }
@@ -83,7 +84,7 @@ class FixFlowTest {
             val icons = IconOptions(IconOptions.Option.WEBSITE, website = IconRecord.letter('C'))
             val installing = robot.acceptSystemDialogs()
             val built = runBlocking { withTimeout(150_000) { container.factory.build(BuildRequest(profile, icons, emptyMap(), existing = null), container.installers.preferred()) {} } }
-            installing.interrupt()
+            installing.stop()
             assertTrue("the first install ended with $built", built is BuildOutcome.Installed)
             assertEquals(current.fingerprint, signerOf(packageName))
 
@@ -98,7 +99,7 @@ class FixFlowTest {
             compose.onNodeWithContentDescription(fix).performClick()
             val fixing = robot.acceptSystemDialogs()
             awaitUntil("the app to be signed with the new key", 180_000) { signerOf(packageName) == other.fingerprint }
-            fixing.interrupt()
+            fixing.stop()
 
             // The record is saved only after the install succeeds (R11.3), a moment after the app is signed anew.
             awaitUntil("the record to name the new key", 30_000) { container.store.get(profile.appId)?.signerFingerprint == other.fingerprint }

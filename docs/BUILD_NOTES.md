@@ -75,6 +75,11 @@ Java 17 bytecode.
   swallows it (`FullScreenVideoTest`, 2026-11-10). The template catches `KEYCODE_BACK` in
   `dispatchKeyEvent` while full screen shows, as it does Esc, and keeps an overlay callback for the back
   gesture, which comes the other way.
+- **UiAutomator swallows interrupts.** A background thread looping over UiAutomator searches never saw
+  `Thread.interrupt()` when it arrived mid-search, so `InstallRobot`'s install confirmer outlived its
+  test and tapped dialogs in later ones, until a vanishing dialog crashed it inside an unrelated test
+  (`WindowSnappingTest`, 2026-11-14). The confirmer now stops on a flag, `stop()` waits for it, and
+  tests stop every confirmer in `@After`.
 - **The full-screen confirmation.** The first time an app hides the system bars, Android shows its
   own "Viewing full screen" confirmation, and that window takes focus, so a Back key goes to it, not
   the app (`FullScreenVideoTest` in a full run, 2026-11-10: `mCurrentFocus` was

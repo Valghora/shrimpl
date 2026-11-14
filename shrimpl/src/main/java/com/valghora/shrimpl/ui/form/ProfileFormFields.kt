@@ -232,10 +232,22 @@ private class Fields(
     @Composable
     fun Permissions() {
         SettingsSection(stringResource(R.string.section_permissions)) {
-            SwitchItem(stringResource(R.string.field_microphone), form.allowMicrophone, { onChange(form.copy(allowMicrophone = it)) }, hint = hints["allowMicrophone"])
-            SwitchItem(stringResource(R.string.field_camera), form.allowCamera, { onChange(form.copy(allowCamera = it)) }, hint = hints["allowCamera"])
-            SwitchItem(stringResource(R.string.field_notifications), form.allowNotifications, { onChange(form.copy(allowNotifications = it)) }, hint = hints["allowNotifications"])
-            SwitchItem(stringResource(R.string.field_location), form.allowLocation, { onChange(form.copy(allowLocation = it)) }, hint = hints["allowLocation"])
+            SwitchItem(
+                stringResource(R.string.field_microphone), form.allowMicrophone, { onChange(form.copy(allowMicrophone = it)) },
+                summary = stringResource(R.string.field_microphone_detail), hint = hints["allowMicrophone"],
+            )
+            SwitchItem(
+                stringResource(R.string.field_camera), form.allowCamera, { onChange(form.copy(allowCamera = it)) },
+                summary = stringResource(R.string.field_camera_detail), hint = hints["allowCamera"],
+            )
+            SwitchItem(
+                stringResource(R.string.field_notifications), form.allowNotifications, { onChange(form.copy(allowNotifications = it)) },
+                summary = stringResource(R.string.field_notifications_detail), hint = hints["allowNotifications"],
+            )
+            SwitchItem(
+                stringResource(R.string.field_location), form.allowLocation, { onChange(form.copy(allowLocation = it)) },
+                summary = stringResource(R.string.field_location_detail), hint = hints["allowLocation"],
+            )
         }
     }
 
@@ -315,7 +327,10 @@ private class Fields(
     fun Window() {
         var editing by rememberSaveable { mutableStateOf<Int?>(null) }
         SettingsSection(stringResource(R.string.section_window)) {
-            SwitchItem(stringResource(R.string.field_multi_window), form.enableMultiWindow, { onChange(form.copy(enableMultiWindow = it)) })
+            SwitchItem(
+                stringResource(R.string.field_multi_window), form.enableMultiWindow, { onChange(form.copy(enableMultiWindow = it)) },
+                summary = stringResource(R.string.field_multi_window_detail),
+            )
             NavigationItem(
                 stringResource(R.string.field_window_default), { editing = R.string.field_window_default },
                 summary = stringResource(R.string.window_size, form.defaultWidth, form.defaultHeight), error = error("defaultWindowDp"),
