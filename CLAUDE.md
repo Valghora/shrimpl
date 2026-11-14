@@ -48,10 +48,10 @@ same commit, and a deviation gets its row in the same commit.
 5. **The template stays small.** AndroidX Views only (T1.1), no site values in its code or resources.
    Raise `shrimpl.templateVersion` in `gradle.properties` whenever template code or resources change
    (R11.4).
-6. **Versions (R11.8).** Each change merged to main raises the minor version of each APK it changes
-   by one (`shrimpl.appVersion`, `shrimpl.templateVersion`; 1.0, 1.1 … 1.99); a template change raises
-   both, since Shrimpl bundles the template. A new major version only on the owner's explicit
-   instruction; past x.99, ask.
+6. **Versions (R11.8).** Each change merged to main raises the version of each APK it changes by one
+   in its last part (`shrimpl.appVersion`, `shrimpl.templateVersion`; 1.1.9, then 1.2.0); a template
+   change raises both, since Shrimpl bundles the template. A new major version only on the owner's
+   explicit instruction; past x.9.9, ask.
 7. **SDK checks.** minSdk is 37, so never guard APIs at or below 37. Each androidx.webkit call sits
    directly inside its own nested `WebViewFeature.isFeatureSupported` check.
 8. **Comments stay true.** Follow the code-comments skill (`.claude/skills/code-comments/SKILL.md`):

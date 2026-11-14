@@ -57,10 +57,12 @@ class EmbeddedRecordTest {
     private val images = mapOf(IconOptions.WEBSITE_IMAGE to website, IconOptions.CUSTOM_IMAGE to custom)
 
     @Test
-    fun recoversTheTemplateVersionFromANewVersionName() {
+    fun recoversTheTemplateVersionFromNewerVersionNames() {
         val apk = build(EmbeddedRecord.entries(options, images::getValue))
-        val recovered = ZipFile(apk).use { EmbeddedRecord.recover(it, installed.copy(versionName = "1.4.3")) { _, _ -> error("not needed") } }
-        assertEquals("R11.8: 1.4 is code 104", 104, recovered.record.templateVersion)
+        fun templateOf(versionName: String) =
+            ZipFile(apk).use { EmbeddedRecord.recover(it, installed.copy(versionName = versionName)) { _, _ -> error("not needed") } }.record.templateVersion
+        assertEquals("R11.8: template 1.2.3, build 3", 123, templateOf("1.2.3.3"))
+        assertEquals("R11.8: a major.minor template, 1.4", 104, templateOf("1.4.3"))
     }
 
     @Test
