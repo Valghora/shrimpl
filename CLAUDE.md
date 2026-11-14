@@ -104,6 +104,8 @@ pushes; it is required only before a merge into `main`.
 - **Branches (R12.5).** `develop` is where work lands; `main` holds releases. Branch from `develop`
   for new work and offer to merge into `develop` only. Never commit to, merge into or tag `main`
   unless the owner explicitly says so. Commit locally as work is done. Never force-push.
+- **Documentation only:** a branch that changes only docs and Markdown needs no workflow run before
+  either merge below; the spec rereading still applies.
 - **Before a merge to develop:**
   1. Run `scripts/spec_map.sh` for each requirement the branch touched and reread those spec lines
      against the change: no check compares the spec's prose with what the code does.
