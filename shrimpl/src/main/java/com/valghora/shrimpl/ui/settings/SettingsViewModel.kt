@@ -8,14 +8,17 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.valghora.shrimpl.AppContainer
+import com.valghora.shrimpl.core.build.SigningKey
+import com.valghora.shrimpl.core.build.SigningKeyException
+import com.valghora.shrimpl.core.update.UpdateFrequency
 import com.valghora.shrimpl.data.BadgeTheme
 import com.valghora.shrimpl.data.ClickAction
 import com.valghora.shrimpl.data.InstallMethod
 import com.valghora.shrimpl.data.SigningKeyStore
 import com.valghora.shrimpl.data.ThemeSetting
 import com.valghora.shrimpl.install.Availability
-import com.valghora.shrimpl.core.build.SigningKey
-import com.valghora.shrimpl.core.build.SigningKeyException
+import com.valghora.shrimpl.update.UpdateResult
+import com.valghora.shrimpl.update.UpdateStatus
 import java.io.IOException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -32,6 +35,29 @@ class SettingsViewModel(private val container: AppContainer) : ViewModel() {
     val resolveOnTap: StateFlow<Boolean> = container.settings.resolveOnTap
     val hapticFeedback: StateFlow<Boolean> = container.settings.hapticFeedback
     val badgeTheme: StateFlow<BadgeTheme> = container.settings.badgeTheme
+    val checkForUpdates: StateFlow<Boolean> = container.settings.checkForUpdates
+    val updateFrequency: StateFlow<UpdateFrequency> = container.settings.updateFrequency
+    val updateStatus: StateFlow<UpdateStatus> = container.updates.status
+
+    /** Saves the Check for updates switch and starts or stops the background check (R14.2). */
+    fun setCheckForUpdates(enabled: Boolean) {
+        container.settings.setCheckForUpdates(enabled)
+        container.scheduleUpdateChecks()
+    }
+
+    /** Saves the Check frequency and reschedules the background check (R14.2). */
+    fun setUpdateFrequency(frequency: UpdateFrequency) {
+        container.settings.setUpdateFrequency(frequency)
+        container.scheduleUpdateChecks()
+    }
+
+    /** Check now (R14.3). */
+    fun checkNow() = container.updates.checkNow()
+
+    /** Update (R14.6): installs the release the latest check found. */
+    fun installUpdate() {
+        (updateStatus.value.result as? UpdateResult.Available)?.let { container.updates.install(it.release) }
+    }
 
     /** Where a root or Shizuku access request stands (the Request Access button's states). */
     enum class Access { NOT_REQUESTED, REQUESTING, GRANTED, FAILED }

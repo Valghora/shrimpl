@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Shrimpl's glyph for the status bar (docs/SHRIMPL_SPEC.md R14.5): the launcher's monochrome glyph,
+     enlarged to fill the icon box, which has no safe zone. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <group
+        android:pivotX="54"
+        android:pivotY="54"
+        android:scaleX="1.5"
+        android:scaleY="1.5">
+        <group
+            android:translateX="1.7"
+            android:translateY="-1.13">
+            <path
+                android:fillColor="#FFFFFF"
+                android:pathData="M23,47 C33,40 47,36 58,37 C63,38 64,44 63,50 C62,56 56,58 50,58 C40,58 30,54 23,47 Z" />
+            <path
+                android:fillColor="#FFFFFF"
+                android:pathData="M59.7,38.1 A21.8,21.8 0 0 1 73.4,41.8 L67.8,50.7 A11,11 0 0 0 60.9,49.1 Z" />
+            <path
+                android:fillColor="#FFFFFF"
+                android:pathData="M74.6,42.6 A20.8,20.8 0 0 1 81.4,55.2 L72.7,57.3 A11,11 0 0 0 68.5,51.1 Z" />
+            <path
+                android:fillColor="#FFFFFF"
+                android:pathData="M81.7,56.5 A19.0,19.0 0 0 1 77.6,69.0 L71.5,65.5 A11,11 0 0 0 72.8,58.1 Z" />
+            <path
+                android:fillColor="#FFFFFF"
+                android:pathData="M76.9,70.1 A16.8,16.8 0 0 1 67.3,74.6 L65.8,70.3 A11,11 0 0 0 71.1,66.2 Z" />
+            <path
+                android:fillColor="#FFFFFF"
+                android:pathData="M68,71 C58,67 50,67 43,70 C49,74 58,75 68,75 Z M68,77 C58,77 50,80 45,84 C54,86 63,83 69,79 Z" />
+            <path
+                android:strokeColor="#FFFFFF"
+                android:strokeWidth="2.4"
+                android:strokeLineCap="round"
+                android:pathData="M30,44 C26,33 36,27 48,27 C57,27 63,29 69,32" />
+        </group>
+    </group>
+</vector>

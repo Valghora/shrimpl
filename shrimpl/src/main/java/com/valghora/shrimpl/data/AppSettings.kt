@@ -2,6 +2,7 @@ package com.valghora.shrimpl.data
 
 import android.content.Context
 import androidx.core.content.edit
+import com.valghora.shrimpl.core.update.UpdateFrequency
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -145,7 +146,33 @@ class AppSettings(context: Context) {
         _keyBackedUp.value = backedUp
     }
 
+    private val _checkForUpdates = MutableStateFlow(prefs.getBoolean(KEY_CHECK_FOR_UPDATES, true))
+
+    /** Shrimpl checks GitHub for a new release in the background (R14.2); on by default. */
+    val checkForUpdates: StateFlow<Boolean> = _checkForUpdates.asStateFlow()
+
+    /** Saves the Check for updates switch (R14.2); the caller reschedules the background check. */
+    fun setCheckForUpdates(enabled: Boolean) {
+        prefs.edit { putBoolean(KEY_CHECK_FOR_UPDATES, enabled) }
+        _checkForUpdates.value = enabled
+    }
+
+    private val _updateFrequency = MutableStateFlow(
+        prefs.getString(KEY_UPDATE_FREQUENCY, null)?.let { runCatching { UpdateFrequency.valueOf(it) }.getOrNull() } ?: UpdateFrequency.DEFAULT,
+    )
+
+    /** How often the background check runs (R14.2); once a day unless the user picked another. */
+    val updateFrequency: StateFlow<UpdateFrequency> = _updateFrequency.asStateFlow()
+
+    /** Saves the Check frequency (R14.2); the caller reschedules the background check. */
+    fun setUpdateFrequency(frequency: UpdateFrequency) {
+        prefs.edit { putString(KEY_UPDATE_FREQUENCY, frequency.name) }
+        _updateFrequency.value = frequency
+    }
+
     private companion object {
+        const val KEY_CHECK_FOR_UPDATES = "check_for_updates"
+        const val KEY_UPDATE_FREQUENCY = "update_frequency"
         const val KEY_INSTALL_METHOD = "install_method"
         const val KEY_THEME = "theme"
         const val KEY_CLICK_ACTION = "click_action"

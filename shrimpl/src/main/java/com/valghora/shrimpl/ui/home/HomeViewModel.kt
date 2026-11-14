@@ -7,6 +7,7 @@ import com.valghora.shrimpl.AppContainer
 import com.valghora.shrimpl.build.BuildRequest
 import com.valghora.shrimpl.core.records.WebAppRecord
 import com.valghora.shrimpl.core.testing.TestTag
+import com.valghora.shrimpl.core.update.Release
 import com.valghora.shrimpl.data.BadgeTheme
 import com.valghora.shrimpl.data.ClickAction
 import com.valghora.shrimpl.data.HomeLayout
@@ -16,6 +17,7 @@ import com.valghora.shrimpl.data.InstalledApps
 import com.valghora.shrimpl.install.InstallResult
 import com.valghora.shrimpl.testing.TestMode
 import com.valghora.shrimpl.ui.common.BuildController
+import com.valghora.shrimpl.update.UpdateStatus
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -26,6 +28,15 @@ import kotlinx.coroutines.withContext
 /** "My Web Apps" (docs/SHRIMPL_SPEC.md R2): the records, and what Android says about each. */
 class HomeViewModel(private val container: AppContainer) : ViewModel() {
     val records: StateFlow<List<WebAppRecord>> = container.store.records
+
+    /** Shrimpl's update status; its notice shows a found release until dismissed (R14.4). */
+    val updates: StateFlow<UpdateStatus> = container.updates.status
+
+    /** Update on the Home notice (R14.6). */
+    fun installUpdate(release: Release) = container.updates.install(release)
+
+    /** Dismiss on the Home notice: hidden until a newer release (R14.4). */
+    fun dismissUpdate(release: Release) = container.updates.dismiss(release)
 
     private val _installed = MutableStateFlow<Map<String, InstalledApp>>(emptyMap())
 

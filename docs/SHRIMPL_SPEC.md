@@ -231,6 +231,7 @@ binary translation) on any device.
   | Behavior | Selecting fixes first | a switch, off by default: "When an app needs an update, fix or reinstall, selecting it does that instead." | On: tapping an installed app with a pending action (Fix or Update) does that action instead, in rows and tiles, and accessibility services hear the tap named after it ("Fix Example"). Off: the Selecting an app choice applies, and an app signed with another key still does nothing on a tap. An app that isn't installed ignores the switch (R2.2). |
   | Behavior | Haptic feedback | a switch at the end of the section, on by default: "Vibrates when a long press opens a menu" | On: a long press that opens an app's menu vibrates (R2.1); the system's touch feedback setting still applies. |
   | Signing | | the certificate's SHA-256 fingerprint with a copy button, "Export…" and "Import…" | Export and import the certificate (R5). |
+  | Updates | Check for updates, Check frequency, and the latest check | R14.3 | Shrimpl's own updates from GitHub (R14). |
   | About | | "App version <version>" and "Template version <version>" (R11.8) | |
 
 - R2.6 Tiles: the layout switch shows the apps as tiles instead of rows, and the choice is kept.
@@ -650,6 +651,44 @@ Release builds never read tags or test addresses.
   online, then fails as a real search would (R3.2): 404.test, 400.test, 500.test, offline.test,
   nohost.test, timeout.test, certificate.test and unloaded.test fail at Loading the site; 403.test
   fails at Researching permissions. The .test domain is reserved and never resolves.
+
+## R14 Shrimpl updates
+
+Shrimpl finds and installs its own new releases from GitHub, the repository's releases (R12).
+
+- R14.1 A check asks GitHub's API for the latest release (`releases/latest`), as an anonymous client
+  named "Shrimpl" that sends nothing about the user. A release is one tagged `v<version>` (R11.8) with
+  `shrimpl-<version>.apk` and `shrimpl-<version>.apk.sha256` attached. Its version code is compared with
+  the installed one: higher is available; otherwise Shrimpl is up to date. GitHub's "not found" (no
+  release yet), another HTTP status, no connection, or a release without those files is a failed check,
+  each with its reason. What a check found survives restarts.
+- R14.2 Background checks run with WorkManager at the Check frequency, only on a network connection,
+  while Check for updates is on (the default). Android may run one later than due to save battery.
+  Changing either setting reschedules at once; turning the switch off stops them.
+- R14.3 Settings has an Updates section above About:
+  - "Check for updates", a switch: "Checks GitHub for a new Shrimpl release in the background".
+  - "Check frequency", off while the switch is: 1 hour ("Checks every hour"), 6 hours ("Checks every 6
+    hours"), 12 hours ("Checks every 12 hours"), 1 day ("Checks once a day", the default) or 1 week
+    ("Checks once a week").
+  - The latest check, its title, then its result, then when it ran, each on its own line: "Shrimpl
+    <version>" / "Up to date"; "Shrimpl <version> is available" / "Ready to install"; "Couldn't check
+    for updates" / the reason; then "Last checked <time>" ("Not checked yet" before the first check).
+    While a check, download or install runs, the second line says so ("Checking…", "Downloading…",
+    "Installing…") and the button shows progress. The button is Update when a release was found,
+    otherwise Check now, which works with the switch off. A failed update shows its reason as an error
+    under the row, and the release stays on offer.
+  - Turning the switch on, or Check now, asks for the notification permission when Shrimpl lacks it.
+- R14.4 Home shows an Info notice for a release found and not dismissed: "Shrimpl <version> is
+  available. Update to get the latest fixes and features.", with Update and Dismiss (R3.3), above the
+  apps or above the empty state. Dismiss hides it until a newer release.
+- R14.5 The background check posts a notification once per release, on an "Updates" channel: "Shrimpl
+  <version> is available", "Select to see what's new", with an Update action. Selecting it opens
+  Settings; Update opens Settings and starts the update. Without the notification permission, Home's
+  notice and the Settings row still show the release.
+- R14.6 Update downloads the APK and its checksum file, installs the APK with the chosen install method
+  (R6) only when its SHA-256 matches, and Android refuses an APK not signed with Shrimpl's key. Debug
+  builds, signed with another key, refuse with "Debug builds can't install a release. Install the
+  release APK from GitHub instead."
 
 ## Known limitations
 

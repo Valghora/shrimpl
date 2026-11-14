@@ -241,6 +241,8 @@ fun SettingsScreen(inPane: Boolean, onBack: () -> Unit) {
                     NavigationItem(stringResource(R.string.action_restore_key), { openFile.launch(arrayOf(PKCS12_TYPE, "application/octet-stream")) })
                 }
 
+                UpdateSettings(model)
+
                 SettingsSection(stringResource(R.string.settings_about)) {
                     SettingsItem(
                         stringResource(R.string.app_name),

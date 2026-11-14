@@ -75,6 +75,10 @@ Java 17 bytecode.
   swallows it (`FullScreenVideoTest`, 2026-11-10). The template catches `KEYCODE_BACK` in
   `dispatchKeyEvent` while full screen shows, as it does Esc, and keeps an overlay callback for the back
   gesture, which comes the other way.
+- **WorkManager starts on first use.** Robolectric doesn't run androidx.startup's provider, so
+  WorkManager was never initialised in unit tests ("WorkManager is not initialized properly"). Shrimpl's
+  Application implements `Configuration.Provider` and the manifest removes `WorkManagerInitializer`, so
+  WorkManager starts on first use, in the app and in tests alike (2026-11-15).
 - **UiAutomator swallows interrupts.** A background thread looping over UiAutomator searches never saw
   `Thread.interrupt()` when it arrived mid-search, so `InstallRobot`'s install confirmer outlived its
   test and tapped dialogs in later ones, until a vanishing dialog crashed it inside an unrelated test

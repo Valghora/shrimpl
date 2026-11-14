@@ -218,6 +218,9 @@ These need hardware, a person, or a service an emulator doesn't have:
   the emulator's windowing is not Googlebook OS's. What snapping does to Shrimpl, a window that shares
   the screen at half its width, is tested with split screen and freeform windows (`WindowSnappingTest`).
 - **TalkBack** itself (reading order, announcements), and how haptics, animation and scrolling *feel*.
+- **Installing a real update** (R14.6): it needs a release published with the release key, and a
+  release-signed Shrimpl to install over. `UpdatesCheckTest` covers the check, the checksum and the
+  debug-build refusal against a fake GitHub.
 - **Sign-in flows** that block embedded WebViews (Google, others), and background push (not possible).
 - **Cameras, microphones and location** with real hardware (the emulator has virtual ones).
 - **Performance** on real silicon: cold start, a long home list.
