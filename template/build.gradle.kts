@@ -5,8 +5,9 @@ plugins {
     alias(libs.plugins.android.application)
 }
 
-/** shrimpl.templateVersion in gradle.properties; Shrimpl reads it to offer updates (R11.4). */
-val templateVersion = providers.gradleProperty("shrimpl.templateVersion").get().toInt()
+/** shrimpl.templateVersion in gradle.properties, and its code; Shrimpl reads the code to offer updates (R11.4, R11.8). */
+val templateVersion = providers.gradleProperty("shrimpl.templateVersion").get()
+val templateVersionCode = rootProject.extra["templateVersionCode"] as Int
 
 // Release builds are signed with the local debug key; Shrimpl re-signs every web app.
 android {
@@ -18,8 +19,8 @@ android {
         applicationId = "com.valghora.shrimpl.template"
         minSdk = 37
         targetSdk = 37
-        versionCode = templateVersion
-        versionName = "$templateVersion.0"
+        versionCode = templateVersionCode
+        versionName = templateVersion
         // Instrumented tests run on an emulator in CI (docs/TESTING.md, "The emulator's environment").
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }

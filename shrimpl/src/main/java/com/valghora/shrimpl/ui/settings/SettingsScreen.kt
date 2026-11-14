@@ -51,6 +51,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.valghora.shrimpl.BuildConfig
 import com.valghora.shrimpl.R
+import com.valghora.shrimpl.core.Versions
 import com.valghora.shrimpl.container
 import com.valghora.shrimpl.data.BadgeTheme
 import com.valghora.shrimpl.data.ClickAction
@@ -244,7 +245,7 @@ fun SettingsScreen(inPane: Boolean, onBack: () -> Unit) {
                     SettingsItem(
                         stringResource(R.string.app_name),
                         summary = stringResource(R.string.about_app, BuildConfig.VERSION_NAME) + "\n" +
-                            stringResource(R.string.about_template, model.templateVersion),
+                            stringResource(R.string.about_template, Versions.name(model.templateVersion)),
                     )
                 }
             }

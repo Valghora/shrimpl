@@ -57,6 +57,13 @@ class EmbeddedRecordTest {
     private val images = mapOf(IconOptions.WEBSITE_IMAGE to website, IconOptions.CUSTOM_IMAGE to custom)
 
     @Test
+    fun recoversTheTemplateVersionFromANewVersionName() {
+        val apk = build(EmbeddedRecord.entries(options, images::getValue))
+        val recovered = ZipFile(apk).use { EmbeddedRecord.recover(it, installed.copy(versionName = "1.4.3")) { _, _ -> error("not needed") } }
+        assertEquals("R11.8: 1.4 is code 104", 104, recovered.record.templateVersion)
+    }
+
+    @Test
     fun recoversProfileIconsAndImages() {
         val apk = build(EmbeddedRecord.entries(options, images::getValue))
         val recovered = ZipFile(apk).use { EmbeddedRecord.recover(it, installed) { _, _ -> error("not needed") } }
@@ -65,7 +72,7 @@ class EmbeddedRecordTest {
         assertEquals(options, record.icons)
         assertEquals(options.icon, record.icon)
         assertEquals(3, record.buildNumber)
-        assertEquals(7, record.templateVersion)
+        assertEquals("a name from before R11.8 (template 7, build 3)", 7, record.templateVersion)
         assertEquals("AA:BB", record.signerFingerprint)
         assertEquals(100L, record.createdAt)
         assertEquals(200L, record.updatedAt)

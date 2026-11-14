@@ -1,5 +1,6 @@
 package com.valghora.shrimpl.core.build
 
+import com.valghora.shrimpl.core.Versions
 import java.util.zip.ZipEntry
 import java.util.zip.ZipOutputStream
 import org.junit.Assert.assertArrayEquals
@@ -21,7 +22,7 @@ class ManifestPatcherTest {
         assertEquals(WebAppBuilder.TEMPLATE_PACKAGE, original.packageName)
         assertNull("the template label is a resource reference", original.literalLabel)
         assertEquals(TemplateFixture.version, original.versionCode)
-        assertEquals("${TemplateFixture.version}.0", original.versionName)
+        assertEquals(Versions.name(TemplateFixture.version), original.versionName)
         assertTrue(original.permissions.containsAll(listOf("android.permission.CAMERA", "android.permission.RECORD_AUDIO")))
         assertTrue("android.hardware.microphone" in original.features)
         assertEquals(LaunchMode.SINGLE_INSTANCE_PER_TASK.value, original.launchMode)

@@ -46,11 +46,15 @@ same commit, and a deviation gets its row in the same commit.
 4. **`:core` is pure JVM.** No `android.*`, `androidx.*` or `com.google.android.*` imports; line
    coverage stays at or above 95 %.
 5. **The template stays small.** AndroidX Views only (T1.1), no site values in its code or resources.
-   Bump `shrimpl.templateVersion` in `gradle.properties` whenever template code or resources change
+   Raise `shrimpl.templateVersion` in `gradle.properties` whenever template code or resources change
    (R11.4).
-6. **SDK checks.** minSdk is 37, so never guard APIs at or below 37. Each androidx.webkit call sits
+6. **Versions (R11.8).** Each change merged to main raises the minor version of each APK it changes
+   by one (`shrimpl.appVersion`, `shrimpl.templateVersion`; 1.0, 1.1 … 1.99); a template change raises
+   both, since Shrimpl bundles the template. A new major version only on the owner's explicit
+   instruction; past x.99, ask.
+7. **SDK checks.** minSdk is 37, so never guard APIs at or below 37. Each androidx.webkit call sits
    directly inside its own nested `WebViewFeature.isFeatureSupported` check.
-7. **Comments stay true.** Follow the code-comments skill (`.claude/skills/code-comments/SKILL.md`):
+8. **Comments stay true.** Follow the code-comments skill (`.claude/skills/code-comments/SKILL.md`):
    why, not what; no history; requirement IDs in the KDoc of the implementing declaration;
    `Invariant:` markers kept true.
 
