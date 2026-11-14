@@ -24,6 +24,9 @@ env:
 jobs:
   checks:
     name: Checks
+    # Pull requests from this repository's own branches are already covered by their push; a pull
+    # request runs this workflow only from a fork, whose branches never reach this repository's push.
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.repository
     runs-on: ubuntu-latest
     timeout-minutes: 5
     outputs:
@@ -32,21 +35,31 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
-      # Merging fast-forwards main to a commit that already passed on its branch; building it again
-      # would repeat the same work, so Build is skipped for a commit this workflow already passed.
+      # A merge commit has its own ID but often the very files of a commit that already passed (a branch
+      # merged into develop that hadn't moved); building it again would repeat the same work, so Build
+      # is skipped when a commit with the same tree passed Build here. A manual run always builds.
       - name: Already verified?
         id: verified
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          passed=$(gh api "repos/${{ github.repository }}/actions/runs?head_sha=${{ github.sha }}&status=success&per_page=100" \
-            --jq '[.workflow_runs[] | select(.name == "${{ github.workflow }}" and .id != ${{ github.run_id }})] | length')
-          if [[ "${{ github.event_name }}" != "workflow_dispatch" && "$passed" -gt 0 ]]; then
-            echo "::notice::${{ github.sha }} already passed this workflow; skipping Build"
-            echo "verified=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "verified=false" >> "$GITHUB_OUTPUT"
+          verified=false
+          if [[ "${{ github.event_name }}" != "workflow_dispatch" ]]; then
+            tree=$(git rev-parse HEAD^{tree})
+            candidates=$(gh api "repos/${{ github.repository }}/actions/runs?status=success&per_page=50" \
+              --jq '[.workflow_runs[] | select(.name == "${{ github.workflow }}" and .id != ${{ github.run_id }}) | .head_sha] | unique | .[]')
+            for sha in $candidates; do
+              [[ "$(gh api "repos/${{ github.repository }}/git/commits/$sha" --jq .tree.sha 2>/dev/null)" == "$tree" ]] || continue
+              built=$(gh api "repos/${{ github.repository }}/commits/$sha/check-runs?check_name=Build" \
+                --jq '[.check_runs[] | select(.conclusion == "success")] | length' 2>/dev/null || echo 0)
+              if [[ "$built" -gt 0 ]]; then
+                echo "::notice::${sha::7} has the same files and passed Build; skipping Build"
+                verified=true
+                break
+              fi
+            done
           fi
+          echo "verified=$verified" >> "$GITHUB_OUTPUT"
 
       # R12.2: a change to documentation only (docs/ and Markdown) needs only these checks, not Build.
       # Compared with the pushed range, the pull request's base, or develop for a new branch; a manual
@@ -70,19 +83,30 @@ jobs:
           fi
           echo "docs_only=$docs_only" >> "$GITHUB_OUTPUT"
 
-      # On a branch, also warn about narration added since main (history belongs in commit messages).
-      - name: Fetch main to compare against
-        if: github.ref_name != 'main'
-        run: git fetch -q --depth=1 origin main
+      # The branch this one's new lines are measured against (R12.5): develop for work branched from it,
+      # main for develop itself, none on main.
+      - name: Branch to compare against
+        id: base
+        run: |
+          case "${{ github.ref_name }}" in
+            main) base="" ;;
+            develop) base=main ;;
+            *) base=develop ;;
+          esac
+          if [[ -n "$base" ]]; then
+            git fetch -q --depth=1 origin "$base"
+            echo "diff=--diff origin/$base" >> "$GITHUB_OUTPUT"
+          fi
 
       # Comments: requirement IDs and doc paths resolve, TODOs are tracked, every requirement is traced
-      # (code-comments skill).
+      # (code-comments skill); new comment lines are also checked for narration (history belongs in
+      # commit messages).
       - name: Comment references
-        run: scripts/check_comments.sh ${{ github.ref_name != 'main' && '--diff origin/main' || '' }}
+        run: scripts/check_comments.sh ${{ steps.base.outputs.diff }}
 
       # Documents: requirement IDs and paths resolve; UI text the specs quote has a string resource.
       - name: Document references
-        run: scripts/check_docs.py ${{ github.ref_name != 'main' && '--diff origin/main' || '' }}
+        run: scripts/check_docs.py ${{ steps.base.outputs.diff }}
 
   build:
     name: Build
@@ -157,20 +181,9 @@ jobs:
             scripts/check_page_alignment.sh shrimpl/build/outputs/apk/release/shrimpl-release.apk
           fi
 
-      - name: Upload template and Shrimpl APKs
-        uses: actions/upload-artifact@v7
-        with:
-          name: apks
-          path: |
-            template/build/outputs/apk/release/template-release.apk
-            shrimpl/build/outputs/apk/debug/shrimpl-debug.apk
-            shrimpl/build/outputs/apk/release/shrimpl-release.apk
-          if-no-files-found: warn
-          # Builds are tested from APKs sent directly, so CI copies only need to last a day.
-          retention-days: 1
-
+      # Test and lint reports, to read what failed.
       - name: Upload reports
-        if: always()
+        if: failure()
         uses: actions/upload-artifact@v7
         with:
           name: reports
