@@ -12,7 +12,7 @@ commit. Toolchain versions and platform findings are in [BUILD_NOTES.md](BUILD_N
 | Shrimpl Robolectric tests (`shrimpl/src/test`) | JVM, in CI and the cloud container | every push | Compose layout at the nine window sizes, what a state shows, simple interactions, state surviving recreation |
 | Template unit test (`template/src/test`) | JVM | every push | The profile asset |
 | Static checks | CI | every push | Lint (0 errors), no native code (R0), 16 KB page alignment, and the comment and document checks (`scripts/check_comments.sh`, `scripts/check_docs.py`): references resolve and every requirement is traced |
-| **Emulator tests** (`src/androidTest` in `:template` and `:shrimpl`) | A real Android 37 system image (x86_64, KVM) in the Emulator workflow | by hand, on a branch ready to merge | What only a real system does: the real WebView and its bridges, real installs, real accessibility checks, real window manager |
+| **Emulator tests** (`src/androidTest` in `:template` and `:shrimpl`) | A real Android 37 system image (x86_64, KVM) in the Emulator workflow | by hand, on `develop` before a merge into `main` (R12.5) | What only a real system does: the real WebView and its bridges, real installs, real accessibility checks, real window manager |
 | The owner's devices | A Dell XPS Googlebook and others | when the owner tries a build | Everything in the last section |
 
 Robolectric runs in the cloud container; the emulator can't (no KVM), so it runs on GitHub's runners

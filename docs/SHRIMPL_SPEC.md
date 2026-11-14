@@ -570,7 +570,7 @@ The template's behavior is docs/TEMPLATE_SPEC.md. What Shrimpl relies on:
   - Only installed apps count for the notice and Fix all.
 - R11.8 Versions. Shrimpl (`shrimpl.appVersion`) and the template (`shrimpl.templateVersion`) each
   have a version `major.minor.patch`, in `gradle.properties`, minor and patch each 0 to 9.
-  - Each change merged to main raises the version of the APK it changes by one in its last part,
+  - Each change merged to `develop` (R12.5) raises the version of the APK it changes by one in its last part,
     carrying at 9: 1.0.0, 1.0.1 … 1.0.9, 1.1.0 … 1.1.9, 1.2.0 … 1.9.9. Shrimpl's version rises with any
     change to Shrimpl's APK, including a new template (which Shrimpl bundles); the template's rises with
     any change to template code or resources (R11.4). A merge that changes neither APK, such as docs,
@@ -593,8 +593,8 @@ The template's behavior is docs/TEMPLATE_SPEC.md. What Shrimpl relies on:
   refresh).
   *Outside code:* the repository layout and `scripts/`.
 - R12.2 CI (`.github/workflows/android.yml`) runs on every push and pull request: the comment and
-  document checks, then a Build job (skipped for a commit that already passed, as when main is
-  fast-forwarded to a tested branch) that tests `:core` with coverage, the template and Shrimpl,
+  document checks, then a Build job (skipped for a commit that already passed, as when a branch is
+  fast-forwarded to a tested commit) that tests `:core` with coverage, the template and Shrimpl,
   lints both apps' release variants to 0 errors, builds the template's release APK and Shrimpl's
   debug APK, and checks both for R0 and 16 KB page alignment (`scripts/check_page_alignment.sh`).
   Shrimpl's release APK is built and checked only in a manual run with Release build ticked.
@@ -602,10 +602,16 @@ The template's behavior is docs/TEMPLATE_SPEC.md. What Shrimpl relies on:
 - R12.3 Shrimpl release builds use R8 and are signed with the debug key, for personal sideloading.
   *Outside code:* `shrimpl/build.gradle.kts` (the release build type).
 - R12.4 The Emulator workflow runs the instrumented tests of `:template` and `:shrimpl` on an x86_64
-  Android 37 emulator, by hand on a branch that is ready to merge; main is only fast-forwarded to a
-  commit it passed on, or to one that changes only documentation after such a commit. How it runs and
-  what it covers: docs/TESTING.md.
+  Android 37 emulator, by hand. It is required on `develop` before a merge into `main` (R12.5): main
+  only receives a commit it passed on, or one that changes only documentation after such a commit. How
+  it runs and what it covers: docs/TESTING.md.
   *Outside code:* `.github/workflows/emulator.yml`.
+- R12.5 Branches. `develop` is where work lands; `main` holds releases and changes only when the owner
+  says so.
+  - New work branches from `develop` and merges back into it once the Android workflow (R12.2) is
+    green on the branch's last commit.
+  - A merge of `develop` into `main` also needs the Emulator workflow (R12.4) green on `develop`.
+  *Outside code:* the workflow in CLAUDE.md.
 
 ## R13 Test tags (debug builds only)
 
