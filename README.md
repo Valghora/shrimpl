@@ -47,7 +47,7 @@ Kotlin and Java. `scripts/check_native_code.sh` enforces this in CI.
 - [docs/SKILLS.md](docs/SKILLS.md): the other Android skills in use, when to use each, their
   deliberate deviations, and how `scripts/android_skills.sh` keeps them current.
 - [docs/BUILD_NOTES.md](docs/BUILD_NOTES.md): toolchain versions, platform findings, deviations.
-- [CLAUDE.md](CLAUDE.md): the rules for every change. `docs/history/` keeps superseded documents.
+- [CLAUDE.md](CLAUDE.md): the rules for every change.
 
 Brand icons come from [simple-icons](https://simpleicons.org), looked up by name when a web app is
 made; nothing from it is bundled.
