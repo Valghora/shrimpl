@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
 
     <!-- Site discovery downloads pages, manifests, scripts and icons (docs/SHRIMPL_SPEC.md R9). -->
     <uses-permission android:name="android.permission.INTERNET" />
@@ -8,6 +9,8 @@
     <!-- The system installer path (R6.1). -->
     <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
     <uses-permission android:name="android.permission.REQUEST_DELETE_PACKAGES" />
+    <!-- The update notification (R14.5). -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <!-- Shevery's API (R6.1). -->
     <uses-permission android:name="com.hamondev.shevery.permission.PRIVILEGED_API" />
 
@@ -50,6 +53,18 @@
         <receiver
             android:name=".install.InstallStatusReceiver"
             android:exported="false" />
+
+        <!-- ShrimplApp configures WorkManager, which then starts on first use (R14.2); its startup
+             initializer would start it at launch with the default configuration instead. -->
+        <provider
+            android:name="androidx.startup.InitializationProvider"
+            android:authorities="${applicationId}.androidx-startup"
+            tools:node="merge">
+            <meta-data
+                android:name="androidx.work.WorkManagerInitializer"
+                android:value="androidx.startup"
+                tools:node="remove" />
+        </provider>
 
         <!-- Shevery hands its binder to Shrimpl through this provider (R6.1). -->
         <provider

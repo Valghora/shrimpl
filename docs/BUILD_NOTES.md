@@ -83,6 +83,10 @@ Java 17 bytecode.
   uses for `com.hamondev.shevery.api` alone. The API bundles its own copy of Shizuku's client classes,
   so it can't sit beside Shizuku's library, and it brings `androidx.annotation` 1.11.0-alpha01.
   A saved install method of `SHIZUKU` reads as Shevery (`installMethodOf`).
+- **WorkManager starts on first use.** Robolectric doesn't run androidx.startup's provider, so
+  WorkManager was never initialised in unit tests ("WorkManager is not initialized properly"). Shrimpl's
+  Application implements `Configuration.Provider` and the manifest removes `WorkManagerInitializer`, so
+  WorkManager starts on first use, in the app and in tests alike (2026-11-15).
 - **UiAutomator swallows interrupts.** A background thread looping over UiAutomator searches never saw
   `Thread.interrupt()` when it arrived mid-search, so `InstallRobot`'s install confirmer outlived its
   test and tapped dialogs in later ones, until a vanishing dialog crashed it inside an unrelated test

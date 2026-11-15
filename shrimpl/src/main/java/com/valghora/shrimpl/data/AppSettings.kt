@@ -2,6 +2,7 @@ package com.valghora.shrimpl.data
 
 import android.content.Context
 import androidx.core.content.edit
+import com.valghora.shrimpl.core.update.UpdateFrequency
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -154,7 +155,21 @@ class AppSettings(context: Context) {
         _keyBackedUp.value = backedUp
     }
 
+    private val _updateFrequency = MutableStateFlow(
+        prefs.getString(KEY_UPDATE_FREQUENCY, null)?.let { runCatching { UpdateFrequency.valueOf(it) }.getOrNull() } ?: UpdateFrequency.DEFAULT,
+    )
+
+    /** How often the background check runs, or Disabled (R14.2); once a day unless the user picked another. */
+    val updateFrequency: StateFlow<UpdateFrequency> = _updateFrequency.asStateFlow()
+
+    /** Saves Check for updates (R14.2); the caller reschedules the background check. */
+    fun setUpdateFrequency(frequency: UpdateFrequency) {
+        prefs.edit { putString(KEY_UPDATE_FREQUENCY, frequency.name) }
+        _updateFrequency.value = frequency
+    }
+
     private companion object {
+        const val KEY_UPDATE_FREQUENCY = "update_frequency"
         const val KEY_INSTALL_METHOD = "install_method"
         const val KEY_THEME = "theme"
         const val KEY_CLICK_ACTION = "click_action"

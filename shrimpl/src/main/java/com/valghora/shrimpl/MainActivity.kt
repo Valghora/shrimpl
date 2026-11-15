@@ -1,5 +1,6 @@
 package com.valghora.shrimpl
 
+import android.content.Intent
 import android.content.res.Configuration
 import android.graphics.Color
 import android.os.Bundle
@@ -19,14 +20,20 @@ import com.valghora.shrimpl.ui.AppShortcut
 import com.valghora.shrimpl.ui.ShrimplNavigation
 import com.valghora.shrimpl.ui.theme.ShrimplTheme
 import com.valghora.shrimpl.ui.theme.isDark
-import kotlinx.coroutines.flow.MutableSharedFlow
+import com.valghora.shrimpl.update.UpdateResult
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.flow.receiveAsFlow
 
 /**
  * Shrimpl's single activity. It never opts out of recreation (no android:configChanges): state is
  * kept in saved state and ViewModels instead (docs/ADAPTIVE.md).
  */
 class MainActivity : ComponentActivity() {
-    private val shortcuts = MutableSharedFlow<AppShortcut>(extraBufferCapacity = 1)
+    /**
+     * Keyboard shortcuts and notification actions for navigation. A channel holds one sent before the
+     * screen collects it (a notification opening Shrimpl), and hands each to it once.
+     */
+    private val shortcuts = Channel<AppShortcut>(capacity = Channel.BUFFERED)
 
     /** Whether the window shares the screen (snapped, split screen, a desktop window), which sets when two panes show (R1.1). */
     private val sharingScreen = mutableStateOf(false)
@@ -35,6 +42,7 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)
         sharingScreen.value = isInMultiWindowMode
+        if (savedInstanceState == null) handleUpdateIntent(intent)
         setContent {
             val theme by container.settings.theme.collectAsStateWithLifecycle()
             val dark = theme.isDark()
@@ -47,7 +55,26 @@ class MainActivity : ComponentActivity() {
                 onDispose {}
             }
             ShrimplTheme(theme) {
-                ShrimplNavigation(shortcuts, sharingScreen = sharingScreen.value)
+                ShrimplNavigation(shortcuts.receiveAsFlow(), sharingScreen = sharingScreen.value)
+            }
+        }
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        handleUpdateIntent(intent)
+    }
+
+    /**
+     * The update notification's intents (docs/SHRIMPL_SPEC.md R14.5): selecting it opens Settings, and
+     * its Update action opens Settings and starts installing the release it announced.
+     */
+    private fun handleUpdateIntent(intent: Intent) {
+        when (intent.action) {
+            ACTION_SHOW_UPDATES -> shortcuts.trySend(AppShortcut.SETTINGS)
+            ACTION_INSTALL_UPDATE -> {
+                shortcuts.trySend(AppShortcut.SETTINGS)
+                (container.updates.status.value.result as? UpdateResult.Available)?.let { container.updates.install(it.release) }
             }
         }
     }
@@ -65,7 +92,7 @@ class MainActivity : ComponentActivity() {
                 KeyEvent.KEYCODE_COMMA -> AppShortcut.SETTINGS
                 else -> null
             }
-            if (shortcut != null) return shortcuts.tryEmit(shortcut)
+            if (shortcut != null) return shortcuts.trySend(shortcut).isSuccess
         }
         return super.onKeyShortcut(keyCode, event)
     }
@@ -80,5 +107,13 @@ class MainActivity : ComponentActivity() {
                 KeyboardShortcutInfo(getString(R.string.settings_title), KeyEvent.KEYCODE_COMMA, KeyEvent.META_CTRL_ON),
             ),
         )
+    }
+
+    companion object {
+        /** The update notification opens Settings (R14.5). */
+        const val ACTION_SHOW_UPDATES = "com.valghora.shrimpl.action.SHOW_UPDATES"
+
+        /** The update notification's Update action: Settings, and the update starts (R14.5). */
+        const val ACTION_INSTALL_UPDATE = "com.valghora.shrimpl.action.INSTALL_UPDATE"
     }
 }

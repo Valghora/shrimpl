@@ -26,6 +26,7 @@ class ToneTest {
         Tone.CAUTION to (Color(0xFF664A00) to Color(0xFFFFF1BF)),
         Tone.ERROR to (Color(0xFF8C1D18) to Color(0xFFFFDAD6)),
         Tone.SUCCESS to (Color(0xFF0F5223) to Color(0xFFD4F5DC)),
+        Tone.UPDATE to (Color(0xFF0B3D7A) to Color(0xFFD6E3FF)),
     )
 
     /** Every tone's colors, read under each theme color in turn. */
@@ -47,7 +48,7 @@ class ToneTest {
     @Test
     fun everyToneKeepsItsColorsOnEveryTheme() {
         val seen = seenUnderThemes()
-        assertEquals("four themes, three tones", 12, seen.size)
+        assertEquals("four themes, four tones", 16, seen.size)
         seen.forEach { (key, colors) -> assertEquals("${key.second} under ${key.first}", pairs.getValue(key.second), colors) }
     }
 
