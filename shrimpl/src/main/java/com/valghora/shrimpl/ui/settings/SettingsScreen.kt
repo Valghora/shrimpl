@@ -62,6 +62,7 @@ import com.valghora.shrimpl.ui.common.NavigationItem
 import com.valghora.shrimpl.ui.common.PageTopBar
 import com.valghora.shrimpl.ui.common.SettingsItem
 import com.valghora.shrimpl.ui.common.SettingsSection
+import com.valghora.shrimpl.ui.common.StatusButton
 import com.valghora.shrimpl.ui.common.SwitchItem
 import com.valghora.shrimpl.ui.common.Tone
 import com.valghora.shrimpl.ui.common.TooltipIconButton
@@ -283,8 +284,9 @@ fun SettingsScreen(inPane: Boolean, onBack: () -> Unit) {
 }
 
 /**
- * "Request Root" or "Request Shizuku": a Request button that turns into Success (success tone), or
- * Retry (error tone) with the failure described below the title.
+ * "Request Root" or "Request Shizuku" (R6.2): a Request button that turns into Success (success tone), or
+ * Retry (error tone) with the failure described below the title. The row keeps two lines' height and the
+ * button one size in every state, so nothing moves.
  */
 @Composable
 private fun AccessItem(title: Int, detail: Int, failed: Int, access: SettingsViewModel.Access, onRequest: () -> Unit) {
@@ -293,38 +295,38 @@ private fun AccessItem(title: Int, detail: Int, failed: Int, access: SettingsVie
         SettingsViewModel.Access.FAILED -> Tone.ERROR.container to Tone.ERROR.content
         else -> MaterialTheme.colorScheme.secondaryContainer to MaterialTheme.colorScheme.onSecondaryContainer
     }
+    val request = stringResource(R.string.action_request_access)
+    val success = stringResource(R.string.access_success)
+    val retry = stringResource(R.string.action_retry)
     SettingsItem(
         stringResource(title),
-        summary = if (access == SettingsViewModel.Access.NOT_REQUESTED || access == SettingsViewModel.Access.REQUESTING) {
-            stringResource(detail)
-        } else {
-            null
+        summary = when (access) {
+            SettingsViewModel.Access.NOT_REQUESTED, SettingsViewModel.Access.REQUESTING -> stringResource(detail)
+            SettingsViewModel.Access.FAILED -> stringResource(failed)
+            SettingsViewModel.Access.GRANTED -> null
         },
-        error = if (access == SettingsViewModel.Access.FAILED) stringResource(failed) else null,
+        summaryColor = if (access == SettingsViewModel.Access.FAILED) Tone.ERROR.text else null,
+        summaryLines = ACCESS_SUMMARY_LINES,
         trailing = {
-            Button(
+            StatusButton(
+                label = when (access) {
+                    SettingsViewModel.Access.GRANTED -> success
+                    SettingsViewModel.Access.FAILED -> retry
+                    else -> request
+                },
+                labels = listOf(request, success, retry),
+                busy = access == SettingsViewModel.Access.REQUESTING,
+                busyDescription = stringResource(title),
+                container = background,
+                content = content,
                 onClick = onRequest,
-                enabled = access != SettingsViewModel.Access.REQUESTING,
-                shape = AppShapes.Control,
-                colors = ButtonDefaults.buttonColors(containerColor = background, contentColor = content),
-            ) {
-                if (access == SettingsViewModel.Access.REQUESTING) {
-                    CircularProgressIndicator(Modifier.size(18.dp), strokeWidth = 2.dp)
-                } else {
-                    Text(
-                        stringResource(
-                            when (access) {
-                                SettingsViewModel.Access.GRANTED -> R.string.access_success
-                                SettingsViewModel.Access.FAILED -> R.string.action_retry
-                                else -> R.string.action_request_access
-                            },
-                        ),
-                    )
-                }
-            }
+            )
         },
     )
 }
+
+/** Two lines, as the version row (R14.3), so the About and Installation rows match. */
+private const val ACCESS_SUMMARY_LINES = 2
 
 /** Copies the certificate's SHA-256 fingerprint; Android confirms the copy itself. */
 private fun copyFingerprint(context: Context, fingerprint: String) {

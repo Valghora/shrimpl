@@ -1,23 +1,14 @@
 package com.valghora.shrimpl.ui.settings
 
 import android.Manifest
-import android.content.Context
 import android.content.pm.PackageManager
-import android.text.format.DateUtils
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.layout.size
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.valghora.shrimpl.BuildConfig
 import com.valghora.shrimpl.R
@@ -25,7 +16,8 @@ import com.valghora.shrimpl.core.update.UpdateFrequency
 import com.valghora.shrimpl.ui.common.DropdownItem
 import com.valghora.shrimpl.ui.common.SettingsItem
 import com.valghora.shrimpl.ui.common.SettingsSection
-import com.valghora.shrimpl.ui.theme.AppShapes
+import com.valghora.shrimpl.ui.common.StatusButton
+import com.valghora.shrimpl.ui.common.Tone
 import com.valghora.shrimpl.update.UpdateResult
 import com.valghora.shrimpl.update.UpdateStatus
 import com.valghora.shrimpl.update.UpdateWork
@@ -70,54 +62,52 @@ fun AboutSection(model: SettingsViewModel) {
 }
 
 /**
- * Shrimpl's version as the title; the latest check's result, then when it ran, each on its own line;
- * and Check, or Update once a release was found (R14.3).
+ * Shrimpl's version as the title, the latest check's state on one line in its tone, and one button
+ * (R14.3): Check, Update once a release was found, Retry after a failure, a spinner while something
+ * runs. The row keeps two lines' height and the button one size, so nothing moves between states.
  */
 @Composable
 private fun VersionItem(status: UpdateStatus, onCheck: () -> Unit, onUpdate: () -> Unit) {
-    val context = LocalContext.current
     val result = status.result
     val available = (result as? UpdateResult.Available)?.release
-    val state = when (status.work) {
-        UpdateWork.CHECKING -> stringResource(R.string.update_checking)
-        UpdateWork.DOWNLOADING -> stringResource(R.string.update_downloading)
-        UpdateWork.INSTALLING -> stringResource(R.string.update_installing)
-        null -> when (result) {
-            is UpdateResult.Available -> stringResource(R.string.update_available, result.release.version)
-            UpdateResult.UpToDate -> stringResource(R.string.update_up_to_date)
-            is UpdateResult.Failed -> stringResource(R.string.update_failed, result.reason)
-            null -> stringResource(R.string.update_not_checked)
-        }
+    val neutral = MaterialTheme.colorScheme.secondaryContainer to MaterialTheme.colorScheme.onSecondaryContainer
+    val (state, tone) = when {
+        status.work == UpdateWork.CHECKING -> stringResource(R.string.update_checking) to null
+        status.work == UpdateWork.DOWNLOADING -> stringResource(R.string.update_downloading) to Tone.UPDATE
+        status.work == UpdateWork.INSTALLING -> stringResource(R.string.update_installing) to Tone.UPDATE
+        status.installError != null -> stringResource(R.string.update_install_failed) to Tone.ERROR
+        result is UpdateResult.Available -> stringResource(R.string.update_available) to Tone.UPDATE
+        result == UpdateResult.UpToDate -> stringResource(R.string.update_up_to_date) to Tone.SUCCESS
+        result is UpdateResult.Failed -> stringResource(R.string.update_failed) to Tone.ERROR
+        else -> stringResource(R.string.update_not_checked) to null
     }
-    val checked = status.lastChecked?.let { stringResource(R.string.update_last_checked, relativeTime(context, it)) }
+    val check = stringResource(R.string.action_check)
+    val update = stringResource(R.string.action_update)
+    val retry = stringResource(R.string.action_retry)
+    val (container, content) = tone?.let { it.container to it.content } ?: neutral
     SettingsItem(
         stringResource(R.string.update_current, BuildConfig.VERSION_NAME),
-        summary = listOfNotNull(state, checked).joinToString("\n"),
-        error = status.installError,
+        summary = state,
+        summaryColor = tone?.text,
+        summaryLines = 2,
         trailing = {
-            Button(
+            StatusButton(
+                label = when {
+                    tone == Tone.ERROR -> retry
+                    available != null -> update
+                    else -> check
+                },
+                labels = listOf(check, update, retry),
+                busy = status.work != null,
+                busyDescription = state,
+                container = container,
+                content = content,
+                // Retry after a failed update tries the update again; after a failed check, the check.
                 onClick = if (available != null) onUpdate else onCheck,
-                enabled = status.work == null,
-                shape = AppShapes.Control,
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = MaterialTheme.colorScheme.secondaryContainer,
-                    contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
-                ),
-            ) {
-                if (status.work != null) {
-                    CircularProgressIndicator(Modifier.size(18.dp), strokeWidth = 2.dp)
-                } else {
-                    Text(stringResource(if (available != null) R.string.action_update else R.string.action_check))
-                }
-            }
+            )
         },
     )
 }
-
-/** "2 hours ago", as Android words it in the user's language. */
-private fun relativeTime(context: Context, time: Long): String =
-    DateUtils.getRelativeTimeSpanString(time, System.currentTimeMillis(), DateUtils.MINUTE_IN_MILLIS).toString()
-        .replaceFirstChar { it.lowercase(context.resources.configuration.locales[0]) }
 
 private fun UpdateFrequency.label() = when (this) {
     UpdateFrequency.DISABLED -> R.string.update_frequency_disabled

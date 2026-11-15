@@ -76,7 +76,7 @@ object UpdateNotification {
         )
         val notification = NotificationCompat.Builder(context, CHANNEL)
             .setSmallIcon(R.drawable.ic_stat_shrimpl)
-            .setContentTitle(context.getString(R.string.update_available, release.version))
+            .setContentTitle(context.getString(R.string.update_notification_title, release.version))
             .setContentText(context.getString(R.string.update_notification_text))
             .setContentIntent(open(MainActivity.ACTION_SHOW_UPDATES, 0))
             .addAction(0, context.getString(R.string.action_update), open(MainActivity.ACTION_INSTALL_UPDATE, 1))

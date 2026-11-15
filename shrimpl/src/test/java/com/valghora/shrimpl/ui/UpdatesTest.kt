@@ -81,21 +81,32 @@ class UpdatesTest {
         shows(string(R.string.update_frequency_week_detail))
     }
 
-    /** R14.3: a found release, then when it was checked, each on its own line, with Update. */
+    /** R14.3: a found release is offered with Update. */
     @Test
-    fun aFoundReleaseIsOfferedWithItsCheckTime() {
+    fun aFoundReleaseIsOffered() {
         container.updates.record(UpdateResult.Available(release), System.currentTimeMillis())
         settings()
-        shows(string(R.string.update_available, "1.9.9") + "\n")
+        shows(string(R.string.update_available))
         compose.onNode(hasText(string(R.string.action_update)) and hasClickAction()).assertExists()
     }
 
-    /** R14.3: a failed check says so, with its reason. */
+    /** R14.3: up to date, the button checks again. */
     @Test
-    fun aFailedCheckGivesItsReason() {
+    fun upToDateOffersCheck() {
+        container.updates.record(UpdateResult.UpToDate, System.currentTimeMillis())
+        settings()
+        shows(string(R.string.update_up_to_date))
+        compose.onNode(hasText(string(R.string.action_check)) and hasClickAction()).assertIsEnabled()
+    }
+
+    /** R14.3: a failed check says so without a reason, and offers Retry. */
+    @Test
+    fun aFailedCheckOffersRetry() {
         container.updates.record(UpdateResult.Failed(string(R.string.update_error_unreachable)), System.currentTimeMillis())
         settings()
-        shows(string(R.string.update_failed, string(R.string.update_error_unreachable)))
+        shows(string(R.string.update_failed))
+        compose.onNodeWithText(string(R.string.update_error_unreachable), substring = true).assertDoesNotExist()
+        compose.onNode(hasText(string(R.string.action_retry)) and hasClickAction()).assertIsEnabled()
     }
 
     /** R14.4: Home shows the found release until it is dismissed, and not again for that version. */

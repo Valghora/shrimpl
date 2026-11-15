@@ -231,7 +231,7 @@ binary translation) on any device.
   | Behavior | Selecting fixes first | a switch, off by default: "When an app needs an update, fix or reinstall, selecting it does that instead." | On: tapping an installed app with a pending action (Fix or Update) does that action instead, in rows and tiles, and accessibility services hear the tap named after it ("Fix Example"). Off: the Selecting an app choice applies, and an app signed with another key still does nothing on a tap. An app that isn't installed ignores the switch (R2.2). |
   | Behavior | Haptic feedback | a switch at the end of the section, on by default: "Vibrates when a long press opens a menu" | On: a long press that opens an app's menu vibrates (R2.1); the system's touch feedback setting still applies. |
   | Signing | | the certificate's SHA-256 fingerprint with a copy button, "Export…" and "Import…" | Export and import the certificate (R5). |
-  | About | "Shrimpl <version>" with the latest update check, and Check for updates | R14.3 | Shrimpl's own updates from GitHub (R14). |
+  | About | "Shrimpl <version>" with the update state, and Update check frequency | R14.3 | Shrimpl's own updates from GitHub (R14). |
 
 - R2.6 Tiles: the layout switch shows the apps as tiles instead of rows, and the choice is kept.
   - Tiles flow three across on phones (at least 100 dp wide, 8 dp apart, 12 dp in from the sides),
@@ -413,9 +413,10 @@ binary translation) on any device.
 - R6.2 Settings has one Method choice: System (default; every install asks for confirmation),
   Shizuku (silent, through ADB) or Root (silent, through superuser), described in R2.5.
   - Choosing Shizuku or Root shows a Request item ("Asks Shizuku for access" or "Asks for root
-    access", button Request). Success turns
-    the button into Success; failure shows "Failed to acquire root" / "Failed to acquire Shizuku" and
-    the button becomes Retry.
+    access", button Request). Success turns the button into Success (green); failure shows "Failed to
+    acquire root" / "Failed to acquire Shizuku" in red and the button becomes Retry (red). The item keeps
+    two lines' height and its button one size in every state, a spinner in the button's centre while
+    the request runs, so nothing moves.
   - If the chosen method fails at install time, Shrimpl says so and offers the system installer for
     this install.
 - R6.3 The Session method needs "Install unknown apps"; if it's missing, the build sheet explains it,
@@ -661,21 +662,30 @@ Shrimpl finds and installs its own new releases from GitHub, the repository's re
   the installed one: higher is available; otherwise Shrimpl is up to date. GitHub's "not found" (no
   release yet), another HTTP status, no connection, or a release without those files is a failed check,
   each with its reason. What a check found survives restarts.
-- R14.2 Background checks run with WorkManager as often as Check for updates says (every hour, 6
+- R14.2 Background checks run with WorkManager as often as Update check frequency says (every hour, 6
   hours, 12 hours, day or week; once a day by default), only on a network connection. Disabled stops
   them, and checks then run only by hand. Android may run one later than due to save battery.
   Changing the setting reschedules at once.
 - R14.3 Settings' About section holds Shrimpl's updates:
-  - The version row: its title "Shrimpl <version>" (the installed version, R11.8); its description the
-    latest check's result, then when it ran, each on its own line: "Up to date", "Shrimpl <version> is
-    available" or "Couldn't check for updates: <reason>" ("Not checked yet" before the first check),
-    then "Last checked <time>". While a check, download or install runs, the first line says so
-    ("Checking…", "Downloading…", "Installing…") and the button shows progress. The button is Update
-    when a release was found, otherwise Check, which works whatever Check for updates says. A failed
-    update shows its reason as an error under the row, and the release stays on offer.
-  - "Check for updates", a choice: Disabled ("Checks only when you select Check"), 1 hour ("Checks
-    every hour"), 6 hours ("Checks every 6 hours"), 12 hours ("Checks every 12 hours"), 1 day ("Checks
-    once a day", the default) or 1 week ("Checks once a week").
+  - The version row, titled "Shrimpl <version>" (the installed version, R11.8), shows the update state
+    on one line in its tone, and one button:
+
+    | State | Line | Tone | Button |
+    |---|---|---|---|
+    | before the first check | "Not checked yet" | neutral | Check |
+    | checking | "Checking…" | neutral | spinner |
+    | no newer release | "Up to date" | green | Check |
+    | a newer release | "Update available" | blue | Update |
+    | downloading, installing | "Downloading…", "Installing…" | blue | spinner |
+    | the check failed | "Update check failed" | red | Retry (checks again) |
+    | the update failed | "Update failed" | red | Retry (updates again) |
+
+    The line, in the tone's text color, gives no reasons. Check works whatever the frequency says. The
+    row keeps two lines' height and the button one size in every state, its spinner centred, so
+    nothing moves. Blue is the Update tone (`ui/common/Notice.kt`).
+  - "Update check frequency", a choice: Disabled ("Never checks for updates automatically"), 1 hour
+    ("Checks every hour"), 6 hours ("Checks every 6 hours"), 12 hours ("Checks every 12 hours"), 1 day
+    ("Checks once a day", the default) or 1 week ("Checks once a week").
   - Choosing an interval, or Check, asks for the notification permission when Shrimpl lacks it.
 - R14.4 Home shows an Info notice for a release found and not dismissed: "Shrimpl <version> is
   available. Update to get the latest fixes and features.", with Update and Dismiss (R3.3), above the

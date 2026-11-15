@@ -68,10 +68,10 @@ same commit, and a deviation gets its row in the same commit.
 - Settings wording follows `docs/SHRIMPL_SPEC.md` R1.6: a switch's label and description stay fixed
   (the description says what it does when on); a choice describes the selected value; descriptions
   start with a present-tense verb; "select", not "tap" or "click".
-- Colors follow `ui/common/Notice.kt` and the theme: Info follows the Material theme; Caution, Error
-  and Success use pastel containers with dark text in both themes; status text on plain surfaces is
-  pastel in dark theme and deep in light theme. None is harmonized with the theme, except home badges
-  and row buttons under the Badge theme setting (R2.5).
+- Colors follow `ui/common/Notice.kt` and the theme: Info follows the Material theme; Caution, Error,
+  Success and Update (blue, Shrimpl's own updates) use pastel containers with dark text in both
+  themes; status text on plain surfaces is pastel in dark theme and deep in light theme. None is
+  harmonized with the theme, except home badges and row buttons under the Badge theme setting (R2.5).
 
 ## Tests
 
