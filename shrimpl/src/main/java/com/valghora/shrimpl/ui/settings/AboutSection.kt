@@ -24,7 +24,7 @@ import com.valghora.shrimpl.update.UpdateWork
 
 /**
  * The About section of Settings (docs/SHRIMPL_SPEC.md R14.3): Shrimpl's version, with the latest
- * update check and Check or Update, then Check for updates, how often the background check runs or
+ * update check and Check or Update, then Update check frequency: how often the background check runs or
  * Disabled. Choosing an interval or checking by hand asks for the notification permission the update
  * notification needs.
  */
