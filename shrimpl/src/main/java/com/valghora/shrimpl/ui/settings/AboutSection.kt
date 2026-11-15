@@ -24,7 +24,7 @@ import com.valghora.shrimpl.update.UpdateWork
 
 /**
  * The About section of Settings (docs/SHRIMPL_SPEC.md R14.3): Shrimpl's version, with the latest
- * update check and Check or Update, then Check for updates, how often the background check runs or
+ * update check and Check or Update, then Update check frequency: how often the background check runs or
  * Disabled. Choosing an interval or checking by hand asks for the notification permission the update
  * notification needs.
  */
@@ -64,7 +64,7 @@ fun AboutSection(model: SettingsViewModel) {
 /**
  * Shrimpl's version as the title, the latest check's state on one line in its tone, and one button
  * (R14.3): Check, Update once a release was found, Retry after a failure, a spinner while something
- * runs. The row keeps two lines' height and the button one size, so nothing moves between states.
+ * runs. The button keeps one size, so it doesn't move between states.
  */
 @Composable
 private fun VersionItem(status: UpdateStatus, onCheck: () -> Unit, onUpdate: () -> Unit) {
@@ -89,7 +89,6 @@ private fun VersionItem(status: UpdateStatus, onCheck: () -> Unit, onUpdate: () 
         stringResource(R.string.update_current, BuildConfig.VERSION_NAME),
         summary = state,
         summaryColor = tone?.text,
-        summaryLines = 2,
         trailing = {
             StatusButton(
                 label = when {

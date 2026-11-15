@@ -23,8 +23,8 @@ import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
 
 /**
- * docs/SHRIMPL_SPEC.md R14.3, R6.2: a status row (the version row, Request Root, Request Shevery) keeps its
- * height and its button's size in every state, with any label or the spinner, so nothing moves.
+ * docs/SHRIMPL_SPEC.md R14.3, R6.2: a status row's button (the version row, Request Root, Request Shevery)
+ * keeps its size in every state, with any label or the spinner, so it doesn't move.
  */
 @Config(qualifiers = "w420dp-h900dp")
 @RunWith(RobolectricTestRunner::class)
@@ -46,7 +46,7 @@ class StatusRowTest {
     )
 
     @Test
-    fun theRowAndItsButtonKeepTheirSizeInEveryState() {
+    fun theButtonKeepsItsSizeInEveryState() {
         var index by mutableIntStateOf(0)
         compose.setContent {
             MaterialTheme {
@@ -54,9 +54,7 @@ class StatusRowTest {
                 Box(Modifier.width(420.dp)) {
                     SettingsItem(
                         "Shrimpl 1.0.3",
-                        Modifier.testTag("row"),
                         summary = summary,
-                        summaryLines = 2,
                         trailing = {
                             Box(Modifier.testTag("button")) {
                                 StatusButton(label ?: "", labels, busy = label == null, busyDescription = summary.orEmpty(), container = Color.LightGray, content = Color.Black, onClick = {})
@@ -69,9 +67,9 @@ class StatusRowTest {
         val sizes = states.indices.map { state ->
             compose.runOnIdle { index = state }
             compose.waitForIdle()
-            compose.onNodeWithTag("row").fetchSemanticsNode().size to compose.onNodeWithTag("button").fetchSemanticsNode().size
+            compose.onNodeWithTag("button").fetchSemanticsNode().size
         }
-        val first: Pair<IntSize, IntSize> = sizes.first()
+        val first: IntSize = sizes.first()
         sizes.forEachIndexed { state, size -> assertEquals("state ${states[state]}", first, size) }
     }
 }

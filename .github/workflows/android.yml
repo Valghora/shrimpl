@@ -1,7 +1,10 @@
 name: Android
 
 on:
+  # R12.2: a branch passes here before it merges into develop, so the merge isn't built again.
   push:
+    branches-ignore:
+      - develop
   pull_request:
   workflow_dispatch:
     inputs:

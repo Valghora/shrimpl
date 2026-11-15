@@ -203,8 +203,8 @@
     <string name="field_domains_detail">Links to these domains and their subdomains open in the app; others open in the browser. Select a domain to remove it.</string>
     <string name="action_ok">OK</string>
     <string name="install_method">Method</string>
-    <string name="install_shevery_detail">Installs without asking, through Shevery.</string>
-    <string name="install_root_detail">Installs without asking, using root access.</string>
+    <string name="install_shevery_detail">Installs silently through Shevery</string>
+    <string name="install_root_detail">Installs silently with root access</string>
     <string name="theme_mode">Theme</string>
     <string name="theme_system_detail">Follows the system\'s light or dark theme</string>
     <string name="theme_dark_detail">Always uses the dark theme</string>
@@ -230,7 +230,6 @@
     <string name="request_shevery_failed">Failed to acquire Shevery</string>
     <string name="access_success">Success</string>
     <string name="action_request_access">Request</string>
-    <string name="request_root_detail">Asks for root access</string>
     <string name="request_shevery_detail">Asks Shevery for access</string>
     <string name="action_copy_certificate">Copy certificate fingerprint</string>
     <string name="tooltip_settings">Settings (Ctrl+,)</string>
