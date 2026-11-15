@@ -1,10 +1,8 @@
 name: Android
 
+# R12.2: run by hand on a branch when it is about to merge (and on develop before a release), not on
+# pushes, so work in progress never waits on it.
 on:
-  # R12.2: a branch passes here before it merges into develop, so the merge isn't built again.
-  push:
-    branches-ignore:
-      - develop
   pull_request:
   workflow_dispatch:
     inputs:
@@ -27,8 +25,8 @@ env:
 jobs:
   checks:
     name: Checks
-    # Pull requests from this repository's own branches are already covered by their push; a pull
-    # request runs this workflow only from a fork, whose branches never reach this repository's push.
+    # This repository's own branches run it by hand before they merge; a pull request runs it only from
+    # a fork, whose branches can't be dispatched here.
     if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.repository
     runs-on: ubuntu-latest
     timeout-minutes: 5
@@ -38,16 +36,16 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
-      # A merge commit has its own ID but often the very files of a commit that already passed (a branch
-      # merged into develop that hadn't moved); building it again would repeat the same work, so Build
-      # is skipped when a commit with the same tree passed Build here. A manual run always builds.
+      # develop after a merge often has the very files of the branch that passed just before it merged;
+      # building them again would repeat the same work, so Build is skipped when a commit with the same
+      # tree passed Build here. A Release build run always builds.
       - name: Already verified?
         id: verified
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           verified=false
-          if [[ "${{ github.event_name }}" != "workflow_dispatch" ]]; then
+          if [[ "${{ inputs.release }}" != "true" ]]; then
             tree=$(git rev-parse HEAD^{tree})
             # Recent passing runs of this workflow, as "run-id head-sha" (the Actions API, which the
             # job's token can read; check runs need a permission it doesn't have).
@@ -69,16 +67,15 @@ jobs:
           echo "verified=$verified" >> "$GITHUB_OUTPUT"
 
       # R12.2: a change to documentation only (docs/ and Markdown) needs only these checks, not Build.
-      # Compared with the pushed range, the pull request's base, or develop for a new branch; a manual
-      # run always builds.
+      # Compared with the pull request's base, or with the branch this one merges into (R12.5).
       - name: Documentation only?
         id: docs
         run: |
-          before="${{ github.event.before }}"
-          case "${{ github.event_name }}" in
-            pull_request) base="${{ github.event.pull_request.base.sha }}" ;;
-            push) if [[ -n "$before" && "$before" != 0000000000000000000000000000000000000000 ]]; then base="$before"; else base=develop; fi ;;
-            *) base="" ;;
+          case "${{ github.event_name }}/${{ github.ref_name }}" in
+            pull_request/*) base="${{ github.event.pull_request.base.sha }}" ;;
+            */main) base="" ;;
+            */develop) base=main ;;
+            *) base=develop ;;
           esac
           docs_only=false
           if [[ -n "$base" ]] && git fetch -q --depth=1 origin "$base"; then
