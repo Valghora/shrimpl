@@ -137,7 +137,7 @@
         <item quantity="one">Update %1$d app?</item>
         <item quantity="other">Update %1$d apps?</item>
     </plurals>
-    <string name="update_all_text">Android will ask you for permission to perform each update. To update your apps without prompts, switch your installation method to Shizuku or Root via Settings.</string>
+    <string name="update_all_text">Android will ask you for permission to perform each update. To update your apps without prompts, switch your installation method to Shevery or Root via Settings.</string>
     <string name="build_title_updating">Updating %1$s (%2$d of %3$d)…</string>
     <plurals name="batch_fixed">
         <item quantity="one">%1$d app fixed</item>
@@ -174,7 +174,7 @@
     <string name="settings_install">Installation</string>
     <string name="install_session">System</string>
     <string name="install_session_detail">Android asks you to confirm each install</string>
-    <string name="install_shizuku">Shizuku</string>
+    <string name="install_shevery">Shevery</string>
     <string name="install_root">Root</string>
     <string name="settings_signing">Signing</string>
     <string name="signing_none">Add a site to generate your signing key, or import an existing one.</string>
@@ -203,7 +203,7 @@
     <string name="field_domains_detail">Links to these domains and their subdomains open in the app; others open in the browser. Select a domain to remove it.</string>
     <string name="action_ok">OK</string>
     <string name="install_method">Method</string>
-    <string name="install_shizuku_detail">Installs without asking, through Shizuku.</string>
+    <string name="install_shevery_detail">Installs without asking, through Shevery.</string>
     <string name="install_root_detail">Installs without asking, using root access.</string>
     <string name="theme_mode">Theme</string>
     <string name="theme_system_detail">Follows the system\'s light or dark theme</string>
@@ -227,16 +227,16 @@
     <string name="notice_error">Error</string>
     <string name="field_pause_power_save_detail">Pauses the site while battery saver is on. Saves battery, but notifications don\'t arrive until you open the app again.</string>
     <string name="request_root">Request Root</string>
-    <string name="request_shizuku">Request Shizuku</string>
+    <string name="request_shevery">Request Shevery</string>
     <string name="request_root_failed">Failed to acquire root</string>
-    <string name="request_shizuku_failed">Failed to acquire Shizuku</string>
+    <string name="request_shevery_failed">Failed to acquire Shevery</string>
     <string name="access_success">Success</string>
     <string name="action_request_access">Request</string>
     <string name="request_root_detail">Asks for root access</string>
-    <string name="request_shizuku_detail">Asks Shizuku for access</string>
+    <string name="request_shevery_detail">Asks Shevery for access</string>
     <string name="action_copy_certificate">Copy certificate fingerprint</string>
     <string name="tooltip_settings">Settings (Ctrl+,)</string>
-    <string name="click_action">Selecting an app</string>
+    <string name="click_action">Default select action</string>
     <string name="click_action_open_detail">Opens the app</string>
     <string name="click_action_edit_detail">Opens the app\'s settings</string>
     <string name="resolve_on_tap">Selecting fixes first</string>

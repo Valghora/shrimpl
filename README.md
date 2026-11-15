@@ -16,7 +16,7 @@ own launcher icon, task, window and sign-ins, and behaves like an installed PWA 
    saving builds the next version (Build 2, 3, ...) and updates it in place, keeping its sign-ins.
    With a keyboard, Ctrl+N starts a new web app and Ctrl+, opens Settings.
 
-Install methods (Settings): System (asks for confirmation), Shizuku, or Root (no prompts). Export
+Install methods (Settings): System (asks for confirmation), Shevery, or Root (no prompts). Export
 the certificate in Settings and keep it safe: web apps can only be updated with the key that signed
 them.
 
@@ -31,7 +31,7 @@ them.
   sizes), replaces the profile and icons, and signs with apksig.
 - `shrimpl/`: the manager app in Compose (Material 3, Navigation 3 with a list-detail layout on wide
   windows): discovery (a page fetch plus a hidden WebView), the icon renderer, the record store, the
-  signing key in the Android Keystore, and the System, Shizuku and Root installers.
+  signing key in the Android Keystore, and the System, Shevery and Root installers.
 
 Every APK runs natively on ARM and x86 devices, 32 and 64 bit, with no translation layer: the
 template and the web apps contain no native code, and building a web app on the device is pure

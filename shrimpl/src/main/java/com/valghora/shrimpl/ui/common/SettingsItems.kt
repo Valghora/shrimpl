@@ -96,7 +96,7 @@ val LocalInGroup = staticCompositionLocalOf { false }
 /**
  * A titled group of items (docs/SHRIMPL_SPEC.md R3.3). Each visible item is shaped by its place: the
  * first rounded at the top, the last at the bottom, the ones between with small corners, and a lone
- * item rounded all round. Items that come and go (Shizuku access, say) are counted as they are.
+ * item rounded all round. Items that come and go (Shevery access, say) are counted as they are.
  */
 @Composable
 fun SettingsSection(title: String, modifier: Modifier = Modifier, content: @Composable () -> Unit) {

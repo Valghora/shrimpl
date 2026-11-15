@@ -115,7 +115,7 @@ binary translation) on any device.
   - Content descriptions on every icon; font scaling supported.
   - The template stays on Views (T1.1).
   - Shrimpl's launcher icon is a white shrimp on #CC5500, with a monochrome layer for themed icons.
-- R1.4 Three install methods behind one interface (R6): System (the platform installer), Shizuku and
+- R1.4 Three install methods behind one interface (R6): System (the platform installer), Shevery and
   Root.
 - R1.5 Shapes: rounded corners from Material's shape scale, one size per role, all defined in
   `ui/theme/Shapes.kt`, which also sets Material's theme shapes so dialogs, sheets, chips, tooltips
@@ -175,9 +175,9 @@ binary translation) on any device.
     | State | When | Row button | Tile badge (R2.6) | Accessibility state | Tap | Menu, in order |
     |---|---|---|---|---|---|---|
     | Fix required | installed, signed with another key (R11.7) | Fix: a wrench, red | red wrench | "Fix required" | nothing (with Selecting fixes first: Fix) | Fix, Edit, Remove |
-    | Update ready | installed, built from an older template (R11.4) | Update: an up arrow, green, right of the name | green up arrow | "Update ready" | the Selecting an app choice (with Selecting fixes first: Update) | Update, Open, Edit, Uninstall |
+    | Update ready | installed, built from an older template (R11.4) | Update: an up arrow, green, right of the name | green up arrow | "Update ready" | the Default select action (with Selecting fixes first: Update) | Update, Open, Edit, Uninstall |
     | Not installed | a record whose app isn't installed | Reinstall: Material's "replay", yellow | yellow "replay" | "Not installed" | nothing, and no tap is offered to accessibility services; Selecting fixes first doesn't apply | Reinstall, Edit, Remove |
-    | Installed | none of the above | none | none | none | the Selecting an app choice (R2.5) | Open, Edit, Rebuild, Uninstall |
+    | Installed | none of the above | none | none | none | the Default select action (R2.5) | Open, Edit, Rebuild, Uninstall |
 
   - The ⋮ menu, the right-click menu and the long-press menu ("Show options") offer the same actions.
     The pending action is always first; Rebuild appears only when there is none.
@@ -218,7 +218,7 @@ binary translation) on any device.
     what failed.
   - With the System install method, Update all first asks: "Android will ask you for permission to
     perform each update. To update your apps without prompts, switch your installation method to
-    Shizuku or Root via Settings.", with Cancel and Update all.
+    Shevery or Root via Settings.", with Cancel and Update all.
   - Fix all (R11.7) sits in the same place and works the same way.
 - R2.5 Settings, from the top bar button or Ctrl+,. Descriptions are quoted exactly and follow R1.6.
 
@@ -226,9 +226,9 @@ binary translation) on any device.
   |---|---|---|---|
   | Appearance | Theme | System (default): "Follows the system's light or dark theme"; Light: "Always uses the light theme"; Dark: "Always uses the dark theme" | Light or dark only: every choice uses the wallpaper's dynamic colors (R1.3). |
   | Appearance | Badge theme | Shrimpl (default): "Each status keeps its own pastel color"; Harmony: "Status colors are tinted toward your wallpaper's colors"; Mono: "Every status uses your wallpaper's main color" | Home badges and row buttons (R2.2, R2.6) only, not notices. Shrimpl: each status's fixed pastel and deep shade. Harmony: both run through Material's harmonize with the theme's primary color, the hue turned up to 15 degrees and the tone kept, so 7:1 contrast holds. Mono: the theme's primary container and on-primary-container colors for every status, which the symbols then tell apart. |
-  | Installation | Method | System: "Android asks you to confirm each install"; Shizuku: "Installs without asking, through Shizuku."; Root: "Installs without asking, using root access." (R6.2) | Shizuku and Root add the Request Shizuku / Request Root item. |
-  | Behavior | Selecting an app | Edit (default): "Opens the app's settings"; Open: "Opens the app" | What a tap does on an installed app with no pending action, or with Selecting fixes first off. |
-  | Behavior | Selecting fixes first | a switch, off by default: "When an app needs an update, fix or reinstall, selecting it does that instead." | On: tapping an installed app with a pending action (Fix or Update) does that action instead, in rows and tiles, and accessibility services hear the tap named after it ("Fix Example"). Off: the Selecting an app choice applies, and an app signed with another key still does nothing on a tap. An app that isn't installed ignores the switch (R2.2). |
+  | Installation | Method | System: "Android asks you to confirm each install"; Shevery: "Installs without asking, through Shevery."; Root: "Installs without asking, using root access." (R6.2) | Shevery and Root add the Request Shevery / Request Root item. |
+  | Behavior | Default select action | Edit (default): "Opens the app's settings"; Open: "Opens the app" | What a tap does on an installed app with no pending action, or with Selecting fixes first off. |
+  | Behavior | Selecting fixes first | a switch, off by default: "When an app needs an update, fix or reinstall, selecting it does that instead." | On: tapping an installed app with a pending action (Fix or Update) does that action instead, in rows and tiles, and accessibility services hear the tap named after it ("Fix Example"). Off: the Default select action applies, and an app signed with another key still does nothing on a tap. An app that isn't installed ignores the switch (R2.2). |
   | Behavior | Haptic feedback | a switch at the end of the section, on by default: "Vibrates when a long press opens a menu" | On: a long press that opens an app's menu vibrates (R2.1); the system's touch feedback setting still applies. |
   | Signing | | the certificate's SHA-256 fingerprint with a copy button, "Export…" and "Import…" | Export and import the certificate (R5). |
   | About | | "App version <version>" and "Template version <version>" (R11.8) | |
@@ -408,13 +408,13 @@ binary translation) on any device.
   - **Session:** `PackageInstaller` sessions; REQUEST_INSTALL_PACKAGES. Sessions ask for
     `USER_ACTION_NOT_REQUIRED`, but Android still asks the user to confirm every install and every
     update (the emulator's `BuildAndInstallTest` taps Update), hence R2.4's warning.
-  - **Shizuku:** a Shizuku user service running `pm install -S` with the APK piped in; no prompts.
+  - **Shevery:** a Shevery user service running `pm install -S` with the APK piped in; no prompts.
   - **Root:** `su -c pm install -S` with the APK piped in; `pm uninstall` for uninstalls.
 - R6.2 Settings has one Method choice: System (default; every install asks for confirmation),
-  Shizuku (silent, through ADB) or Root (silent, through superuser), described in R2.5.
-  - Choosing Shizuku or Root shows a Request item ("Asks Shizuku for access" or "Asks for root
+  Shevery (silent, through ADB) or Root (silent, through superuser), described in R2.5.
+  - Choosing Shevery or Root shows a Request item ("Asks Shevery for access" or "Asks for root
     access", button Request). Success turns
-    the button into Success; failure shows "Failed to acquire root" / "Failed to acquire Shizuku" and
+    the button into Success; failure shows "Failed to acquire root" / "Failed to acquire Shevery" and
     the button becomes Retry.
   - If the chosen method fails at install time, Shrimpl says so and offers the system installer for
     this install.
@@ -653,7 +653,7 @@ Release builds never read tags or test addresses.
 
 ## Known limitations
 
-- Shizuku and Root installs, hinges, window snapping, TalkBack, and how Shrimpl looks and feels are
+- Shevery and Root installs, hinges, window snapping, TalkBack, and how Shrimpl looks and feels are
   verified only on the owner's devices (docs/TESTING.md).
 - Google's developer verification for sideloaded apps may block or warn about installs on certified
   devices.

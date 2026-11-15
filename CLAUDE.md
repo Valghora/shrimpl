@@ -80,7 +80,7 @@ same commit, and a deviation gets its row in the same commit.
   change, look for behavior worth a new test and add it where it makes sense; a layout or state bug
   found on a device gets a test that would have caught it.
 - The template's WebView and bridges, and real installs: emulator tests. A change to them adds or
-  updates one. What the emulator can't do (hinges, Shizuku and Root, TalkBack, how it looks) is named
+  updates one. What the emulator can't do (hinges, Shevery and Root, TalkBack, how it looks) is named
   in `docs/TESTING.md`; how a screen looks and feels, and what needs hardware, is confirmed on the
   owner's devices.
 
