@@ -226,7 +226,7 @@ binary translation) on any device.
   |---|---|---|---|
   | Appearance | Theme | System (default): "Follows the system's light or dark theme"; Light: "Always uses the light theme"; Dark: "Always uses the dark theme" | Light or dark only: every choice uses the wallpaper's dynamic colors (R1.3). |
   | Appearance | Badge theme | Shrimpl (default): "Each status keeps its own pastel color"; Harmony: "Status colors are tinted toward your wallpaper's colors"; Mono: "Every status uses your wallpaper's main color" | Home badges and row buttons (R2.2, R2.6) only, not notices. Shrimpl: each status's fixed pastel and deep shade. Harmony: both run through Material's harmonize with the theme's primary color, the hue turned up to 15 degrees and the tone kept, so 7:1 contrast holds. Mono: the theme's primary container and on-primary-container colors for every status, which the symbols then tell apart. |
-  | Installation | Method | System: "Android asks you to confirm each install"; Shevery: "Installs without asking, through Shevery."; Root: "Installs without asking, using root access." (R6.2) | Shevery and Root add the Request Shevery / Request Root item. |
+  | Installation | Method | System: "Android asks you to confirm each install"; Shevery: "Installs silently through Shevery"; Root: "Installs silently with root access" (R6.2) | Shevery and Root add the Request Shevery / Request Root item. |
   | Behavior | Default select action | Edit (default): "Opens the app's settings"; Open: "Opens the app" | What a tap does on an installed app with no pending action, or with Selecting fixes first off. |
   | Behavior | Selecting fixes first | a switch, off by default: "When an app needs an update, fix or reinstall, selecting it does that instead." | On: tapping an installed app with a pending action (Fix or Update) does that action instead, in rows and tiles, and accessibility services hear the tap named after it ("Fix Example"). Off: the Default select action applies, and an app signed with another key still does nothing on a tap. An app that isn't installed ignores the switch (R2.2). |
   | Behavior | Haptic feedback | a switch at the end of the section, on by default: "Vibrates when a long press opens a menu" | On: a long press that opens an app's menu vibrates (R2.1); the system's touch feedback setting still applies. |
@@ -412,8 +412,8 @@ binary translation) on any device.
   - **Root:** `su -c pm install -S` with the APK piped in; `pm uninstall` for uninstalls.
 - R6.2 Settings has one Method choice: System (default; every install asks for confirmation),
   Shevery (silent, through ADB) or Root (silent, through superuser), described in R2.5.
-  - Choosing Shevery or Root shows a Request item ("Asks Shevery for access" or "Asks for root
-    access", button Request). Success turns the button into Success (green); failure shows "Failed to
+  - Choosing Shevery or Root shows a Request item (Request Shevery with "Asks Shevery for access",
+    or Request Root with no description; button Request). Success turns the button into Success (green); failure shows "Failed to
     acquire root" / "Failed to acquire Shevery" in red and the button becomes Retry (red). The button keeps
     one size in every state, a spinner in its centre while the request runs, so it doesn't move.
   - If the chosen method fails at install time, Shrimpl says so and offers the system installer for
@@ -592,10 +592,12 @@ The template's behavior is docs/TEMPLATE_SPEC.md. What Shrimpl relies on:
   `scripts/check_native_code.sh` (R0), and `scripts/dev/` (placeholder icons, Public Suffix List
   refresh).
   *Outside code:* the repository layout and `scripts/`.
-- R12.2 CI (`.github/workflows/android.yml`) runs on every push, and on pull requests from forks: the
+- R12.2 CI (`.github/workflows/android.yml`) runs on every push except to `develop` (a branch is
+  checked before it merges into develop, so the merge itself isn't built again), on pull requests from
+  forks, and by hand: the
   comment and document checks (new lines measured against the branch it comes from, R12.5), then a
-  Build job (skipped for a commit whose files already passed Build, as when a branch merges into a
-  develop that hadn't moved, and for a change to documentation only, docs/ and Markdown) that tests
+  Build job (skipped for a commit whose files already passed Build, as when develop merges into a
+  main that hadn't moved, and for a change to documentation only, docs/ and Markdown) that tests
   `:core` with coverage, the template and Shrimpl, lints both apps' release variants to 0 errors, builds the template's release APK and Shrimpl's
   debug APK, and checks both for R0 and 16 KB page alignment (`scripts/check_page_alignment.sh`).
   Shrimpl's release APK is built and checked only in a manual run with Release build ticked. Test and
@@ -612,7 +614,8 @@ The template's behavior is docs/TEMPLATE_SPEC.md. What Shrimpl relies on:
   says so.
   - New work branches from `develop` and merges back into it once the Android workflow (R12.2) is
     green on the branch's last commit.
-  - A merge of `develop` into `main` also needs the Emulator workflow (R12.4) green on `develop`.
+  - A merge of `develop` into `main` needs the Android workflow, run on `develop` by hand, and the
+    Emulator workflow (R12.4) green on `develop`.
   - A change to documentation only (docs and Markdown) needs neither workflow before either merge.
   *Outside code:* the workflow in CLAUDE.md.
 

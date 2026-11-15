@@ -112,7 +112,8 @@ pushes; it is required only before a merge into `main`.
   2. Merge only with the Android workflow green on the branch's last commit, and only once the owner
      says to. The Emulator workflow isn't required here; dispatch it by hand only to try a test.
 - **A merge to main, only when the owner says so** (a release):
-  1. Dispatch the Emulator workflow on `develop`:
+  1. Dispatch the Android and the Emulator workflow on `develop` (pushes to develop don't run CI):
+     `gh api -X POST repos/Valghora/shrimpl/actions/workflows/android.yml/dispatches -f ref=develop` and
      `gh api -X POST repos/Valghora/shrimpl/actions/workflows/emulator.yml/dispatches -f ref=develop`.
      `docs/TESTING.md` says how to read a failure.
   2. Merge `develop` into `main` only with both the Android and the Emulator workflow green on

@@ -187,7 +187,7 @@ fun SettingsScreen(inPane: Boolean, onBack: () -> Unit) {
                         InstallMethod.SHEVERY -> AccessItem(R.string.request_shevery, R.string.request_shevery_detail, R.string.request_shevery_failed, sheveryAccess) {
                             model.requestAccess(InstallMethod.SHEVERY)
                         }
-                        InstallMethod.ROOT -> AccessItem(R.string.request_root, R.string.request_root_detail, R.string.request_root_failed, rootAccess) {
+                        InstallMethod.ROOT -> AccessItem(R.string.request_root, null, R.string.request_root_failed, rootAccess) {
                             model.requestAccess(InstallMethod.ROOT)
                         }
                     }
@@ -285,11 +285,12 @@ fun SettingsScreen(inPane: Boolean, onBack: () -> Unit) {
 
 /**
  * "Request Root" or "Request Shevery" (R6.2): a Request button that turns into Success (success tone), or
- * Retry (error tone) with the failure described below the title. The button keeps one size in every
+ * Retry (error tone) with the failure described below the title. [detail], when set, describes the
+ * Request before it succeeds. The button keeps one size in every
  * state, so it doesn't move.
  */
 @Composable
-private fun AccessItem(title: Int, detail: Int, failed: Int, access: SettingsViewModel.Access, onRequest: () -> Unit) {
+private fun AccessItem(title: Int, detail: Int?, failed: Int, access: SettingsViewModel.Access, onRequest: () -> Unit) {
     val (background, content) = when (access) {
         SettingsViewModel.Access.GRANTED -> Tone.SUCCESS.container to Tone.SUCCESS.content
         SettingsViewModel.Access.FAILED -> Tone.ERROR.container to Tone.ERROR.content
@@ -301,7 +302,7 @@ private fun AccessItem(title: Int, detail: Int, failed: Int, access: SettingsVie
     SettingsItem(
         stringResource(title),
         summary = when (access) {
-            SettingsViewModel.Access.NOT_REQUESTED, SettingsViewModel.Access.REQUESTING -> stringResource(detail)
+            SettingsViewModel.Access.NOT_REQUESTED, SettingsViewModel.Access.REQUESTING -> detail?.let { stringResource(it) }
             SettingsViewModel.Access.FAILED -> stringResource(failed)
             SettingsViewModel.Access.GRANTED -> null
         },
