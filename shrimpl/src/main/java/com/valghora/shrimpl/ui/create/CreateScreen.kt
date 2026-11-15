@@ -30,7 +30,6 @@ import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.Icon
@@ -68,6 +67,7 @@ import com.valghora.shrimpl.ui.common.BuildSheet
 import com.valghora.shrimpl.ui.common.BuildState
 import com.valghora.shrimpl.ui.common.MainActionButton
 import com.valghora.shrimpl.ui.common.PageTopBar
+import com.valghora.shrimpl.ui.common.StepSpinner
 import com.valghora.shrimpl.ui.common.Tone
 import com.valghora.shrimpl.ui.common.TooltipIconButton
 import com.valghora.shrimpl.ui.common.WithTooltip
@@ -261,7 +261,7 @@ private fun ActionRow(label: Int, onClick: () -> Unit) {
 
 /**
  * R3.2: the search as a checklist under "Searching…" ("Search failed" once a step has failed): a
- * check for each finished step, the standard spinner on the current one (as in the build sheet),
+ * check for each finished step, [StepSpinner] on the current one (as in the build sheet),
  * empty circles for the rest. A [failed] step gets a red mark with [message] under it; the steps
  * after it never started.
  */
@@ -310,7 +310,7 @@ private fun StepLine(label: String, state: StepState) {
         val mark = Modifier.size(STEP_MARK)
         when (state) {
             StepState.DONE -> Icon(Icons.Filled.CheckCircle, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = mark)
-            StepState.CURRENT -> CircularProgressIndicator(mark, strokeWidth = 3.dp)
+            StepState.CURRENT -> StepSpinner(mark)
             // The "!" is drawn only; the row's state says "Failed".
             StepState.FAILED -> Box(mark.clip(CircleShape).background(Tone.ERROR.container).clearAndSetSemantics {}, contentAlignment = Alignment.Center) {
                 Text("!", color = Tone.ERROR.content, style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.Bold)

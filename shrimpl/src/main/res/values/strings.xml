@@ -86,10 +86,6 @@
     <string name="field_camera">Camera</string>
     <string name="field_notifications">Notifications</string>
     <string name="field_location">Location</string>
-    <string name="field_microphone_detail">Lets the site ask to use your microphone</string>
-    <string name="field_camera_detail">Lets the site ask to use your camera</string>
-    <string name="field_notifications_detail">Lets the site show notifications</string>
-    <string name="field_location_detail">Lets the site ask for your location</string>
     <string name="field_header_color">Header color</string>
     <string name="header_system">System</string>
     <string name="header_dynamic">Dynamic</string>

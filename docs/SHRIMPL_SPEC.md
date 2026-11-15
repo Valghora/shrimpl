@@ -266,7 +266,7 @@ binary translation) on any device.
 - R3.2 Discovery (R9) progress and errors.
   - A checklist under "Searching…": Loading the site, Consulting the manifest, Researching
     permissions, Searching for icon. Finished steps get a check, the current one a spinner (as in the
-    build sheet), the others an empty circle; each step shows for at least 0.5 s. Cancel sits at the
+    build sheet) that keeps turning while the hidden browser loads the page, the others an empty circle; each step shows for at least 0.5 s. Cancel sits at the
     end.
   - Only loading the site can fail, with a plain message under the step:
 
@@ -311,8 +311,8 @@ binary translation) on any device.
       the site's own menu."); Run in background; Pause in battery saver.
     - **Window:** Allow multiple windows ("Lets the app open in more than one window", off by
       default), default and minimum window size.
-    - **Permissions:** Microphone, Camera, Notifications and Location, off by default, each saying what
-      it lets the site do ("Lets the site ask to use your microphone").
+    - **Permissions:** Microphone, Camera, Notifications and Location, off by default, with no
+      description; a discovered value shows only the line naming where it came from.
   - Site keyboard shortcuts (`appShortcuts`) are not editable in the form; a profile keeps any it has.
   - Values discovered with low or medium confidence say where they came from; discovery's notes
     appear as Info, Caution or Error notices.
