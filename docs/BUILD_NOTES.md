@@ -14,7 +14,7 @@ Java 17 bytecode.
 - Lint reports 0 errors for both apps. `:shrimpl` keeps one warning, `SetJavaScriptEnabled`: the hidden
   discovery WebView must run page scripts, and `@SuppressLint` is allowed only in the template
   (CLAUDE.md rule 3).
-- Checked for native code (R0) and found to have none: the Shizuku libraries, apksig,
+- Checked for native code (R0) and found to have none: the Shevery libraries, apksig,
   kotlinx-serialization and the AndroidX libraries the template uses. `scripts/check_native_code.sh`
   enforces R0 on the APKs.
 
@@ -57,7 +57,7 @@ Java 17 bytecode.
   caption-bar insets give the header color (T3). From API 36, `resizeableActivity` is ignored on
   displays of 600 dp and wider, and API 37 ignores orientation and aspect ratio limits on large
   screens. `singleInstancePerTask` plus `FLAG_ACTIVITY_MULTIPLE_TASK` gives multiple windows.
-- **Package visibility.** `<queries>` (launcher apps, icon packs, Shizuku) instead of
+- **Package visibility.** `<queries>` (launcher apps, icon packs, Shevery) instead of
   `QUERY_ALL_PACKAGES` (R6.1): narrower, and enough, since every web app has a launcher entry.
 - **Network state.** `ACCESS_NETWORK_STATE` (a normal permission) lets discovery tell "No internet
   connection" from a site that can't be reached (R3.2).
@@ -75,6 +75,14 @@ Java 17 bytecode.
   swallows it (`FullScreenVideoTest`, 2026-11-10). The template catches `KEYCODE_BACK` in
   `dispatchKeyEvent` while full screen shows, as it does Esc, and keeps an overlay callback for the back
   gesture, which comes the other way.
+- **Shevery for silent installs.** Shevery (github.com/HmnDev-Tech/shevery, Apache 2.0) replaced the
+  Shizuku privileged installer, which was unmaintained and broken on Android 17 (2026-11-15). Its API
+  (github.com/HmnDev-Tech/Shevery-API, MIT) has no native code (R0) and keeps Shizuku's user-service
+  protocol, so `ShellService` and its `destroy` transaction are unchanged. It is published only on
+  its own Maven repository (`raw.githubusercontent.com/HmnDev-Tech/Shevery-API/maven`), which Gradle
+  uses for `com.hamondev.shevery.api` alone. The API bundles its own copy of Shizuku's client classes,
+  so it can't sit beside Shizuku's library, and it brings `androidx.annotation` 1.11.0-alpha01.
+  A saved install method of `SHIZUKU` reads as Shevery (`installMethodOf`).
 - **UiAutomator swallows interrupts.** A background thread looping over UiAutomator searches never saw
   `Thread.interrupt()` when it arrived mid-search, so `InstallRobot`'s install confirmer outlived its
   test and tapped dialogs in later ones, until a vanishing dialog crashed it inside an unrelated test
@@ -92,7 +100,7 @@ Java 17 bytecode.
 
 ## R8
 
-Both apps use the AGP 9.3+ `optimization { enable = true }` block. Shrimpl's one keep rule (the Shizuku
+Both apps use the AGP 9.3+ `optimization { enable = true }` block. Shrimpl's one keep rule (the Shevery
 shell service) is in `shrimpl/src/main/keepRules/`; every broad rule comes from a library or AGP's
 defaults (r8-analyzer skill, 2026-11-01).
 

@@ -213,7 +213,7 @@ Shrimpl's Compose screens run in unit tests under Robolectric (`shrimpl/src/test
 
 These need hardware, a person, or a service an emulator doesn't have:
 
-- **Shizuku and Root installs** (R6): no Shizuku on an emulator; `su` isn't available to apps on its images.
+- **Shevery and Root installs** (R6): no Shevery on an emulator; `su` isn't available to apps on its images.
 - **Hinges and foldable postures**, and **window snapping** itself on a Googlebook (docs/GOOGLEBOOKS.md):
   the emulator's windowing is not Googlebook OS's. What snapping does to Shrimpl, a window that shares
   the screen at half its width, is tested with split screen and freeform windows (`WindowSnappingTest`).

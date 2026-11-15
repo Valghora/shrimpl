@@ -9,7 +9,7 @@ import java.util.concurrent.TimeUnit
 enum class Availability {
     AVAILABLE,
 
-    /** Shizuku is running but hasn't granted Shrimpl permission yet. */
+    /** Shevery is running but hasn't granted Shrimpl permission yet. */
     NEEDS_PERMISSION,
     UNAVAILABLE,
 }
@@ -24,15 +24,15 @@ sealed interface InstallResult {
     /** The user turned down the system installer's confirmation, or stopped waiting for it (R6.5). */
     data object Cancelled : InstallResult
 
-    /** [methodUnavailable]: Shizuku stopped or root was denied, so the system installer is worth offering (R6.2). */
+    /** [methodUnavailable]: Shevery stopped or root was denied, so the system installer is worth offering (R6.2). */
     data class Failure(val message: String, val methodUnavailable: Boolean = false) : InstallResult
 }
 
-/** One way to install and uninstall web apps (R1.4, R6.1): the system installer, Shizuku or root. */
+/** One way to install and uninstall web apps (R1.4, R6.1): the system installer, Shevery or root. */
 interface Installer {
     val method: InstallMethod
 
-    /** Whether this method can be used now (Shizuku running and permitted, root granted). */
+    /** Whether this method can be used now (Shevery running and permitted, root granted). */
     suspend fun availability(): Availability
 
     /** Installs or updates [apk]; the system installer may wait for the user to confirm (R6.5). */

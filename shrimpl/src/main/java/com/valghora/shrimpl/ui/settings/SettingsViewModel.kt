@@ -33,17 +33,17 @@ class SettingsViewModel(private val container: AppContainer) : ViewModel() {
     val hapticFeedback: StateFlow<Boolean> = container.settings.hapticFeedback
     val badgeTheme: StateFlow<BadgeTheme> = container.settings.badgeTheme
 
-    /** Where a root or Shizuku access request stands (the Request Access button's states). */
+    /** Where a root or Shevery access request stands (the Request Access button's states). */
     enum class Access { NOT_REQUESTED, REQUESTING, GRANTED, FAILED }
 
     private val _rootAccess = MutableStateFlow(Access.NOT_REQUESTED)
     val rootAccess: StateFlow<Access> = _rootAccess.asStateFlow()
 
-    // Shizuku can be checked without a prompt, so a permission granted earlier shows as Success.
-    private val _shizukuAccess = MutableStateFlow(
-        if (container.installers.shizuku.state.value == Availability.AVAILABLE) Access.GRANTED else Access.NOT_REQUESTED,
+    // Shevery can be checked without a prompt, so a permission granted earlier shows as Success.
+    private val _sheveryAccess = MutableStateFlow(
+        if (container.installers.shevery.state.value == Availability.AVAILABLE) Access.GRANTED else Access.NOT_REQUESTED,
     )
-    val shizukuAccess: StateFlow<Access> = _shizukuAccess.asStateFlow()
+    val sheveryAccess: StateFlow<Access> = _sheveryAccess.asStateFlow()
 
     private val _fingerprint = MutableStateFlow<String?>(null)
 
@@ -87,16 +87,16 @@ class SettingsViewModel(private val container: AppContainer) : ViewModel() {
     init {
         loadFingerprint()
         viewModelScope.launch {
-            container.installers.shizuku.permissionResults.collect { granted ->
-                if (_shizukuAccess.value == Access.REQUESTING) _shizukuAccess.value = if (granted) Access.GRANTED else Access.FAILED
+            container.installers.shevery.permissionResults.collect { granted ->
+                if (_sheveryAccess.value == Access.REQUESTING) _sheveryAccess.value = if (granted) Access.GRANTED else Access.FAILED
             }
         }
     }
 
-    /** Picks how web apps are installed; root and Shizuku access are requested with [requestAccess]. */
+    /** Picks how web apps are installed; root and Shevery access are requested with [requestAccess]. */
     fun selectMethod(method: InstallMethod) = container.settings.setInstallMethod(method)
 
-    /** Asks for root (the root manager's prompt) or Shizuku (its permission dialog). */
+    /** Asks for root (the root manager's prompt) or Shevery (its permission dialog). */
     fun requestAccess(method: InstallMethod) {
         when (method) {
             InstallMethod.SESSION -> Unit
@@ -105,15 +105,15 @@ class SettingsViewModel(private val container: AppContainer) : ViewModel() {
                 val granted = container.installers.root.availability() == Availability.AVAILABLE
                 _rootAccess.value = if (granted) Access.GRANTED else Access.FAILED
             }
-            InstallMethod.SHIZUKU -> viewModelScope.launch {
-                val shizuku = container.installers.shizuku
-                when (shizuku.availability()) {
-                    Availability.AVAILABLE -> _shizukuAccess.value = Access.GRANTED
+            InstallMethod.SHEVERY -> viewModelScope.launch {
+                val shevery = container.installers.shevery
+                when (shevery.availability()) {
+                    Availability.AVAILABLE -> _sheveryAccess.value = Access.GRANTED
                     Availability.NEEDS_PERMISSION -> {
-                        _shizukuAccess.value = Access.REQUESTING
-                        shizuku.requestPermission()
+                        _sheveryAccess.value = Access.REQUESTING
+                        shevery.requestPermission()
                     }
-                    Availability.UNAVAILABLE -> _shizukuAccess.value = Access.FAILED
+                    Availability.UNAVAILABLE -> _sheveryAccess.value = Access.FAILED
                 }
             }
         }
