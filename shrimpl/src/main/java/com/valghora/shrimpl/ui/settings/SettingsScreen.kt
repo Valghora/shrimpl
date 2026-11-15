@@ -82,7 +82,7 @@ fun SettingsScreen(inPane: Boolean, onBack: () -> Unit) {
     val hapticFeedback by model.hapticFeedback.collectAsStateWithLifecycle()
     val badgeTheme by model.badgeTheme.collectAsStateWithLifecycle()
     val rootAccess by model.rootAccess.collectAsStateWithLifecycle()
-    val shizukuAccess by model.shizukuAccess.collectAsStateWithLifecycle()
+    val sheveryAccess by model.sheveryAccess.collectAsStateWithLifecycle()
     val fingerprint by model.fingerprint.collectAsStateWithLifecycle()
     val message by model.message.collectAsStateWithLifecycle()
     val pendingRestore by model.pendingRestore.collectAsStateWithLifecycle()
@@ -176,7 +176,7 @@ fun SettingsScreen(inPane: Boolean, onBack: () -> Unit) {
                         method,
                         listOf(
                             InstallMethod.SESSION to stringResource(R.string.install_session),
-                            InstallMethod.SHIZUKU to stringResource(R.string.install_shizuku),
+                            InstallMethod.SHEVERY to stringResource(R.string.install_shevery),
                             InstallMethod.ROOT to stringResource(R.string.install_root),
                         ),
                         model::selectMethod,
@@ -184,8 +184,8 @@ fun SettingsScreen(inPane: Boolean, onBack: () -> Unit) {
                     )
                     when (method) {
                         InstallMethod.SESSION -> Unit
-                        InstallMethod.SHIZUKU -> AccessItem(R.string.request_shizuku, R.string.request_shizuku_detail, R.string.request_shizuku_failed, shizukuAccess) {
-                            model.requestAccess(InstallMethod.SHIZUKU)
+                        InstallMethod.SHEVERY -> AccessItem(R.string.request_shevery, R.string.request_shevery_detail, R.string.request_shevery_failed, sheveryAccess) {
+                            model.requestAccess(InstallMethod.SHEVERY)
                         }
                         InstallMethod.ROOT -> AccessItem(R.string.request_root, R.string.request_root_detail, R.string.request_root_failed, rootAccess) {
                             model.requestAccess(InstallMethod.ROOT)
@@ -284,7 +284,7 @@ fun SettingsScreen(inPane: Boolean, onBack: () -> Unit) {
 }
 
 /**
- * "Request Root" or "Request Shizuku" (R6.2): a Request button that turns into Success (success tone), or
+ * "Request Root" or "Request Shevery" (R6.2): a Request button that turns into Success (success tone), or
  * Retry (error tone) with the failure described below the title. The row keeps two lines' height and the
  * button one size in every state, so nothing moves.
  */
@@ -346,7 +346,7 @@ private val CopyIcon: ImageVector = ImageVector.Builder("ContentCopy", 24.dp, 24
 
 private fun methodDetail(method: InstallMethod) = when (method) {
     InstallMethod.SESSION -> R.string.install_session_detail
-    InstallMethod.SHIZUKU -> R.string.install_shizuku_detail
+    InstallMethod.SHEVERY -> R.string.install_shevery_detail
     InstallMethod.ROOT -> R.string.install_root_detail
 }
 

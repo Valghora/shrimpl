@@ -51,7 +51,7 @@ sealed interface BuildState {
     /** The system installer needs "Install unknown apps" for Shrimpl (R6.3). */
     data object NeedsUnknownSources : BuildState
 
-    /** [offerSystemInstaller]: Shizuku or root stopped working; the system installer can do this one (R6.2). */
+    /** [offerSystemInstaller]: Shevery or root stopped working; the system installer can do this one (R6.2). */
     data class Failed(val message: String, val offerSystemInstaller: Boolean) : BuildState
 }
 

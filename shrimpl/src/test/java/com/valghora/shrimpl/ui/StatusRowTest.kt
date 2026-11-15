@@ -23,7 +23,7 @@ import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
 
 /**
- * docs/SHRIMPL_SPEC.md R14.3, R6.2: a status row (the version row, Request Root, Request Shizuku) keeps its
+ * docs/SHRIMPL_SPEC.md R14.3, R6.2: a status row (the version row, Request Root, Request Shevery) keeps its
  * height and its button's size in every state, with any label or the spinner, so nothing moves.
  */
 @Config(qualifiers = "w420dp-h900dp")

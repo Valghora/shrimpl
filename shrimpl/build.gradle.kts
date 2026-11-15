@@ -52,7 +52,7 @@ android {
     }
 
     buildFeatures {
-        aidl = true // the Shizuku shell service (R6.1)
+        aidl = true // the Shevery shell service (R6.1)
         buildConfig = true // the version on the settings page
     }
 
@@ -115,8 +115,8 @@ dependencies {
     implementation(libs.androidx.lifecycle.viewmodel.navigation3)
     implementation(libs.androidx.lifecycle.viewmodel.compose)
     implementation(libs.androidx.lifecycle.runtime.compose)
-    implementation(libs.shizuku.api)
-    implementation(libs.shizuku.provider)
+    implementation(libs.shevery.api)
+    implementation(libs.shevery.provider)
     testImplementation(libs.junit)
     testImplementation(libs.robolectric)
     testImplementation(platform(libs.androidx.compose.bom))
