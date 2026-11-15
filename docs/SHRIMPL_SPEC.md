@@ -231,8 +231,7 @@ binary translation) on any device.
   | Behavior | Selecting fixes first | a switch, off by default: "When an app needs an update, fix or reinstall, selecting it does that instead." | On: tapping an installed app with a pending action (Fix or Update) does that action instead, in rows and tiles, and accessibility services hear the tap named after it ("Fix Example"). Off: the Selecting an app choice applies, and an app signed with another key still does nothing on a tap. An app that isn't installed ignores the switch (R2.2). |
   | Behavior | Haptic feedback | a switch at the end of the section, on by default: "Vibrates when a long press opens a menu" | On: a long press that opens an app's menu vibrates (R2.1); the system's touch feedback setting still applies. |
   | Signing | | the certificate's SHA-256 fingerprint with a copy button, "Export…" and "Import…" | Export and import the certificate (R5). |
-  | Updates | Check for updates, Check frequency, and the latest check | R14.3 | Shrimpl's own updates from GitHub (R14). |
-  | About | | "App version <version>" and "Template version <version>" (R11.8) | |
+  | About | "Shrimpl <version>" with the latest update check, and Check for updates | R14.3 | Shrimpl's own updates from GitHub (R14). |
 
 - R2.6 Tiles: the layout switch shows the apps as tiles instead of rows, and the choice is kept.
   - Tiles flow three across on phones (at least 100 dp wide, 8 dp apart, 12 dp in from the sides),
@@ -662,22 +661,22 @@ Shrimpl finds and installs its own new releases from GitHub, the repository's re
   the installed one: higher is available; otherwise Shrimpl is up to date. GitHub's "not found" (no
   release yet), another HTTP status, no connection, or a release without those files is a failed check,
   each with its reason. What a check found survives restarts.
-- R14.2 Background checks run with WorkManager at the Check frequency, only on a network connection,
-  while Check for updates is on (the default). Android may run one later than due to save battery.
-  Changing either setting reschedules at once; turning the switch off stops them.
-- R14.3 Settings has an Updates section above About:
-  - "Check for updates", a switch: "Checks GitHub for a new Shrimpl release in the background".
-  - "Check frequency", off while the switch is: 1 hour ("Checks every hour"), 6 hours ("Checks every 6
-    hours"), 12 hours ("Checks every 12 hours"), 1 day ("Checks once a day", the default) or 1 week
-    ("Checks once a week").
-  - The latest check, its title, then its result, then when it ran, each on its own line: "Shrimpl
-    <version>" / "Up to date"; "Shrimpl <version> is available" / "Ready to install"; "Couldn't check
-    for updates" / the reason; then "Last checked <time>" ("Not checked yet" before the first check).
-    While a check, download or install runs, the second line says so ("Checking…", "Downloading…",
-    "Installing…") and the button shows progress. The button is Update when a release was found,
-    otherwise Check now, which works with the switch off. A failed update shows its reason as an error
-    under the row, and the release stays on offer.
-  - Turning the switch on, or Check now, asks for the notification permission when Shrimpl lacks it.
+- R14.2 Background checks run with WorkManager as often as Check for updates says (every hour, 6
+  hours, 12 hours, day or week; once a day by default), only on a network connection. Disabled stops
+  them, and checks then run only by hand. Android may run one later than due to save battery.
+  Changing the setting reschedules at once.
+- R14.3 Settings' About section holds Shrimpl's updates:
+  - The version row: its title "Shrimpl <version>" (the installed version, R11.8); its description the
+    latest check's result, then when it ran, each on its own line: "Up to date", "Shrimpl <version> is
+    available" or "Couldn't check for updates: <reason>" ("Not checked yet" before the first check),
+    then "Last checked <time>". While a check, download or install runs, the first line says so
+    ("Checking…", "Downloading…", "Installing…") and the button shows progress. The button is Update
+    when a release was found, otherwise Check, which works whatever Check for updates says. A failed
+    update shows its reason as an error under the row, and the release stays on offer.
+  - "Check for updates", a choice: Disabled ("Checks only when you select Check"), 1 hour ("Checks
+    every hour"), 6 hours ("Checks every 6 hours"), 12 hours ("Checks every 12 hours"), 1 day ("Checks
+    once a day", the default) or 1 week ("Checks once a week").
+  - Choosing an interval, or Check, asks for the notification permission when Shrimpl lacks it.
 - R14.4 Home shows an Info notice for a release found and not dismissed: "Shrimpl <version> is
   available. Update to get the latest fixes and features.", with Update and Dismiss (R3.3), above the
   apps or above the empty state. Dismiss hides it until a newer release.

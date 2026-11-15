@@ -58,7 +58,7 @@ class ReleasesTest {
 
     @Test
     fun frequenciesInHoursWithADailyDefault() {
-        assertEquals(listOf(1L, 6L, 12L, 24L, 168L), UpdateFrequency.entries.map { it.hours })
+        assertEquals("Disabled first, then each interval", listOf(0L, 1L, 6L, 12L, 24L, 168L), UpdateFrequency.entries.map { it.hours })
         assertEquals(UpdateFrequency.DAY, UpdateFrequency.DEFAULT)
     }
 }

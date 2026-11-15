@@ -49,9 +49,7 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.valghora.shrimpl.BuildConfig
 import com.valghora.shrimpl.R
-import com.valghora.shrimpl.core.Versions
 import com.valghora.shrimpl.container
 import com.valghora.shrimpl.data.BadgeTheme
 import com.valghora.shrimpl.data.ClickAction
@@ -241,15 +239,7 @@ fun SettingsScreen(inPane: Boolean, onBack: () -> Unit) {
                     NavigationItem(stringResource(R.string.action_restore_key), { openFile.launch(arrayOf(PKCS12_TYPE, "application/octet-stream")) })
                 }
 
-                UpdateSettings(model)
-
-                SettingsSection(stringResource(R.string.settings_about)) {
-                    SettingsItem(
-                        stringResource(R.string.app_name),
-                        summary = stringResource(R.string.about_app, BuildConfig.VERSION_NAME) + "\n" +
-                            stringResource(R.string.about_template, Versions.name(model.templateVersion)),
-                    )
-                }
+                AboutSection(model)
             }
         }
     }

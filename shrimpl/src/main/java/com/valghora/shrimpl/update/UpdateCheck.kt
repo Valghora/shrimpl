@@ -37,13 +37,13 @@ class UpdateCheckWorker(context: Context, params: WorkerParameters) : CoroutineW
     }
 }
 
-/** Schedules the background check from the Check for updates and Check frequency settings (R14.2). */
+/** Schedules the background check from Check for updates (R14.2); Disabled stops it. */
 object UpdateSchedule {
     private const val WORK = "update-check"
 
-    fun apply(context: Context, enabled: Boolean, frequency: UpdateFrequency) {
+    fun apply(context: Context, frequency: UpdateFrequency) {
         val work = WorkManager.getInstance(context)
-        if (!enabled) {
+        if (frequency == UpdateFrequency.DISABLED) {
             work.cancelUniqueWork(WORK)
             return
         }

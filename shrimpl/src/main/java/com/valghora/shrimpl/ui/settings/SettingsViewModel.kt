@@ -35,23 +35,16 @@ class SettingsViewModel(private val container: AppContainer) : ViewModel() {
     val resolveOnTap: StateFlow<Boolean> = container.settings.resolveOnTap
     val hapticFeedback: StateFlow<Boolean> = container.settings.hapticFeedback
     val badgeTheme: StateFlow<BadgeTheme> = container.settings.badgeTheme
-    val checkForUpdates: StateFlow<Boolean> = container.settings.checkForUpdates
     val updateFrequency: StateFlow<UpdateFrequency> = container.settings.updateFrequency
     val updateStatus: StateFlow<UpdateStatus> = container.updates.status
 
-    /** Saves the Check for updates switch and starts or stops the background check (R14.2). */
-    fun setCheckForUpdates(enabled: Boolean) {
-        container.settings.setCheckForUpdates(enabled)
-        container.scheduleUpdateChecks()
-    }
-
-    /** Saves the Check frequency and reschedules the background check (R14.2). */
+    /** Saves Check for updates and reschedules the background check, or stops it for Disabled (R14.2). */
     fun setUpdateFrequency(frequency: UpdateFrequency) {
         container.settings.setUpdateFrequency(frequency)
         container.scheduleUpdateChecks()
     }
 
-    /** Check now (R14.3). */
+    /** Check (R14.3). */
     fun checkNow() = container.updates.checkNow()
 
     /** Update (R14.6): installs the release the latest check found. */
@@ -83,7 +76,6 @@ class SettingsViewModel(private val container: AppContainer) : ViewModel() {
     private val _pendingRestore = MutableStateFlow<SigningKey?>(null)
     val pendingRestore: StateFlow<SigningKey?> = _pendingRestore.asStateFlow()
 
-    val templateVersion: Int get() = container.template.version
 
     // The password dialog's text and the password waiting for the export file picker. Held here, not
     // in saved state, so they survive configuration changes but never reach disk.

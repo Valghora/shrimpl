@@ -25,20 +25,19 @@ import com.valghora.shrimpl.core.update.UpdateFrequency
 import com.valghora.shrimpl.ui.common.DropdownItem
 import com.valghora.shrimpl.ui.common.SettingsItem
 import com.valghora.shrimpl.ui.common.SettingsSection
-import com.valghora.shrimpl.ui.common.SwitchItem
 import com.valghora.shrimpl.ui.theme.AppShapes
 import com.valghora.shrimpl.update.UpdateResult
 import com.valghora.shrimpl.update.UpdateStatus
 import com.valghora.shrimpl.update.UpdateWork
 
 /**
- * The Updates section of Settings (docs/SHRIMPL_SPEC.md R14.3): Check for updates, Check frequency
- * (off while the switch is), and the latest check's result with Check now or Update. Turning the
- * switch on or checking by hand asks for the notification permission the update notification needs.
+ * The About section of Settings (docs/SHRIMPL_SPEC.md R14.3): Shrimpl's version, with the latest
+ * update check and Check or Update, then Check for updates, how often the background check runs or
+ * Disabled. Choosing an interval or checking by hand asks for the notification permission the update
+ * notification needs.
  */
 @Composable
-fun UpdateSettings(model: SettingsViewModel) {
-    val enabled by model.checkForUpdates.collectAsStateWithLifecycle()
+fun AboutSection(model: SettingsViewModel) {
     val frequency by model.updateFrequency.collectAsStateWithLifecycle()
     val status by model.updateStatus.collectAsStateWithLifecycle()
     val context = LocalContext.current
@@ -48,25 +47,8 @@ fun UpdateSettings(model: SettingsViewModel) {
             notifications.launch(Manifest.permission.POST_NOTIFICATIONS)
         }
     }
-    SettingsSection(stringResource(R.string.settings_updates)) {
-        SwitchItem(
-            stringResource(R.string.update_check),
-            enabled,
-            { on ->
-                model.setCheckForUpdates(on)
-                if (on) askForNotifications()
-            },
-            summary = stringResource(R.string.update_check_detail),
-        )
-        DropdownItem(
-            stringResource(R.string.update_frequency),
-            frequency,
-            UpdateFrequency.entries.map { it to stringResource(it.label()) },
-            model::setUpdateFrequency,
-            summary = stringResource(frequency.detail()),
-            enabled = enabled,
-        )
-        UpdateStatusItem(
+    SettingsSection(stringResource(R.string.settings_about)) {
+        VersionItem(
             status,
             onCheck = {
                 askForNotifications()
@@ -74,36 +56,43 @@ fun UpdateSettings(model: SettingsViewModel) {
             },
             onUpdate = model::installUpdate,
         )
+        DropdownItem(
+            stringResource(R.string.update_check),
+            frequency,
+            UpdateFrequency.entries.map { it to stringResource(it.label()) },
+            { chosen ->
+                model.setUpdateFrequency(chosen)
+                if (chosen != UpdateFrequency.DISABLED) askForNotifications()
+            },
+            summary = stringResource(frequency.detail()),
+        )
     }
 }
 
-/** The latest check's result, its line of detail and when it ran, each on its own line (R14.3). */
+/**
+ * Shrimpl's version as the title; the latest check's result, then when it ran, each on its own line;
+ * and Check, or Update once a release was found (R14.3).
+ */
 @Composable
-private fun UpdateStatusItem(status: UpdateStatus, onCheck: () -> Unit, onUpdate: () -> Unit) {
+private fun VersionItem(status: UpdateStatus, onCheck: () -> Unit, onUpdate: () -> Unit) {
     val context = LocalContext.current
     val result = status.result
     val available = (result as? UpdateResult.Available)?.release
-    val title = when {
-        available != null -> stringResource(R.string.update_available, available.version)
-        result is UpdateResult.Failed -> stringResource(R.string.update_failed)
-        else -> stringResource(R.string.update_current, BuildConfig.VERSION_NAME)
-    }
-    val detail = when (status.work) {
+    val state = when (status.work) {
         UpdateWork.CHECKING -> stringResource(R.string.update_checking)
         UpdateWork.DOWNLOADING -> stringResource(R.string.update_downloading)
         UpdateWork.INSTALLING -> stringResource(R.string.update_installing)
         null -> when (result) {
-            is UpdateResult.Available -> stringResource(R.string.update_ready)
+            is UpdateResult.Available -> stringResource(R.string.update_available, result.release.version)
             UpdateResult.UpToDate -> stringResource(R.string.update_up_to_date)
-            is UpdateResult.Failed -> result.reason
-            null -> null
+            is UpdateResult.Failed -> stringResource(R.string.update_failed, result.reason)
+            null -> stringResource(R.string.update_not_checked)
         }
     }
     val checked = status.lastChecked?.let { stringResource(R.string.update_last_checked, relativeTime(context, it)) }
-        ?: stringResource(R.string.update_not_checked)
     SettingsItem(
-        title,
-        summary = listOfNotNull(detail, checked).joinToString("\n"),
+        stringResource(R.string.update_current, BuildConfig.VERSION_NAME),
+        summary = listOfNotNull(state, checked).joinToString("\n"),
         error = status.installError,
         trailing = {
             Button(
@@ -118,7 +107,7 @@ private fun UpdateStatusItem(status: UpdateStatus, onCheck: () -> Unit, onUpdate
                 if (status.work != null) {
                     CircularProgressIndicator(Modifier.size(18.dp), strokeWidth = 2.dp)
                 } else {
-                    Text(stringResource(if (available != null) R.string.action_update else R.string.action_check_now))
+                    Text(stringResource(if (available != null) R.string.action_update else R.string.action_check))
                 }
             }
         },
@@ -131,6 +120,7 @@ private fun relativeTime(context: Context, time: Long): String =
         .replaceFirstChar { it.lowercase(context.resources.configuration.locales[0]) }
 
 private fun UpdateFrequency.label() = when (this) {
+    UpdateFrequency.DISABLED -> R.string.update_frequency_disabled
     UpdateFrequency.HOUR -> R.string.update_frequency_hour
     UpdateFrequency.SIX_HOURS -> R.string.update_frequency_six_hours
     UpdateFrequency.TWELVE_HOURS -> R.string.update_frequency_twelve_hours
@@ -139,6 +129,7 @@ private fun UpdateFrequency.label() = when (this) {
 }
 
 private fun UpdateFrequency.detail() = when (this) {
+    UpdateFrequency.DISABLED -> R.string.update_frequency_disabled_detail
     UpdateFrequency.HOUR -> R.string.update_frequency_hour_detail
     UpdateFrequency.SIX_HOURS -> R.string.update_frequency_six_hours_detail
     UpdateFrequency.TWELVE_HOURS -> R.string.update_frequency_twelve_hours_detail

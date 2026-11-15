@@ -10,8 +10,12 @@ import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.contentOrNull
 import kotlinx.serialization.json.jsonObject
 
-/** How often the background check runs (docs/SHRIMPL_SPEC.md R14.2); once a day unless the user picks another. */
+/**
+ * How often the background check runs (docs/SHRIMPL_SPEC.md R14.2): never ([DISABLED], checks only by
+ * hand), or every [hours]; once a day unless the user picks another.
+ */
 enum class UpdateFrequency(val hours: Long) {
+    DISABLED(0),
     HOUR(1),
     SIX_HOURS(6),
     TWELVE_HOURS(12),

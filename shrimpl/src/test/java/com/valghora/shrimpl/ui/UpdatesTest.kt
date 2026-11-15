@@ -2,7 +2,6 @@ package com.valghora.shrimpl.ui
 
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.ui.test.assertIsEnabled
-import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.hasClickAction
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.junit4.v2.createComposeRule
@@ -21,7 +20,6 @@ import com.valghora.shrimpl.ui.settings.SettingsScreen
 import com.valghora.shrimpl.update.UpdateResult
 import org.junit.After
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertFalse
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -29,7 +27,7 @@ import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
 
 /**
- * Shrimpl updates (docs/SHRIMPL_SPEC.md R14): the Updates section of Settings, and the Home notice for
+ * Shrimpl updates (docs/SHRIMPL_SPEC.md R14): the About section of Settings, and the Home notice for
  * a release the check found.
  */
 @Config(qualifiers = "w420dp-h900dp")
@@ -43,7 +41,6 @@ class UpdatesTest {
 
     @After
     fun reset() {
-        container.settings.setCheckForUpdates(true)
         container.settings.setUpdateFrequency(UpdateFrequency.DEFAULT)
     }
 
@@ -55,37 +52,41 @@ class UpdatesTest {
 
     private fun shows(text: String) = compose.onNodeWithText(text, substring = true).performScrollTo().assertExists()
 
-    /** R14.3: on by default, once a day, and Shrimpl's own version before any check. */
+    /** R14.3: About's version row before any check, with Check, and a daily background check. */
     @Test
-    fun theSectionStartsOnDailyAndUnchecked() {
+    fun aboutShowsTheVersionUncheckedAndDaily() {
         settings()
-        shows(string(R.string.update_check_detail))
-        shows(string(R.string.update_frequency_day_detail))
         shows(string(R.string.update_current, BuildConfig.VERSION_NAME))
         shows(string(R.string.update_not_checked))
-        compose.onNode(hasText(string(R.string.action_check_now)) and hasClickAction()).assertIsEnabled()
+        shows(string(R.string.update_frequency_day_detail))
+        compose.onNode(hasText(string(R.string.action_check)) and hasClickAction()).assertIsEnabled()
     }
 
-    /** R14.2, R14.3: the frequency follows the switch, and each choice describes itself. */
+    /** R14.2, R14.3: Disabled describes itself, and Check still works by hand. */
     @Test
-    fun theFrequencyIsOffWithTheSwitchAndDescribesTheChoice() {
-        container.settings.setUpdateFrequency(UpdateFrequency.WEEK)
+    fun disabledLeavesCheckByHand() {
+        container.settings.setUpdateFrequency(UpdateFrequency.DISABLED)
         settings()
-        shows(string(R.string.update_frequency_week_detail))
-        compose.onNodeWithText(string(R.string.update_check)).performScrollTo().performClick()
-        assertFalse("the switch is saved", container.settings.checkForUpdates.value)
-        compose.onNode(hasText(string(R.string.update_frequency)) and hasClickAction()).assertIsNotEnabled()
-        // R1.6: the switch's description doesn't change with it.
-        shows(string(R.string.update_check_detail))
+        shows(string(R.string.update_frequency_disabled_detail))
+        compose.onNode(hasText(string(R.string.action_check)) and hasClickAction()).assertIsEnabled()
     }
 
-    /** R14.3: a found release, its line and when it was checked, each on its own line, with Update. */
+    /** R14.2: choosing an interval in Check for updates saves it, and its description follows. */
+    @Test
+    fun choosingAnIntervalSavesIt() {
+        settings()
+        compose.onNode(hasText(string(R.string.update_check)) and hasClickAction()).performScrollTo().performClick()
+        compose.onNodeWithText(string(R.string.update_frequency_week)).performClick()
+        assertEquals(UpdateFrequency.WEEK, container.settings.updateFrequency.value)
+        shows(string(R.string.update_frequency_week_detail))
+    }
+
+    /** R14.3: a found release, then when it was checked, each on its own line, with Update. */
     @Test
     fun aFoundReleaseIsOfferedWithItsCheckTime() {
         container.updates.record(UpdateResult.Available(release), System.currentTimeMillis())
         settings()
-        shows(string(R.string.update_available, "1.9.9"))
-        shows(string(R.string.update_ready) + "\n")
+        shows(string(R.string.update_available, "1.9.9") + "\n")
         compose.onNode(hasText(string(R.string.action_update)) and hasClickAction()).assertExists()
     }
 
@@ -94,8 +95,7 @@ class UpdatesTest {
     fun aFailedCheckGivesItsReason() {
         container.updates.record(UpdateResult.Failed(string(R.string.update_error_unreachable)), System.currentTimeMillis())
         settings()
-        shows(string(R.string.update_failed))
-        shows(string(R.string.update_error_unreachable))
+        shows(string(R.string.update_failed, string(R.string.update_error_unreachable)))
     }
 
     /** R14.4: Home shows the found release until it is dismissed, and not again for that version. */

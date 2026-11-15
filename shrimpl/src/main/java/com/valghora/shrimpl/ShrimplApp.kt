@@ -33,7 +33,7 @@ class AppContainer(context: Context) {
     val updates = Updates(context, installers, installedCode = BuildConfig.VERSION_CODE, debug = BuildConfig.DEBUG)
 
     /** Schedules, or cancels, the background update check from the settings (R14.2). */
-    fun scheduleUpdateChecks() = UpdateSchedule.apply(appContext, settings.checkForUpdates.value, settings.updateFrequency.value)
+    fun scheduleUpdateChecks() = UpdateSchedule.apply(appContext, settings.updateFrequency.value)
 }
 
 /**
