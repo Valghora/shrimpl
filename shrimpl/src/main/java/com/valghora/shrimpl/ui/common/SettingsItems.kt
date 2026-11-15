@@ -151,7 +151,7 @@ private fun groupShape(index: Int, count: Int): Shape {
 /**
  * One item: [title], an optional [summary] (and an error or hint below it), and [trailing] at the end.
  * Clickable when [onClick] is set; dimmed when not [enabled]. [summaryColor] colors the summary, for a
- * status (R14.3); with [summaryLines] the summary always takes that many lines' height.
+ * status (R14.3).
  */
 @Composable
 fun SettingsItem(
@@ -159,7 +159,6 @@ fun SettingsItem(
     modifier: Modifier = Modifier,
     summary: String? = null,
     summaryColor: Color? = null,
-    summaryLines: Int = 0,
     error: String? = null,
     errorColor: Color = Tone.ERROR.text,
     hint: String? = null,
@@ -201,20 +200,8 @@ fun SettingsItem(
         leading?.invoke()
         Column(Modifier.weight(1f).padding(end = textEnd), verticalArrangement = Arrangement.spacedBy(2.dp)) {
             Text(title, style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onSurface)
-            if (summaryLines > 0) {
-                // The description keeps [summaryLines] lines' height whatever it says, so the row's height
-                // doesn't change with its state (R14.3); an empty one is left out for screen readers.
-                Text(
-                    summary.orEmpty(),
-                    Modifier.then(if (summary.isNullOrEmpty()) Modifier.clearAndSetSemantics {} else Modifier),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = summaryColor ?: MaterialTheme.colorScheme.onSurfaceVariant,
-                    minLines = summaryLines,
-                )
-            } else {
-                summary?.takeIf(String::isNotEmpty)?.let {
-                    Text(it, style = MaterialTheme.typography.bodyMedium, color = summaryColor ?: MaterialTheme.colorScheme.onSurfaceVariant)
-                }
+            summary?.takeIf(String::isNotEmpty)?.let {
+                Text(it, style = MaterialTheme.typography.bodyMedium, color = summaryColor ?: MaterialTheme.colorScheme.onSurfaceVariant)
             }
             when {
                 error != null -> Text(error, style = MaterialTheme.typography.bodyMedium, color = errorColor)

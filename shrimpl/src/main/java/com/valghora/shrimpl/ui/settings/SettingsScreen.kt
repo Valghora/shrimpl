@@ -285,8 +285,8 @@ fun SettingsScreen(inPane: Boolean, onBack: () -> Unit) {
 
 /**
  * "Request Root" or "Request Shevery" (R6.2): a Request button that turns into Success (success tone), or
- * Retry (error tone) with the failure described below the title. The row keeps two lines' height and the
- * button one size in every state, so nothing moves.
+ * Retry (error tone) with the failure described below the title. The button keeps one size in every
+ * state, so it doesn't move.
  */
 @Composable
 private fun AccessItem(title: Int, detail: Int, failed: Int, access: SettingsViewModel.Access, onRequest: () -> Unit) {
@@ -306,7 +306,6 @@ private fun AccessItem(title: Int, detail: Int, failed: Int, access: SettingsVie
             SettingsViewModel.Access.GRANTED -> null
         },
         summaryColor = if (access == SettingsViewModel.Access.FAILED) Tone.ERROR.text else null,
-        summaryLines = ACCESS_SUMMARY_LINES,
         trailing = {
             StatusButton(
                 label = when (access) {
@@ -324,9 +323,6 @@ private fun AccessItem(title: Int, detail: Int, failed: Int, access: SettingsVie
         },
     )
 }
-
-/** Two lines, as the version row (R14.3), so the About and Installation rows match. */
-private const val ACCESS_SUMMARY_LINES = 2
 
 /** Copies the certificate's SHA-256 fingerprint; Android confirms the copy itself. */
 private fun copyFingerprint(context: Context, fingerprint: String) {

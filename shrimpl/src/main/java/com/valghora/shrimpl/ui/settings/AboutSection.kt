@@ -64,7 +64,7 @@ fun AboutSection(model: SettingsViewModel) {
 /**
  * Shrimpl's version as the title, the latest check's state on one line in its tone, and one button
  * (R14.3): Check, Update once a release was found, Retry after a failure, a spinner while something
- * runs. The row keeps two lines' height and the button one size, so nothing moves between states.
+ * runs. The button keeps one size, so it doesn't move between states.
  */
 @Composable
 private fun VersionItem(status: UpdateStatus, onCheck: () -> Unit, onUpdate: () -> Unit) {
@@ -89,7 +89,6 @@ private fun VersionItem(status: UpdateStatus, onCheck: () -> Unit, onUpdate: () 
         stringResource(R.string.update_current, BuildConfig.VERSION_NAME),
         summary = state,
         summaryColor = tone?.text,
-        summaryLines = 2,
         trailing = {
             StatusButton(
                 label = when {

@@ -414,9 +414,8 @@ binary translation) on any device.
   Shevery (silent, through ADB) or Root (silent, through superuser), described in R2.5.
   - Choosing Shevery or Root shows a Request item ("Asks Shevery for access" or "Asks for root
     access", button Request). Success turns the button into Success (green); failure shows "Failed to
-    acquire root" / "Failed to acquire Shevery" in red and the button becomes Retry (red). The item keeps
-    two lines' height and its button one size in every state, a spinner in the button's centre while
-    the request runs, so nothing moves.
+    acquire root" / "Failed to acquire Shevery" in red and the button becomes Retry (red). The button keeps
+    one size in every state, a spinner in its centre while the request runs, so it doesn't move.
   - If the chosen method fails at install time, Shrimpl says so and offers the system installer for
     this install.
 - R6.3 The Session method needs "Install unknown apps"; if it's missing, the build sheet explains it,
@@ -681,8 +680,7 @@ Shrimpl finds and installs its own new releases from GitHub, the repository's re
     | the update failed | "Update failed" | red | Retry (updates again) |
 
     The line, in the tone's text color, gives no reasons. Check works whatever the frequency says. The
-    row keeps two lines' height and the button one size in every state, its spinner centred, so
-    nothing moves. Blue is the Update tone (`ui/common/Notice.kt`).
+    button keeps one size in every state, its spinner centred, so it doesn't move. Blue is the Update tone (`ui/common/Notice.kt`).
   - "Update check frequency", a choice: Disabled ("Never checks for updates automatically"), 1 hour
     ("Checks every hour"), 6 hours ("Checks every 6 hours"), 12 hours ("Checks every 12 hours"), 1 day
     ("Checks once a day", the default) or 1 week ("Checks once a week").
