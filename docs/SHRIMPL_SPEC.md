@@ -266,7 +266,7 @@ binary translation) on any device.
 - R3.2 Discovery (R9) progress and errors.
   - A checklist under "Searching…": Loading the site, Consulting the manifest, Researching
     permissions, Searching for icon. Finished steps get a check, the current one a spinner (as in the
-    build sheet) that keeps turning while the hidden browser loads the page, the others an empty circle; each step shows for at least 0.5 s. Cancel sits at the
+    build sheet), the others an empty circle; each step shows for at least 0.5 s. Cancel sits at the
     end.
   - Only loading the site can fail, with a plain message under the step:
 

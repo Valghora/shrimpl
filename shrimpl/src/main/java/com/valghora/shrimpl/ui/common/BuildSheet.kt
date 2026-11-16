@@ -15,6 +15,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -164,7 +165,7 @@ private fun StepRow(label: String, done: Boolean, current: Boolean, reached: Boo
     Row(Modifier.progressStep(state), verticalAlignment = Alignment.CenterVertically) {
         when {
             done -> Icon(Icons.Filled.CheckCircle, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(24.dp))
-            current -> StepSpinner(Modifier.size(24.dp))
+            current -> CircularProgressIndicator(Modifier.size(24.dp), strokeWidth = 3.dp)
             else -> Spacer(Modifier.size(24.dp))
         }
         Spacer(Modifier.width(16.dp))
