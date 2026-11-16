@@ -60,9 +60,10 @@ scripts/setup_android_sdk.sh          # Android SDK (API 37) and tool check
 ./gradlew :shrimpl:assembleDebug      # also builds the template and bundles it
 ```
 
-CI (`.github/workflows/android.yml`) runs the core, template and Shrimpl tests, lint for both apps,
-the template release build and both Shrimpl builds, checks that every APK is architecture-neutral,
-and uploads the APKs.
+CI (`.github/workflows/android.yml`, run by hand before a merge) runs the core, template and Shrimpl
+tests, lint for both apps, the template release build and Shrimpl's debug build, and checks that every
+APK is architecture-neutral. A `v<version>` tag on main runs the Release workflow
+(`.github/workflows/release.yml`), which publishes the signed release APK and its checksum.
 
 ## Limitations
 

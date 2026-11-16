@@ -124,8 +124,9 @@ pushes; it is required only before a merge into `main`.
 - **APK, only when asked** ("Build and push it, then send the APK"): run the Verify checks locally,
   push the branch (no workflow run), and send `shrimpl-debug.apk`, built after deleting
   `shrimpl/build/outputs/apk/debug/` (docs/BUILD_NOTES.md, "Debug APK size").
-- **Release APK, only when the owner asks for a release build:** `:shrimpl:assembleRelease`, then the
-  R0 check on it; in CI, run the Android workflow by hand with Release build ticked.
+- **Release APK, only when the owner asks for a release build:** `:shrimpl:assembleRelease` locally
+  (debug-key signed), then the R0 check on it. A published release comes only from the Release
+  workflow (R12.6), when the owner says to tag `v<version>` on main after the merge to main.
 - **Push back** before following an owner instruction that goes starkly against a standard (Android's
   adaptive and large-screen guidance, Material, accessibility such as WCAG, the vendored skills): say
   which standard, what it costs users, and the closest option that meets both; then do what the owner
