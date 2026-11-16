@@ -8,14 +8,17 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.valghora.shrimpl.AppContainer
+import com.valghora.shrimpl.core.build.SigningKey
+import com.valghora.shrimpl.core.build.SigningKeyException
+import com.valghora.shrimpl.core.update.UpdateFrequency
 import com.valghora.shrimpl.data.BadgeTheme
 import com.valghora.shrimpl.data.ClickAction
 import com.valghora.shrimpl.data.InstallMethod
 import com.valghora.shrimpl.data.SigningKeyStore
 import com.valghora.shrimpl.data.ThemeSetting
 import com.valghora.shrimpl.install.Availability
-import com.valghora.shrimpl.core.build.SigningKey
-import com.valghora.shrimpl.core.build.SigningKeyException
+import com.valghora.shrimpl.update.UpdateResult
+import com.valghora.shrimpl.update.UpdateStatus
 import java.io.IOException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -32,18 +35,34 @@ class SettingsViewModel(private val container: AppContainer) : ViewModel() {
     val resolveOnTap: StateFlow<Boolean> = container.settings.resolveOnTap
     val hapticFeedback: StateFlow<Boolean> = container.settings.hapticFeedback
     val badgeTheme: StateFlow<BadgeTheme> = container.settings.badgeTheme
+    val updateFrequency: StateFlow<UpdateFrequency> = container.settings.updateFrequency
+    val updateStatus: StateFlow<UpdateStatus> = container.updates.status
 
-    /** Where a root or Shizuku access request stands (the Request Access button's states). */
+    /** Saves Check for updates and reschedules the background check, or stops it for Disabled (R14.2). */
+    fun setUpdateFrequency(frequency: UpdateFrequency) {
+        container.settings.setUpdateFrequency(frequency)
+        container.scheduleUpdateChecks()
+    }
+
+    /** Check (R14.3). */
+    fun checkNow() = container.updates.checkNow()
+
+    /** Update (R14.6): installs the release the latest check found. */
+    fun installUpdate() {
+        (updateStatus.value.result as? UpdateResult.Available)?.let { container.updates.install(it.release) }
+    }
+
+    /** Where a root or Shevery access request stands (the Request Access button's states). */
     enum class Access { NOT_REQUESTED, REQUESTING, GRANTED, FAILED }
 
     private val _rootAccess = MutableStateFlow(Access.NOT_REQUESTED)
     val rootAccess: StateFlow<Access> = _rootAccess.asStateFlow()
 
-    // Shizuku can be checked without a prompt, so a permission granted earlier shows as Success.
-    private val _shizukuAccess = MutableStateFlow(
-        if (container.installers.shizuku.state.value == Availability.AVAILABLE) Access.GRANTED else Access.NOT_REQUESTED,
+    // Shevery can be checked without a prompt, so a permission granted earlier shows as Success.
+    private val _sheveryAccess = MutableStateFlow(
+        if (container.installers.shevery.state.value == Availability.AVAILABLE) Access.GRANTED else Access.NOT_REQUESTED,
     )
-    val shizukuAccess: StateFlow<Access> = _shizukuAccess.asStateFlow()
+    val sheveryAccess: StateFlow<Access> = _sheveryAccess.asStateFlow()
 
     private val _fingerprint = MutableStateFlow<String?>(null)
 
@@ -57,7 +76,6 @@ class SettingsViewModel(private val container: AppContainer) : ViewModel() {
     private val _pendingRestore = MutableStateFlow<SigningKey?>(null)
     val pendingRestore: StateFlow<SigningKey?> = _pendingRestore.asStateFlow()
 
-    val templateVersion: Int get() = container.template.version
 
     // The password dialog's text and the password waiting for the export file picker. Held here, not
     // in saved state, so they survive configuration changes but never reach disk.
@@ -87,16 +105,16 @@ class SettingsViewModel(private val container: AppContainer) : ViewModel() {
     init {
         loadFingerprint()
         viewModelScope.launch {
-            container.installers.shizuku.permissionResults.collect { granted ->
-                if (_shizukuAccess.value == Access.REQUESTING) _shizukuAccess.value = if (granted) Access.GRANTED else Access.FAILED
+            container.installers.shevery.permissionResults.collect { granted ->
+                if (_sheveryAccess.value == Access.REQUESTING) _sheveryAccess.value = if (granted) Access.GRANTED else Access.FAILED
             }
         }
     }
 
-    /** Picks how web apps are installed; root and Shizuku access are requested with [requestAccess]. */
+    /** Picks how web apps are installed; root and Shevery access are requested with [requestAccess]. */
     fun selectMethod(method: InstallMethod) = container.settings.setInstallMethod(method)
 
-    /** Asks for root (the root manager's prompt) or Shizuku (its permission dialog). */
+    /** Asks for root (the root manager's prompt) or Shevery (its permission dialog). */
     fun requestAccess(method: InstallMethod) {
         when (method) {
             InstallMethod.SESSION -> Unit
@@ -105,15 +123,15 @@ class SettingsViewModel(private val container: AppContainer) : ViewModel() {
                 val granted = container.installers.root.availability() == Availability.AVAILABLE
                 _rootAccess.value = if (granted) Access.GRANTED else Access.FAILED
             }
-            InstallMethod.SHIZUKU -> viewModelScope.launch {
-                val shizuku = container.installers.shizuku
-                when (shizuku.availability()) {
-                    Availability.AVAILABLE -> _shizukuAccess.value = Access.GRANTED
+            InstallMethod.SHEVERY -> viewModelScope.launch {
+                val shevery = container.installers.shevery
+                when (shevery.availability()) {
+                    Availability.AVAILABLE -> _sheveryAccess.value = Access.GRANTED
                     Availability.NEEDS_PERMISSION -> {
-                        _shizukuAccess.value = Access.REQUESTING
-                        shizuku.requestPermission()
+                        _sheveryAccess.value = Access.REQUESTING
+                        shevery.requestPermission()
                     }
-                    Availability.UNAVAILABLE -> _shizukuAccess.value = Access.FAILED
+                    Availability.UNAVAILABLE -> _sheveryAccess.value = Access.FAILED
                 }
             }
         }

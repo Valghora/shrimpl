@@ -41,6 +41,27 @@ data class Draft(
         allowNotifications = allowNotifications.value,
         allowLocation = allowLocation.value,
     )
+
+    /**
+     * Where each guessed value came from, by form field (R3.3): every value found with low or medium
+     * confidence, except a permission discovery left off, since an off switch has nothing it suggests.
+     */
+    fun hints(): Map<String, String> = buildMap {
+        fun hint(key: String, field: Field<*>) {
+            if (field.confidence != Confidence.HIGH) put(key, field.source)
+        }
+        fun permission(key: String, field: Field<Boolean>) {
+            if (field.value) hint(key, field)
+        }
+        hint("name", name)
+        hint("startUrl", startUrl)
+        hint("internalDomains", internalDomains)
+        hint("iconBackground", iconBackground)
+        permission("allowMicrophone", allowMicrophone)
+        permission("allowCamera", allowCamera)
+        permission("allowNotifications", allowNotifications)
+        permission("allowLocation", allowLocation)
+    }
 }
 
 /**

@@ -234,19 +234,19 @@ private class Fields(
         SettingsSection(stringResource(R.string.section_permissions)) {
             SwitchItem(
                 stringResource(R.string.field_microphone), form.allowMicrophone, { onChange(form.copy(allowMicrophone = it)) },
-                summary = stringResource(R.string.field_microphone_detail), hint = hints["allowMicrophone"],
+                hint = hints["allowMicrophone"],
             )
             SwitchItem(
                 stringResource(R.string.field_camera), form.allowCamera, { onChange(form.copy(allowCamera = it)) },
-                summary = stringResource(R.string.field_camera_detail), hint = hints["allowCamera"],
+                hint = hints["allowCamera"],
             )
             SwitchItem(
                 stringResource(R.string.field_notifications), form.allowNotifications, { onChange(form.copy(allowNotifications = it)) },
-                summary = stringResource(R.string.field_notifications_detail), hint = hints["allowNotifications"],
+                hint = hints["allowNotifications"],
             )
             SwitchItem(
                 stringResource(R.string.field_location), form.allowLocation, { onChange(form.copy(allowLocation = it)) },
-                summary = stringResource(R.string.field_location_detail), hint = hints["allowLocation"],
+                hint = hints["allowLocation"],
             )
         }
     }

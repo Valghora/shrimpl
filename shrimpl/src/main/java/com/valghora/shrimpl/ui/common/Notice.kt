@@ -47,6 +47,9 @@ enum class Tone(private val pastel: Color?, private val deep: Color?) {
     CAUTION(Color(0xFFFFF1BF), Color(0xFF664A00)),
     ERROR(Color(0xFFFFDAD6), Color(0xFF8C1D18)),
     SUCCESS(Color(0xFFD4F5DC), Color(0xFF0F5223)),
+
+    /** Shrimpl's own update, found or on its way (R14.3). */
+    UPDATE(Color(0xFFD6E3FF), Color(0xFF0B3D7A)),
     ;
 
     /** The background of a notification, home status badge or row button in this tone. */

@@ -49,9 +49,7 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.valghora.shrimpl.BuildConfig
 import com.valghora.shrimpl.R
-import com.valghora.shrimpl.core.Versions
 import com.valghora.shrimpl.container
 import com.valghora.shrimpl.data.BadgeTheme
 import com.valghora.shrimpl.data.ClickAction
@@ -64,6 +62,7 @@ import com.valghora.shrimpl.ui.common.NavigationItem
 import com.valghora.shrimpl.ui.common.PageTopBar
 import com.valghora.shrimpl.ui.common.SettingsItem
 import com.valghora.shrimpl.ui.common.SettingsSection
+import com.valghora.shrimpl.ui.common.StatusButton
 import com.valghora.shrimpl.ui.common.SwitchItem
 import com.valghora.shrimpl.ui.common.Tone
 import com.valghora.shrimpl.ui.common.TooltipIconButton
@@ -83,7 +82,7 @@ fun SettingsScreen(inPane: Boolean, onBack: () -> Unit) {
     val hapticFeedback by model.hapticFeedback.collectAsStateWithLifecycle()
     val badgeTheme by model.badgeTheme.collectAsStateWithLifecycle()
     val rootAccess by model.rootAccess.collectAsStateWithLifecycle()
-    val shizukuAccess by model.shizukuAccess.collectAsStateWithLifecycle()
+    val sheveryAccess by model.sheveryAccess.collectAsStateWithLifecycle()
     val fingerprint by model.fingerprint.collectAsStateWithLifecycle()
     val message by model.message.collectAsStateWithLifecycle()
     val pendingRestore by model.pendingRestore.collectAsStateWithLifecycle()
@@ -177,7 +176,7 @@ fun SettingsScreen(inPane: Boolean, onBack: () -> Unit) {
                         method,
                         listOf(
                             InstallMethod.SESSION to stringResource(R.string.install_session),
-                            InstallMethod.SHIZUKU to stringResource(R.string.install_shizuku),
+                            InstallMethod.SHEVERY to stringResource(R.string.install_shevery),
                             InstallMethod.ROOT to stringResource(R.string.install_root),
                         ),
                         model::selectMethod,
@@ -185,10 +184,10 @@ fun SettingsScreen(inPane: Boolean, onBack: () -> Unit) {
                     )
                     when (method) {
                         InstallMethod.SESSION -> Unit
-                        InstallMethod.SHIZUKU -> AccessItem(R.string.request_shizuku, R.string.request_shizuku_detail, R.string.request_shizuku_failed, shizukuAccess) {
-                            model.requestAccess(InstallMethod.SHIZUKU)
+                        InstallMethod.SHEVERY -> AccessItem(R.string.request_shevery, R.string.request_shevery_detail, R.string.request_shevery_failed, sheveryAccess) {
+                            model.requestAccess(InstallMethod.SHEVERY)
                         }
-                        InstallMethod.ROOT -> AccessItem(R.string.request_root, R.string.request_root_detail, R.string.request_root_failed, rootAccess) {
+                        InstallMethod.ROOT -> AccessItem(R.string.request_root, null, R.string.request_root_failed, rootAccess) {
                             model.requestAccess(InstallMethod.ROOT)
                         }
                     }
@@ -241,13 +240,7 @@ fun SettingsScreen(inPane: Boolean, onBack: () -> Unit) {
                     NavigationItem(stringResource(R.string.action_restore_key), { openFile.launch(arrayOf(PKCS12_TYPE, "application/octet-stream")) })
                 }
 
-                SettingsSection(stringResource(R.string.settings_about)) {
-                    SettingsItem(
-                        stringResource(R.string.app_name),
-                        summary = stringResource(R.string.about_app, BuildConfig.VERSION_NAME) + "\n" +
-                            stringResource(R.string.about_template, Versions.name(model.templateVersion)),
-                    )
-                }
+                AboutSection(model)
             }
         }
     }
@@ -291,45 +284,43 @@ fun SettingsScreen(inPane: Boolean, onBack: () -> Unit) {
 }
 
 /**
- * "Request Root" or "Request Shizuku": a Request button that turns into Success (success tone), or
- * Retry (error tone) with the failure described below the title.
+ * "Request Root" or "Request Shevery" (R6.2): a Request button that turns into Success (success tone), or
+ * Retry (error tone) with the failure described below the title. [detail], when set, describes the
+ * Request before it succeeds. The button keeps one size in every
+ * state, so it doesn't move.
  */
 @Composable
-private fun AccessItem(title: Int, detail: Int, failed: Int, access: SettingsViewModel.Access, onRequest: () -> Unit) {
+private fun AccessItem(title: Int, detail: Int?, failed: Int, access: SettingsViewModel.Access, onRequest: () -> Unit) {
     val (background, content) = when (access) {
         SettingsViewModel.Access.GRANTED -> Tone.SUCCESS.container to Tone.SUCCESS.content
         SettingsViewModel.Access.FAILED -> Tone.ERROR.container to Tone.ERROR.content
         else -> MaterialTheme.colorScheme.secondaryContainer to MaterialTheme.colorScheme.onSecondaryContainer
     }
+    val request = stringResource(R.string.action_request_access)
+    val success = stringResource(R.string.access_success)
+    val retry = stringResource(R.string.action_retry)
     SettingsItem(
         stringResource(title),
-        summary = if (access == SettingsViewModel.Access.NOT_REQUESTED || access == SettingsViewModel.Access.REQUESTING) {
-            stringResource(detail)
-        } else {
-            null
+        summary = when (access) {
+            SettingsViewModel.Access.NOT_REQUESTED, SettingsViewModel.Access.REQUESTING -> detail?.let { stringResource(it) }
+            SettingsViewModel.Access.FAILED -> stringResource(failed)
+            SettingsViewModel.Access.GRANTED -> null
         },
-        error = if (access == SettingsViewModel.Access.FAILED) stringResource(failed) else null,
+        summaryColor = if (access == SettingsViewModel.Access.FAILED) Tone.ERROR.text else null,
         trailing = {
-            Button(
+            StatusButton(
+                label = when (access) {
+                    SettingsViewModel.Access.GRANTED -> success
+                    SettingsViewModel.Access.FAILED -> retry
+                    else -> request
+                },
+                labels = listOf(request, success, retry),
+                busy = access == SettingsViewModel.Access.REQUESTING,
+                busyDescription = stringResource(title),
+                container = background,
+                content = content,
                 onClick = onRequest,
-                enabled = access != SettingsViewModel.Access.REQUESTING,
-                shape = AppShapes.Control,
-                colors = ButtonDefaults.buttonColors(containerColor = background, contentColor = content),
-            ) {
-                if (access == SettingsViewModel.Access.REQUESTING) {
-                    CircularProgressIndicator(Modifier.size(18.dp), strokeWidth = 2.dp)
-                } else {
-                    Text(
-                        stringResource(
-                            when (access) {
-                                SettingsViewModel.Access.GRANTED -> R.string.access_success
-                                SettingsViewModel.Access.FAILED -> R.string.action_retry
-                                else -> R.string.action_request_access
-                            },
-                        ),
-                    )
-                }
-            }
+            )
         },
     )
 }
@@ -352,7 +343,7 @@ private val CopyIcon: ImageVector = ImageVector.Builder("ContentCopy", 24.dp, 24
 
 private fun methodDetail(method: InstallMethod) = when (method) {
     InstallMethod.SESSION -> R.string.install_session_detail
-    InstallMethod.SHIZUKU -> R.string.install_shizuku_detail
+    InstallMethod.SHEVERY -> R.string.install_shevery_detail
     InstallMethod.ROOT -> R.string.install_root_detail
 }
 

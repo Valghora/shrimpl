@@ -115,7 +115,7 @@ binary translation) on any device.
   - Content descriptions on every icon; font scaling supported.
   - The template stays on Views (T1.1).
   - Shrimpl's launcher icon is a white shrimp on #CC5500, with a monochrome layer for themed icons.
-- R1.4 Three install methods behind one interface (R6): System (the platform installer), Shizuku and
+- R1.4 Three install methods behind one interface (R6): System (the platform installer), Shevery and
   Root.
 - R1.5 Shapes: rounded corners from Material's shape scale, one size per role, all defined in
   `ui/theme/Shapes.kt`, which also sets Material's theme shapes so dialogs, sheets, chips, tooltips
@@ -175,9 +175,9 @@ binary translation) on any device.
     | State | When | Row button | Tile badge (R2.6) | Accessibility state | Tap | Menu, in order |
     |---|---|---|---|---|---|---|
     | Fix required | installed, signed with another key (R11.7) | Fix: a wrench, red | red wrench | "Fix required" | nothing (with Selecting fixes first: Fix) | Fix, Edit, Remove |
-    | Update ready | installed, built from an older template (R11.4) | Update: an up arrow, green, right of the name | green up arrow | "Update ready" | the Selecting an app choice (with Selecting fixes first: Update) | Update, Open, Edit, Uninstall |
+    | Update ready | installed, built from an older template (R11.4) | Update: an up arrow, green, right of the name | green up arrow | "Update ready" | the Default select action (with Selecting fixes first: Update) | Update, Open, Edit, Uninstall |
     | Not installed | a record whose app isn't installed | Reinstall: Material's "replay", yellow | yellow "replay" | "Not installed" | nothing, and no tap is offered to accessibility services; Selecting fixes first doesn't apply | Reinstall, Edit, Remove |
-    | Installed | none of the above | none | none | none | the Selecting an app choice (R2.5) | Open, Edit, Rebuild, Uninstall |
+    | Installed | none of the above | none | none | none | the Default select action (R2.5) | Open, Edit, Rebuild, Uninstall |
 
   - The ⋮ menu, the right-click menu and the long-press menu ("Show options") offer the same actions.
     The pending action is always first; Rebuild appears only when there is none.
@@ -218,7 +218,7 @@ binary translation) on any device.
     what failed.
   - With the System install method, Update all first asks: "Android will ask you for permission to
     perform each update. To update your apps without prompts, switch your installation method to
-    Shizuku or Root via Settings.", with Cancel and Update all.
+    Shevery or Root via Settings.", with Cancel and Update all.
   - Fix all (R11.7) sits in the same place and works the same way.
 - R2.5 Settings, from the top bar button or Ctrl+,. Descriptions are quoted exactly and follow R1.6.
 
@@ -226,12 +226,12 @@ binary translation) on any device.
   |---|---|---|---|
   | Appearance | Theme | System (default): "Follows the system's light or dark theme"; Light: "Always uses the light theme"; Dark: "Always uses the dark theme" | Light or dark only: every choice uses the wallpaper's dynamic colors (R1.3). |
   | Appearance | Badge theme | Shrimpl (default): "Each status keeps its own pastel color"; Harmony: "Status colors are tinted toward your wallpaper's colors"; Mono: "Every status uses your wallpaper's main color" | Home badges and row buttons (R2.2, R2.6) only, not notices. Shrimpl: each status's fixed pastel and deep shade. Harmony: both run through Material's harmonize with the theme's primary color, the hue turned up to 15 degrees and the tone kept, so 7:1 contrast holds. Mono: the theme's primary container and on-primary-container colors for every status, which the symbols then tell apart. |
-  | Installation | Method | System: "Android asks you to confirm each install"; Shizuku: "Installs without asking, through Shizuku."; Root: "Installs without asking, using root access." (R6.2) | Shizuku and Root add the Request Shizuku / Request Root item. |
-  | Behavior | Selecting an app | Edit (default): "Opens the app's settings"; Open: "Opens the app" | What a tap does on an installed app with no pending action, or with Selecting fixes first off. |
-  | Behavior | Selecting fixes first | a switch, off by default: "When an app needs an update, fix or reinstall, selecting it does that instead." | On: tapping an installed app with a pending action (Fix or Update) does that action instead, in rows and tiles, and accessibility services hear the tap named after it ("Fix Example"). Off: the Selecting an app choice applies, and an app signed with another key still does nothing on a tap. An app that isn't installed ignores the switch (R2.2). |
+  | Installation | Method | System: "Android asks you to confirm each install"; Shevery: "Installs silently through Shevery"; Root: "Installs silently with root access" (R6.2) | Shevery and Root add the Request Shevery / Request Root item. |
+  | Behavior | Default select action | Edit (default): "Opens the app's settings"; Open: "Opens the app" | What a tap does on an installed app with no pending action, or with Selecting fixes first off. |
+  | Behavior | Selecting fixes first | a switch, off by default: "When an app needs an update, fix or reinstall, selecting it does that instead." | On: tapping an installed app with a pending action (Fix or Update) does that action instead, in rows and tiles, and accessibility services hear the tap named after it ("Fix Example"). Off: the Default select action applies, and an app signed with another key still does nothing on a tap. An app that isn't installed ignores the switch (R2.2). |
   | Behavior | Haptic feedback | a switch at the end of the section, on by default: "Vibrates when a long press opens a menu" | On: a long press that opens an app's menu vibrates (R2.1); the system's touch feedback setting still applies. |
   | Signing | | the certificate's SHA-256 fingerprint with a copy button, "Export…" and "Import…" | Export and import the certificate (R5). |
-  | About | | "App version <version>" and "Template version <version>" (R11.8) | |
+  | About | "Shrimpl <version>" with the update state, and Update check frequency | R14.3 | Shrimpl's own updates from GitHub (R14). |
 
 - R2.6 Tiles: the layout switch shows the apps as tiles instead of rows, and the choice is kept.
   - Tiles flow three across on phones (at least 100 dp wide, 8 dp apart, 12 dp in from the sides),
@@ -311,10 +311,12 @@ binary translation) on any device.
       the site's own menu."); Run in background; Pause in battery saver.
     - **Window:** Allow multiple windows ("Lets the app open in more than one window", off by
       default), default and minimum window size.
-    - **Permissions:** Microphone, Camera, Notifications and Location, off by default, each saying what
-      it lets the site do ("Lets the site ask to use your microphone").
+    - **Permissions:** Microphone, Camera, Notifications and Location, off by default, with no
+      description; one that discovery turned on shows the line naming where that came from, and
+      one it left off shows nothing.
   - Site keyboard shortcuts (`appShortcuts`) are not editable in the form; a profile keeps any it has.
-  - Values discovered with low or medium confidence say where they came from; discovery's notes
+  - Values discovered with low or medium confidence say where they came from (a permission only when
+    discovery turned it on); discovery's notes
     appear as Info, Caution or Error notices.
   - Every field is validated as the user types, by the core validator (R4.2).
   - Notices (here and on home, R11.7) have Notice corners (R1.5):
@@ -408,14 +410,14 @@ binary translation) on any device.
   - **Session:** `PackageInstaller` sessions; REQUEST_INSTALL_PACKAGES. Sessions ask for
     `USER_ACTION_NOT_REQUIRED`, but Android still asks the user to confirm every install and every
     update (the emulator's `BuildAndInstallTest` taps Update), hence R2.4's warning.
-  - **Shizuku:** a Shizuku user service running `pm install -S` with the APK piped in; no prompts.
+  - **Shevery:** a Shevery user service running `pm install -S` with the APK piped in; no prompts.
   - **Root:** `su -c pm install -S` with the APK piped in; `pm uninstall` for uninstalls.
 - R6.2 Settings has one Method choice: System (default; every install asks for confirmation),
-  Shizuku (silent, through ADB) or Root (silent, through superuser), described in R2.5.
-  - Choosing Shizuku or Root shows a Request item ("Asks Shizuku for access" or "Asks for root
-    access", button Request). Success turns
-    the button into Success; failure shows "Failed to acquire root" / "Failed to acquire Shizuku" and
-    the button becomes Retry.
+  Shevery (silent, through ADB) or Root (silent, through superuser), described in R2.5.
+  - Choosing Shevery or Root shows a Request item (Request Shevery with "Asks Shevery for access",
+    or Request Root with no description; button Request). Success turns the button into Success (green); failure shows "Failed to
+    acquire root" / "Failed to acquire Shevery" in red and the button becomes Retry (red). The button keeps
+    one size in every state, a spinner in its centre while the request runs, so it doesn't move.
   - If the chosen method fails at install time, Shrimpl says so and offers the system installer for
     this install.
 - R6.3 The Session method needs "Install unknown apps"; if it's missing, the build sheet explains it,
@@ -570,7 +572,7 @@ The template's behavior is docs/TEMPLATE_SPEC.md. What Shrimpl relies on:
   - Only installed apps count for the notice and Fix all.
 - R11.8 Versions. Shrimpl (`shrimpl.appVersion`) and the template (`shrimpl.templateVersion`) each
   have a version `major.minor.patch`, in `gradle.properties`, minor and patch each 0 to 9.
-  - Each change merged to main raises the version of the APK it changes by one in its last part,
+  - Each change merged to `develop` (R12.5) raises the version of the APK it changes by one in its last part,
     carrying at 9: 1.0.0, 1.0.1 … 1.0.9, 1.1.0 … 1.1.9, 1.2.0 … 1.9.9. Shrimpl's version rises with any
     change to Shrimpl's APK, including a new template (which Shrimpl bundles); the template's rises with
     any change to template code or resources (R11.4). A merge that changes neither APK, such as docs,
@@ -592,20 +594,44 @@ The template's behavior is docs/TEMPLATE_SPEC.md. What Shrimpl relies on:
   `scripts/check_native_code.sh` (R0), and `scripts/dev/` (placeholder icons, Public Suffix List
   refresh).
   *Outside code:* the repository layout and `scripts/`.
-- R12.2 CI (`.github/workflows/android.yml`) runs on every push and pull request: the comment and
-  document checks, then a Build job (skipped for a commit that already passed, as when main is
-  fast-forwarded to a tested branch) that tests `:core` with coverage, the template and Shrimpl,
-  lints both apps' release variants to 0 errors, builds the template's release APK and Shrimpl's
+- R12.2 CI (`.github/workflows/android.yml`) runs by hand, never on a push: on a branch when it is
+  about to merge into develop, and on develop before a release (R12.5); and on pull requests from
+  forks. It runs the
+  comment and document checks (new lines measured against the branch it comes from, R12.5), then a
+  Build job (skipped for a commit whose files already passed Build, as develop's after a merge of a
+  branch that passed, and for a change to documentation only, docs/ and Markdown) that tests
+  `:core` with coverage, the template and Shrimpl, lints both apps' release variants to 0 errors, builds the template's release APK and Shrimpl's
   debug APK, and checks both for R0 and 16 KB page alignment (`scripts/check_page_alignment.sh`).
-  Shrimpl's release APK is built and checked only in a manual run with Release build ticked.
+  Shrimpl's release APK is built by the Release workflow (R12.6), not here. Test and
+  lint reports are uploaded only when a step fails; APKs are never uploaded.
   *Outside code:* `.github/workflows/android.yml`.
-- R12.3 Shrimpl release builds use R8 and are signed with the debug key, for personal sideloading.
-  *Outside code:* `shrimpl/build.gradle.kts` (the release build type).
+- R12.3 Shrimpl release builds use R8. The Release workflow (R12.6) signs them with the release key,
+  passed in `SHRIMPL_RELEASE_KEYSTORE`, `SHRIMPL_RELEASE_STORE_PASSWORD`, `SHRIMPL_RELEASE_KEY_ALIAS`
+  and `SHRIMPL_RELEASE_KEY_PASSWORD`; without them, as in local builds, the debug key signs them. An
+  installed debug build can't update to a release: the keys differ (R14).
+  *Outside code:* `shrimpl/build.gradle.kts` (the release signing config and build type).
 - R12.4 The Emulator workflow runs the instrumented tests of `:template` and `:shrimpl` on an x86_64
-  Android 37 emulator, by hand on a branch that is ready to merge; main is only fast-forwarded to a
-  commit it passed on, or to one that changes only documentation after such a commit. How it runs and
-  what it covers: docs/TESTING.md.
+  Android 37 emulator, by hand. It is required on `develop` before a merge into `main` (R12.5): main
+  only receives a commit it passed on, or one that changes only documentation after such a commit. How
+  it runs and what it covers: docs/TESTING.md.
   *Outside code:* `.github/workflows/emulator.yml`.
+- R12.5 Branches. `develop` is where work lands; `main` holds releases and changes only when the owner
+  says so.
+  - New work branches from `develop` and merges back into it once the owner says so and the Android
+    workflow (R12.2), run then, is green on the branch's last commit.
+  - A merge of `develop` into `main` needs the Android workflow, run on `develop` by hand, and the
+    Emulator workflow (R12.4) green on `develop`. Every merge into main is tagged `v<version>`, which
+    publishes it (R12.6).
+  - A change to documentation only (docs and Markdown) needs neither workflow before either merge.
+  *Outside code:* the workflow in CLAUDE.md.
+- R12.6 The Release workflow publishes a release when the owner pushes a tag `v<version>`: it fails
+  unless the tag matches `shrimpl.appVersion` and sits on `main`, builds Shrimpl's release APK with
+  the release key from the repository secrets `RELEASE_KEYSTORE` (the keystore in base64),
+  `RELEASE_STORE_PASSWORD`, `RELEASE_KEY_ALIAS` and `RELEASE_KEY_PASSWORD`, fails if the debug key
+  signed it, checks it for R0 and 16 KB page alignment, and attaches `shrimpl-<version>.apk` and
+  `shrimpl-<version>.apk.sha256` to a GitHub release of that tag (R14.1). The key exists only in the
+  job's temporary directory.
+  *Outside code:* `.github/workflows/release.yml`.
 
 ## R13 Test tags (debug builds only)
 
@@ -642,9 +668,55 @@ Release builds never read tags or test addresses.
   nohost.test, timeout.test, certificate.test and unloaded.test fail at Loading the site; 403.test
   fails at Researching permissions. The .test domain is reserved and never resolves.
 
+## R14 Shrimpl updates
+
+Shrimpl finds and installs its own new releases from GitHub, the repository's releases (R12).
+
+- R14.1 A check asks GitHub's API for the latest release (`releases/latest`), as an anonymous client
+  named "Shrimpl" that sends nothing about the user. A release is one tagged `v<version>` (R11.8) with
+  `shrimpl-<version>.apk` and `shrimpl-<version>.apk.sha256` attached. Its version code is compared with
+  the installed one: higher is available; otherwise Shrimpl is up to date. GitHub's "not found" (no
+  release yet), another HTTP status, no connection, or a release without those files is a failed check,
+  each with its reason. What a check found survives restarts.
+- R14.2 Background checks run with WorkManager as often as Update check frequency says (every hour, 6
+  hours, 12 hours, day or week; once a day by default), only on a network connection. Disabled stops
+  them, and checks then run only by hand. Android may run one later than due to save battery.
+  Changing the setting reschedules at once.
+- R14.3 Settings' About section holds Shrimpl's updates:
+  - The version row, titled "Shrimpl <version>" (the installed version, R11.8), shows the update state
+    on one line in its tone, and one button:
+
+    | State | Line | Tone | Button |
+    |---|---|---|---|
+    | before the first check | "Not checked yet" | neutral | Check |
+    | checking | "Checking…" | neutral | spinner |
+    | no newer release | "Up to date" | green | Check |
+    | a newer release | "Update available" | blue | Update |
+    | downloading, installing | "Downloading…", "Installing…" | blue | spinner |
+    | the check failed | "Update check failed" | red | Retry (checks again) |
+    | the update failed | "Update failed" | red | Retry (updates again) |
+
+    The line, in the tone's text color, gives no reasons. Check works whatever the frequency says. The
+    button keeps one size in every state, its spinner centred, so it doesn't move. Blue is the Update tone (`ui/common/Notice.kt`).
+  - "Update check frequency", a choice: Disabled ("Never checks for updates automatically"), 1 hour
+    ("Checks every hour"), 6 hours ("Checks every 6 hours"), 12 hours ("Checks every 12 hours"), 1 day
+    ("Checks once a day", the default) or 1 week ("Checks once a week").
+  - Choosing an interval, or Check, asks for the notification permission when Shrimpl lacks it.
+- R14.4 Home shows an Info notice for a release found and not dismissed: "Shrimpl <version> is
+  available. Update to get the latest fixes and features.", with Update and Dismiss (R3.3), above the
+  apps or above the empty state. Dismiss hides it until a newer release.
+- R14.5 The background check posts a notification once per release, on an "Updates" channel: "Shrimpl
+  <version> is available", "Select to see what's new", with an Update action. Selecting it opens
+  Settings; Update opens Settings and starts the update. Without the notification permission, Home's
+  notice and the Settings row still show the release.
+- R14.6 Update downloads the APK and its checksum file, installs the APK with the chosen install method
+  (R6) only when its SHA-256 matches, and Android refuses an APK not signed with Shrimpl's key. Debug
+  builds, signed with another key, refuse with "Debug builds can't install a release. Install the
+  release APK from GitHub instead."
+
 ## Known limitations
 
-- Shizuku and Root installs, hinges, window snapping, TalkBack, and how Shrimpl looks and feels are
+- Shevery and Root installs, hinges, window snapping, TalkBack, and how Shrimpl looks and feels are
   verified only on the owner's devices (docs/TESTING.md).
 - Google's developer verification for sideloaded apps may block or warn about installs on certified
   devices.

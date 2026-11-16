@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
@@ -21,6 +22,9 @@ import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Switch
@@ -49,6 +53,8 @@ import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.toggleableState
 import androidx.compose.ui.state.ToggleableState
@@ -96,7 +102,7 @@ val LocalInGroup = staticCompositionLocalOf { false }
 /**
  * A titled group of items (docs/SHRIMPL_SPEC.md R3.3). Each visible item is shaped by its place: the
  * first rounded at the top, the last at the bottom, the ones between with small corners, and a lone
- * item rounded all round. Items that come and go (Shizuku access, say) are counted as they are.
+ * item rounded all round. Items that come and go (Shevery access, say) are counted as they are.
  */
 @Composable
 fun SettingsSection(title: String, modifier: Modifier = Modifier, content: @Composable () -> Unit) {
@@ -144,13 +150,15 @@ private fun groupShape(index: Int, count: Int): Shape {
 
 /**
  * One item: [title], an optional [summary] (and an error or hint below it), and [trailing] at the end.
- * Clickable when [onClick] is set; dimmed when not [enabled].
+ * Clickable when [onClick] is set; dimmed when not [enabled]. [summaryColor] colors the summary, for a
+ * status (R14.3).
  */
 @Composable
 fun SettingsItem(
     title: String,
     modifier: Modifier = Modifier,
     summary: String? = null,
+    summaryColor: Color? = null,
     error: String? = null,
     errorColor: Color = Tone.ERROR.text,
     hint: String? = null,
@@ -193,7 +201,7 @@ fun SettingsItem(
         Column(Modifier.weight(1f).padding(end = textEnd), verticalArrangement = Arrangement.spacedBy(2.dp)) {
             Text(title, style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onSurface)
             summary?.takeIf(String::isNotEmpty)?.let {
-                Text(it, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text(it, style = MaterialTheme.typography.bodyMedium, color = summaryColor ?: MaterialTheme.colorScheme.onSurfaceVariant)
             }
             when {
                 error != null -> Text(error, style = MaterialTheme.typography.bodyMedium, color = errorColor)
@@ -382,3 +390,46 @@ fun ColorSwatch(color: Color?, modifier: Modifier = Modifier, size: Int = 32) {
 }
 
 private const val DISABLED_ALPHA = 0.38f
+
+/**
+ * A row's status button (R6.2, R14.3): as wide as the widest of [labels], whichever it shows, so it never
+ * changes size between states; [label] in the middle, or a spinner while [busy], when it is disabled and
+ * reads as [busyDescription] to screen readers.
+ */
+@Composable
+fun StatusButton(
+    label: String,
+    labels: List<String>,
+    busy: Boolean,
+    busyDescription: String,
+    container: Color,
+    content: Color,
+    onClick: () -> Unit,
+) {
+    Button(
+        onClick = onClick,
+        enabled = !busy,
+        shape = AppShapes.Control,
+        colors = ButtonDefaults.buttonColors(
+            containerColor = container,
+            contentColor = content,
+            disabledContainerColor = container,
+            disabledContentColor = content,
+        ),
+        modifier = if (busy) Modifier.semantics { contentDescription = busyDescription } else Modifier,
+    ) {
+        Box(contentAlignment = Alignment.Center) {
+            // Every label and the spinner, laid out but unseen, give the button its widest size in any
+            // language and text size, so switching between them never resizes it.
+            labels.forEach { Text(it, Modifier.alpha(0f).clearAndSetSemantics {}) }
+            Spacer(Modifier.size(SPINNER_SIZE))
+            if (busy) {
+                CircularProgressIndicator(Modifier.size(SPINNER_SIZE), color = content, strokeWidth = 2.dp)
+            } else {
+                Text(label)
+            }
+        }
+    }
+}
+
+private val SPINNER_SIZE = 18.dp

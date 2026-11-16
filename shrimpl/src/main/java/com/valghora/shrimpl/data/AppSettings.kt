@@ -2,12 +2,22 @@ package com.valghora.shrimpl.data
 
 import android.content.Context
 import androidx.core.content.edit
+import com.valghora.shrimpl.core.update.UpdateFrequency
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 
 /** How Shrimpl installs and uninstalls web apps (docs/SHRIMPL_SPEC.md R6). */
-enum class InstallMethod { SESSION, SHIZUKU, ROOT }
+enum class InstallMethod { SESSION, SHEVERY, ROOT }
+
+/**
+ * A saved install method's name as the method (R6.2). Shevery replaced the earlier privileged installer,
+ * saved as "SHIZUKU", so a choice saved before keeps going through Shevery rather than the system installer.
+ */
+internal fun installMethodOf(saved: String): InstallMethod? =
+    if (saved == LEGACY_SHEVERY) InstallMethod.SHEVERY else runCatching { InstallMethod.valueOf(saved) }.getOrNull()
+
+private const val LEGACY_SHEVERY = "SHIZUKU"
 
 /** Shrimpl's theme (R2.5): the system's light or dark setting, or always light or dark. */
 enum class ThemeSetting { SYSTEM, LIGHT, DARK }
@@ -29,10 +39,10 @@ class AppSettings(context: Context) {
     private val prefs = context.getSharedPreferences("shrimpl_settings", Context.MODE_PRIVATE)
 
     private val _installMethod = MutableStateFlow(
-        prefs.getString(KEY_INSTALL_METHOD, null)?.let { runCatching { InstallMethod.valueOf(it) }.getOrNull() } ?: InstallMethod.SESSION,
+        prefs.getString(KEY_INSTALL_METHOD, null)?.let(::installMethodOf) ?: InstallMethod.SESSION,
     )
 
-    /** How web apps are installed (R6.2); the system installer unless the user picked Shizuku or root. */
+    /** How web apps are installed (R6.2); the system installer unless the user picked Shevery or root. */
     val installMethod: StateFlow<InstallMethod> = _installMethod.asStateFlow()
 
     private val _theme = MutableStateFlow(prefs.getString(KEY_THEME, null)?.let { runCatching { ThemeSetting.valueOf(it) }.getOrNull() } ?: ThemeSetting.SYSTEM)
@@ -145,7 +155,21 @@ class AppSettings(context: Context) {
         _keyBackedUp.value = backedUp
     }
 
+    private val _updateFrequency = MutableStateFlow(
+        prefs.getString(KEY_UPDATE_FREQUENCY, null)?.let { runCatching { UpdateFrequency.valueOf(it) }.getOrNull() } ?: UpdateFrequency.DEFAULT,
+    )
+
+    /** How often the background check runs, or Disabled (R14.2); once a day unless the user picked another. */
+    val updateFrequency: StateFlow<UpdateFrequency> = _updateFrequency.asStateFlow()
+
+    /** Saves Check for updates (R14.2); the caller reschedules the background check. */
+    fun setUpdateFrequency(frequency: UpdateFrequency) {
+        prefs.edit { putString(KEY_UPDATE_FREQUENCY, frequency.name) }
+        _updateFrequency.value = frequency
+    }
+
     private companion object {
+        const val KEY_UPDATE_FREQUENCY = "update_frequency"
         const val KEY_INSTALL_METHOD = "install_method"
         const val KEY_THEME = "theme"
         const val KEY_CLICK_ACTION = "click_action"

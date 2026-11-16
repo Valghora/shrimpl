@@ -245,6 +245,14 @@ class DiscoveryRulesTest {
     private fun draft(evidence: Evidence, url: String = "https://app.example.com/start") =
         Discovery.draft(evidence, url, psl, Map(emptyMap()))
 
+    /** R3.3: a permission discovery left off shows no "Suggested from" line; other guesses still do. */
+    @Test
+    fun permissionsLeftOffHaveNoHint() {
+        val hints = draft(Evidence(visit(PageInfo(title = "App")))).hints()
+        assertEquals(emptySet<String>(), hints.keys.filter { it.startsWith("allow") }.toSet())
+        assertEquals("default (no brand color found)", hints["iconBackground"])
+    }
+
     @Test
     fun startUrlRules() {
         val page = PageInfo(title = "App")
@@ -295,6 +303,8 @@ class DiscoveryRulesTest {
         assertTrue(draft.allowNotifications.value)
         assertTrue(draft.allowLocation.value)
         assertTrue(draft.toProfile().allowLocation)
+        // R3.3: a permission discovery turned on says where that came from.
+        assertEquals("navigator.geolocation in page scripts or Permissions-Policy", draft.hints()["allowLocation"])
         assertEquals(IconChoice.Letter('E', "no usable brand icon found", Confidence.LOW), draft.icon)
         assertEquals("examplemail", draft.appId)
         assertEquals(emptyList<Any>(), ProfileValidator.validate(draft.toProfile()))

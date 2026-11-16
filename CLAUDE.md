@@ -48,7 +48,7 @@ same commit, and a deviation gets its row in the same commit.
 5. **The template stays small.** AndroidX Views only (T1.1), no site values in its code or resources.
    Raise `shrimpl.templateVersion` in `gradle.properties` whenever template code or resources change
    (R11.4).
-6. **Versions (R11.8).** Each change merged to main raises the version of each APK it changes by one
+6. **Versions (R11.8).** Each change merged to develop raises the version of each APK it changes by one
    in its last part (`shrimpl.appVersion`, `shrimpl.templateVersion`; 1.1.9, then 1.2.0); a template
    change raises both, since Shrimpl bundles the template. A new major version only on the owner's
    explicit instruction; past x.9.9, ask.
@@ -68,10 +68,10 @@ same commit, and a deviation gets its row in the same commit.
 - Settings wording follows `docs/SHRIMPL_SPEC.md` R1.6: a switch's label and description stay fixed
   (the description says what it does when on); a choice describes the selected value; descriptions
   start with a present-tense verb; "select", not "tap" or "click".
-- Colors follow `ui/common/Notice.kt` and the theme: Info follows the Material theme; Caution, Error
-  and Success use pastel containers with dark text in both themes; status text on plain surfaces is
-  pastel in dark theme and deep in light theme. None is harmonized with the theme, except home badges
-  and row buttons under the Badge theme setting (R2.5).
+- Colors follow `ui/common/Notice.kt` and the theme: Info follows the Material theme; Caution, Error,
+  Success and Update (blue, Shrimpl's own updates) use pastel containers with dark text in both
+  themes; status text on plain surfaces is pastel in dark theme and deep in light theme. None is
+  harmonized with the theme, except home badges and row buttons under the Badge theme setting (R2.5).
 
 ## Tests
 
@@ -80,7 +80,7 @@ same commit, and a deviation gets its row in the same commit.
   change, look for behavior worth a new test and add it where it makes sense; a layout or state bug
   found on a device gets a test that would have caught it.
 - The template's WebView and bridges, and real installs: emulator tests. A change to them adds or
-  updates one. What the emulator can't do (hinges, Shizuku and Root, TalkBack, how it looks) is named
+  updates one. What the emulator can't do (hinges, Shevery and Root, TalkBack, how it looks) is named
   in `docs/TESTING.md`; how a screen looks and feels, and what needs hardware, is confirmed on the
   owner's devices.
 
@@ -91,31 +91,45 @@ same commit, and a deviation gets its row in the same commit.
   :template:assembleRelease :shrimpl:testDebugUnitTest :shrimpl:lintRelease :shrimpl:assembleDebug
 scripts/check_native_code.sh --none template/build/outputs/apk/release/template-release.apk
 scripts/check_native_code.sh --all-abis shrimpl/build/outputs/apk/debug/shrimpl-debug.apk
-scripts/check_comments.sh --diff origin/main
-scripts/check_docs.py --diff origin/main
+scripts/check_comments.sh --diff origin/develop
+scripts/check_docs.py --diff origin/develop
 ```
 
 There is no emulator in the cloud container (no KVM, and ARM images can't run on an x86 host).
 Instrumented tests run in CI, in the Emulator workflow, which takes about 14 minutes and doesn't run on
-pushes.
+pushes; it is required only before a merge into `main`.
 
 ## Workflow
 
-- Branch from the default branch for new work. Commit locally as work is done. Never force-push.
-- **Before a merge to main:**
+- **Branches (R12.5).** `develop` is where work lands; `main` holds releases. Branch from `develop`
+  for new work and offer to merge into `develop` only. Never commit to, merge into or tag `main`
+  unless the owner explicitly says so. Commit locally as work is done. Never force-push.
+- **Documentation only:** a branch that changes only docs and Markdown needs no workflow run before
+  either merge below; the spec rereading still applies.
+- **Before a merge to develop:**
   1. Run `scripts/spec_map.sh` for each requirement the branch touched and reread those spec lines
      against the change: no check compares the spec's prose with what the code does.
-  2. Dispatch the Emulator workflow on the branch, only now, not after every commit:
-     `gh api -X POST repos/Valghora/shrimpl/actions/workflows/emulator.yml/dispatches -f ref=<branch>`.
+  2. Only once the owner says to merge: dispatch the Android workflow on the branch
+     (`gh api -X POST repos/Valghora/shrimpl/actions/workflows/android.yml/dispatches -f ref=<branch>`)
+     and merge when it is green on the branch's last commit. Pushes never run CI, so don't wait on it
+     before then. The Emulator workflow isn't required here; dispatch it by hand only to try a test.
+- **A merge to main, only when the owner says so** (a release):
+  1. Dispatch the Android and the Emulator workflow on `develop` (pushes never run CI):
+     `gh api -X POST repos/Valghora/shrimpl/actions/workflows/android.yml/dispatches -f ref=develop` and
+     `gh api -X POST repos/Valghora/shrimpl/actions/workflows/emulator.yml/dispatches -f ref=develop`.
      `docs/TESTING.md` says how to read a failure.
-  3. Merge only with both the Android and the Emulator workflow green on the branch's last commit; if
-     the commits since the Emulator run changed only docs and Markdown, the last commit that changed
-     anything else counts for it.
-- **APK, only when asked** ("Build and push it, then send the APK"): push the branch, check the
-  Android workflow, and send `shrimpl-debug.apk`, built after deleting
+  2. Merge `develop` into `main` only with both the Android and the Emulator workflow green on
+     `develop`'s last commit; if the commits since the Emulator run changed only docs and Markdown,
+     the last commit that changed anything else counts for it.
+  3. Tag the merge `v<version>` (`shrimpl.appVersion`) and push the tag, which runs the Release
+     workflow (R12.6), then check that it published. "Merge into main" always includes the tag; a
+     version already released on main needs a new version first, so ask.
+- **APK, only when asked** ("Build and push it, then send the APK"): run the Verify checks locally,
+  push the branch (no workflow run), and send `shrimpl-debug.apk`, built after deleting
   `shrimpl/build/outputs/apk/debug/` (docs/BUILD_NOTES.md, "Debug APK size").
-- **Release APK, only when the owner asks for a release build:** `:shrimpl:assembleRelease`, then the
-  R0 check on it; in CI, run the Android workflow by hand with Release build ticked.
+- **Release APK, only when the owner asks for a release build:** `:shrimpl:assembleRelease` locally
+  (debug-key signed), then the R0 check on it. A published release comes only from the Release
+  workflow (R12.6), from the tag that comes with every merge to main.
 - **Push back** before following an owner instruction that goes starkly against a standard (Android's
   adaptive and large-screen guidance, Material, accessibility such as WCAG, the vendored skills): say
   which standard, what it costs users, and the closest option that meets both; then do what the owner

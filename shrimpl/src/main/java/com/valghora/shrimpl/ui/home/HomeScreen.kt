@@ -157,6 +157,7 @@ fun HomeScreen(
     val message by model.message.collectAsStateWithLifecycle()
     val clickAction by model.clickAction.collectAsStateWithLifecycle()
     val resolveOnTap by model.resolveOnTap.collectAsStateWithLifecycle()
+    val updates by model.updates.collectAsStateWithLifecycle()
     val hapticFeedback by model.hapticFeedback.collectAsStateWithLifecycle()
     val badgeTheme by model.badgeTheme.collectAsStateWithLifecycle()
     val method by model.installMethod.collectAsStateWithLifecycle()
@@ -252,7 +253,18 @@ fun HomeScreen(
             },
             snackbarHost = { SnackbarHost(snackbar) },
         ) { padding ->
-            if (records.isEmpty()) {
+            // R14.4: a newer Shrimpl release, until updated or dismissed; above the apps, or the empty state.
+            val updateNotice: @Composable (Modifier) -> Unit = { modifier ->
+                updates.notice?.let { release ->
+                    NoticeCard(
+                        Notice(Notice.Kind.INFO, stringResource(R.string.update_notice, release.version)),
+                        modifier = modifier,
+                        onDismiss = { model.dismissUpdate(release) },
+                        action = stringResource(R.string.action_update) to { model.installUpdate(release) },
+                    )
+                }
+            }
+            if (records.isEmpty()) Box(Modifier.fillMaxSize()) {
                 if (inPane) {
                     // Spans the whole card, so it lines up with the detail pane's text.
                     CenteredEmptyState { EmptyStateText(stringResource(R.string.home_empty_title), title = true) }
@@ -269,6 +281,7 @@ fun HomeScreen(
                         PitchText()
                     }
                 }
+                updateNotice(Modifier.align(Alignment.TopCenter).padding(top = padding.calculateTopPadding() + 8.dp).padding(horizontal = 16.dp))
             } else {
                 // Tiles sit 12 dp in from the sides; rows run edge to edge with their own inset.
                 val gridInset = if (tiles) TILE_INSET else 0.dp
@@ -287,6 +300,11 @@ fun HomeScreen(
                     horizontalArrangement = Arrangement.spacedBy(GRID_GAP),
                     verticalArrangement = Arrangement.spacedBy(if (tiles) 8.dp else 0.dp),
                 ) {
+                    if (updates.notice != null) {
+                        item(key = UPDATE_NOTICE, span = { GridItemSpan(maxLineSpan) }, contentType = UPDATE_NOTICE) {
+                            updateNotice(Modifier.padding(horizontal = 16.dp - gridInset, vertical = 8.dp))
+                        }
+                    }
                     // R11.6, R11.7: apps from a previous install, signed with a key Shrimpl no longer has.
                     if (showKeyNotice) {
                         item(key = OTHER_KEY_NOTICE, span = { GridItemSpan(maxLineSpan) }, contentType = OTHER_KEY_NOTICE) {
@@ -721,6 +739,7 @@ private val MIN_CELL_WIDTH = 360.dp
 private val FAB_MARGIN = 16.dp
 
 private const val OTHER_KEY_NOTICE = "other-key-notice"
+private const val UPDATE_NOTICE = "update-notice"
 private const val NOT_INSTALLED_LABEL = "not-installed-label"
 
 /** The content types of web app rows and tiles, so the grid reuses rows for rows and tiles for tiles. */
