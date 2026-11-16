@@ -11,10 +11,8 @@ import com.valghora.shrimpl.discovery.SiteDiscovery
 import com.valghora.shrimpl.ui.common.BuildController
 import com.valghora.shrimpl.ui.common.Notice
 import com.valghora.shrimpl.core.records.WebAppDraft
-import com.valghora.shrimpl.core.discovery.Confidence
 import com.valghora.shrimpl.core.discovery.Discovery
 import com.valghora.shrimpl.core.discovery.DiscoveryException
-import com.valghora.shrimpl.core.discovery.Field
 import com.valghora.shrimpl.core.profile.AppIds
 import com.valghora.shrimpl.core.profile.Profile
 import com.valghora.shrimpl.core.profile.ProfileForm
@@ -169,19 +167,7 @@ class CreateViewModel(private val container: AppContainer) : ViewModel() {
     private fun apply(discovered: Discovered) {
         val found = discovered.draft
         val profile = found.toProfile().copy(appId = AppIds.unique(found.name.value, container.store.takenIds()))
-        hints = buildMap {
-            fun hint(key: String, field: Field<*>) {
-                if (field.confidence != Confidence.HIGH) put(key, field.source)
-            }
-            hint("name", found.name)
-            hint("startUrl", found.startUrl)
-            hint("internalDomains", found.internalDomains)
-            hint("iconBackground", found.iconBackground)
-            hint("allowMicrophone", found.allowMicrophone)
-            hint("allowCamera", found.allowCamera)
-            hint("allowNotifications", found.allowNotifications)
-            hint("allowLocation", found.allowLocation)
-        }
+        hints = found.hints()
         notes = found.notes.map(Notice::of)
         // R10.1: the brand glyph (when found) and the site's own icon (else a letter) are both offered.
         _draft.value = WebAppDraft.create(ProfileForm.from(profile), WebAppDraft.brandOf(found.icon), discovered.websiteIcon)
