@@ -72,6 +72,9 @@ android {
 
     buildTypes {
         debug {
+            // R12.3: a debug build has its own app ID and name, so it installs beside a release, which
+            // it could never update (the keys differ), and the release keeps updating itself (R14).
+            applicationIdSuffix = ".debug"
             // Line coverage of the unit and Robolectric tests (testing-setup skill):
             // :shrimpl:createDebugUnitTestCoverageReport writes build/reports/coverage/test/debug.
             enableUnitTestCoverage = true
