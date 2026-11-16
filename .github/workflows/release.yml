@@ -1,48 +1,66 @@
 name: Release
 
-# R12.6: a tag v<version> on main publishes Shrimpl's release APK, signed with the release key, as the
-# GitHub release that Shrimpl's update check reads (R14.1).
+# R12.6: a push to main (a merge from develop) publishes Shrimpl's release APK, signed with the release
+# key, as the release v<version> that Shrimpl's update check reads (R14.1). The workflow creates the
+# tag itself, so nobody pushes one. It can also be run by hand on main.
 on:
   push:
-    tags:
-      - "v*"
+    branches:
+      - main
+  workflow_dispatch:
 
 permissions:
   contents: write
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
+  group: ${{ github.workflow }}
   cancel-in-progress: false
 
 env:
   ANDROID_HOME: /home/runner/android-sdk
 
 jobs:
+  version:
+    name: Version
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+      publish: ${{ steps.version.outputs.publish }}
+    steps:
+      - uses: actions/checkout@v7
+
+      # shrimpl.appVersion names the release. A version already released (a merge to main that
+      # changed only documentation) publishes nothing; a tag of it without a release is a mistake.
+      - name: Version to publish
+        id: version
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if [[ "$GITHUB_REF" != refs/heads/main ]]; then
+            echo "::error::releases come only from main"
+            exit 1
+          fi
+          version=$(sed -n 's/^shrimpl.appVersion=//p' gradle.properties)
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          if gh release view "v$version" --repo "$GITHUB_REPOSITORY" > /dev/null 2>&1; then
+            echo "::notice::Shrimpl $version is already released; nothing to publish"
+            echo "publish=false" >> "$GITHUB_OUTPUT"
+          elif git ls-remote --exit-code --tags origin "refs/tags/v$version" > /dev/null; then
+            echo "::error::tag v$version exists without a release"
+            exit 1
+          else
+            echo "publish=true" >> "$GITHUB_OUTPUT"
+          fi
+
   release:
     name: Release
+    needs: version
+    if: needs.version.outputs.publish == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@v7
-        with:
-          fetch-depth: 0
-
-      # Only a release the owner made counts: the tag names shrimpl.appVersion and sits on main (R12.5).
-      - name: Tag matches the version and main
-        id: version
-        run: |
-          version="${GITHUB_REF_NAME#v}"
-          app=$(sed -n 's/^shrimpl.appVersion=//p' gradle.properties)
-          if [[ "$version" != "$app" ]]; then
-            echo "::error::tag $GITHUB_REF_NAME doesn't match shrimpl.appVersion $app"
-            exit 1
-          fi
-          git fetch -q origin main
-          if ! git merge-base --is-ancestor "$GITHUB_SHA" origin/main; then
-            echo "::error::$GITHUB_REF_NAME isn't on main"
-            exit 1
-          fi
-          echo "version=$version" >> "$GITHUB_OUTPUT"
 
       - uses: actions/setup-java@v6
         with:
@@ -101,14 +119,15 @@ jobs:
       - name: Publish the release
         env:
           GH_TOKEN: ${{ github.token }}
-          VERSION: ${{ steps.version.outputs.version }}
+          VERSION: ${{ needs.version.outputs.version }}
         run: |
           mkdir -p "$RUNNER_TEMP/out"
           apk="shrimpl-$VERSION.apk"
           cp shrimpl/build/outputs/apk/release/shrimpl-release.apk "$RUNNER_TEMP/out/$apk"
           (cd "$RUNNER_TEMP/out" && sha256sum "$apk" > "$apk.sha256")
-          gh release create "$GITHUB_REF_NAME" "$RUNNER_TEMP/out/$apk" "$RUNNER_TEMP/out/$apk.sha256" \
-            --title "Shrimpl $VERSION" --generate-notes --verify-tag
+          # Creates the tag v<version> on this commit too.
+          gh release create "v$VERSION" "$RUNNER_TEMP/out/$apk" "$RUNNER_TEMP/out/$apk.sha256" \
+            --target "$GITHUB_SHA" --title "Shrimpl $VERSION" --generate-notes
 
       - name: Remove the release key
         if: always()

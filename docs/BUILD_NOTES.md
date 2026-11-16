@@ -116,9 +116,13 @@ defaults (r8-analyzer skill, 2026-11-01).
   about 45 s of setup and rebuilds the template, so in a private repository they cost 1.5 to 2 times the
   runner minutes. Build is skipped for a commit that already passed. `org.gradle.parallel=true` is on.
 - **Shrimpl's release build** (R8, about 3.5 minutes clean) runs only in the Release workflow (a
-  `v<version>` tag on main) or when the owner asks for a release APK; a problem that only shows after
+  merge into main) or when the owner asks for a release APK; a problem that only shows after
   shrinking is found then. The template's release build runs every time: debug Shrimpl bundles it, and the core tests
   build web apps from it.
+- **Releases tag themselves.** The cloud sessions' GitHub proxy takes branch pushes but drops tag
+  pushes ("unexpected disconnect while reading sideband packet") and refuses writes to the refs API
+  (HTTP 403), so the Release workflow runs on pushes to main and creates the tag with its own token
+  (R12.6).
 
 ## Debug APK size
 
