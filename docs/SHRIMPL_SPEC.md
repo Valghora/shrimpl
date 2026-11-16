@@ -620,17 +620,19 @@ The template's behavior is docs/TEMPLATE_SPEC.md. What Shrimpl relies on:
   - New work branches from `develop` and merges back into it once the owner says so and the Android
     workflow (R12.2), run then, is green on the branch's last commit.
   - A merge of `develop` into `main` needs the Android workflow, run on `develop` by hand, and the
-    Emulator workflow (R12.4) green on `develop`. Every merge into main is tagged `v<version>`, which
-    publishes it (R12.6).
+    Emulator workflow (R12.4) green on `develop`. Every merge into main publishes a release of a
+    version not released before (R12.6).
   - A change to documentation only (docs and Markdown) needs neither workflow before either merge.
   *Outside code:* the workflow in CLAUDE.md.
-- R12.6 The Release workflow publishes a release when the owner pushes a tag `v<version>`: it fails
-  unless the tag matches `shrimpl.appVersion` and sits on `main`, builds Shrimpl's release APK with
-  the release key from the repository secrets `RELEASE_KEYSTORE` (the keystore in base64),
-  `RELEASE_STORE_PASSWORD`, `RELEASE_KEY_ALIAS` and `RELEASE_KEY_PASSWORD`, fails if the debug key
-  signed it, checks it for R0 and 16 KB page alignment, and attaches `shrimpl-<version>.apk` and
-  `shrimpl-<version>.apk.sha256` to a GitHub release of that tag (R14.1). The key exists only in the
-  job's temporary directory.
+- R12.6 The Release workflow publishes a release on each push to `main` (a merge from develop), or when
+  run by hand on main: it names the release after `shrimpl.appVersion`, publishes nothing when that
+  version is already released (a merge of documentation only) and fails when its tag exists without a
+  release. It builds Shrimpl's release APK with the release key from the repository secrets
+  `RELEASE_KEYSTORE` (the keystore in base64), `RELEASE_STORE_PASSWORD`, `RELEASE_KEY_ALIAS` and
+  `RELEASE_KEY_PASSWORD`, fails if the debug key signed it, checks it for R0 and 16 KB page
+  alignment, and creates the GitHub release `v<version>`, and with it the tag, on the merged commit,
+  with `shrimpl-<version>.apk` and `shrimpl-<version>.apk.sha256` attached (R14.1). The key exists
+  only in the job's temporary directory.
   *Outside code:* `.github/workflows/release.yml`.
 
 ## R13 Test tags (debug builds only)

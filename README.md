@@ -62,8 +62,9 @@ scripts/setup_android_sdk.sh          # Android SDK (API 37) and tool check
 
 CI (`.github/workflows/android.yml`, run by hand before a merge) runs the core, template and Shrimpl
 tests, lint for both apps, the template release build and Shrimpl's debug build, and checks that every
-APK is architecture-neutral. A `v<version>` tag on main runs the Release workflow
-(`.github/workflows/release.yml`), which publishes the signed release APK and its checksum.
+APK is architecture-neutral. A merge into main runs the Release workflow
+(`.github/workflows/release.yml`), which tags it `v<version>` and publishes the signed release APK and
+its checksum.
 
 ## Limitations
 
