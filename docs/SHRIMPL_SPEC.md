@@ -620,7 +620,8 @@ The template's behavior is docs/TEMPLATE_SPEC.md. What Shrimpl relies on:
   - New work branches from `develop` and merges back into it once the owner says so and the Android
     workflow (R12.2), run then, is green on the branch's last commit.
   - A merge of `develop` into `main` needs the Android workflow, run on `develop` by hand, and the
-    Emulator workflow (R12.4) green on `develop`.
+    Emulator workflow (R12.4) green on `develop`. Every merge into main is tagged `v<version>`, which
+    publishes it (R12.6).
   - A change to documentation only (docs and Markdown) needs neither workflow before either merge.
   *Outside code:* the workflow in CLAUDE.md.
 - R12.6 The Release workflow publishes a release when the owner pushes a tag `v<version>`: it fails
