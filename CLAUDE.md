@@ -109,18 +109,20 @@ pushes; it is required only before a merge into `main`.
 - **Before a merge to develop:**
   1. Run `scripts/spec_map.sh` for each requirement the branch touched and reread those spec lines
      against the change: no check compares the spec's prose with what the code does.
-  2. Merge only with the Android workflow green on the branch's last commit, and only once the owner
-     says to. The Emulator workflow isn't required here; dispatch it by hand only to try a test.
+  2. Only once the owner says to merge: dispatch the Android workflow on the branch
+     (`gh api -X POST repos/Valghora/shrimpl/actions/workflows/android.yml/dispatches -f ref=<branch>`)
+     and merge when it is green on the branch's last commit. Pushes never run CI, so don't wait on it
+     before then. The Emulator workflow isn't required here; dispatch it by hand only to try a test.
 - **A merge to main, only when the owner says so** (a release):
-  1. Dispatch the Android and the Emulator workflow on `develop` (pushes to develop don't run CI):
+  1. Dispatch the Android and the Emulator workflow on `develop` (pushes never run CI):
      `gh api -X POST repos/Valghora/shrimpl/actions/workflows/android.yml/dispatches -f ref=develop` and
      `gh api -X POST repos/Valghora/shrimpl/actions/workflows/emulator.yml/dispatches -f ref=develop`.
      `docs/TESTING.md` says how to read a failure.
   2. Merge `develop` into `main` only with both the Android and the Emulator workflow green on
      `develop`'s last commit; if the commits since the Emulator run changed only docs and Markdown,
      the last commit that changed anything else counts for it.
-- **APK, only when asked** ("Build and push it, then send the APK"): push the branch, check the
-  Android workflow, and send `shrimpl-debug.apk`, built after deleting
+- **APK, only when asked** ("Build and push it, then send the APK"): run the Verify checks locally,
+  push the branch (no workflow run), and send `shrimpl-debug.apk`, built after deleting
   `shrimpl/build/outputs/apk/debug/` (docs/BUILD_NOTES.md, "Debug APK size").
 - **Release APK, only when the owner asks for a release build:** `:shrimpl:assembleRelease`, then the
   R0 check on it; in CI, run the Android workflow by hand with Release build ticked.

@@ -592,12 +592,12 @@ The template's behavior is docs/TEMPLATE_SPEC.md. What Shrimpl relies on:
   `scripts/check_native_code.sh` (R0), and `scripts/dev/` (placeholder icons, Public Suffix List
   refresh).
   *Outside code:* the repository layout and `scripts/`.
-- R12.2 CI (`.github/workflows/android.yml`) runs on every push except to `develop` (a branch is
-  checked before it merges into develop, so the merge itself isn't built again), on pull requests from
-  forks, and by hand: the
+- R12.2 CI (`.github/workflows/android.yml`) runs by hand, never on a push: on a branch when it is
+  about to merge into develop, and on develop before a release (R12.5); and on pull requests from
+  forks. It runs the
   comment and document checks (new lines measured against the branch it comes from, R12.5), then a
-  Build job (skipped for a commit whose files already passed Build, as when develop merges into a
-  main that hadn't moved, and for a change to documentation only, docs/ and Markdown) that tests
+  Build job (skipped for a commit whose files already passed Build, as develop's after a merge of a
+  branch that passed, except in a Release build run, and for a change to documentation only, docs/ and Markdown) that tests
   `:core` with coverage, the template and Shrimpl, lints both apps' release variants to 0 errors, builds the template's release APK and Shrimpl's
   debug APK, and checks both for R0 and 16 KB page alignment (`scripts/check_page_alignment.sh`).
   Shrimpl's release APK is built and checked only in a manual run with Release build ticked. Test and
@@ -612,8 +612,8 @@ The template's behavior is docs/TEMPLATE_SPEC.md. What Shrimpl relies on:
   *Outside code:* `.github/workflows/emulator.yml`.
 - R12.5 Branches. `develop` is where work lands; `main` holds releases and changes only when the owner
   says so.
-  - New work branches from `develop` and merges back into it once the Android workflow (R12.2) is
-    green on the branch's last commit.
+  - New work branches from `develop` and merges back into it once the owner says so and the Android
+    workflow (R12.2), run then, is green on the branch's last commit.
   - A merge of `develop` into `main` needs the Android workflow, run on `develop` by hand, and the
     Emulator workflow (R12.4) green on `develop`.
   - A change to documentation only (docs and Markdown) needs neither workflow before either merge.
