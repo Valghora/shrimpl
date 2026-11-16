@@ -121,12 +121,15 @@ pushes; it is required only before a merge into `main`.
   2. Merge `develop` into `main` only with both the Android and the Emulator workflow green on
      `develop`'s last commit; if the commits since the Emulator run changed only docs and Markdown,
      the last commit that changed anything else counts for it.
+  3. Tag the merge `v<version>` (`shrimpl.appVersion`) and push the tag, which runs the Release
+     workflow (R12.6), then check that it published. "Merge into main" always includes the tag; a
+     version already released on main needs a new version first, so ask.
 - **APK, only when asked** ("Build and push it, then send the APK"): run the Verify checks locally,
   push the branch (no workflow run), and send `shrimpl-debug.apk`, built after deleting
   `shrimpl/build/outputs/apk/debug/` (docs/BUILD_NOTES.md, "Debug APK size").
 - **Release APK, only when the owner asks for a release build:** `:shrimpl:assembleRelease` locally
   (debug-key signed), then the R0 check on it. A published release comes only from the Release
-  workflow (R12.6), when the owner says to tag `v<version>` on main after the merge to main.
+  workflow (R12.6), from the tag that comes with every merge to main.
 - **Push back** before following an owner instruction that goes starkly against a standard (Android's
   adaptive and large-screen guidance, Material, accessibility such as WCAG, the vendored skills): say
   which standard, what it costs users, and the closest option that meets both; then do what the owner
