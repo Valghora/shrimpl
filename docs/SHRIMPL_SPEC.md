@@ -312,9 +312,11 @@ binary translation) on any device.
     - **Window:** Allow multiple windows ("Lets the app open in more than one window", off by
       default), default and minimum window size.
     - **Permissions:** Microphone, Camera, Notifications and Location, off by default, with no
-      description; a discovered value shows only the line naming where it came from.
+      description; one that discovery turned on shows the line naming where that came from, and
+      one it left off shows nothing.
   - Site keyboard shortcuts (`appShortcuts`) are not editable in the form; a profile keeps any it has.
-  - Values discovered with low or medium confidence say where they came from; discovery's notes
+  - Values discovered with low or medium confidence say where they came from (a permission only when
+    discovery turned it on); discovery's notes
     appear as Info, Caution or Error notices.
   - Every field is validated as the user types, by the core validator (R4.2).
   - Notices (here and on home, R11.7) have Notice corners (R1.5):
