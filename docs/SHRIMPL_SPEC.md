@@ -599,14 +599,17 @@ The template's behavior is docs/TEMPLATE_SPEC.md. What Shrimpl relies on:
   forks. It runs the
   comment and document checks (new lines measured against the branch it comes from, R12.5), then a
   Build job (skipped for a commit whose files already passed Build, as develop's after a merge of a
-  branch that passed, except in a Release build run, and for a change to documentation only, docs/ and Markdown) that tests
+  branch that passed, and for a change to documentation only, docs/ and Markdown) that tests
   `:core` with coverage, the template and Shrimpl, lints both apps' release variants to 0 errors, builds the template's release APK and Shrimpl's
   debug APK, and checks both for R0 and 16 KB page alignment (`scripts/check_page_alignment.sh`).
-  Shrimpl's release APK is built and checked only in a manual run with Release build ticked. Test and
+  Shrimpl's release APK is built by the Release workflow (R12.6), not here. Test and
   lint reports are uploaded only when a step fails; APKs are never uploaded.
   *Outside code:* `.github/workflows/android.yml`.
-- R12.3 Shrimpl release builds use R8 and are signed with the debug key, for personal sideloading.
-  *Outside code:* `shrimpl/build.gradle.kts` (the release build type).
+- R12.3 Shrimpl release builds use R8. The Release workflow (R12.6) signs them with the release key,
+  passed in `SHRIMPL_RELEASE_KEYSTORE`, `SHRIMPL_RELEASE_STORE_PASSWORD`, `SHRIMPL_RELEASE_KEY_ALIAS`
+  and `SHRIMPL_RELEASE_KEY_PASSWORD`; without them, as in local builds, the debug key signs them. An
+  installed debug build can't update to a release: the keys differ (R14).
+  *Outside code:* `shrimpl/build.gradle.kts` (the release signing config and build type).
 - R12.4 The Emulator workflow runs the instrumented tests of `:template` and `:shrimpl` on an x86_64
   Android 37 emulator, by hand. It is required on `develop` before a merge into `main` (R12.5): main
   only receives a commit it passed on, or one that changes only documentation after such a commit. How
@@ -620,6 +623,14 @@ The template's behavior is docs/TEMPLATE_SPEC.md. What Shrimpl relies on:
     Emulator workflow (R12.4) green on `develop`.
   - A change to documentation only (docs and Markdown) needs neither workflow before either merge.
   *Outside code:* the workflow in CLAUDE.md.
+- R12.6 The Release workflow publishes a release when the owner pushes a tag `v<version>`: it fails
+  unless the tag matches `shrimpl.appVersion` and sits on `main`, builds Shrimpl's release APK with
+  the release key from the repository secrets `RELEASE_KEYSTORE` (the keystore in base64),
+  `RELEASE_STORE_PASSWORD`, `RELEASE_KEY_ALIAS` and `RELEASE_KEY_PASSWORD`, fails if the debug key
+  signed it, checks it for R0 and 16 KB page alignment, and attaches `shrimpl-<version>.apk` and
+  `shrimpl-<version>.apk.sha256` to a GitHub release of that tag (R14.1). The key exists only in the
+  job's temporary directory.
+  *Outside code:* `.github/workflows/release.yml`.
 
 ## R13 Test tags (debug builds only)
 

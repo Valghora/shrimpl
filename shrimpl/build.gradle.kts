@@ -46,6 +46,20 @@ android {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
+    // R12.3: the Release workflow passes the release key in these variables; without them (local builds)
+    // a release build is signed with the debug key, which a published release never is.
+    val releaseKeystore = providers.environmentVariable("SHRIMPL_RELEASE_KEYSTORE").orNull
+    signingConfigs {
+        if (releaseKeystore != null) {
+            create("release") {
+                storeFile = file(releaseKeystore)
+                storePassword = providers.environmentVariable("SHRIMPL_RELEASE_STORE_PASSWORD").get()
+                keyAlias = providers.environmentVariable("SHRIMPL_RELEASE_KEY_ALIAS").get()
+                keyPassword = providers.environmentVariable("SHRIMPL_RELEASE_KEY_PASSWORD").get()
+            }
+        }
+    }
+
     testOptions {
         // Robolectric runs Shrimpl's Compose screens in unit tests (docs/TESTING.md, "Robolectric").
         unitTests.isIncludeAndroidResources = true
@@ -68,8 +82,7 @@ android {
             optimization {
                 enable = true
             }
-            // R12.3: signed with the debug key, for personal sideloading.
-            signingConfig = signingConfigs.getByName("debug")
+            signingConfig = signingConfigs.findByName("release") ?: signingConfigs.getByName("debug")
         }
     }
 

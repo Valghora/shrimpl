@@ -5,11 +5,6 @@ name: Android
 on:
   pull_request:
   workflow_dispatch:
-    inputs:
-      release:
-        description: Release build (Shrimpl's release APK and its R0 check)
-        type: boolean
-        default: false
 
 permissions:
   contents: read
@@ -38,32 +33,30 @@ jobs:
 
       # develop after a merge often has the very files of the branch that passed just before it merged;
       # building them again would repeat the same work, so Build is skipped when a commit with the same
-      # tree passed Build here. A Release build run always builds.
+      # tree passed Build here.
       - name: Already verified?
         id: verified
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           verified=false
-          if [[ "${{ inputs.release }}" != "true" ]]; then
-            tree=$(git rev-parse HEAD^{tree})
-            # Recent passing runs of this workflow, as "run-id head-sha" (the Actions API, which the
-            # job's token can read; check runs need a permission it doesn't have).
-            runs=$(gh api "repos/${{ github.repository }}/actions/runs?status=success&per_page=50" \
-              --jq '.workflow_runs[] | select(.name == "${{ github.workflow }}" and .id != ${{ github.run_id }}) | "\(.id) \(.head_sha)"')
-            while read -r run sha; do
-              [[ -n "$run" ]] || continue
-              [[ "$(gh api "repos/${{ github.repository }}/git/commits/$sha" --jq .tree.sha 2>/dev/null)" == "$tree" ]] || continue
-              # A passing run whose Build was skipped (documentation only, or itself verified) proves nothing.
-              built=$(gh api "repos/${{ github.repository }}/actions/runs/$run/jobs" \
-                --jq '[.jobs[] | select(.name == "Build" and .conclusion == "success")] | length' 2>/dev/null) || built=0
-              if [[ "$built" =~ ^[0-9]+$ && "$built" -gt 0 ]]; then
-                echo "::notice::${sha::7} has the same files and passed Build in run $run; skipping Build"
-                verified=true
-                break
-              fi
-            done <<<"$runs"
-          fi
+          tree=$(git rev-parse HEAD^{tree})
+          # Recent passing runs of this workflow, as "run-id head-sha" (the Actions API, which the
+          # job's token can read; check runs need a permission it doesn't have).
+          runs=$(gh api "repos/${{ github.repository }}/actions/runs?status=success&per_page=50" \
+            --jq '.workflow_runs[] | select(.name == "${{ github.workflow }}" and .id != ${{ github.run_id }}) | "\(.id) \(.head_sha)"')
+          while read -r run sha; do
+            [[ -n "$run" ]] || continue
+            [[ "$(gh api "repos/${{ github.repository }}/git/commits/$sha" --jq .tree.sha 2>/dev/null)" == "$tree" ]] || continue
+            # A passing run whose Build was skipped (documentation only, or itself verified) proves nothing.
+            built=$(gh api "repos/${{ github.repository }}/actions/runs/$run/jobs" \
+              --jq '[.jobs[] | select(.name == "Build" and .conclusion == "success")] | length' 2>/dev/null) || built=0
+            if [[ "$built" =~ ^[0-9]+$ && "$built" -gt 0 ]]; then
+              echo "::notice::${sha::7} has the same files and passed Build in run $run; skipping Build"
+              verified=true
+              break
+            fi
+          done <<<"$runs"
           echo "verified=$verified" >> "$GITHUB_OUTPUT"
 
       # R12.2: a change to documentation only (docs/ and Markdown) needs only these checks, not Build.
@@ -161,14 +154,10 @@ jobs:
       - name: Shrimpl lint
         run: ./gradlew --console=plain :shrimpl:lintRelease -x :template:lintVitalRelease
 
-      # Shrimpl is tested as a debug build; its release APK is built only when a manual run asks for
-      # it (R12.2). The template's release APK is always built: Shrimpl bundles it in every build.
+      # Shrimpl is tested as a debug build; its release APK is built by the Release workflow (R12.6).
+      # The template's release APK is always built: Shrimpl bundles it in every build.
       - name: Shrimpl APK
         run: ./gradlew --console=plain :shrimpl:assembleDebug -x :template:lintVitalRelease
-
-      - name: Shrimpl release APK
-        if: inputs.release
-        run: ./gradlew --console=plain :shrimpl:assembleRelease -x :template:lintVitalRelease -x :shrimpl:lintVitalRelease
 
       # R0: no APK may need a translation layer on ARM or x86 devices. The template (and so every web
       # app built from it) has no native code; Shrimpl's third-party libraries must cover all four ABIs.
@@ -176,14 +165,8 @@ jobs:
         run: |
           scripts/check_native_code.sh --none template/build/outputs/apk/release/template-release.apk
           scripts/check_native_code.sh --all-abis shrimpl/build/outputs/apk/debug/shrimpl-debug.apk
-          if [[ -f shrimpl/build/outputs/apk/release/shrimpl-release.apk ]]; then
-            scripts/check_native_code.sh --all-abis shrimpl/build/outputs/apk/release/shrimpl-release.apk
-          fi
           # Android 15+ devices may use 16 KB memory pages; a library that isn't aligned for them can't load.
           scripts/check_page_alignment.sh template/build/outputs/apk/release/template-release.apk shrimpl/build/outputs/apk/debug/shrimpl-debug.apk
-          if [[ -f shrimpl/build/outputs/apk/release/shrimpl-release.apk ]]; then
-            scripts/check_page_alignment.sh shrimpl/build/outputs/apk/release/shrimpl-release.apk
-          fi
 
       # Test and lint reports, to read what failed.
       - name: Upload reports

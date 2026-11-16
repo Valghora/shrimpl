@@ -1,0 +1,115 @@
+name: Release
+
+# R12.6: a tag v<version> on main publishes Shrimpl's release APK, signed with the release key, as the
+# GitHub release that Shrimpl's update check reads (R14.1).
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  ANDROID_HOME: /home/runner/android-sdk
+
+jobs:
+  release:
+    name: Release
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      # Only a release the owner made counts: the tag names shrimpl.appVersion and sits on main (R12.5).
+      - name: Tag matches the version and main
+        id: version
+        run: |
+          version="${GITHUB_REF_NAME#v}"
+          app=$(sed -n 's/^shrimpl.appVersion=//p' gradle.properties)
+          if [[ "$version" != "$app" ]]; then
+            echo "::error::tag $GITHUB_REF_NAME doesn't match shrimpl.appVersion $app"
+            exit 1
+          fi
+          git fetch -q origin main
+          if ! git merge-base --is-ancestor "$GITHUB_SHA" origin/main; then
+            echo "::error::$GITHUB_REF_NAME isn't on main"
+            exit 1
+          fi
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      - uses: gradle/actions/setup-gradle@v6
+
+      - name: Cache Android SDK
+        uses: actions/cache@v6
+        with:
+          path: ${{ env.ANDROID_HOME }}
+          key: android-sdk-${{ runner.os }}-api37-${{ hashFiles('scripts/setup_android_sdk.sh') }}
+
+      - name: Set up Android SDK and check tools
+        run: scripts/setup_android_sdk.sh
+
+      # The key lives only in the runner's temporary directory, for this job, and is deleted after it.
+      - name: Release key
+        env:
+          RELEASE_KEYSTORE: ${{ secrets.RELEASE_KEYSTORE }}
+        run: |
+          if [[ -z "$RELEASE_KEYSTORE" ]]; then
+            echo "::error::the RELEASE_KEYSTORE secret is missing"
+            exit 1
+          fi
+          base64 -d <<<"$RELEASE_KEYSTORE" > "$RUNNER_TEMP/release.jks"
+
+      - name: Shrimpl release APK
+        env:
+          SHRIMPL_RELEASE_KEYSTORE: ${{ runner.temp }}/release.jks
+          SHRIMPL_RELEASE_STORE_PASSWORD: ${{ secrets.RELEASE_STORE_PASSWORD }}
+          SHRIMPL_RELEASE_KEY_ALIAS: ${{ secrets.RELEASE_KEY_ALIAS }}
+          SHRIMPL_RELEASE_KEY_PASSWORD: ${{ secrets.RELEASE_KEY_PASSWORD }}
+        run: ./gradlew --console=plain :shrimpl:assembleRelease
+
+      # A release signed with the debug key could never update an installed release, so the job stops.
+      - name: Signed with the release key
+        run: |
+          apk=shrimpl/build/outputs/apk/release/shrimpl-release.apk
+          apksigner="$(ls -d "$ANDROID_HOME"/build-tools/*/ | sort -V | tail -1)apksigner"
+          certs=$("$apksigner" verify --print-certs "$apk")
+          echo "$certs" | grep "certificate DN"
+          if grep -q "CN=Android Debug" <<<"$certs"; then
+            echo "::error::the release APK is signed with the debug key"
+            exit 1
+          fi
+
+      # R0 and 16 KB page alignment, as in the Android workflow.
+      - name: Architecture-neutral APK
+        run: |
+          scripts/check_native_code.sh --all-abis shrimpl/build/outputs/apk/release/shrimpl-release.apk
+          scripts/check_page_alignment.sh shrimpl/build/outputs/apk/release/shrimpl-release.apk
+
+      # The names Shrimpl's update check looks for (R14.1): shrimpl-<version>.apk and its .sha256.
+      - name: Publish the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          mkdir -p "$RUNNER_TEMP/out"
+          apk="shrimpl-$VERSION.apk"
+          cp shrimpl/build/outputs/apk/release/shrimpl-release.apk "$RUNNER_TEMP/out/$apk"
+          (cd "$RUNNER_TEMP/out" && sha256sum "$apk" > "$apk.sha256")
+          gh release create "$GITHUB_REF_NAME" "$RUNNER_TEMP/out/$apk" "$RUNNER_TEMP/out/$apk.sha256" \
+            --title "Shrimpl $VERSION" --generate-notes --verify-tag
+
+      - name: Remove the release key
+        if: always()
+        run: rm -f "$RUNNER_TEMP/release.jks"
