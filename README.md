@@ -4,10 +4,38 @@
 
 **Any website, as a real Android app, made on your device.**
 
-Type a web address and Shrimpl does the rest. It looks the site up, picks a name, icon, colors and
-the permissions it needs, and lets you change any of them. Then it builds, signs and installs an app
-for that site, right on your phone, tablet or laptop. You don't need a computer, an app store or an
-account.
+Type a web address and Shrimpl does the rest. It looks the site up, picks a name, an icon, colors and
+the permissions the site needs, and lets you change any of them. Then it builds the site into an APK,
+signs it and installs it, right from your Android phone, tablet or laptop. You don't need a computer,
+an app store or an account.
+
+### Why not just install the site from Chrome?
+
+Chrome can install any site as a web app (a PWA), and on a phone that's often enough. Shrimpl was made
+for the friction this method has on Googlebooks, where web apps sit in windows beside everything else.
+Chrome builds the APK for you, so how the app looks and how well it fits into Android are mostly up to
+the site and to Chrome, not to you. For example:
+
+- **Icons may be missing or ugly.** Chrome uses whatever icon the site's manifest offers. A site
+  without a good one gets a blurry or generic icon, often shrunk onto a white circle, and you can't
+  pick another.
+- **Window borders often don't follow the system theme.** The title bar takes the site's one theme
+  color, so a bright bar can sit on a dark desktop, or the other way round.
+- **The name, icon and colors are fixed.** They come from the site, and you can't change them after
+  installing.
+- **It shares your browser.** The app uses Chrome's cookies and storage, so it's signed in as the same
+  account as your browser, and two accounts of one service can't live side by side.
+
+Shrimpl gives those choices back to you:
+
+- **You pick the icon:** the brand's glyph, the site's own icon, one of your photos, or an icon pack.
+  It becomes a proper adaptive icon, with the themed (monochrome) layer Android's themed icons use.
+- **The header and system bars follow your choice:** your light or dark theme, the site's own colors,
+  or a color you choose.
+- **Change anything later.** Rename, recolor or re-icon an app at any time; it updates in place and
+  stays signed in.
+- **Every app stands alone.** Each one is its own Android app with its own storage, so each signs in
+  on its own.
 
 Each app Shrimpl makes is a separate Android app. It has its own launcher icon, windows, storage and
 sign-ins, and it behaves like an installed web app (a PWA) should on Android: it opens in its own
