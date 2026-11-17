@@ -42,18 +42,6 @@ sign-ins, and it behaves like an installed web app (a PWA) should on Android: it
 window, takes keyboard shortcuts, prints, downloads and saves files, and sends notifications. Shrimpl
 is built first for Googlebooks, Google's Android laptops, and works on every Android form factor.
 
-### What people use it for
-
-- **Desktop sites on an Android laptop.** Many services have a phone app but a better desktop site
-  (chat, mail, editors, dashboards). Shrimpl gives that site its own window and launcher icon, and
-  asks for the desktop site on a laptop or large screen (the mobile one on a phone).
-- **Sites with no app at all.** Web tools such as image compressors, whiteboards and note apps become
-  apps you can pin, switch to with Alt+Tab and open in several windows.
-- **Keeping accounts apart.** Every app has its own cookies and storage, so a work and a personal
-  account of the same service can live side by side, each in its own app.
-- **A quieter browser.** A site in its own app keeps its tabs, sign-in and notifications out of your
-  browser, and links to other sites open in your browser.
-
 ### Get it
 
 Download `shrimpl-<version>.apk` from the [latest release](https://github.com/Valghora/shrimpl/releases/latest) and open it on your
@@ -76,23 +64,12 @@ updates from this repository's releases.
 
 ## Limitations
 
-- **Google sign-in.** Google, and some other identity providers, refuse to sign in inside an embedded
-  browser such as Android's WebView. Shrimpl doesn't try to get around this; when a site depends on
-  it, Shrimpl warns you and offers to open the site in Chrome instead.
-- **No background push.** Notifications arrive only while the app is running and awake. While the
-  device sleeps, an app pauses: live connections drop and notifications arrive when it wakes.
-- **What WebView can't do.** The Push API, WebUSB, Web Bluetooth and some passkey flows don't work. A
-  desktop site may offer features that need them.
-- **Sideloading.** Shrimpl and the apps it makes are installed from outside an app store. On some
-  certified devices, Google's developer verification may warn about or block such installs.
-- **Your signing key matters.** Apps can only be updated with the key that signed them. Back it up
-  (Settings, Export certificate); without it, losing Shrimpl's data means reinstalling your apps.
-- **Debug and release builds don't mix.** Android won't update one with the other because their keys
-  differ, so a debug build installs as a separate app, "Shrimpl Debug".
-- **Tested where it can be.** Shevery and Root installs, hinges, window snapping and TalkBack are
-  checked on real devices by hand, not in automated tests.
-- **Personal use.** Shrimpl makes apps for you, on your device. It isn't meant for publishing apps of
-  other people's services: their names and logos belong to their owners.
+- **No Google sign-in:** Google blocks it inside embedded browsers; Shrimpl offers Chrome instead.
+- **No background push:** notifications arrive only while the app is running and awake.
+- **WebView gaps:** no Push API, WebUSB, Web Bluetooth or some passkey flows.
+- **Sideloaded:** some certified devices may warn about or block installs from outside an app store.
+- **Back up your key:** apps can only be updated with the key that signed them.
+- **Personal use:** don't publish apps of other people's services.
 
 ## Credits and license
 
