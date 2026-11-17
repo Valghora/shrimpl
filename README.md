@@ -42,12 +42,6 @@ sign-ins, and it behaves like an installed web app (a PWA) should on Android: it
 window, takes keyboard shortcuts, prints, downloads and saves files, and sends notifications. Shrimpl
 is built first for Googlebooks, Google's Android laptops, and works on every Android form factor.
 
-### Get it
-
-Download `shrimpl-<version>.apk` from the [latest release](https://github.com/Valghora/shrimpl/releases/latest) and open it on your
-device. Shrimpl needs Android 17 (API 37) or later. Once installed, it finds and installs its own
-updates from this repository's releases.
-
 ## Features
 
 - **Smart setup:** finds the site's name, icon, colors, domains and permissions for you.
