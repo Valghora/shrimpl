@@ -104,7 +104,7 @@ updates from this repository's releases.
 
 ## Credits and license
 
-Shrimpl is licensed under the [LICENSE_NAME](LICENSE).
+Copyright 2026 Valghora. Shrimpl is licensed under the [Apache License 2.0](LICENSE).
 
 It's built on:
 
