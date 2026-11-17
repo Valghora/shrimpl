@@ -62,53 +62,17 @@ updates from this repository's releases.
 
 ## Features
 
-**Making apps**
-
-- Finds the site's name, address, domains, brand color, icon and permissions on the device, from the
-  page, its web manifest and a hidden browser visit; every guess says where it came from.
-- Icons from the brand's glyph ([simple-icons](https://simpleicons.org)), the site's own icon, your
-  photos or files, or an installed icon pack, as adaptive icons with a themed (monochrome) layer.
-- A settings form for every option: header color (system, the page's own color, or custom), window
-  sizes, multiple windows, background running, context menu, and microphone, camera, notification and
-  location access.
-- Builds, signs and installs entirely on the device, in pure Kotlin and Java.
-- Install methods: System (Android asks you to confirm each install), [Shevery](https://github.com/HmnDev-Tech/Shevery-API)
-  or Root (no prompts).
-
-**Keeping them up to date**
-
-- Editing an app rebuilds it and updates it in place, keeping its sign-ins and data.
-- When Shrimpl's own app template improves, Update all brings every app up to date.
-- One signing key for all your apps, exportable as a password-protected backup.
-- Apps stay manageable after Shrimpl is reinstalled: each app carries its own settings, so Shrimpl can
-  take it back.
-- Shrimpl updates itself from GitHub releases, checking on the schedule you choose, and verifies each
-  download's checksum before installing.
-
-**In every app**
-
-- Its own task, window and launcher entry, with desktop windowing, resizing and, if you allow it,
-  several windows at once.
-- Header and system bars in the site's colors, light and dark.
-- Downloads, including files a page makes itself (an editor's Export or Save), file and folder Open
-  and Save, sharing, camera uploads and drag and drop.
-- Keyboard first: the site's own shortcuts, Ctrl+P to print, Ctrl+scroll to zoom, and all of them
-  listed in Android's Keyboard Shortcuts Helper.
-- Full-screen video, a right-click menu (copy, open or save links and images), and back that goes
-  back in the page.
-- Notifications from the site while the app is running, on a channel named after the app.
-- A launcher shortcut to switch between the desktop and mobile site.
-- Sign-in pop-ups (OAuth) open in place; links to other sites open in your browser.
-
-**Everywhere**
-
-- Adaptive layout: a list and detail side by side on wide windows, rows or tiles, keyboard
-  shortcuts, tooltips and right-click menus, sized for Googlebook screens first.
-- Runs natively on ARM and x86 devices, 32 and 64 bit, with no translation layer; the apps Shrimpl
-  makes contain no native code at all.
-- No accounts, analytics or ads. Shrimpl contacts only the sites you add, simple-icons for brand
-  glyphs, and GitHub to check for its own updates, without sending anything about you. It never reads
-  your apps' data.
+- **Smart setup:** finds the site's name, icon, colors, domains and permissions for you.
+- **Your icon, your colors:** brand glyph, site icon, photo or icon pack, with themed icons and
+  headers that follow light and dark mode.
+- **Built on your device:** builds, signs and installs with no computer, using System, Shevery or Root
+  installs.
+- **Desktop-class apps:** own windows, keyboard shortcuts, printing, downloads, file and folder
+  saving, sharing and notifications.
+- **Edit anytime:** changes update the app in place and keep its sign-ins.
+- **Stays current:** Update all refreshes every app, and Shrimpl updates itself from GitHub releases.
+- **Runs everywhere:** adaptive on phones, tablets and laptops, native on ARM and x86.
+- **Private:** no accounts, analytics or ads.
 
 ## Limitations
 
