@@ -128,7 +128,12 @@ jobs:
           apk="shrimpl-$VERSION.apk"
           cp shrimpl/build/outputs/apk/release/shrimpl-release.apk "$RUNNER_TEMP/out/$apk"
           (cd "$RUNNER_TEMP/out" && sha256sum "$apk" > "$apk.sha256")
-          scripts/release_notes.sh > "$RUNNER_TEMP/notes.md"
+          # The first published release (none before it on GitHub) needs no change list.
+          if [[ "$(gh api "repos/$GITHUB_REPOSITORY/releases?per_page=1" --jq length)" == 0 ]]; then
+            echo "Initial Release" > "$RUNNER_TEMP/notes.md"
+          else
+            scripts/release_notes.sh > "$RUNNER_TEMP/notes.md"
+          fi
           # Creates the tag v<version> on this commit too. The notes are Shrimpl's own (R12.6), not
           # GitHub's generated ones, which mention people and list new contributors.
           gh release create "v$VERSION" "$RUNNER_TEMP/out/$apk" "$RUNNER_TEMP/out/$apk.sha256" \
