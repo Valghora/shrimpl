@@ -635,9 +635,11 @@ The template's behavior is docs/TEMPLATE_SPEC.md. What Shrimpl relies on:
   `RELEASE_KEYSTORE` (the keystore in base64), `RELEASE_STORE_PASSWORD`, `RELEASE_KEY_ALIAS` and
   `RELEASE_KEY_PASSWORD`, fails if the debug key signed it, checks it for R0 and 16 KB page
   alignment, and creates the GitHub release `v<version>`, and with it the tag, on the merged commit,
-  with `shrimpl-<version>.apk` and `shrimpl-<version>.apk.sha256` attached (R14.1). The key exists
-  only in the job's temporary directory.
-  *Outside code:* `.github/workflows/release.yml`.
+  with `shrimpl-<version>.apk` and `shrimpl-<version>.apk.sha256` attached (R14.1). Its notes, from
+  `scripts/release_notes.sh`, list each change merged into develop since the previous release, from
+  the merges' summaries without requirement IDs; they name and mention nobody and list no
+  contributors. When no release is published yet, the notes read `Initial Release`. The key exists only in the job's temporary directory.
+  *Outside code:* `.github/workflows/release.yml`, `scripts/release_notes.sh`.
 
 ## R13 Test tags (debug builds only)
 

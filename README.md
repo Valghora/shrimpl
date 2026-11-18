@@ -56,8 +56,6 @@ Shrimpl puts you back in control:
 - **Every app stands alone.** Each site becomes its own Android app, with its own storage and sign-ins, its own windows, its own entry in recents and its own pin on the dock.
 - **It works around the site.** When a site has no web manifest, Shrimpl finds a name, icon and colors from the page itself. When a site sends you to the Play Store, the app switches to the desktop site instead.
 
-Each app Shrimpl makes is a separate Android app. It has its own launcher icon, windows, storage and sign-ins, and it behaves like an installed web app should on Android: it opens in its own window, takes keyboard shortcuts, prints, downloads and saves files, and sends notifications. Shrimpl is built first for Googlebooks, Google's Android laptops, and works on every Android form factor.
-
 ## Limitations
 
 - **No Google sign-in:** Google blocks it inside embedded browsers, and workarounds put your account at risk.
@@ -90,5 +88,3 @@ Shrimpl isn't affiliated with Google or with any of the sites people make apps f
 - `template/`: the web app (Kotlin, AndroidX Views, WebView). It reads its site from `assets/shrimpl/profile.json` and declares every capability any site may need. Its release APK is bundled inside Shrimpl.
 - `core/`: pure-JVM logic, unit tested with a 95% line-coverage rule: URL routing, zoom, keys, user agent and wake state for the web app; the profile model and validator; discovery rules; and the builder that patches the template's manifest (package, label, versions, permissions, window sizes), replaces the profile and icons, and signs with apksig.
 - `shrimpl/`: the manager app in Compose (Material 3, Navigation 3 with a list-detail layout on wide windows): discovery (a page fetch plus a hidden WebView), the icon renderer, the record store, the signing key in the Android Keystore, and the System, Shevery and Root installers.
-
-Every APK runs natively on ARM and x86 devices, 32 and 64 bit, with no translation layer: the template and the web apps contain no native code, and building a web app on the device is pure Kotlin and Java. `scripts/check_native_code.sh` enforces this in CI.
