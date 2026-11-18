@@ -131,10 +131,11 @@ class WindowSnappingTest {
     /**
      * Opens Shrimpl in a freeform window. Android sometimes opens it full screen all the same (it did
      * for the second launch of a run), so a full-screen window is closed with its task and opened again.
+     * The activity is named in full: a debug build's package (`.debug`, R12.3) isn't its class's package.
      */
     private fun openFreeform(): Activity {
         repeat(3) {
-            device.executeShellCommand("am start -W --windowingMode 5 -n ${context.packageName}/.MainActivity")
+            device.executeShellCommand("am start -W --windowingMode 5 -n ${context.packageName}/${MainActivity::class.java.name}")
             compose.waitUntil(15_000) { resumed() != null }
             val activity = requireNotNull(resumed())
             if (window(activity).second) return activity
