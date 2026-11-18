@@ -1,86 +1,90 @@
 # Shrimpl
 
-Shrimpl turns websites into installable Android apps, on the device. Enter a web address; Shrimpl
-looks the site up, suggests a name, icon, colors, domains and permissions, lets you change any of
-them, then builds, signs and installs a small web app for it. Each web app is a real app with its
-own launcher icon, task, window and sign-ins, and behaves like an installed PWA on Android desktops
-(Googlebook OS and Android desktop windowing), tablets and phones.
+**Any website, as a real Android app, made on your device, to your specifications.**
 
-## Using it
+Shrimpl is a PWA generator and manager. Provide a website and it will pick a name, generate an icon, determine the brand colors, and recommend the permissions the site needs. Modify anything to your liking, and let Shrimpl build you an APK straight from your device.
 
-1. Install `shrimpl-release.apk` (from CI, or `./gradlew :shrimpl:assembleRelease`).
-2. Tap **+**, enter a website (`example.com`, `squoosh.app`, ...) and tap **Search**.
-3. Check the suggested settings and tap **Create**. Android asks once to allow Shrimpl to install
-   apps.
-4. The home list shows what you made. The edit button (or right-click) opens a web app's settings;
-   saving builds the next version (Build 2, 3, ...) and updates it in place, keeping its sign-ins.
-   With a keyboard, Ctrl+N starts a new web app and Ctrl+, opens Settings.
+<p align="center">
+  <img src="docs/screenshots/home-searching-blue.png" alt="Shrimpl finding settings for excalidraw.com, beside the app list" width="880">
+</p>
 
-Install methods (Settings): System (asks for confirmation), Shevery, or Root (no prompts). Export
-the certificate in Settings and keep it safe: web apps can only be updated with the key that signed
-them.
+## Features
 
-## How it works
+- **Built on your device:** builds, signs, installs and updates apps right on your device, with no computer needed. Shevery or Root installs skip Android's confirmation prompts.
+- **Desktop-class apps:** each app gets its own windows, launcher icon and dock pin, keyboard shortcuts, notifications, downloads and file access.
+- **Customize everything:** brand glyphs, icon packs and themed icons, plus headers that follow your system theme, the site's colors or a color you choose.
+- **Edit anytime:** change anything later and keep your sign-ins and data intact.
+- **Stays current:** Shrimpl checks for its own updates on your schedule and keeps your apps updated as Shrimpl improves.
+- **Every form factor:** designed for Googlebooks and adaptive on phones, tablets and foldables, following Google's Material 3 and adaptive design guidance.
+- **Architecture neutral:** runs natively on ARM and x86, 32 and 64 bit, with no translation layer.
+- **Accessible:** screen reader labels, easy touch targets, full keyboard use, and WCAG AAA contrast.
+- **Privacy-first:** no accounts, analytics or ads, ever.
 
-- `template/`: the web app (Kotlin, AndroidX Views, WebView). It reads its site from
-  `assets/shrimpl/profile.json` and declares every capability any site may need. Its release APK is
-  bundled inside Shrimpl.
-- `core/`: pure-JVM logic, unit tested with a 95% line-coverage rule: URL routing, zoom, keys, user
-  agent and wake state for the web app; the profile model and validator; discovery rules; and the
-  builder that patches the template's manifest (package, label, versions, permissions, window
-  sizes), replaces the profile and icons, and signs with apksig.
-- `shrimpl/`: the manager app in Compose (Material 3, Navigation 3 with a list-detail layout on wide
-  windows): discovery (a page fetch plus a hidden WebView), the icon renderer, the record store, the
-  signing key in the Android Keystore, and the System, Shevery and Root installers.
+<table>
+  <tr>
+    <td><a href="docs/screenshots/home-create-blue.png"><img src="docs/screenshots/home-create-blue.png" alt="Create app" width="270"></a></td>
+    <td><a href="docs/screenshots/edit-telegram-blue.png"><img src="docs/screenshots/edit-telegram-blue.png" alt="Editing Telegram's icon and colors" width="270"></a></td>
+    <td><a href="docs/screenshots/list-settings-blue.png"><img src="docs/screenshots/list-settings-blue.png" alt="List view with Settings" width="270"></a></td>
+  </tr>
+</table>
 
-Every APK runs natively on ARM and x86 devices, 32 and 64 bit, with no translation layer: the
-template and the web apps contain no native code, and building a web app on the device is pure
-Kotlin and Java. `scripts/check_native_code.sh` enforces this in CI.
+<details>
+<summary>More themes</summary>
 
-## Documentation
+| Red | Yellow | Green |
+|---|---|---|
+| <img src="docs/screenshots/edit-telegram-red.png" alt="Red theme" width="280"> | <img src="docs/screenshots/edit-telegram-yellow.png" alt="Yellow theme" width="280"> | <img src="docs/screenshots/edit-telegram-green.png" alt="Green theme" width="280"> |
 
-- [docs/SHRIMPL_SPEC.md](docs/SHRIMPL_SPEC.md): the specification, starting with the architecture
-  rule (R0).
-- [docs/TEMPLATE_SPEC.md](docs/TEMPLATE_SPEC.md): what every web app does.
-- [docs/ADAPTIVE.md](docs/ADAPTIVE.md): how Google's adaptive skill (vendored in
-  `.claude/skills/adaptive/`) and app quality guidelines apply, and the deliberate deviations.
-- [docs/SKILLS.md](docs/SKILLS.md): the other Android skills in use, when to use each, their
-  deliberate deviations, and how `scripts/android_skills.sh` keeps them current.
-- [docs/BUILD_NOTES.md](docs/BUILD_NOTES.md): toolchain versions, platform findings, deviations.
-- [CLAUDE.md](CLAUDE.md): the rules for every change.
+</details>
 
-Brand icons come from [simple-icons](https://simpleicons.org), looked up by name when a web app is
-made; nothing from it is bundled.
+## How is Shrimpl different from installing apps via Chrome or another wrapper?
 
-## Building
+Chrome can install any site as a web app (a PWA), and on a phone that's often enough. Shrimpl was made for the friction this causes on Googlebooks, where web apps sit in windows beside everything else. Chrome makes the app for you, so how it looks and how well it fits into Android are mostly up to the site and to Chrome, not to you. For example:
 
-```bash
-scripts/setup_android_sdk.sh          # Android SDK (API 37) and tool check
-./gradlew :core:check                 # core tests, including real builds from the template
-./gradlew :shrimpl:assembleDebug      # also builds the template and bundles it
-```
+- **Icons may be missing or ugly.** Chrome uses whatever icon the site's manifest offers. A site without a good one gets a blurry or generic icon, often shrunk onto a white circle, and you can't pick another.
+- **Window borders often ignore the system theme.** The title bar takes the site's single theme color, so a bright bar can sit on a dark desktop, or a dark one on a light desktop.
+- **The name, icon and colors are fixed.** They come from the site, and you can't change them after installing.
+- **It shares your browser.** The app uses Chrome's cookies and storage, so it's signed in to the same account as your browser, and you can't keep two accounts of one service side by side.
+- **The site decides how well it works.** Some sites push you to their store app instead, and sites without a web manifest install as a bare page with a poor icon and name.
+- **Other wrapper apps don't always behave like real apps.** Many run every site under their own app's identity, so Android treats all those sites as one app: their windows mix in the recents menu, and pinning one to the dock pins the wrapper instead of the site.
 
-CI (`.github/workflows/android.yml`, run by hand before a merge) runs the core, template and Shrimpl
-tests, lint for both apps, the template release build and Shrimpl's debug build, and checks that every
-APK is architecture-neutral. A merge into main runs the Release workflow
-(`.github/workflows/release.yml`), which tags it `v<version>` and publishes the signed release APK and
-its checksum.
+Shrimpl puts you back in control:
+
+- **You pick the icon.** Choose the brand's glyph, the site's own icon, a standalone image, or an icon pack. Shrimpl turns it into a proper adaptive icon, with the monochrome layer Android's themed icons use.
+- **The header follows your theme.** The title bar and system bars use your light or dark theme, the site's own colors or a color of your choosing.
+- **Change anything later.** Rename, recolor or re-icon an app at any time; it updates in place and stays signed in.
+- **Every app stands alone.** Each site becomes its own Android app, with its own storage and sign-ins, its own windows, its own entry in recents and its own pin on the dock.
+- **It works around the site.** When a site has no web manifest, Shrimpl finds a name, icon and colors from the page itself. When a site sends you to the Play Store, the app switches to the desktop site instead.
 
 ## Limitations
 
-- Google and some other identity providers block sign-in inside embedded WebViews.
-- Web features WebView lacks (Push API, WebUSB, some passkey flows) don't work. File and folder Open and
-  Save, sharing links, camera uploads and page-made downloads do (docs/TEMPLATE_SPEC.md T6).
-- While the screen is off the page is paused, so notifications arrive after wake; there is no
-  background delivery.
-- For personal sideloading, not the Play Store.
+- **No Google sign-in:** Google blocks it inside embedded browsers, and workarounds put your account at risk.
+- **No background push:** notifications arrive only while the app is running and awake.
+- **WebView gaps:** no Push API, WebUSB, Web Bluetooth or some passkey flows.
+- **Sideloaded:** some certified devices will warn about or block installs from outside an app store.
+- **Personal use:** don't publish apps of other people's services.
 
-## Sharing
+## Credits and license
 
-Share the project, not APKs of other people's services: brand names and logos belong to their
-owners, and simple-icons glyphs are trademarks used under the brands' guidelines.
+Shrimpl is licensed under the [Apache License 2.0](LICENSE) and was co-developed with Claude.
 
-## Claude Code cloud sessions
+A huge thanks to the following projects:
 
-`.claude/hooks/session-start.sh` installs the SDK at session start, exports `ANDROID_HOME`, `PATH`
-and `GRADLE_FLAGS`, and warms the Gradle cache.
+- [Android Jetpack](https://developer.android.com/jetpack) (AndroidX, Jetpack Compose, Material 3, Navigation 3, WorkManager, WebKit) and [Material Components](https://github.com/material-components/material-components-android), Apache License 2.0
+- [apksig](https://android.googlesource.com/platform/tools/apksig/) from the Android Open Source Project, which signs and verifies the apps, Apache License 2.0
+- [kotlinx.serialization](https://github.com/Kotlin/kotlinx.serialization), Apache License 2.0
+- [Shevery-API](https://github.com/HmnDev-Tech/Shevery-API) by HmnDev-Tech, for installs without prompts, MIT License
+- The [Public Suffix List](https://publicsuffix.org) from Mozilla, bundled to tell a site's domains apart, Mozilla Public License 2.0
+- [simple-icons](https://simpleicons.org), whose brand glyphs Shrimpl looks up when you make an app (none are bundled), CC0 1.0. The brands themselves are trademarks of their owners, used under their own guidelines.
+- Google's [Android skills](https://github.com/android/skills), vendored in `.claude/skills/` to guide the work on this project, Apache License 2.0
+- Tests use [JUnit](https://junit.org/junit4/), Eclipse Public License 1.0, and [Robolectric](https://robolectric.org), MIT License
+
+Shrimpl isn't affiliated with Google or with any of the sites people make apps for.
+
+## For developers
+
+### How it works
+
+- `template/`: the web app (Kotlin, AndroidX Views, WebView). It reads its site from `assets/shrimpl/profile.json` and declares every capability any site may need. Its release APK is bundled inside Shrimpl.
+- `core/`: pure-JVM logic, unit tested with a 95% line-coverage rule: URL routing, zoom, keys, user agent and wake state for the web app; the profile model and validator; discovery rules; and the builder that patches the template's manifest (package, label, versions, permissions, window sizes), replaces the profile and icons, and signs with apksig.
+- `shrimpl/`: the manager app in Compose (Material 3, Navigation 3 with a list-detail layout on wide windows): discovery (a page fetch plus a hidden WebView), the icon renderer, the record store, the signing key in the Android Keystore, and the System, Shevery and Root installers.
