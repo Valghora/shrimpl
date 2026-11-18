@@ -4,6 +4,10 @@
 
 Shrimpl is a PWA generator and manager. Provide a website and it will pick a name, generate an icon, determine the brand colors, and recommend the permissions the site needs. Modify anything to your liking, and let Shrimpl build you an APK straight from your device.
 
+<p align="center">
+  <img src="docs/screenshots/home-searching-blue.png" alt="Shrimpl finding settings for excalidraw.com, beside the app list" width="880">
+</p>
+
 ## Features
 
 - **Built on your device:** builds, signs, installs and updates apps right on your device, with no computer needed. Shevery or Root installs skip Android's confirmation prompts.
@@ -15,6 +19,23 @@ Shrimpl is a PWA generator and manager. Provide a website and it will pick a nam
 - **Architecture neutral:** runs natively on ARM and x86, 32 and 64 bit, with no translation layer.
 - **Accessible:** screen reader labels, easy touch targets, full keyboard use, and WCAG AAA contrast.
 - **Privacy-first:** no accounts, analytics or ads, ever.
+
+<table>
+  <tr>
+    <td><a href="docs/screenshots/home-create-blue.png"><img src="docs/screenshots/home-create-blue.png" alt="Create app" width="270"></a></td>
+    <td><a href="docs/screenshots/edit-telegram-blue.png"><img src="docs/screenshots/edit-telegram-blue.png" alt="Editing Telegram's icon and colors" width="270"></a></td>
+    <td><a href="docs/screenshots/list-settings-blue.png"><img src="docs/screenshots/list-settings-blue.png" alt="List view with Settings" width="270"></a></td>
+  </tr>
+</table>
+
+<details>
+<summary>More themes</summary>
+
+| Red | Yellow | Green |
+|---|---|---|
+| <img src="docs/screenshots/edit-telegram-red.png" alt="Red theme" width="280"> | <img src="docs/screenshots/edit-telegram-yellow.png" alt="Yellow theme" width="280"> | <img src="docs/screenshots/edit-telegram-green.png" alt="Green theme" width="280"> |
+
+</details>
 
 ## How is Shrimpl different from installing apps via Chrome or another wrapper?
 
