@@ -13,7 +13,7 @@ Java 17 bytecode.
 
 - Lint reports 0 errors for both apps. `:shrimpl` keeps one warning, `SetJavaScriptEnabled`: the hidden
   discovery WebView must run page scripts, and `@SuppressLint` is allowed only in the template
-  (CLAUDE.md rule 3).
+  (AGENTS.md rule 3).
 - Checked for native code (R0) and found to have none: the Shevery libraries, apksig,
   kotlinx-serialization and the AndroidX libraries the template uses. `scripts/check_native_code.sh`
   enforces R0 on the APKs.

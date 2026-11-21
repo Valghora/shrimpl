@@ -19,7 +19,7 @@ ROOT = Path(__file__).resolve().parent.parent
 
 # ----- Settings -----
 # The project's own documents. Vendored skills and references are upstream's and aren't checked.
-DOCS = ["CLAUDE.md", "docs/*.md", ".claude/skills/code-comments/SKILL.md", ".claude/skills/accessibility/SKILL.md"]
+DOCS = ["AGENTS.md", "docs/*.md", ".claude/skills/code-comments/SKILL.md", ".claude/skills/accessibility/SKILL.md"]
 # Checked, but only reported: the public README is reworked separately.
 REPORT_ONLY = ["README.md"]
 SPECS = ["docs/SHRIMPL_SPEC.md", "docs/TEMPLATE_SPEC.md"]
