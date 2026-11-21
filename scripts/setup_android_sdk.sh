@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Idempotent Android SDK bootstrap + tool check.
-# Used by the Claude cloud SessionStart hook, GitHub Actions, and local setup.
+# Used by scripts/setup_agent_env.sh (any coding agent), GitHub Actions, and local setup.
 #
 # Env:
 #   ANDROID_HOME   SDK location (default /opt/android-sdk)

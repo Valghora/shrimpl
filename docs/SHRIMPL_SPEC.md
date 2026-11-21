@@ -627,7 +627,7 @@ The template's behavior is docs/TEMPLATE_SPEC.md. What Shrimpl relies on:
     Emulator workflow (R12.4) green on `develop`. Every merge into main publishes a release of a
     version not released before (R12.6).
   - A change to documentation only (docs and Markdown) needs neither workflow before either merge.
-  *Outside code:* the workflow in CLAUDE.md.
+  *Outside code:* the workflow in AGENTS.md.
 - R12.6 The Release workflow publishes a release on each push to `main` (a merge from develop), or when
   run by hand on main: it names the release after `shrimpl.appVersion`, publishes nothing when that
   version is already released (a merge of documentation only) and fails when its tag exists without a

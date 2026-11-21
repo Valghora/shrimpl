@@ -23,7 +23,7 @@ docs/SHRIMPL_SPEC.md. Profile fields are written `profile.field`.
   features are checked at runtime, each call directly inside its own
   `if (WebViewFeature.isFeatureSupported(X))` (nested, never `a && b`: lint's RequiresFeature does not
   follow it).
-  *Outside code:* lint's RequiresFeature check and CLAUDE.md.
+  *Outside code:* lint's RequiresFeature check and AGENTS.md.
 
 ## T2 Core logic (`DesktopSessionController`, pure JVM)
 

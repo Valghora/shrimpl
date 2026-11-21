@@ -2,8 +2,8 @@
 # Installs the emulator and a system image, creates an AVD, boots it headless and waits until it is
 # ready for instrumented tests (docs/SHRIMPL_SPEC.md R12.4, docs/TESTING.md, "The emulator's environment").
 #
-# It needs hardware virtualization (/dev/kvm): GitHub's Linux runners have it, the cloud container
-# Claude Code works in does not, and Android's emulator can't run ARM images on an x86 host.
+# It needs hardware virtualization (/dev/kvm): GitHub's Linux runners have it, the cloud containers
+# coding agents work in do not, and Android's emulator can't run ARM images on an x86 host.
 #
 # Env:
 #   ANDROID_HOME    SDK location (default /opt/android-sdk)
