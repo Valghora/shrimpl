@@ -22,9 +22,9 @@ in `.claude/references/claude-android-ninja/` (Apache 2.0; kept current by
 ## Project rules
 
 - Every icon-only button is a `TooltipIconButton`: its label is the content description and the
-  tooltip (docs/ADAPTIVE.md). Labels name the action and the app ("Options for Discord"), from string
+  tooltip (docs/SHRIMPL_SPEC.md R1.1). Labels name the action and the app ("Options for Discord"), from string
   resources.
-- 48 dp touch targets, as in docs/ADAPTIVE.md, also where the visible shape is smaller.
+- 48 dp touch targets (R1.1), also where the visible shape is smaller.
 - A row that is a switch carries its state (`SwitchItem` sets `toggleableState`); a choice carries
   `selected` (`selectable`, `Role.RadioButton`).
 - Colors come from the theme and `ui/common/Notice.kt`; check contrast (4.5:1 text, 3:1 large text and

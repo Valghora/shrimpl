@@ -158,7 +158,7 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    // ----- Full-screen video (docs/ADAPTIVE.md: desktop Request_Fullscreen_Mode, Keyboard_Exit) -----
+    // ----- Full-screen video (T6.13; desktop app quality: Request_Fullscreen_Mode, Keyboard_Exit) -----
 
     /** The page's full-screen element (a video, usually) while it is shown over the window. */
     private var fullscreenView: View? = null

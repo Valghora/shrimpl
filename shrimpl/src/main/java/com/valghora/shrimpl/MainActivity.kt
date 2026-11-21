@@ -26,7 +26,7 @@ import kotlinx.coroutines.flow.receiveAsFlow
 
 /**
  * Shrimpl's single activity. It never opts out of recreation (no android:configChanges): state is
- * kept in saved state and ViewModels instead (docs/ADAPTIVE.md).
+ * kept in saved state and ViewModels instead (R1.1).
  */
 class MainActivity : ComponentActivity() {
     /**

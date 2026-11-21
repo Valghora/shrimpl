@@ -106,10 +106,7 @@ status_of() {
 
 write_upstream_md() {
   local commit="$1" applied
-  case "$V" in
-    skills/adaptive) applied="docs/ADAPTIVE.md" ;;
-    *) applied="docs/SKILLS.md" ;;
-  esac
+  applied="docs/SKILLS.md"
   {
     echo "# Upstream"
     echo

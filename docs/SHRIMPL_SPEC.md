@@ -9,7 +9,6 @@ This file says what the project must be now. Requirement IDs (R0.1, R2.6) are st
 (`scripts/spec_map.sh <ID>` lists where), so an ID is never renumbered or reused. Companion documents:
 
 - [docs/TEMPLATE_SPEC.md](TEMPLATE_SPEC.md): what every web app does (T1 to T8).
-- [docs/ADAPTIVE.md](ADAPTIVE.md): which requirements meet Google's adaptive guidelines, and how.
 - [docs/GOOGLEBOOKS.md](GOOGLEBOOKS.md): the primary devices' screens in dp.
 - [docs/DEVIATIONS.md](DEVIATIONS.md): every deliberate deviation from this spec, TEMPLATE_SPEC,
   Google's guidance and the vendored skills.
@@ -33,7 +32,7 @@ This file says what the project must be now. Requirement IDs (R0.1, R2.6) are st
 - MUST is mandatory. SHOULD means do it unless there is a technical conflict, and record why in
   docs/DEVIATIONS.md if you don't.
 - Precedence when instructions conflict: R0; then platform correctness (builds, installs and runs on
-  API 37); then this spec and TEMPLATE_SPEC; then Google's guidance (docs/ADAPTIVE.md). Every
+  API 37); then this spec and TEMPLATE_SPEC; then Google's guidance (R1.1). Every
   deviation from the last two is written down.
 - Quoted text ("No apps yet") is the exact user-facing string; `<name>` and the like stand for values.
 - A requirement met outside the Kotlin code ends with a line *Outside code:* saying where.
@@ -73,10 +72,18 @@ binary translation) on any device.
     devices, docs/GOOGLEBOOKS.md): freely resizable, no aspect ratio limits, no `configChanges`, edge
     to edge, with keyboard and pointer support, in every orientation (WCAG 1.3.4: no orientation
     lock, phones included).
-  - It follows docs/ADAPTIVE.md: layout from window size classes, state that survives configuration
-    changes, 48 dp touch targets, tooltips on icon-only buttons, a right-click menu on apps, and
-    app-wide keyboard shortcuts (Ctrl+N new app, Ctrl+, settings) listed in the Keyboard Shortcuts
-    Helper.
+  - It meets the adaptive skill, Google's adaptive app quality guidelines (Tiers 2 and 3) and the
+    desktop app quality checklist, except where docs/DEVIATIONS.md says otherwise:
+    - layout from window size classes and the pane rules below, never device type;
+    - state survives configuration changes and process death: user input, open dialogs and menus,
+      and the back stack are kept in saved state or a ViewModel;
+    - 48 dp touch targets; every icon-only button has a tooltip, on hover, long press and focus,
+      that names its keyboard shortcut where it has one (Settings (Ctrl+,));
+    - a right-click menu on apps, the same as their long-press menu;
+    - app-wide keyboard shortcuts, Ctrl+N new app and Ctrl+, settings (Ctrl alone, key repeat
+      ignored), listed in the Keyboard Shortcuts Helper; Tab moves between controls, and Esc
+      closes dialogs and menus without acting as Back;
+    - a single instance: Shrimpl is one manager, so it never opens a second window of itself.
   - Two panes show when the window has room:
 
     | Window | Two panes from |
