@@ -5,7 +5,10 @@ The behavior every web app has, implemented once in `:template` (package `com.va
 only in its profile (`assets/shrimpl/profile.json`, fields from `core/.../profile/Profile.kt`), its
 patched manifest and its icon files (docs/SHRIMPL_SPEC.md R7, R8).
 
-Requirement IDs are T1 to T8; code comments in the template cite them. MUST and SHOULD are used as in
+Requirement IDs are T1 to T8; code comments in the template cite them. T3 to T6 are how every web app
+meets Google's adaptive and desktop app quality guidelines (multi-window, the header, keyboard,
+mouse and zoom, context menus, drag and drop, full screen, printing); departures are in
+docs/DEVIATIONS.md. MUST and SHOULD are used as in
 docs/SHRIMPL_SPEC.md. Profile fields are written `profile.field`.
 
 ## T1 Build

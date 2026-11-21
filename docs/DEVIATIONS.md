@@ -12,8 +12,8 @@ commit as the change. Anything not listed is followed as written.
 
 ## From Android's adaptive guidance
 
-The adaptive skill (`.claude/skills/adaptive/`) and the Adaptive app quality guidelines; how the rest
-is met is in docs/ADAPTIVE.md.
+The adaptive skill (`.claude/skills/adaptive/`) and the Adaptive app quality guidelines; what the app
+meets is in docs/SHRIMPL_SPEC.md R1.1 and docs/TEMPLATE_SPEC.md T3 to T6.
 
 | Guidance | What this project does | Why |
 |---|---|---|
@@ -60,7 +60,7 @@ is met is in docs/ADAPTIVE.md.
 
 | Guidance | What this project does | Why |
 |---|---|---|
-| Recipes: dialogs and bottom sheets as scenes | Confirmation dialogs and the build sheet are screen or ViewModel state, not destinations. | The build sheet follows a build that keeps running whatever the user opens, and dialogs belong to the screen that asked; both survive configuration changes (ADAPTIVE.md). |
+| Recipes: dialogs and bottom sheets as scenes | Confirmation dialogs and the build sheet are screen or ViewModel state, not destinations. | The build sheet follows a build that keeps running whatever the user opens, and dialogs belong to the screen that asked; both survive configuration changes (R1.1). |
 
 ### anr-audit-and-fix
 

@@ -27,7 +27,7 @@ import org.robolectric.RuntimeEnvironment
 /**
  * The whole app (MainActivity) in the testing-setup skill's nine window sizes: widths 400, 610 and
  * 900 dp (compact, medium, expanded) by heights 400, 500 and 1000 dp, each filling the screen.
- * Expanded widths show the list and the detail side by side (docs/ADAPTIVE.md, R1.1); the others show
+ * Expanded widths show the list and the detail side by side (R1.1); the others show
  * one pane at a time with a back arrow. The window size comes from Robolectric's screen qualifiers, not
  * DeviceConfigurationOverride.ForcedSize, which doesn't change the window size class the panes
  * follow (docs/SKILLS.md).

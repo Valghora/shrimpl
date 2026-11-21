@@ -9,7 +9,7 @@ form factor; its primary users are on Googlebooks (Android laptops, not Chromebo
 | Before you… | Read |
 |---|---|
 | change any behavior | `docs/SHRIMPL_SPEC.md` (Shrimpl) or `docs/TEMPLATE_SPEC.md` (every web app), and `scripts/spec_map.sh <ID>` for each requirement it touches |
-| change UI | `docs/ADAPTIVE.md`, the adaptive skill (`.claude/skills/adaptive/SKILL.md` and the reference it names for the feature) and the accessibility skill (`.claude/skills/accessibility/`) |
+| change UI | R1.1 of `docs/SHRIMPL_SPEC.md`, the adaptive skill (`.claude/skills/adaptive/SKILL.md` and the reference it names for the feature) and the accessibility skill (`.claude/skills/accessibility/`) |
 | decide anything about windows, panes or sizes | `docs/GOOGLEBOOKS.md`: size for those screens first |
 | depart from a spec, a guideline or a skill | `docs/DEVIATIONS.md`: it may already be decided; if not, it gets a row |
 | write or change tests | `docs/TESTING.md` |
@@ -35,7 +35,7 @@ same commit, and a deviation gets its row in the same commit.
    - Building web apps on the device stays pure Kotlin/Java (apksig, the manifest patcher); never run
      or bundle native tools such as aapt2.
 2. **Adaptive by default.** Every UI change follows the adaptive skill and the Adaptive app quality
-   guidelines, as applied in `docs/ADAPTIVE.md`, and the accessibility skill (labels, roles and state,
+   guidelines, as R1.1 applies them, and the accessibility skill (labels, roles and state,
    headings, touch targets, contrast):
    - layout from window size classes, never device type or hard-coded widths;
    - user input and dialog state in `rememberSaveable` or a ViewModel; never add `configChanges` to

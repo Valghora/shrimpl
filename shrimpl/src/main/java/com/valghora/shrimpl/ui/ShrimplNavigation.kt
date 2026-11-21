@@ -69,7 +69,7 @@ data object CreateKey : NavKey
 @Serializable
 data object SettingsKey : NavKey
 
-/** App-wide keyboard shortcuts (docs/ADAPTIVE.md, Tier 2 Keyboard_Shortcuts). */
+/** App-wide keyboard shortcuts (R1.1, Tier 2 Keyboard_Shortcuts). */
 enum class AppShortcut { NEW_WEB_APP, SETTINGS }
 
 /**
@@ -222,7 +222,7 @@ private val EXTRA_LARGE_WIDTH = 1600.dp
  * The narrowest window sharing the screen with two panes: wider than any Googlebook window snapped to
  * half the screen (about 956 dp at most), so snapping always gives one pane, and narrower than any
  * Googlebook's full screen (1707 dp at least). There the detail pane is 548 dp beside the list.
- * Material splits from 840 dp, as Shrimpl does when it fills the screen; docs/ADAPTIVE.md records why
+ * Material splits from 840 dp, as Shrimpl does when it fills the screen; docs/DEVIATIONS.md records why
  * a shared window waits.
  */
 private val SHARED_TWO_PANE_MIN_WIDTH = 1000.dp
