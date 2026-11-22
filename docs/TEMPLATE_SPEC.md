@@ -61,7 +61,9 @@ Unit tests cover every branch with a fixed fixture config, including look-alike 
 ## T3 Window, insets and header
 
 - T3.1 The UI is built in code: a root `FrameLayout` holding one `DesktopWebView` (MATCH_PARENT). No
-  action bar, toolbar or XML layout. The theme is `Theme.Wrapper` (Material3 DayNight NoActionBar).
+  action bar, toolbar or XML layout. The theme is `Theme.Wrapper` (Material3 DayNight NoActionBar)
+  with the user's dynamic colors (`DynamicColors`), so the template's menus, dialogs, snackbars and
+  App options panel follow the user's Material theme, as Shrimpl does.
 - T3.2 Edge to edge: system bar styles follow the header colors (dark or light icons as each color
   needs); the root pads for system bars, caption bar, display cutout and IME insets, and consumes them.
 - T3.3 Header colors, from `profile.headerMode`:
