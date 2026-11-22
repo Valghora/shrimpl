@@ -37,31 +37,31 @@ object AppOptionsPanel {
      */
     private const val TEXT_GAP_DP = 24
 
-    /** Shows the panel for [appName] with [switches]; [onReset] runs on Reset to defaults. Returns it, to dismiss later. */
-    fun show(context: Context, appName: String, switches: List<OptionSwitch>, onReset: () -> Unit): Dialog {
+    /** Shows the panel with [switches]; [onReset] runs on Reset to defaults. Returns it, to dismiss later. */
+    fun show(context: Context, switches: List<OptionSwitch>, onReset: () -> Unit): Dialog {
         val compact = context.resources.configuration.screenWidthDp < SHEET_BELOW_DP
-        return if (compact) sheet(context, appName, switches, onReset) else dialog(context, appName, switches, onReset)
+        return if (compact) sheet(context, switches, onReset) else dialog(context, switches, onReset)
     }
 
-    private fun dialog(context: Context, appName: String, switches: List<OptionSwitch>, onReset: () -> Unit): Dialog {
+    private fun dialog(context: Context, switches: List<OptionSwitch>, onReset: () -> Unit): Dialog {
         val builder = MaterialAlertDialogBuilder(context)
             .setTitle(R.string.app_options)
-            .setView(body(context, appName, switches, insetDp = 24))
+            .setView(body(context, switches, insetDp = 24))
             .setPositiveButton(R.string.action_done, null)
         if (switches.isNotEmpty()) builder.setNeutralButton(R.string.action_reset_defaults) { _, _ -> onReset() }
         return builder.show()
     }
 
-    private fun sheet(context: Context, appName: String, switches: List<OptionSwitch>, onReset: () -> Unit): Dialog {
+    private fun sheet(context: Context, switches: List<OptionSwitch>, onReset: () -> Unit): Dialog {
         val sheet = BottomSheetDialog(context)
         val content = LinearLayout(context).apply {
             orientation = LinearLayout.VERTICAL
             updatePadding(top = dp(context, 8), bottom = dp(context, 16))
             addView(text(context, context.getString(R.string.app_options), com.google.android.material.R.attr.textAppearanceHeadlineSmall).apply {
-                updatePadding(left = dp(context, 24), right = dp(context, 24))
+                updatePadding(left = dp(context, 24), right = dp(context, 24), bottom = dp(context, 8))
                 ViewCompat.setAccessibilityHeading(this, true)
             })
-            addView(body(context, appName, switches, insetDp = 24))
+            addView(body(context, switches, insetDp = 24))
             addView(LinearLayout(context).apply {
                 orientation = LinearLayout.HORIZONTAL
                 updatePadding(left = dp(context, 12), right = dp(context, 12), top = dp(context, 8))
@@ -80,13 +80,10 @@ object AppOptionsPanel {
         return sheet
     }
 
-    /** The app's name, then one row per switch, or a line saying there are none yet. */
-    private fun body(context: Context, appName: String, switches: List<OptionSwitch>, insetDp: Int): View =
+    /** One row per switch, or a line saying there are none yet. */
+    private fun body(context: Context, switches: List<OptionSwitch>, insetDp: Int): View =
         LinearLayout(context).apply {
             orientation = LinearLayout.VERTICAL
-            addView(text(context, appName, com.google.android.material.R.attr.textAppearanceBodyMedium, secondary = true).apply {
-                updatePadding(left = dp(context, insetDp), right = dp(context, insetDp), bottom = dp(context, 8))
-            })
             if (switches.isEmpty()) {
                 addView(text(context, context.getString(R.string.app_options_none), com.google.android.material.R.attr.textAppearanceBodyLarge).apply {
                     updatePadding(left = dp(context, insetDp), right = dp(context, insetDp), top = dp(context, 8), bottom = dp(context, 8))

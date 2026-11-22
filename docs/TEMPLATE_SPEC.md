@@ -130,8 +130,7 @@ Unit tests cover every branch with a fixed fixture config, including look-alike 
 - T5.8 App options: a panel of the app's own switches, opened by Ctrl+, (once per press, T2c), by
   "App options" in the app icon's launcher shortcuts. It stays out of the context menu (T5.5), which
   would otherwise take every long press and right-click from the page.
-  - Titled "App options", with the app's name under the title. A bottom sheet in a window narrower
-    than 600 dp, a dialog in a wider one.
+  - Titled "App options". A bottom sheet in a window narrower than 600 dp, a dialog in a wider one.
   - Each switch has a fixed label and a description of what it does when on (docs/SHRIMPL_SPEC.md
     R1.6), applies at once and is remembered in `SessionPrefs`. The whole row toggles it, at least
     72 dp tall, and accessibility services hear one switch with its label, description and state.

@@ -49,7 +49,6 @@ class AppOptionsTest {
             answerPermissionPrompt("^allow$", 5_000) // The notification prompt of a fresh launch (T7.5), if it shows.
             PageDriver(scenario).loadTestPage()
             openPanel()
-            assertTrue("the panel doesn't name the app", awaitText(WebApp.profile.name))
             // Reset first, so a choice saved by an earlier run doesn't decide the starting state.
             tapText(context.getString(R.string.action_reset_defaults))
             device.wait(Until.gone(By.text(context.getString(R.string.app_options))), 10_000)

@@ -1293,7 +1293,7 @@ class MainActivity : AppCompatActivity() {
                 ) { on -> switchSite(if (on) UaMode.DESKTOP else UaMode.MOBILE, remember = true) }
             }
         }
-        optionsPanel = AppOptionsPanel.show(this, WebApp.profile.name, switches, ::resetAppOptions).apply {
+        optionsPanel = AppOptionsPanel.show(this, switches, ::resetAppOptions).apply {
             setOnDismissListener { if (optionsPanel === it) optionsPanel = null }
         }
     }
