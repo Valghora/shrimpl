@@ -680,7 +680,7 @@ private fun UninstallDialog(name: String, onConfirm: () -> Unit, onDismiss: () -
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text(stringResource(R.string.uninstall_title, name)) },
-        text = { Text(stringResource(R.string.uninstall_text)) },
+        text = { Text(stringResource(R.string.uninstall_remove_text)) },
         confirmButton = { TextButton(onClick = onConfirm) { Text(stringResource(R.string.action_uninstall)) } },
         dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.action_cancel)) } },
     )

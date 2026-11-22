@@ -15,6 +15,7 @@ import com.valghora.shrimpl.data.InstallMethod
 import com.valghora.shrimpl.data.InstalledApp
 import com.valghora.shrimpl.data.InstalledApps
 import com.valghora.shrimpl.install.InstallResult
+import com.valghora.shrimpl.install.Installer
 import com.valghora.shrimpl.testing.TestMode
 import com.valghora.shrimpl.ui.common.BuildController
 import com.valghora.shrimpl.update.UpdateStatus
@@ -141,11 +142,17 @@ class HomeViewModel(private val container: AppContainer) : ViewModel() {
     /** The outcome of a failed uninstall, shown once. */
     val message: StateFlow<String?> = _message.asStateFlow()
 
-    /** Uninstalls the web app with the chosen install method; the record stays (R2.3). */
-    fun uninstall(context: Context, record: WebAppRecord) {
+    /**
+     * R2.2: uninstalls the web app with [installer] (the method chosen in Settings) and, once it's
+     * gone, forgets it, so it leaves the list. A cancelled or failed uninstall keeps it.
+     */
+    fun uninstall(context: Context, record: WebAppRecord, installer: Installer = container.installers.preferred()) {
         viewModelScope.launch {
-            when (val result = container.installers.preferred().uninstall(record.packageName)) {
-                InstallResult.Success -> refresh(context)
+            when (val result = installer.uninstall(record.packageName)) {
+                InstallResult.Success -> {
+                    container.store.delete(record.appId)
+                    refresh(context)
+                }
                 InstallResult.NeedsUnknownSources, InstallResult.Cancelled -> Unit
                 is InstallResult.Failure -> _message.value = result.message
             }

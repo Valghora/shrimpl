@@ -69,6 +69,7 @@
     <string name="edit_not_installed">This app isn\'t installed. Reinstall it from the menu, or remove it.</string>
     <string name="uninstall_title">Uninstall %1$s?</string>
     <string name="uninstall_text">The app and its data are removed from this device</string>
+    <string name="uninstall_remove_text">The app and its data are removed from this device, and from your list in Shrimpl</string>
     <string name="remove_title">Remove %1$s from Shrimpl?</string>
     <string name="remove_text">Its settings are deleted. You can create it again later.</string>
 
