@@ -115,7 +115,8 @@ class SheveryInstaller(private val context: Context) : Installer {
 
     private companion object {
         const val PERMISSION_REQUEST = 4242
-        const val SERVICE_VERSION = 1
+        /** Shevery replaces a running shell service whose version differs; raise it whenever ShellService changes. */
+        const val SERVICE_VERSION = 2
         const val BIND_TIMEOUT_MS = 15_000L
     }
 }
