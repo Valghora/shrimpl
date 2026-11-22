@@ -38,7 +38,16 @@ class AppOptionsTest {
             "the Desktop site switch isn't on screen"
         }
 
-    private fun openPanel() {
+    /**
+     * Ctrl+, goes to the focused window, so the press waits until the app's window has focus again: just
+     * after the panel closes, the closing dialog still has it and the key is lost (found in CI, 2026-11-22).
+     */
+    private fun openPanel(scenario: ActivityScenario<MainActivity>) {
+        awaitUntil("the app's window to have focus", 10_000) {
+            var focused = false
+            scenario.onActivity { focused = it.hasWindowFocus() }
+            focused
+        }
         pressCtrlComma()
         assertTrue("Ctrl+, didn't open the panel", awaitText(context.getString(R.string.app_options)))
     }
@@ -53,13 +62,13 @@ class AppOptionsTest {
         ActivityScenario.launch(MainActivity::class.java).use { scenario ->
             answerPermissionPrompt("^allow$", 5_000) // The notification prompt of a fresh launch (T7.5), if it shows.
             PageDriver(scenario).loadTestPage()
-            openPanel()
+            openPanel(scenario)
             val startedOn = desktopSiteRow().isChecked
             desktopSiteRow().click()
             awaitUntil("the switch to change", 10_000) { desktopSiteRow().isChecked != startedOn }
             closePanel()
 
-            openPanel()
+            openPanel(scenario)
             assertEquals("the choice wasn't kept", !startedOn, desktopSiteRow().isChecked)
             desktopSiteRow().click() // Back as it was, for the next test.
             awaitUntil("the switch to change back", 10_000) { desktopSiteRow().isChecked == startedOn }
@@ -79,14 +88,14 @@ class AppOptionsTest {
             ActivityScenario.launch(MainActivity::class.java).use { scenario ->
                 answerPermissionPrompt("^allow$", 5_000)
                 PageDriver(scenario).loadTestPage()
-                openPanel()
+                openPanel(scenario)
                 assertTrue("Desktop site shows without the toggle", !device.hasObject(By.descStartsWith(context.getString(R.string.option_desktop_site))))
                 val startedOn = linkMenuRow().isChecked
                 linkMenuRow().click()
                 awaitUntil("the switch to change", 10_000) { linkMenuRow().isChecked != startedOn }
                 closePanel()
 
-                openPanel()
+                openPanel(scenario)
                 assertEquals("the choice wasn't kept", !startedOn, linkMenuRow().isChecked)
                 linkMenuRow().click()
                 awaitUntil("the switch to change back", 10_000) { linkMenuRow().isChecked == startedOn }
