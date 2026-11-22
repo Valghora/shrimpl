@@ -142,21 +142,31 @@ class HomeViewModel(private val container: AppContainer) : ViewModel() {
     /** The outcome of a failed uninstall, shown once. */
     val message: StateFlow<String?> = _message.asStateFlow()
 
+    private val _offerRemove = MutableStateFlow<String?>(null)
+
+    /** The app just uninstalled, whose removal from the list Home offers next (R2.2); null for none. */
+    val offerRemove: StateFlow<String?> = _offerRemove.asStateFlow()
+
     /**
-     * R2.2: uninstalls the web app with [installer] (the method chosen in Settings) and, once it's
-     * gone, forgets it, so it leaves the list. A cancelled or failed uninstall keeps it.
+     * R2.2: uninstalls the web app with [installer] (the method chosen in Settings), then offers to
+     * remove it from the list. A cancelled or failed uninstall offers nothing.
      */
     fun uninstall(context: Context, record: WebAppRecord, installer: Installer = container.installers.preferred()) {
         viewModelScope.launch {
             when (val result = installer.uninstall(record.packageName)) {
                 InstallResult.Success -> {
-                    container.store.delete(record.appId)
                     refresh(context)
+                    _offerRemove.value = record.appId
                 }
                 InstallResult.NeedsUnknownSources, InstallResult.Cancelled -> Unit
                 is InstallResult.Failure -> _message.value = result.message
             }
         }
+    }
+
+    /** The offer to remove the uninstalled app was answered. */
+    fun dismissRemoveOffer() {
+        _offerRemove.value = null
     }
 
     /** The message was shown; it isn't shown again. */

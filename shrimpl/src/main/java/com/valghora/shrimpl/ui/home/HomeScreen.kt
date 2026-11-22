@@ -367,6 +367,22 @@ fun HomeScreen(
             model.uninstall(context, record)
         }, onDismiss = { confirmUninstall = null })
     }
+    // R2.2: after an uninstall, the same offer as the edit page's: remove the app from the list too.
+    val offerRemove by model.offerRemove.collectAsStateWithLifecycle()
+    offerRemove?.let { appId -> records.firstOrNull { it.appId == appId } }?.let { record ->
+        AlertDialog(
+            onDismissRequest = model::dismissRemoveOffer,
+            title = { Text(stringResource(R.string.remove_title, record.profile.name)) },
+            text = { Text(stringResource(R.string.remove_text)) },
+            confirmButton = {
+                TextButton(onClick = {
+                    model.dismissRemoveOffer()
+                    model.remove(record)
+                }) { Text(stringResource(R.string.action_remove)) }
+            },
+            dismissButton = { TextButton(onClick = model::dismissRemoveOffer) { Text(stringResource(R.string.action_keep)) } },
+        )
+    }
     // The system installer asks for each app, so Update all says so first and can be cancelled.
     if (confirmUpdateAll) {
         AlertDialog(
@@ -680,7 +696,7 @@ private fun UninstallDialog(name: String, onConfirm: () -> Unit, onDismiss: () -
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text(stringResource(R.string.uninstall_title, name)) },
-        text = { Text(stringResource(R.string.uninstall_remove_text)) },
+        text = { Text(stringResource(R.string.uninstall_text)) },
         confirmButton = { TextButton(onClick = onConfirm) { Text(stringResource(R.string.action_uninstall)) } },
         dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.action_cancel)) } },
     )

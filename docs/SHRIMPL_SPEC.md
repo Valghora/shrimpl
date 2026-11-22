@@ -188,10 +188,9 @@ binary translation) on any device.
 
   - The ⋮ menu, the right-click menu and the long-press menu ("Show options") offer the same actions.
     The pending action is always first; Rebuild appears only when there is none.
-  - Uninstall asks first ("The app and its data are removed from this device, and from your list in
-    Shrimpl"), then uninstalls the app and removes it from the list, its saved settings with it. If
-    the uninstall is turned down or fails, the app stays. The edit page's Uninstall keeps the
-    settings and offers to remove them (R2.3).
+  - Uninstall, here and on the edit page (R2.3), asks first, uninstalls the app, then asks whether
+    to remove it from Shrimpl too ("Remove <name> from Shrimpl?", Remove or Keep). Keep leaves it
+    in the list as Not installed. A turned-down or failed uninstall asks nothing more.
   - Update rebuilds with the bundled template. Reinstall builds the app signed with the current key,
     whatever key it had (R11.7).
   - A not-installed app's icon and name are greyed out (65 % opacity, so the name keeps 4.5:1
