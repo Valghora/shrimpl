@@ -26,8 +26,8 @@ class SessionPrefs(context: Context) : ZoomStore, UaStore {
         get() = prefs.getBoolean(KEY_UA_LEARNED_DESKTOP, false)
         set(value) = prefs.edit { putBoolean(KEY_UA_LEARNED_DESKTOP, value) }
 
-    /** A random token the desktop/mobile shortcut carries, so only that shortcut toggles (T6.11). */
-    val toggleToken: String
+    /** A random token the App options shortcut carries, so only that shortcut opens the panel (T5.8). */
+    val shortcutToken: String
         get() = prefs.getString(KEY_TOGGLE_TOKEN, null) ?: UUID.randomUUID().toString().also { token ->
             prefs.edit { putString(KEY_TOGGLE_TOKEN, token) }
         }

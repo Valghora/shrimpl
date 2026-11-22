@@ -33,13 +33,16 @@ data class ShortcutSpec(
 enum class UrlClass { INTERNAL, OAUTH, EXTERNAL, PASSTHROUGH, SPECIAL_SCHEME, BLOCKED }
 
 /** The web app's own keyboard shortcuts (T5.3); NONE passes the key to the page. */
-enum class KeyAction { RELOAD, ZOOM_IN, ZOOM_OUT, ZOOM_RESET, NEW_WINDOW, PRINT, NONE }
+enum class KeyAction { RELOAD, ZOOM_IN, ZOOM_OUT, ZOOM_RESET, NEW_WINDOW, PRINT, APP_OPTIONS, NONE }
 
 /** What a long press or right-click landed on, for the native context menu (T5.5). */
 enum class HitType { ANCHOR, IMAGE_ANCHOR, IMAGE, OTHER }
 
 /** An item of the native context menu (T5.5). */
-enum class MenuAction { COPY_LINK, OPEN_LINK, SAVE_IMAGE }
+enum class MenuAction { COPY_LINK, OPEN_LINK, SAVE_IMAGE, APP_OPTIONS }
+
+/** A switch of the App options panel (T5.8), in the panel's order. */
+enum class AppOption { DESKTOP_SITE }
 
 /** A change of the workspace's wake state (T8.3); NONE when nothing changed. */
 enum class WakeEvent { SLEEP, WAKE, NONE }

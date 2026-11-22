@@ -114,16 +114,29 @@ Unit tests cover every branch with a fixed fixture config, including look-alike 
   every other key, site shortcuts included, reaches the page unchanged. Esc first leaves full-screen
   video (T6.13).
 - T5.4 The Keyboard Shortcuts Helper lists two groups: the site's shortcuts (titled `profile.name`)
-  and Window (Reload, Zoom in, Zoom out, Reset zoom, Print, and New window when enabled).
+  and Window (Reload, Zoom in, Zoom out, Reset zoom, Print, App options, and New window when enabled).
 - T5.5 Context menu (with `profile.nativeContextMenu`): copy link, open link in the browser, save
-  image, per T2d. Image links copy the anchor's href (`requestFocusNodeHref`), not the image URL.
+  image, per T2d, then App options (T5.8) after a divider, on everything. Image links copy the
+  anchor's href (`requestFocusNodeHref`), not the image URL.
 - T5.6 Back goes back in the page history while it can (`OnBackPressedCallback` kept in sync in
   `doUpdateVisitedHistory`); full-screen video takes Back first.
 - T5.7 Zoom: pinch zoom on touch (built-in controls, no on-screen buttons), and Ctrl + scroll wheel or
   trackpad scroll zooms text like Ctrl+= and Ctrl+-. Page text starts at the system font size (font
   scale 1.3 is a text zoom of 130 %, to the nearest 10 %) and follows it when it changes, until the
   user zooms; their zoom is kept, and Ctrl+0 returns to following the system font size.
-
+- T5.8 App options: a panel of the app's own switches, opened by Ctrl+, (once per press, T2c), by
+  "App options" in the app icon's launcher shortcuts, and from the context menu (T5.5).
+  - Titled "App options", with the app's name under the title. A bottom sheet in a window narrower
+    than 600 dp, a dialog in a wider one.
+  - Each switch has a fixed label and a description of what it does when on (docs/SHRIMPL_SPEC.md
+    R1.6), applies at once and is remembered in `SessionPrefs`. The whole row toggles it, at least
+    72 dp tall, and accessibility services hear one switch with its label, description and state.
+  - Desktop site ("Shows the site as it looks on a computer"), when the profile allows the toggle
+    (T6.11), is its only switch so far. With none, the panel says "No options for this app yet".
+  - Reset to defaults forgets what the panel changed, so the profile's settings apply again, and
+    closes it; Done closes it.
+  - The launcher shortcut carries a random token kept in the app's preferences; a launch without it
+    (another app starting the exported activity) doesn't open the panel.
 ## T6 WebView, routing and media
 
 - T6.1 One function, `applyWebSettings(webView, mode)`, configures every WebView (main, popups, user
@@ -183,10 +196,8 @@ Unit tests cover every branch with a fixed fixture config, including look-alike 
 - T6.10 Store-redirect fallback (`profile.uaStoreRedirectFallback`, no override): in mobile mode,
   without a user choice or a learned preference, a Play Store redirect in the first 10 s after start
   is blocked, desktop mode is learned, and the start URL reloads. At most once per install.
-- T6.11 Desktop/mobile toggle (`profile.uaUserToggle`, no override): one dynamic launcher shortcut,
-  "Request desktop site" or "Request mobile site", which saves the choice and reloads the start URL.
-  The shortcut carries a random token kept in the app's preferences; a launch without it (another
-  app starting the exported activity) doesn't toggle.
+- T6.11 Desktop/mobile toggle (`profile.uaUserToggle`, no override): the Desktop site switch of App
+  options (T5.8), which saves the choice and reloads the start URL. Reset to defaults forgets it.
 - T6.12 One startup log line: `UA mode=<mode> reason=<reason> metadata=<applied|unsupported|default>`
   (tag `profile.appId`).
 - T6.13 Full-screen video: the page's custom view covers the window with the system bars hidden (swipe

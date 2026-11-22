@@ -73,6 +73,7 @@ import androidx.webkit.WebSettingsCompat
 import androidx.webkit.WebViewFeature
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.snackbar.Snackbar
+import com.valghora.shrimpl.core.AppOption
 import com.valghora.shrimpl.core.CaptureChoice
 import com.valghora.shrimpl.core.DesktopSessionController
 import com.valghora.shrimpl.core.HitType
@@ -264,20 +265,19 @@ class MainActivity : AppCompatActivity() {
 
         workspaceMonitor = WorkspaceMonitor(this, controller, ::onWakeEvent)
         workspaceMonitor.register()
-        publishToggleShortcut()
+        publishOptionsShortcut()
 
-        if (!handleToggleIntent(intent)) {
-            // T6.8: the start URL loads only when no history was restored.
-            val restored = savedInstanceState?.getBundle(STATE_WEBVIEW)?.let { webView.restoreState(it) }
-            if (restored == null) webView.loadUrl(WebApp.profile.startUrl)
-        }
+        // T6.8: the start URL loads only when no history was restored.
+        val restored = savedInstanceState?.getBundle(STATE_WEBVIEW)?.let { webView.restoreState(it) }
+        if (restored == null) webView.loadUrl(WebApp.profile.startUrl)
+        handleOptionsIntent(intent)
         if (savedInstanceState == null && WebApp.profile.allowNotifications) requestNotificationPermissionIfNeeded()
     }
 
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         setIntent(intent)
-        handleToggleIntent(intent)
+        handleOptionsIntent(intent)
     }
 
     override fun onStart() {
@@ -317,6 +317,7 @@ class MainActivity : AppCompatActivity() {
         workspaceMonitor.unregister()
         popups.toList().forEach { it.destroy() }
         permissionDialog?.dismiss()
+        optionsPanel?.dismiss()
         pendingPermissionRequest?.deny()
         pendingPermissionRequest = null
         fileChooserCallback?.onReceiveValue(null)
@@ -557,7 +558,6 @@ class MainActivity : AppCompatActivity() {
         resolvedMode = UaMode.DESKTOP
         applyWebSettings(webView, UaMode.DESKTOP)
         webView.loadUrl(WebApp.profile.startUrl)
-        publishToggleShortcut()
         Log.i(WebApp.profile.appId, "Store redirect on a mobile UA; switched to desktop UA")
         return true
     }
@@ -1102,13 +1102,17 @@ class MainActivity : AppCompatActivity() {
             else -> HitType.OTHER
         }
         val extra = result.extra
+        menu.setGroupDividerEnabled(true)
         controller.contextMenuActions(hit).forEach { action ->
             val title = when (action) {
                 MenuAction.COPY_LINK -> R.string.menu_copy_link
                 MenuAction.OPEN_LINK -> R.string.menu_open_link
                 MenuAction.SAVE_IMAGE -> R.string.menu_save_image
+                MenuAction.APP_OPTIONS -> R.string.app_options
             }
-            menu.add(Menu.NONE, action.ordinal, action.ordinal, title).setOnMenuItemClickListener {
+            // T5.8: App options sits in its own group, so a divider separates it from the page's actions.
+            val group = if (action == MenuAction.APP_OPTIONS) MENU_GROUP_APP else Menu.NONE
+            menu.add(group, action.ordinal, action.ordinal, title).setOnMenuItemClickListener {
                 performMenuAction(action, hit, extra)
                 true
             }
@@ -1124,6 +1128,7 @@ class MainActivity : AppCompatActivity() {
             MenuAction.OPEN_LINK -> withLinkUrl(hit, extra, ::openExternal)
             MenuAction.SAVE_IMAGE ->
                 if (extra != null) download(webView, extra, null, null) else toast(R.string.toast_download_unsupported)
+            MenuAction.APP_OPTIONS -> showAppOptions()
         }
     }
 
@@ -1173,6 +1178,7 @@ class MainActivity : AppCompatActivity() {
                     .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_MULTIPLE_TASK),
             )
             KeyAction.PRINT -> printPage()
+            KeyAction.APP_OPTIONS -> showAppOptions()
             KeyAction.NONE -> Unit
         }
     }
@@ -1247,6 +1253,7 @@ class MainActivity : AppCompatActivity() {
                 KeyboardShortcutInfo(getString(R.string.shortcut_zoom_out), KeyEvent.KEYCODE_MINUS, KeyEvent.META_CTRL_ON),
                 KeyboardShortcutInfo(getString(R.string.shortcut_zoom_reset), KeyEvent.KEYCODE_0, KeyEvent.META_CTRL_ON),
                 KeyboardShortcutInfo(getString(R.string.shortcut_print), KeyEvent.KEYCODE_P, KeyEvent.META_CTRL_ON),
+                KeyboardShortcutInfo(getString(R.string.app_options), KeyEvent.KEYCODE_COMMA, KeyEvent.META_CTRL_ON),
             ) + newWindowShortcutInfo(),
         )
     }
@@ -1272,51 +1279,82 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    // ----- Desktop/mobile toggle (T6.11) -----
+    // ----- App options (T5.8) and the desktop/mobile toggle (T6.11) -----
 
     private val uaToggleEnabled: Boolean
         get() = WebApp.profile.uaUserToggle && WebApp.profile.uaFeaturesActive
 
-    private fun publishToggleShortcut() {
-        if (!uaToggleEnabled) {
-            ShortcutManagerCompat.removeAllDynamicShortcuts(this)
-            return
+    private var optionsPanel: Dialog? = null
+
+    /** Opens the App options panel (T5.8) with the switches this app has, replacing one already open. */
+    private fun showAppOptions() {
+        optionsPanel?.dismiss()
+        val switches = controller.appOptions(uaToggleEnabled).map { option ->
+            when (option) {
+                AppOption.DESKTOP_SITE -> OptionSwitch(
+                    getString(R.string.option_desktop_site),
+                    getString(R.string.option_desktop_site_detail),
+                    resolvedMode == UaMode.DESKTOP,
+                ) { on -> switchSite(if (on) UaMode.DESKTOP else UaMode.MOBILE, remember = true) }
+            }
         }
-        val toDesktop = resolvedMode == UaMode.MOBILE
-        val shortcut = ShortcutInfoCompat.Builder(this, SHORTCUT_TOGGLE_UA)
-            .setShortLabel(getString(if (toDesktop) R.string.shortcut_request_desktop else R.string.shortcut_request_mobile))
-            .setLongLabel(
-                getString(if (toDesktop) R.string.shortcut_request_desktop_long else R.string.shortcut_request_mobile_long),
-            )
+        optionsPanel = AppOptionsPanel.show(this, WebApp.profile.name, switches, ::resetAppOptions).apply {
+            setOnDismissListener { if (optionsPanel === it) optionsPanel = null }
+        }
+    }
+
+    /** Reset to defaults (T5.8): the panel's changes are forgotten and the profile's settings apply again. */
+    private fun resetAppOptions() {
+        controller.resetAppOptions()
+        val mode = controller.resolveUa(
+            WebApp.profile.userAgentMode,
+            isLargeOrPc,
+            prefs.userChoice,
+            prefs.learnedDesktop,
+            WebApp.profile.userAgentOverride,
+        ).mode
+        switchSite(mode, remember = false)
+    }
+
+    /**
+     * T6.11: shows the site as [mode] asks, reloading the start URL; [remember] keeps the choice, which
+     * otherwise follows the profile again.
+     */
+    private fun switchSite(mode: UaMode, remember: Boolean) {
+        if (remember) prefs.userChoice = mode
+        if (mode == resolvedMode) return
+        resolvedMode = mode
+        applyWebSettings(webView, mode)
+        storeWindowArmed = true
+        webView.loadUrl(WebApp.profile.startUrl)
+    }
+
+    /** The launcher shortcut that opens App options (T5.8), in the app icon's menu. */
+    private fun publishOptionsShortcut() {
+        val shortcut = ShortcutInfoCompat.Builder(this, SHORTCUT_APP_OPTIONS)
+            .setShortLabel(getString(R.string.app_options))
+            .setLongLabel(getString(R.string.app_options))
             .setIcon(IconCompat.createWithResource(this, R.mipmap.ic_launcher))
             .setIntent(
                 Intent(this, MainActivity::class.java)
                     .setAction(Intent.ACTION_VIEW)
-                    .putExtra(EXTRA_TOGGLE_UA, prefs.toggleToken),
+                    .putExtra(EXTRA_APP_OPTIONS, prefs.shortcutToken),
             )
             .build()
         ShortcutManagerCompat.setDynamicShortcuts(this, listOf(shortcut))
     }
 
     /**
-     * Applies a pending toggle from the launcher shortcut; returns true if it loaded START_URL. The
-     * activity is exported (it is the launcher's), so only the shortcut's own token counts: another app
-     * can't flip the layout (android-intent-security skill).
+     * Opens App options when the launcher shortcut started this activity. The activity is exported (it
+     * is the launcher's), so only the shortcut's own token counts (android-intent-security skill).
      */
-    private fun handleToggleIntent(intent: Intent?): Boolean {
-        val token = intent?.getStringExtra(EXTRA_TOGGLE_UA) ?: return false
-        intent.removeExtra(EXTRA_TOGGLE_UA)
+    private fun handleOptionsIntent(intent: Intent?) {
+        val token = intent?.getStringExtra(EXTRA_APP_OPTIONS) ?: return
+        intent.removeExtra(EXTRA_APP_OPTIONS)
         setIntent(intent)
-        if (!uaToggleEnabled || token != prefs.toggleToken) return false
-        ShortcutManagerCompat.reportShortcutUsed(this, SHORTCUT_TOGGLE_UA)
-        val target = controller.toggleTarget(resolvedMode)
-        prefs.userChoice = target
-        resolvedMode = target
-        applyWebSettings(webView, target)
-        storeWindowArmed = true
-        webView.loadUrl(WebApp.profile.startUrl)
-        publishToggleShortcut()
-        return true
+        if (token != prefs.shortcutToken) return
+        ShortcutManagerCompat.reportShortcutUsed(this, SHORTCUT_APP_OPTIONS)
+        showAppOptions()
     }
 
     // ----- Power and visibility (T8.3) -----
@@ -1371,8 +1409,11 @@ class MainActivity : AppCompatActivity() {
         const val TRANSPARENT = android.graphics.Color.TRANSPARENT
         const val BAR_FADE_MS = 250L
         const val STATE_WEBVIEW = "webview_state"
-        const val SHORTCUT_TOGGLE_UA = "toggle_ua"
-        const val EXTRA_TOGGLE_UA = "toggle_ua"
+        const val SHORTCUT_APP_OPTIONS = "app_options"
+        const val EXTRA_APP_OPTIONS = "app_options"
+
+        /** The context menu group App options sits in, after a divider (T5.8). */
+        const val MENU_GROUP_APP = 1
         const val EXTRA_BROWSER_FALLBACK_URL = "browser_fallback_url"
         val LOCATION_PERMISSIONS = listOf(Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION)
         const val URI_GRANT_FLAGS = Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION or

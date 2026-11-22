@@ -12,9 +12,9 @@ two, not a schedule.
 - Level 1, a profile field: `darkMode` (System, Always dark, Never dark; default System) in `Profile`
   (`:core`), set on the app's edit page (R3.3) and baked into the APK like the other settings, so a change
   rebuilds and updates the app.
-- Level 2, a runtime toggle inside the web app, with the profile as its default: a keyboard shortcut and a
-  launcher shortcut, stored in the template's `SessionPrefs`, the way the desktop/mobile site toggle works
-  (T6.11). It overrides the profile until cleared.
+- Level 2, a runtime toggle inside the web app, with the profile as its default: a switch in the App
+  options panel (TEMPLATE_SPEC T5.8, built), stored in the template's `SessionPrefs`, the way the Desktop
+  site switch works (T6.11). It overrides the profile until Reset to defaults.
 - Not now (level 3): changing it live from Shrimpl through a signature-protected provider, without a rebuild.
 
 **Design.**
@@ -37,8 +37,8 @@ document-start script, which mangles images)? Recommendation: algorithmic only a
 ## 2. Ad blocking, per web app
 
 **Decided (2026-11-08):** the same control levels as dark mode: a profile field `adBlocking` (Off, Ads, Ads
-and trackers; default Off) on the edit page, and a runtime toggle in the web app (keyboard and launcher
-shortcuts) that overrides it.
+and trackers; default Off) on the edit page, and a runtime switch in the App options panel (T5.8) that
+overrides it.
 
 **Design.**
 

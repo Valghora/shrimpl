@@ -171,6 +171,9 @@ class DesktopSessionControllerTest {
         assertEquals(KeyAction.NONE, c.resolveKey("KEYCODE_P", ctrl, 1)) // once per press
         assertEquals(KeyAction.NONE, c.resolveKey("KEYCODE_P", emptySet(), 0))
         assertEquals(KeyAction.ZOOM_RESET, c.resolveKey("KEYCODE_NUMPAD_0", ctrl, 0))
+        assertEquals(KeyAction.APP_OPTIONS, c.resolveKey("KEYCODE_COMMA", ctrl, 0))
+        assertEquals(KeyAction.NONE, c.resolveKey("KEYCODE_COMMA", ctrl, 1)) // once per press
+        assertEquals(KeyAction.NONE, c.resolveKey("KEYCODE_COMMA", emptySet(), 0))
     }
 
     @Test
@@ -212,13 +215,30 @@ class DesktopSessionControllerTest {
     @Test
     fun mapsHitTypesToMenuActions() {
         val c = controller()
-        assertEquals(listOf(MenuAction.COPY_LINK, MenuAction.OPEN_LINK), c.contextMenuActions(HitType.ANCHOR))
+        val options = MenuAction.APP_OPTIONS
+        assertEquals(listOf(MenuAction.COPY_LINK, MenuAction.OPEN_LINK, options), c.contextMenuActions(HitType.ANCHOR))
         assertEquals(
-            listOf(MenuAction.COPY_LINK, MenuAction.OPEN_LINK, MenuAction.SAVE_IMAGE),
+            listOf(MenuAction.COPY_LINK, MenuAction.OPEN_LINK, MenuAction.SAVE_IMAGE, options),
             c.contextMenuActions(HitType.IMAGE_ANCHOR),
         )
-        assertEquals(listOf(MenuAction.SAVE_IMAGE), c.contextMenuActions(HitType.IMAGE))
-        assertTrue(c.contextMenuActions(HitType.OTHER).isEmpty())
+        assertEquals(listOf(MenuAction.SAVE_IMAGE, options), c.contextMenuActions(HitType.IMAGE))
+        assertEquals(listOf(options), c.contextMenuActions(HitType.OTHER))
+    }
+
+    // ----- App options (T5.8) -----
+
+    @Test
+    fun appOptionsOfferDesktopSiteOnlyWithTheToggle() {
+        val c = controller()
+        assertEquals(listOf(AppOption.DESKTOP_SITE), c.appOptions(uaToggle = true))
+        assertEquals(emptyList<AppOption>(), c.appOptions(uaToggle = false))
+    }
+
+    @Test
+    fun resetForgetsTheChosenSite() {
+        val store = FakeUaStore(userChoice = UaMode.DESKTOP)
+        DesktopSessionController(FakeZoomStore(), store, fixture).resetAppOptions()
+        assertEquals(null, store.userChoice)
     }
 
     // ----- Wake state machine -----

@@ -14,10 +14,13 @@
     <string name="shortcut_print">Print</string>
     <string name="shortcut_new_window">New window</string>
 
-    <string name="shortcut_request_desktop">Desktop site</string>
-    <string name="shortcut_request_desktop_long">Request desktop site</string>
-    <string name="shortcut_request_mobile">Mobile site</string>
-    <string name="shortcut_request_mobile_long">Request mobile site</string>
+    <!-- App options (TEMPLATE_SPEC T5.8). The switch description says what it does when on (R1.6). -->
+    <string name="app_options">App options</string>
+    <string name="app_options_none">No options for this app yet</string>
+    <string name="option_desktop_site">Desktop site</string>
+    <string name="option_desktop_site_detail">Shows the site as it looks on a computer</string>
+    <string name="action_reset_defaults">Reset to defaults</string>
+    <string name="action_done">Done</string>
 
     <string name="toast_download_started">Downloading…</string>
     <string name="toast_download_unsupported">This file can\'t be downloaded</string>

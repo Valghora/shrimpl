@@ -76,7 +76,7 @@ class DesktopSessionController(
      */
     fun resolveKey(keyName: String, modifiers: Set<Modifier>, repeatCount: Int): KeyAction {
         val action = builtInAction(keyName, modifiers, includeNewWindow = true)
-        val oncePerPress = action == KeyAction.RELOAD || action == KeyAction.NEW_WINDOW || action == KeyAction.PRINT
+        val oncePerPress = action != KeyAction.ZOOM_IN && action != KeyAction.ZOOM_OUT && action != KeyAction.ZOOM_RESET
         return if (oncePerPress && repeatCount != 0) KeyAction.NONE else action
     }
 
@@ -89,6 +89,7 @@ class DesktopSessionController(
             ctrl && keyName in ZOOM_OUT_KEYS -> KeyAction.ZOOM_OUT
             ctrl && keyName in ZOOM_RESET_KEYS -> KeyAction.ZOOM_RESET
             ctrl && keyName == "KEYCODE_P" -> KeyAction.PRINT
+            ctrl && keyName == "KEYCODE_COMMA" -> KeyAction.APP_OPTIONS
             includeNewWindow && isNewWindowShortcut(keyName, modifiers) -> KeyAction.NEW_WINDOW
             else -> KeyAction.NONE
         }
@@ -101,12 +102,29 @@ class DesktopSessionController(
 
     // ----- Context menu -----
 
-    /** The context menu items for what was pressed (T5.5): link actions on links, Save image on images. */
+    /**
+     * The context menu items for what was pressed (T5.5): link actions on links, Save image on images,
+     * and App options last, on everything (T5.8).
+     */
     fun contextMenuActions(hit: HitType): List<MenuAction> = when (hit) {
         HitType.ANCHOR -> listOf(MenuAction.COPY_LINK, MenuAction.OPEN_LINK)
         HitType.IMAGE_ANCHOR -> listOf(MenuAction.COPY_LINK, MenuAction.OPEN_LINK, MenuAction.SAVE_IMAGE)
         HitType.IMAGE -> listOf(MenuAction.SAVE_IMAGE)
         HitType.OTHER -> emptyList()
+    } + MenuAction.APP_OPTIONS
+
+    // ----- App options (T5.8) -----
+
+    /**
+     * The switches the App options panel shows: Desktop site when the profile allows the desktop/mobile
+     * toggle ([uaToggle], T6.11). An app with none still has the panel, which says so.
+     */
+    fun appOptions(uaToggle: Boolean): List<AppOption> =
+        if (uaToggle) listOf(AppOption.DESKTOP_SITE) else emptyList()
+
+    /** Reset to defaults (T5.8): forgets what the panel changed, so the profile's settings apply again. */
+    fun resetAppOptions() {
+        uaStore.userChoice = null
     }
 
     // ----- Wake state machine -----
