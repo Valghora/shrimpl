@@ -135,6 +135,7 @@ Unit tests cover every branch with a fixed fixture config, including look-alike 
   - Each switch has a fixed label and a description of what it does when on (docs/SHRIMPL_SPEC.md
     R1.6), applies at once and is remembered in `SessionPrefs`. The whole row toggles it, at least
     72 dp tall, and accessibility services hear one switch with its label, description and state.
+    Its text wraps 24 dp before the switch, as Shrimpl's settings items do.
   - Desktop site ("Shows the site as it looks on a computer"), when the profile allows the toggle
     (T6.11), is its only switch so far. With none, the panel says "No options for this app yet".
   - Reset to defaults forgets what the panel changed, so the profile's settings apply again, and

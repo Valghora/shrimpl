@@ -30,6 +30,13 @@ object AppOptionsPanel {
     /** Below this width the panel is a bottom sheet, Material's compact window class. */
     private const val SHEET_BELOW_DP = 600
 
+    /**
+     * The space between a row's text and its switch, as in Shrimpl's settings (the wrap line of
+     * docs/SHRIMPL_SPEC.md R3.3), so a description wraps well clear of the switch. Every row's switch is the
+     * same width, so the panel's text has one right edge.
+     */
+    private const val TEXT_GAP_DP = 24
+
     /** Shows the panel for [appName] with [switches]; [onReset] runs on Reset to defaults. Returns it, to dismiss later. */
     fun show(context: Context, appName: String, switches: List<OptionSwitch>, onReset: () -> Unit): Dialog {
         val compact = context.resources.configuration.screenWidthDp < SHEET_BELOW_DP
@@ -111,7 +118,7 @@ object AppOptionsPanel {
             updatePadding(left = dp(context, insetDp), right = dp(context, insetDp), top = dp(context, 8), bottom = dp(context, 8))
             isFocusable = true
             background = selectableBackground(context)
-            addView(texts, LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f).apply { marginEnd = dp(context, 16) })
+            addView(texts, LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f).apply { marginEnd = dp(context, TEXT_GAP_DP) })
             addView(switch)
             contentDescription = "${option.title}, ${option.description}"
             setOnClickListener {
