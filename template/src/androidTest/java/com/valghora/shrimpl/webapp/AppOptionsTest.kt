@@ -94,4 +94,23 @@ class AppOptionsTest {
             }
         }
     }
+
+    /**
+     * T8.4, T5.9: with Run in background off, the page pauses while the app is hidden and runs again when
+     * it comes back, whatever the live settings say by then.
+     */
+    @Test
+    fun aPageHiddenWithoutRunInBackgroundRunsAgainWhenShown() {
+        withProfile(WebApp.profile.copy(keepAliveWhenHidden = false)) {
+            ActivityScenario.launch(MainActivity::class.java).use { scenario ->
+                answerPermissionPrompt("^allow$", 5_000)
+                val page = PageDriver(scenario).also { it.loadTestPage() }
+                page.js("window.ticks = 0; setInterval(() => window.ticks++, 50); 0")
+                scenario.moveToState(androidx.lifecycle.Lifecycle.State.CREATED)
+                scenario.moveToState(androidx.lifecycle.Lifecycle.State.RESUMED)
+                val before = page.js("window.ticks").toDouble()
+                page.awaitJs("window.ticks > ${before + 5}", "the page's timers to run again", 10_000)
+            }
+        }
+    }
 }

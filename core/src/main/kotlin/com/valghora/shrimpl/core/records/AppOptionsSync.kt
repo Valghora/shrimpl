@@ -23,6 +23,18 @@ object AppOptionsSync {
     /** The answer's key: whether this Shrimpl built the caller and saved the change. */
     const val KEY_SAVED = "saved"
 
+    /** The provider call a web app makes for its live settings ([LiveSettings]); the answer holds them. */
+    const val METHOD_SETTINGS = "live_settings"
+
+    /** [LiveSettings.userAgentMode], as the [UaMode] name. */
+    const val KEY_USER_AGENT_MODE = "user_agent_mode"
+
+    /** [LiveSettings.keepAliveWhenHidden]. */
+    const val KEY_KEEP_ALIVE = "keep_alive"
+
+    /** [LiveSettings.pauseOnPowerSave]. */
+    const val KEY_PAUSE_POWER_SAVE = "pause_power_save"
+
     /** [profile] with the panel's switches applied; a null switch leaves its setting as it is. */
     fun apply(profile: Profile, desktopSite: Boolean?, linkMenu: Boolean?): Profile = profile.copy(
         userAgentMode = when (desktopSite) {
@@ -32,4 +44,41 @@ object AppOptionsSync {
         },
         nativeContextMenu = linkMenu ?: profile.nativeContextMenu,
     )
+}
+
+/**
+ * The settings Shrimpl can change in an installed web app without a rebuild (docs/SHRIMPL_SPEC.md
+ * R11.10): the edit page's Behavior section. The app reads them from the profile while it runs, so it
+ * takes new ones when it comes back to the front (docs/TEMPLATE_SPEC.md T5.9). Everything else lives in
+ * the APK (its manifest, resources or the profile read once at start) and needs a rebuild.
+ */
+data class LiveSettings(
+    val userAgentMode: UaMode,
+    val nativeContextMenu: Boolean,
+    val keepAliveWhenHidden: Boolean,
+    val pauseOnPowerSave: Boolean,
+) {
+    /** [profile] with these settings. */
+    fun applyTo(profile: Profile): Profile = profile.copy(
+        userAgentMode = userAgentMode,
+        nativeContextMenu = nativeContextMenu,
+        keepAliveWhenHidden = keepAliveWhenHidden,
+        pauseOnPowerSave = pauseOnPowerSave,
+    )
+
+    companion object {
+        /** [profile]'s live settings. */
+        fun of(profile: Profile) = LiveSettings(
+            profile.userAgentMode,
+            profile.nativeContextMenu,
+            profile.keepAliveWhenHidden,
+            profile.pauseOnPowerSave,
+        )
+
+        /**
+         * Whether going from the [built] profile to the [edited] one needs a rebuild: true when anything
+         * but the live settings changed (R11.10).
+         */
+        fun needsRebuild(built: Profile, edited: Profile): Boolean = of(edited).applyTo(built) != edited
+    }
 }

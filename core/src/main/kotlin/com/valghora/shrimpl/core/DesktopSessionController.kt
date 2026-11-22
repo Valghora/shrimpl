@@ -11,7 +11,7 @@ import java.net.URLDecoder
 class DesktopSessionController(
     private val zoomStore: ZoomStore,
     val uaStore: UaStore,
-    private val config: SessionConfig,
+    private var config: SessionConfig,
     fontScalePercent: Int = ZOOM_DEFAULT,
     /** Where App options keeps its switches (T5.8); callers that never show the panel keep the default. */
     private val optionStore: OptionStore = UnsavedOptions(),
@@ -126,6 +126,11 @@ class DesktopSessionController(
 
     /** Whether the template's link and image menu is on (T5.5): the panel's choice, else [profileDefault]. */
     fun linkMenuOn(profileDefault: Boolean): Boolean = optionStore.linkMenuChoice ?: profileDefault
+
+    /** Pause in battery saver, changed while the app runs (T5.9); the next wake event uses it. */
+    fun pauseOnPowerSave(on: Boolean) {
+        config = config.copy(pauseOnPowerSave = on)
+    }
 
     /** The Link and image menu switch (T5.8). */
     fun chooseLinkMenu(on: Boolean) {

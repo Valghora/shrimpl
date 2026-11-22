@@ -16,7 +16,9 @@ two, not a schedule.
   options panel (TEMPLATE_SPEC T5.8, built), stored in the template's `SessionPrefs`, the way the Desktop
   site switch works (T6.11). Each change is saved to the app's edit page in Shrimpl (SHRIMPL_SPEC
   R11.9), so a rebuild keeps it.
-- Not now (level 3): changing it live from Shrimpl through a signature-protected provider, without a rebuild.
+- Level 3, built (2026-11-22): live settings (SHRIMPL_SPEC R11.10, TEMPLATE_SPEC T5.9). Dark mode and ad
+  blocking join the Behavior section, so the edit page changes them without a rebuild; the app reads
+  them from Shrimpl when it comes to the front.
 
 **Design.**
 
@@ -64,8 +66,6 @@ checked, with no network needed.
 
 ## Later
 
-- Level 3, live control from Shrimpl: a provider in the template protected by a signature permission (every
-  web app is signed with Shrimpl's key; the patcher already renames package-derived authorities), so
-  Shrimpl's edit page changes an installed app's dark mode and ad blocking at once, with no rebuild and no
-  Update prompt (R2.4). Apps built from an older template fall back to level 1. Worth doing if the rebuild
-  friction proves annoying.
+- Level 3 was built as a pull instead (SHRIMPL_SPEC R11.10): the app asks Shrimpl's provider, which checks
+  the caller, so web apps export nothing new. Shrimpl is signed with its release key and web apps with the
+  user's key, so a signature permission between them wouldn't hold anyway.

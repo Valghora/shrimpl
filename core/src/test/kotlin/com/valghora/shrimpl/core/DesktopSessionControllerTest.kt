@@ -273,6 +273,14 @@ class DesktopSessionControllerTest {
     }
 
     @Test
+    fun pauseInBatterySaverCanChangeWhileTheAppRuns() {
+        val c = controller(config = fixture.copy(pauseOnPowerSave = false))
+        assertEquals(WakeEvent.NONE, c.onWakeInput(interactive = true, anyDisplayOn = true, powerSaveMode = true))
+        c.pauseOnPowerSave(true)
+        assertEquals(WakeEvent.SLEEP, c.onWakeInput(interactive = true, anyDisplayOn = true, powerSaveMode = true))
+    }
+
+    @Test
     fun powerSaveCountsAsSleepOnlyWhenConfigured() {
         val pausing = controller(config = fixture.copy(pauseOnPowerSave = true))
         assertFalse(pausing.computeAwake(interactive = true, anyDisplayOn = true, powerSaveMode = true))
