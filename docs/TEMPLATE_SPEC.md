@@ -141,9 +141,11 @@ Unit tests cover every branch with a fixed fixture config, including look-alike 
     links and images, instead of the site's own.", T5.5), in every app.
   - Done closes it. There is no Reset: each change is also saved to the app's edit page in Shrimpl
     (docs/SHRIMPL_SPEC.md R11.9), so the edit page always matches the panel.
-  - Each change is sent to every installed Shrimpl's App options provider (found by the action
+  - The panel's changes apply in the app at once, and are sent together when it closes: with Done,
+    or Back, a tap outside or swiping the sheet down, so the edit page never misses one. They go to
+    every installed Shrimpl's App options provider (found by the action
     `com.valghora.shrimpl.action.APP_OPTIONS`), off the main thread; only the one that built the app
-    saves it. Without one, the choice holds in the app until its next build.
+    saves them. Without one, the choice holds in the app until its next build.
   - A new build (a new versionCode) forgets the panel's choices: Shrimpl saved them, so the build
     carries them, or what the user changed on the edit page since.
   - The launcher shortcut carries a random token kept in the app's preferences; a launch without it

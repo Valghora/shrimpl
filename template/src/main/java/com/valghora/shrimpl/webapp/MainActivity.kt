@@ -320,6 +320,8 @@ class MainActivity : AppCompatActivity() {
         workspaceMonitor.unregister()
         popups.toList().forEach { it.destroy() }
         permissionDialog?.dismiss()
+        // The panel's dismiss listener runs after this, once the sender has stopped, so its changes go now.
+        sendOptionChanges()
         optionsPanel?.dismiss()
         optionsSender.shutdown() // a change already sent still reaches Shrimpl
         pendingPermissionRequest?.deny()
@@ -1286,6 +1288,10 @@ class MainActivity : AppCompatActivity() {
     private var optionsPanel: Dialog? = null
     private lateinit var optionsSender: AppOptionsSender
 
+    /** What the open panel changed, sent to Shrimpl once it closes (T5.8); null is unchanged. */
+    private var unsentDesktopSite: Boolean? = null
+    private var unsentLinkMenu: Boolean? = null
+
     /** Opens the App options panel (T5.8) with the switches this app has, replacing one already open. */
     private fun showAppOptions() {
         optionsPanel?.dismiss()
@@ -1297,7 +1303,7 @@ class MainActivity : AppCompatActivity() {
                     resolvedMode == UaMode.DESKTOP,
                 ) { on ->
                     switchSite(if (on) UaMode.DESKTOP else UaMode.MOBILE)
-                    optionsSender.send(desktopSite = on)
+                    unsentDesktopSite = on
                 }
                 AppOption.LINK_MENU -> OptionSwitch(
                     getString(R.string.option_link_menu),
@@ -1306,12 +1312,15 @@ class MainActivity : AppCompatActivity() {
                 ) { on ->
                     controller.chooseLinkMenu(on)
                     applyLinkMenu()
-                    optionsSender.send(linkMenu = on)
+                    unsentLinkMenu = on
                 }
             }
         }
         optionsPanel = AppOptionsPanel.show(this, switches).apply {
-            setOnDismissListener { if (optionsPanel === it) optionsPanel = null }
+            setOnDismissListener {
+                if (optionsPanel === it) optionsPanel = null
+                sendOptionChanges()
+            }
         }
     }
 
@@ -1321,6 +1330,18 @@ class MainActivity : AppCompatActivity() {
      */
     private fun applyLinkMenu() {
         if (controller.linkMenuOn(WebApp.profile.nativeContextMenu)) registerForContextMenu(webView) else unregisterForContextMenu(webView)
+    }
+
+    /**
+     * Sends the panel's changes to Shrimpl when it closes, with Done or any other way (Back, a tap
+     * outside, swiping the sheet down, the activity ending), so the edit page never misses a change
+     * that already applies here.
+     */
+    private fun sendOptionChanges() {
+        if (unsentDesktopSite == null && unsentLinkMenu == null) return
+        optionsSender.send(desktopSite = unsentDesktopSite, linkMenu = unsentLinkMenu)
+        unsentDesktopSite = null
+        unsentLinkMenu = null
     }
 
     /** T6.11: shows the site as [mode] asks and keeps the choice, reloading the start URL. */
