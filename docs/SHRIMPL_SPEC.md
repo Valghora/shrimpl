@@ -418,6 +418,8 @@ binary translation) on any device.
     `USER_ACTION_NOT_REQUIRED`, but Android still asks the user to confirm every install and every
     update (the emulator's `BuildAndInstallTest` taps Update), hence R2.4's warning.
   - **Shevery:** a Shevery user service running `pm install -S` with the APK piped in; no prompts.
+    The service refuses every install and uninstall that doesn't come from Shrimpl's own app ID, so no
+    other app can use the shell's permissions through it.
   - **Root:** `su -c pm install -S` with the APK piped in; `pm uninstall` for uninstalls.
 - R6.2 Settings has one Method choice: System (default; every install asks for confirmation),
   Shevery (silent, through ADB) or Root (silent, through superuser), described in R2.5.
