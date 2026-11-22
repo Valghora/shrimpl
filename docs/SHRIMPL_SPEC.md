@@ -586,6 +586,8 @@ The template's behavior is docs/TEMPLATE_SPEC.md. What Shrimpl relies on:
     change to Shrimpl's APK, including a new template (which Shrimpl bundles); the template's rises with
     any change to template code or resources (R11.4). A merge that changes neither APK, such as docs,
     tests or CI only, leaves both.
+  - A branch raises each version once, by one step, however many commits it takes: further changes
+    on the same branch keep the version it already has.
   - A new major version (2.0.0, 3.0.0 …) only on the owner's explicit instruction. A change that would
     go past x.9.9 waits for the owner's decision.
   - Each version is stored as a code, major × 100 + minor × 10 + patch (1.0.0 is 100, 1.2.3 is 123):
