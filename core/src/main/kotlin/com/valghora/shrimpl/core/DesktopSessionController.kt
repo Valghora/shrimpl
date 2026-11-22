@@ -103,15 +103,15 @@ class DesktopSessionController(
     // ----- Context menu -----
 
     /**
-     * The context menu items for what was pressed (T5.5): link actions on links, Save image on images,
-     * and App options last, on everything (T5.8).
+     * The context menu items for what was pressed (T5.5): link actions on links, Save image on images.
+     * Elsewhere there are none, so the press reaches the page: text selection and the site's own menu.
      */
     fun contextMenuActions(hit: HitType): List<MenuAction> = when (hit) {
         HitType.ANCHOR -> listOf(MenuAction.COPY_LINK, MenuAction.OPEN_LINK)
         HitType.IMAGE_ANCHOR -> listOf(MenuAction.COPY_LINK, MenuAction.OPEN_LINK, MenuAction.SAVE_IMAGE)
         HitType.IMAGE -> listOf(MenuAction.SAVE_IMAGE)
         HitType.OTHER -> emptyList()
-    } + MenuAction.APP_OPTIONS
+    }
 
     // ----- App options (T5.8) -----
 

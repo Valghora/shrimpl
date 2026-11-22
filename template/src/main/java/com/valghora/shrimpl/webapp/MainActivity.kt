@@ -1102,17 +1102,13 @@ class MainActivity : AppCompatActivity() {
             else -> HitType.OTHER
         }
         val extra = result.extra
-        menu.setGroupDividerEnabled(true)
         controller.contextMenuActions(hit).forEach { action ->
             val title = when (action) {
                 MenuAction.COPY_LINK -> R.string.menu_copy_link
                 MenuAction.OPEN_LINK -> R.string.menu_open_link
                 MenuAction.SAVE_IMAGE -> R.string.menu_save_image
-                MenuAction.APP_OPTIONS -> R.string.app_options
             }
-            // T5.8: App options sits in its own group, so a divider separates it from the page's actions.
-            val group = if (action == MenuAction.APP_OPTIONS) MENU_GROUP_APP else Menu.NONE
-            menu.add(group, action.ordinal, action.ordinal, title).setOnMenuItemClickListener {
+            menu.add(Menu.NONE, action.ordinal, action.ordinal, title).setOnMenuItemClickListener {
                 performMenuAction(action, hit, extra)
                 true
             }
@@ -1128,7 +1124,6 @@ class MainActivity : AppCompatActivity() {
             MenuAction.OPEN_LINK -> withLinkUrl(hit, extra, ::openExternal)
             MenuAction.SAVE_IMAGE ->
                 if (extra != null) download(webView, extra, null, null) else toast(R.string.toast_download_unsupported)
-            MenuAction.APP_OPTIONS -> showAppOptions()
         }
     }
 
@@ -1411,9 +1406,6 @@ class MainActivity : AppCompatActivity() {
         const val STATE_WEBVIEW = "webview_state"
         const val SHORTCUT_APP_OPTIONS = "app_options"
         const val EXTRA_APP_OPTIONS = "app_options"
-
-        /** The context menu group App options sits in, after a divider (T5.8). */
-        const val MENU_GROUP_APP = 1
         const val EXTRA_BROWSER_FALLBACK_URL = "browser_fallback_url"
         val LOCATION_PERMISSIONS = listOf(Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION)
         const val URI_GRANT_FLAGS = Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION or

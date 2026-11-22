@@ -319,9 +319,9 @@ binary translation) on any device.
       Custom header color (disabled unless Custom).
     - **Behavior:** Site layout, the user agent (Auto, "Picks the desktop or mobile site
       automatically"; Desktop, "Asks for the site's desktop layout"; Mobile, "Asks for the site's
-      mobile layout"); Link and image menu (Shrimpl, "A long press or right-click shows Shrimpl's
-      menu to copy, open or save links and images.", T5.5; Site, "A long press or right-click shows
-      the site's own menu."); Run in background; Pause in battery saver.
+      mobile layout"); Link and image menu (Site, the default, "A long press or right-click shows the
+      site's own menu."; Shrimpl, "A long press or right-click shows Shrimpl's menu to copy, open or
+      save links and images.", T5.5); Run in background; Pause in battery saver.
     - **Window:** Allow multiple windows ("Lets the app open in more than one window", off by
       default), default and minimum window size.
     - **Permissions:** Microphone, Camera, Notifications and Location, off by default, with no

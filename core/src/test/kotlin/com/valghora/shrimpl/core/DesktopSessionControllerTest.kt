@@ -215,14 +215,13 @@ class DesktopSessionControllerTest {
     @Test
     fun mapsHitTypesToMenuActions() {
         val c = controller()
-        val options = MenuAction.APP_OPTIONS
-        assertEquals(listOf(MenuAction.COPY_LINK, MenuAction.OPEN_LINK, options), c.contextMenuActions(HitType.ANCHOR))
+        assertEquals(listOf(MenuAction.COPY_LINK, MenuAction.OPEN_LINK), c.contextMenuActions(HitType.ANCHOR))
         assertEquals(
-            listOf(MenuAction.COPY_LINK, MenuAction.OPEN_LINK, MenuAction.SAVE_IMAGE, options),
+            listOf(MenuAction.COPY_LINK, MenuAction.OPEN_LINK, MenuAction.SAVE_IMAGE),
             c.contextMenuActions(HitType.IMAGE_ANCHOR),
         )
-        assertEquals(listOf(MenuAction.SAVE_IMAGE, options), c.contextMenuActions(HitType.IMAGE))
-        assertEquals(listOf(options), c.contextMenuActions(HitType.OTHER))
+        assertEquals(listOf(MenuAction.SAVE_IMAGE), c.contextMenuActions(HitType.IMAGE))
+        assertTrue(c.contextMenuActions(HitType.OTHER).isEmpty())
     }
 
     // ----- App options (T5.8) -----

@@ -44,7 +44,7 @@ data class Profile(
     val enableMultiWindow: Boolean = false,
     val keepAliveWhenHidden: Boolean = true,
     val pauseOnPowerSave: Boolean = false,
-    val nativeContextMenu: Boolean = true,
+    val nativeContextMenu: Boolean = false,
     val defaultWindowDp: WindowSize = WindowSize(1280, 800),
     val minWindowDp: WindowSize = WindowSize(400, 500),
     /** The site's own shortcuts, listed in the Keyboard Shortcuts Helper; the keys still reach the page. */
