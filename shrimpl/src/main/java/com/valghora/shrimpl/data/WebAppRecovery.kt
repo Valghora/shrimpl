@@ -14,7 +14,6 @@ import com.valghora.shrimpl.core.build.WebAppBuilder
 import com.valghora.shrimpl.core.records.EmbeddedRecord
 import java.io.ByteArrayOutputStream
 import java.io.IOException
-import java.security.MessageDigest
 import java.util.zip.ZipFile
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -66,7 +65,7 @@ class WebAppRecovery(private val context: Context, private val store: WebAppStor
         packageName = info.packageName,
         versionCode = info.longVersionCode,
         versionName = info.versionName.orEmpty(),
-        signerFingerprint = info.signingInfo?.apkContentsSigners?.firstOrNull()?.let { fingerprint(it.toByteArray()) }.orEmpty(),
+        signerFingerprint = InstalledApps.signerFingerprint(info),
         firstInstalled = info.firstInstallTime,
         lastUpdated = info.lastUpdateTime,
     )
@@ -90,9 +89,5 @@ class WebAppRecovery(private val context: Context, private val store: WebAppStor
 
     private companion object {
         const val TAG = "Shrimpl"
-
-        /** The same form as the signing key's fingerprint: SHA-256, colon-separated upper-case hex. */
-        fun fingerprint(certificate: ByteArray) =
-            MessageDigest.getInstance("SHA-256").digest(certificate).joinToString(":") { "%02X".format(it) }
     }
 }

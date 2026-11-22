@@ -14,7 +14,8 @@ two, not a schedule.
   rebuilds and updates the app.
 - Level 2, a runtime toggle inside the web app, with the profile as its default: a switch in the App
   options panel (TEMPLATE_SPEC T5.8, built), stored in the template's `SessionPrefs`, the way the Desktop
-  site switch works (T6.11). It overrides the profile until Reset to defaults.
+  site switch works (T6.11). Each change is saved to the app's edit page in Shrimpl (SHRIMPL_SPEC
+  R11.9), so a rebuild keeps it.
 - Not now (level 3): changing it live from Shrimpl through a signature-protected provider, without a rebuild.
 
 **Design.**

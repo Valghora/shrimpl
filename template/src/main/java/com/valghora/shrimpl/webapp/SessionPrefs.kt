@@ -31,6 +31,10 @@ class SessionPrefs(context: Context) : ZoomStore, UaStore, OptionStore {
         get() = if (prefs.contains(KEY_LINK_MENU)) prefs.getBoolean(KEY_LINK_MENU, false) else null
         set(value) = prefs.edit { if (value == null) remove(KEY_LINK_MENU) else putBoolean(KEY_LINK_MENU, value) }
 
+    override var optionsBuild: Long?
+        get() = if (prefs.contains(KEY_OPTIONS_BUILD)) prefs.getLong(KEY_OPTIONS_BUILD, 0) else null
+        set(value) = prefs.edit { if (value == null) remove(KEY_OPTIONS_BUILD) else putLong(KEY_OPTIONS_BUILD, value) }
+
     /** A random token the App options shortcut carries, so only that shortcut opens the panel (T5.8). */
     val shortcutToken: String
         get() = prefs.getString(KEY_TOGGLE_TOKEN, null) ?: UUID.randomUUID().toString().also { token ->
@@ -53,6 +57,7 @@ class SessionPrefs(context: Context) : ZoomStore, UaStore, OptionStore {
         const val KEY_ASKED = "asked_"
         const val KEY_TOGGLE_TOKEN = "toggle_token"
         const val KEY_LINK_MENU = "link_menu"
+        const val KEY_OPTIONS_BUILD = "options_build"
         const val KEY_TEXT_ZOOM = "text_zoom"
         const val KEY_UA_CHOICE = "ua_user_choice"
         const val KEY_UA_LEARNED_DESKTOP = "ua_learned_desktop"

@@ -84,10 +84,13 @@ interface UaStore {
 interface OptionStore {
     /** The Link and image menu switch (T5.5). */
     var linkMenuChoice: Boolean?
+
+    /** The build the panel's choices were made in; a new build brings the settings Shrimpl has now. */
+    var optionsBuild: Long?
 }
 
 /** An [OptionStore] that keeps nothing, for sessions without the panel. */
-class UnsavedOptions(override var linkMenuChoice: Boolean? = null) : OptionStore
+class UnsavedOptions(override var linkMenuChoice: Boolean? = null, override var optionsBuild: Long? = null) : OptionStore
 
 /** The config values the controller depends on, injectable so tests can cover every branch. */
 data class SessionConfig(

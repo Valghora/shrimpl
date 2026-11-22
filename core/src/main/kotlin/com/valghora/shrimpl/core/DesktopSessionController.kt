@@ -127,15 +127,21 @@ class DesktopSessionController(
     /** Whether the template's link and image menu is on (T5.5): the panel's choice, else [profileDefault]. */
     fun linkMenuOn(profileDefault: Boolean): Boolean = optionStore.linkMenuChoice ?: profileDefault
 
-    /** The Link and image menu switch (T5.8): the choice is kept until Reset to defaults. */
+    /** The Link and image menu switch (T5.8). */
     fun chooseLinkMenu(on: Boolean) {
         optionStore.linkMenuChoice = on
     }
 
-    /** Reset to defaults (T5.8): forgets what the panel changed, so the profile's settings apply again. */
-    fun resetAppOptions() {
+    /**
+     * Starts [build] of the app (T5.8): choices made in another build are forgotten. Shrimpl saved them
+     * to the app's edit page (docs/SHRIMPL_SPEC.md R11.9), so a rebuild already carries them, or carries
+     * what the user changed there since.
+     */
+    fun startBuild(build: Long) {
+        if (optionStore.optionsBuild == build) return
         uaStore.userChoice = null
         optionStore.linkMenuChoice = null
+        optionStore.optionsBuild = build
     }
 
     // ----- Wake state machine -----

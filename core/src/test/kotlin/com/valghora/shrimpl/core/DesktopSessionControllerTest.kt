@@ -234,25 +234,28 @@ class DesktopSessionControllerTest {
     }
 
     @Test
-    fun theLinkMenuChoiceOverridesTheProfileUntilReset() {
-        val options = UnsavedOptions()
-        val c = DesktopSessionController(FakeZoomStore(), FakeUaStore(), fixture, optionStore = options)
+    fun theLinkMenuChoiceOverridesTheProfile() {
+        val c = DesktopSessionController(FakeZoomStore(), FakeUaStore(), fixture, optionStore = UnsavedOptions())
         assertTrue(c.linkMenuOn(profileDefault = true))
         assertFalse(c.linkMenuOn(profileDefault = false))
         c.chooseLinkMenu(true)
         assertTrue(c.linkMenuOn(profileDefault = false))
         c.chooseLinkMenu(false)
         assertFalse(c.linkMenuOn(profileDefault = true))
-        c.resetAppOptions()
-        assertEquals(null, options.linkMenuChoice)
-        assertTrue(c.linkMenuOn(profileDefault = true))
     }
 
     @Test
-    fun resetForgetsTheChosenSite() {
-        val store = FakeUaStore(userChoice = UaMode.DESKTOP)
-        DesktopSessionController(FakeZoomStore(), store, fixture).resetAppOptions()
-        assertEquals(null, store.userChoice)
+    fun aNewBuildForgetsThePanelsChoices() {
+        val ua = FakeUaStore(userChoice = UaMode.DESKTOP)
+        val options = UnsavedOptions(linkMenuChoice = true, optionsBuild = 3)
+        val c = DesktopSessionController(FakeZoomStore(), ua, fixture, optionStore = options)
+        c.startBuild(3)
+        assertEquals(UaMode.DESKTOP, ua.userChoice)
+        assertEquals(true, options.linkMenuChoice)
+        c.startBuild(4)
+        assertNull(ua.userChoice)
+        assertNull(options.linkMenuChoice)
+        assertEquals(4L, options.optionsBuild)
     }
 
     // ----- Wake state machine -----

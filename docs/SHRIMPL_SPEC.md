@@ -603,6 +603,12 @@ The template's behavior is docs/TEMPLATE_SPEC.md. What Shrimpl relies on:
     before (1 to 19) are older than every version since, so their apps are offered an Update once.
   - Recovery (R11.6) reads a web app's template version from its versionName in any of its forms:
     `1.0.0.12` (template 1.0.0, build 12), `1.0.12` (a `major.minor` template) or `19.12`.
+- R11.9 App options changes (docs/TEMPLATE_SPEC.md T5.8) reach the app's record, so its edit page
+  shows them: Desktop site on sets the user agent to Desktop and off to Mobile, and Link and image
+  menu sets that setting. A web app sends them to Shrimpl's exported App options provider, which
+  saves a change only for the caller itself: a package of one of its records, signed with the key
+  that record names. An edit page that is open takes the new settings at once; with edits of its own,
+  it takes only those two. The change applies in the app already, so saving it needs no rebuild.
 
 ## R12 Repository, CI and releases
 

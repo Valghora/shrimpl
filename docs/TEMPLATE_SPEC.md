@@ -118,10 +118,10 @@ Unit tests cover every branch with a fixed fixture config, including look-alike 
 - T5.4 The Keyboard Shortcuts Helper lists two groups: the site's shortcuts (titled `profile.name`)
   and Window (Reload, Zoom in, Zoom out, Reset zoom, Print, App options, and New window when enabled).
 - T5.5 Context menu (with `profile.nativeContextMenu`, off by default, so the site's own menu
-  shows, or the Link and image menu switch of App options, T5.8, which overrides it at once and is
-  kept until Reset to defaults): copy link, open link in the browser, save image, per T2d. Anywhere else it has no items,
-  so the press reaches the page (text selection, the site's menu). Image links copy the anchor's
-  href (`requestFocusNodeHref`), not the image URL.
+  shows, or the Link and image menu switch of App options, T5.8, which overrides it at once): copy
+  link, open link in the browser, save image, per T2d. Anywhere else it has no items, so the press
+  reaches the page (text selection, the site's menu). Image links copy the anchor's href
+  (`requestFocusNodeHref`), not the image URL.
 - T5.6 Back goes back in the page history while it can (`OnBackPressedCallback` kept in sync in
   `doUpdateVisitedHistory`); full-screen video takes Back first.
 - T5.7 Zoom: pinch zoom on touch (built-in controls, no on-screen buttons), and Ctrl + scroll wheel or
@@ -139,8 +139,13 @@ Unit tests cover every branch with a fixed fixture config, including look-alike 
   - Its switches, in order: Desktop site ("Shows the site as it looks on a computer"), when the
     profile allows the toggle (T6.11); Link and image menu ("Shows a menu to copy, open or save
     links and images, instead of the site's own.", T5.5), in every app.
-  - Reset to defaults forgets what the panel changed, so the profile's settings apply again, and
-    closes it; Done closes it.
+  - Done closes it. There is no Reset: each change is also saved to the app's edit page in Shrimpl
+    (docs/SHRIMPL_SPEC.md R11.9), so the edit page always matches the panel.
+  - Each change is sent to every installed Shrimpl's App options provider (found by the action
+    `com.valghora.shrimpl.action.APP_OPTIONS`), off the main thread; only the one that built the app
+    saves it. Without one, the choice holds in the app until its next build.
+  - A new build (a new versionCode) forgets the panel's choices: Shrimpl saved them, so the build
+    carries them, or what the user changed on the edit page since.
   - The launcher shortcut carries a random token kept in the app's preferences; a launch without it
     (another app starting the exported activity) doesn't open the panel.
 ## T6 WebView, routing and media
@@ -203,7 +208,8 @@ Unit tests cover every branch with a fixed fixture config, including look-alike 
   without a user choice or a learned preference, a Play Store redirect in the first 10 s after start
   is blocked, desktop mode is learned, and the start URL reloads. At most once per install.
 - T6.11 Desktop/mobile toggle (`profile.uaUserToggle`, no override): the Desktop site switch of App
-  options (T5.8), which saves the choice and reloads the start URL. Reset to defaults forgets it.
+  options (T5.8), which saves the choice and reloads the start URL. On is the Desktop user agent, off
+  is Mobile.
 - T6.12 One startup log line: `UA mode=<mode> reason=<reason> metadata=<applied|unsupported|default>`
   (tag `profile.appId`).
 - T6.13 Full-screen video: the page's custom view covers the window with the system bars hidden (swipe

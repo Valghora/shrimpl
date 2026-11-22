@@ -215,6 +215,9 @@ class MainActivity : AppCompatActivity() {
         prefs = SessionPrefs(this)
         // T5.7: page text starts at the system font size (accessibility skill), not a fixed 100 %.
         controller = DesktopSessionController(prefs, prefs, WebApp.profile.sessionConfig(), fontScalePercent(), optionStore = prefs)
+        // T5.8: a new build carries the settings Shrimpl has now, which include the panel's choices.
+        controller.startBuild(packageManager.getPackageInfo(packageName, 0).longVersionCode)
+        optionsSender = AppOptionsSender(applicationContext)
         pageDownloads = PageDownloadBridge(this, controller)
         shareBridge = ShareBridge(this, controller)
         fileAccess = FileAccessBridge(this, controller)
@@ -318,6 +321,7 @@ class MainActivity : AppCompatActivity() {
         popups.toList().forEach { it.destroy() }
         permissionDialog?.dismiss()
         optionsPanel?.dismiss()
+        optionsSender.shutdown() // a change already sent still reaches Shrimpl
         pendingPermissionRequest?.deny()
         pendingPermissionRequest = null
         fileChooserCallback?.onReceiveValue(null)
@@ -1280,6 +1284,7 @@ class MainActivity : AppCompatActivity() {
         get() = WebApp.profile.uaUserToggle && WebApp.profile.uaFeaturesActive
 
     private var optionsPanel: Dialog? = null
+    private lateinit var optionsSender: AppOptionsSender
 
     /** Opens the App options panel (T5.8) with the switches this app has, replacing one already open. */
     private fun showAppOptions() {
@@ -1290,7 +1295,10 @@ class MainActivity : AppCompatActivity() {
                     getString(R.string.option_desktop_site),
                     getString(R.string.option_desktop_site_detail),
                     resolvedMode == UaMode.DESKTOP,
-                ) { on -> switchSite(if (on) UaMode.DESKTOP else UaMode.MOBILE, remember = true) }
+                ) { on ->
+                    switchSite(if (on) UaMode.DESKTOP else UaMode.MOBILE)
+                    optionsSender.send(desktopSite = on)
+                }
                 AppOption.LINK_MENU -> OptionSwitch(
                     getString(R.string.option_link_menu),
                     getString(R.string.option_link_menu_detail),
@@ -1298,26 +1306,13 @@ class MainActivity : AppCompatActivity() {
                 ) { on ->
                     controller.chooseLinkMenu(on)
                     applyLinkMenu()
+                    optionsSender.send(linkMenu = on)
                 }
             }
         }
-        optionsPanel = AppOptionsPanel.show(this, switches, ::resetAppOptions).apply {
+        optionsPanel = AppOptionsPanel.show(this, switches).apply {
             setOnDismissListener { if (optionsPanel === it) optionsPanel = null }
         }
-    }
-
-    /** Reset to defaults (T5.8): the panel's changes are forgotten and the profile's settings apply again. */
-    private fun resetAppOptions() {
-        controller.resetAppOptions()
-        val mode = controller.resolveUa(
-            WebApp.profile.userAgentMode,
-            isLargeOrPc,
-            prefs.userChoice,
-            prefs.learnedDesktop,
-            WebApp.profile.userAgentOverride,
-        ).mode
-        switchSite(mode, remember = false)
-        applyLinkMenu()
     }
 
     /**
@@ -1328,12 +1323,9 @@ class MainActivity : AppCompatActivity() {
         if (controller.linkMenuOn(WebApp.profile.nativeContextMenu)) registerForContextMenu(webView) else unregisterForContextMenu(webView)
     }
 
-    /**
-     * T6.11: shows the site as [mode] asks, reloading the start URL; [remember] keeps the choice, which
-     * otherwise follows the profile again.
-     */
-    private fun switchSite(mode: UaMode, remember: Boolean) {
-        if (remember) prefs.userChoice = mode
+    /** T6.11: shows the site as [mode] asks and keeps the choice, reloading the start URL. */
+    private fun switchSite(mode: UaMode) {
+        prefs.userChoice = mode
         if (mode == resolvedMode) return
         resolvedMode = mode
         applyWebSettings(webView, mode)

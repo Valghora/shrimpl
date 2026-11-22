@@ -23,7 +23,7 @@ class OptionSwitch(val title: String, val description: String, val checked: Bool
 
 /**
  * The App options panel (docs/TEMPLATE_SPEC.md T5.8): the app's own switches, which apply at once,
- * Reset to defaults and Done. A bottom sheet in a compact window, a dialog in a wider one (the window
+ * and Done. A bottom sheet in a compact window, a dialog in a wider one (the window
  * size class, never the device type). Built in code, like the rest of the template's UI (T3.1).
  */
 object AppOptionsPanel {
@@ -37,22 +37,21 @@ object AppOptionsPanel {
      */
     private const val TEXT_GAP_DP = 24
 
-    /** Shows the panel with [switches]; [onReset] runs on Reset to defaults. Returns it, to dismiss later. */
-    fun show(context: Context, switches: List<OptionSwitch>, onReset: () -> Unit): Dialog {
+    /** Shows the panel with [switches]. Returns it, to dismiss later. */
+    fun show(context: Context, switches: List<OptionSwitch>): Dialog {
         val compact = context.resources.configuration.screenWidthDp < SHEET_BELOW_DP
-        return if (compact) sheet(context, switches, onReset) else dialog(context, switches, onReset)
+        return if (compact) sheet(context, switches) else dialog(context, switches)
     }
 
-    private fun dialog(context: Context, switches: List<OptionSwitch>, onReset: () -> Unit): Dialog {
+    private fun dialog(context: Context, switches: List<OptionSwitch>): Dialog {
         val builder = MaterialAlertDialogBuilder(context)
             .setTitle(R.string.app_options)
             .setView(body(context, switches, insetDp = 24))
             .setPositiveButton(R.string.action_done, null)
-        builder.setNeutralButton(R.string.action_reset_defaults) { _, _ -> onReset() }
         return builder.show()
     }
 
-    private fun sheet(context: Context, switches: List<OptionSwitch>, onReset: () -> Unit): Dialog {
+    private fun sheet(context: Context, switches: List<OptionSwitch>): Dialog {
         val sheet = BottomSheetDialog(context)
         val content = LinearLayout(context).apply {
             orientation = LinearLayout.VERTICAL
@@ -65,10 +64,6 @@ object AppOptionsPanel {
             addView(LinearLayout(context).apply {
                 orientation = LinearLayout.HORIZONTAL
                 updatePadding(left = dp(context, 12), right = dp(context, 12), top = dp(context, 8))
-                addView(textButton(context, R.string.action_reset_defaults) {
-                    onReset()
-                    sheet.dismiss()
-                })
                 addView(View(context), LinearLayout.LayoutParams(0, 0, 1f))
                 addView(textButton(context, R.string.action_done) { sheet.dismiss() })
             })

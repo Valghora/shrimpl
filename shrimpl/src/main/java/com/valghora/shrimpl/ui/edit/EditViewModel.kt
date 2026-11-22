@@ -57,6 +57,25 @@ class EditViewModel(private val container: AppContainer, val appId: String) : Vi
 
     val dirty: Boolean get() = _record.value?.let { _draft.value != draftOf(it) } ?: false
 
+    init {
+        // R11.9: the app's App options panel can change its record while this page is open. Unedited,
+        // the page shows the new settings; with edits of its own, the page takes just the panel's two.
+        viewModelScope.launch {
+            container.store.records.collect { records ->
+                val saved = records.firstOrNull { it.appId == appId } ?: return@collect
+                val shown = _record.value ?: return@collect
+                if (saved == shown) return@collect
+                val draft = _draft.value
+                _record.value = saved
+                _draft.value = if (draft == null || draft == draftOf(shown)) {
+                    draftOf(saved)
+                } else {
+                    draft.copy(form = draft.form.copy(userAgentMode = saved.profile.userAgentMode, nativeContextMenu = saved.profile.nativeContextMenu))
+                }
+            }
+        }
+    }
+
     /** A stored icon image, by file name. */
     fun storedImage(file: String): ByteArray = container.store.image(appId, file)
 
