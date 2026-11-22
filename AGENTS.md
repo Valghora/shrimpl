@@ -54,7 +54,8 @@ same commit, and a deviation gets its row in the same commit.
    (R11.4).
 6. **Versions (R11.8).** Each change merged to develop raises the version of each APK it changes by one
    in its last part (`shrimpl.appVersion`, `shrimpl.templateVersion`; 1.1.9, then 1.2.0); a template
-   change raises both, since Shrimpl bundles the template. A new major version only on the owner's
+   change raises both, since Shrimpl bundles the template. A branch raises each version once, by one
+   step, however many commits or tweaks it takes. A new major version only on the owner's
    explicit instruction; past x.9.9, ask.
 7. **SDK checks.** minSdk is 37, so never guard APIs at or below 37. Each androidx.webkit call sits
    directly inside its own nested `WebViewFeature.isFeatureSupported` check.
