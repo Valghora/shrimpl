@@ -13,7 +13,6 @@
     <string name="action_done">Done</string>
     <string name="action_edit">Edit</string>
     <string name="action_export_key">Export…</string>
-    <string name="action_keep">Keep</string>
     <string name="action_later">Later</string>
     <string name="action_more">More options</string>
     <string name="action_new_web_app">New app</string>
@@ -68,9 +67,8 @@
     <string name="edit_other_key">This app was signed with a different key. Saving or fixing it uninstalls it, then rebuilds it with your current key. Its settings are kept, but not its site data.</string>
     <string name="edit_not_installed">This app isn\'t installed. Reinstall it from the menu, or remove it.</string>
     <string name="uninstall_title">Uninstall %1$s?</string>
-    <string name="uninstall_text">The app and its data are removed from this device</string>
-    <string name="remove_title">Remove %1$s from Shrimpl?</string>
-    <string name="remove_text">Its settings are deleted. You can create it again later.</string>
+    <string name="uninstall_text">The app and its data will be completely removed from your device. You can select the box below to keep %1$s in your app list if you wish to reinstall later.</string>
+    <string name="uninstall_keep">Keep in app list</string>
 
     <!-- Form -->
     <string name="section_identity">Identity</string>
