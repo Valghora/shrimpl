@@ -73,6 +73,7 @@ import androidx.webkit.WebSettingsCompat
 import androidx.webkit.WebViewFeature
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.snackbar.Snackbar
+import com.valghora.shrimpl.core.AppOption
 import com.valghora.shrimpl.core.CaptureChoice
 import com.valghora.shrimpl.core.DesktopSessionController
 import com.valghora.shrimpl.core.HitType
@@ -213,7 +214,10 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         prefs = SessionPrefs(this)
         // T5.7: page text starts at the system font size (accessibility skill), not a fixed 100 %.
-        controller = DesktopSessionController(prefs, prefs, WebApp.profile.sessionConfig(), fontScalePercent())
+        controller = DesktopSessionController(prefs, prefs, WebApp.profile.sessionConfig(), fontScalePercent(), optionStore = prefs)
+        // T5.8: a new build carries the settings Shrimpl has now, which include the panel's choices.
+        controller.startBuild(packageManager.getPackageInfo(packageName, 0).longVersionCode)
+        optionsSender = AppOptionsSender(applicationContext)
         pageDownloads = PageDownloadBridge(this, controller)
         shareBridge = ShareBridge(this, controller)
         fileAccess = FileAccessBridge(this, controller)
@@ -264,20 +268,19 @@ class MainActivity : AppCompatActivity() {
 
         workspaceMonitor = WorkspaceMonitor(this, controller, ::onWakeEvent)
         workspaceMonitor.register()
-        publishToggleShortcut()
+        publishOptionsShortcut()
 
-        if (!handleToggleIntent(intent)) {
-            // T6.8: the start URL loads only when no history was restored.
-            val restored = savedInstanceState?.getBundle(STATE_WEBVIEW)?.let { webView.restoreState(it) }
-            if (restored == null) webView.loadUrl(WebApp.profile.startUrl)
-        }
+        // T6.8: the start URL loads only when no history was restored.
+        val restored = savedInstanceState?.getBundle(STATE_WEBVIEW)?.let { webView.restoreState(it) }
+        if (restored == null) webView.loadUrl(WebApp.profile.startUrl)
+        handleOptionsIntent(intent)
         if (savedInstanceState == null && WebApp.profile.allowNotifications) requestNotificationPermissionIfNeeded()
     }
 
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         setIntent(intent)
-        handleToggleIntent(intent)
+        handleOptionsIntent(intent)
     }
 
     override fun onStart() {
@@ -317,6 +320,10 @@ class MainActivity : AppCompatActivity() {
         workspaceMonitor.unregister()
         popups.toList().forEach { it.destroy() }
         permissionDialog?.dismiss()
+        // The panel's dismiss listener runs after this, once the sender has stopped, so its changes go now.
+        sendOptionChanges()
+        optionsPanel?.dismiss()
+        optionsSender.shutdown() // a change already sent still reaches Shrimpl
         pendingPermissionRequest?.deny()
         pendingPermissionRequest = null
         fileChooserCallback?.onReceiveValue(null)
@@ -442,7 +449,7 @@ class MainActivity : AppCompatActivity() {
             if (event.action == DragEvent.ACTION_DROP) requestDragAndDropPermissions(event)
             false
         }
-        if (WebApp.profile.nativeContextMenu) registerForContextMenu(webView)
+        if (controller.linkMenuOn(WebApp.profile.nativeContextMenu)) registerForContextMenu(webView)
         onBackPressedDispatcher.addCallback(this, backCallback)
         // Ctrl + mouse wheel (or trackpad scroll) zooms like Ctrl +/- (Tier 2 Content_Zoom); pinch zoom
         // is WebView's own.
@@ -557,7 +564,6 @@ class MainActivity : AppCompatActivity() {
         resolvedMode = UaMode.DESKTOP
         applyWebSettings(webView, UaMode.DESKTOP)
         webView.loadUrl(WebApp.profile.startUrl)
-        publishToggleShortcut()
         Log.i(WebApp.profile.appId, "Store redirect on a mobile UA; switched to desktop UA")
         return true
     }
@@ -1173,6 +1179,7 @@ class MainActivity : AppCompatActivity() {
                     .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_MULTIPLE_TASK),
             )
             KeyAction.PRINT -> printPage()
+            KeyAction.APP_OPTIONS -> showAppOptions()
             KeyAction.NONE -> Unit
         }
     }
@@ -1247,6 +1254,7 @@ class MainActivity : AppCompatActivity() {
                 KeyboardShortcutInfo(getString(R.string.shortcut_zoom_out), KeyEvent.KEYCODE_MINUS, KeyEvent.META_CTRL_ON),
                 KeyboardShortcutInfo(getString(R.string.shortcut_zoom_reset), KeyEvent.KEYCODE_0, KeyEvent.META_CTRL_ON),
                 KeyboardShortcutInfo(getString(R.string.shortcut_print), KeyEvent.KEYCODE_P, KeyEvent.META_CTRL_ON),
+                KeyboardShortcutInfo(getString(R.string.app_options), KeyEvent.KEYCODE_COMMA, KeyEvent.META_CTRL_ON),
             ) + newWindowShortcutInfo(),
         )
     }
@@ -1272,51 +1280,106 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    // ----- Desktop/mobile toggle (T6.11) -----
+    // ----- App options (T5.8) and the desktop/mobile toggle (T6.11) -----
 
     private val uaToggleEnabled: Boolean
         get() = WebApp.profile.uaUserToggle && WebApp.profile.uaFeaturesActive
 
-    private fun publishToggleShortcut() {
-        if (!uaToggleEnabled) {
-            ShortcutManagerCompat.removeAllDynamicShortcuts(this)
-            return
+    private var optionsPanel: Dialog? = null
+    private lateinit var optionsSender: AppOptionsSender
+
+    /** What the open panel changed, sent to Shrimpl once it closes (T5.8); null is unchanged. */
+    private var unsentDesktopSite: Boolean? = null
+    private var unsentLinkMenu: Boolean? = null
+
+    /** Opens the App options panel (T5.8) with the switches this app has, replacing one already open. */
+    private fun showAppOptions() {
+        optionsPanel?.dismiss()
+        val switches = controller.appOptions(uaToggleEnabled).map { option ->
+            when (option) {
+                AppOption.DESKTOP_SITE -> OptionSwitch(
+                    getString(R.string.option_desktop_site),
+                    getString(R.string.option_desktop_site_detail),
+                    resolvedMode == UaMode.DESKTOP,
+                ) { on ->
+                    switchSite(if (on) UaMode.DESKTOP else UaMode.MOBILE)
+                    unsentDesktopSite = on
+                }
+                AppOption.LINK_MENU -> OptionSwitch(
+                    getString(R.string.option_link_menu),
+                    getString(R.string.option_link_menu_detail),
+                    controller.linkMenuOn(WebApp.profile.nativeContextMenu),
+                ) { on ->
+                    controller.chooseLinkMenu(on)
+                    applyLinkMenu()
+                    unsentLinkMenu = on
+                }
+            }
         }
-        val toDesktop = resolvedMode == UaMode.MOBILE
-        val shortcut = ShortcutInfoCompat.Builder(this, SHORTCUT_TOGGLE_UA)
-            .setShortLabel(getString(if (toDesktop) R.string.shortcut_request_desktop else R.string.shortcut_request_mobile))
-            .setLongLabel(
-                getString(if (toDesktop) R.string.shortcut_request_desktop_long else R.string.shortcut_request_mobile_long),
-            )
+        optionsPanel = AppOptionsPanel.show(this, switches).apply {
+            setOnDismissListener {
+                if (optionsPanel === it) optionsPanel = null
+                sendOptionChanges()
+            }
+        }
+    }
+
+    /**
+     * T5.5: the template's link and image menu takes long presses and right-clicks only while it is on;
+     * off, they reach the page, for text selection and the site's own menu.
+     */
+    private fun applyLinkMenu() {
+        if (controller.linkMenuOn(WebApp.profile.nativeContextMenu)) registerForContextMenu(webView) else unregisterForContextMenu(webView)
+    }
+
+    /**
+     * Sends the panel's changes to Shrimpl when it closes, with Done or any other way (Back, a tap
+     * outside, swiping the sheet down, the activity ending), so the edit page never misses a change
+     * that already applies here.
+     */
+    private fun sendOptionChanges() {
+        if (unsentDesktopSite == null && unsentLinkMenu == null) return
+        optionsSender.send(desktopSite = unsentDesktopSite, linkMenu = unsentLinkMenu)
+        unsentDesktopSite = null
+        unsentLinkMenu = null
+    }
+
+    /** T6.11: shows the site as [mode] asks and keeps the choice, reloading the start URL. */
+    private fun switchSite(mode: UaMode) {
+        prefs.userChoice = mode
+        if (mode == resolvedMode) return
+        resolvedMode = mode
+        applyWebSettings(webView, mode)
+        storeWindowArmed = true
+        webView.loadUrl(WebApp.profile.startUrl)
+    }
+
+    /** The launcher shortcut that opens App options (T5.8), in the app icon's menu. */
+    private fun publishOptionsShortcut() {
+        val shortcut = ShortcutInfoCompat.Builder(this, SHORTCUT_APP_OPTIONS)
+            .setShortLabel(getString(R.string.app_options))
+            .setLongLabel(getString(R.string.app_options))
             .setIcon(IconCompat.createWithResource(this, R.mipmap.ic_launcher))
             .setIntent(
                 Intent(this, MainActivity::class.java)
                     .setAction(Intent.ACTION_VIEW)
-                    .putExtra(EXTRA_TOGGLE_UA, prefs.toggleToken),
+                    .putExtra(EXTRA_APP_OPTIONS, prefs.shortcutToken),
             )
             .build()
         ShortcutManagerCompat.setDynamicShortcuts(this, listOf(shortcut))
     }
 
     /**
-     * Applies a pending toggle from the launcher shortcut; returns true if it loaded START_URL. The
-     * activity is exported (it is the launcher's), so only the shortcut's own token counts: another app
-     * can't flip the layout (android-intent-security skill).
+     * Opens App options when the launcher shortcut started this activity. The activity is exported (it
+     * is the launcher's), so only the shortcut's own token counts (android-intent-security skill).
      */
-    private fun handleToggleIntent(intent: Intent?): Boolean {
-        val token = intent?.getStringExtra(EXTRA_TOGGLE_UA) ?: return false
-        intent.removeExtra(EXTRA_TOGGLE_UA)
+    private fun handleOptionsIntent(intent: Intent?) {
+        val token = intent?.getStringExtra(EXTRA_APP_OPTIONS) ?: return
+        intent.removeExtra(EXTRA_APP_OPTIONS)
         setIntent(intent)
-        if (!uaToggleEnabled || token != prefs.toggleToken) return false
-        ShortcutManagerCompat.reportShortcutUsed(this, SHORTCUT_TOGGLE_UA)
-        val target = controller.toggleTarget(resolvedMode)
-        prefs.userChoice = target
-        resolvedMode = target
-        applyWebSettings(webView, target)
-        storeWindowArmed = true
-        webView.loadUrl(WebApp.profile.startUrl)
-        publishToggleShortcut()
-        return true
+        if (token != prefs.shortcutToken) return
+        ShortcutManagerCompat.reportShortcutUsed(this, SHORTCUT_APP_OPTIONS)
+        showAppOptions()
     }
 
     // ----- Power and visibility (T8.3) -----
@@ -1371,8 +1434,8 @@ class MainActivity : AppCompatActivity() {
         const val TRANSPARENT = android.graphics.Color.TRANSPARENT
         const val BAR_FADE_MS = 250L
         const val STATE_WEBVIEW = "webview_state"
-        const val SHORTCUT_TOGGLE_UA = "toggle_ua"
-        const val EXTRA_TOGGLE_UA = "toggle_ua"
+        const val SHORTCUT_APP_OPTIONS = "app_options"
+        const val EXTRA_APP_OPTIONS = "app_options"
         const val EXTRA_BROWSER_FALLBACK_URL = "browser_fallback_url"
         val LOCATION_PERMISSIONS = listOf(Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION)
         const val URI_GRANT_FLAGS = Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION or

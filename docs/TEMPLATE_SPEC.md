@@ -61,7 +61,9 @@ Unit tests cover every branch with a fixed fixture config, including look-alike 
 ## T3 Window, insets and header
 
 - T3.1 The UI is built in code: a root `FrameLayout` holding one `DesktopWebView` (MATCH_PARENT). No
-  action bar, toolbar or XML layout. The theme is `Theme.Wrapper` (Material3 DayNight NoActionBar).
+  action bar, toolbar or XML layout. The theme is `Theme.Wrapper` (Material3 DayNight NoActionBar)
+  with the user's dynamic colors (`DynamicColors`), so the template's menus, dialogs, snackbars and
+  App options panel follow the user's Material theme, as Shrimpl does.
 - T3.2 Edge to edge: system bar styles follow the header colors (dark or light icons as each color
   needs); the root pads for system bars, caption bar, display cutout and IME insets, and consumes them.
 - T3.3 Header colors, from `profile.headerMode`:
@@ -114,16 +116,40 @@ Unit tests cover every branch with a fixed fixture config, including look-alike 
   every other key, site shortcuts included, reaches the page unchanged. Esc first leaves full-screen
   video (T6.13).
 - T5.4 The Keyboard Shortcuts Helper lists two groups: the site's shortcuts (titled `profile.name`)
-  and Window (Reload, Zoom in, Zoom out, Reset zoom, Print, and New window when enabled).
-- T5.5 Context menu (with `profile.nativeContextMenu`): copy link, open link in the browser, save
-  image, per T2d. Image links copy the anchor's href (`requestFocusNodeHref`), not the image URL.
+  and Window (Reload, Zoom in, Zoom out, Reset zoom, Print, App options, and New window when enabled).
+- T5.5 Context menu (with `profile.nativeContextMenu`, off by default, so the site's own menu
+  shows, or the Link and image menu switch of App options, T5.8, which overrides it at once): copy
+  link, open link in the browser, save image, per T2d. Anywhere else it has no items, so the press
+  reaches the page (text selection, the site's menu). Image links copy the anchor's href
+  (`requestFocusNodeHref`), not the image URL.
 - T5.6 Back goes back in the page history while it can (`OnBackPressedCallback` kept in sync in
   `doUpdateVisitedHistory`); full-screen video takes Back first.
 - T5.7 Zoom: pinch zoom on touch (built-in controls, no on-screen buttons), and Ctrl + scroll wheel or
   trackpad scroll zooms text like Ctrl+= and Ctrl+-. Page text starts at the system font size (font
   scale 1.3 is a text zoom of 130 %, to the nearest 10 %) and follows it when it changes, until the
   user zooms; their zoom is kept, and Ctrl+0 returns to following the system font size.
-
+- T5.8 App options: a panel of the app's own switches, opened by Ctrl+, (once per press, T2c), by
+  "App options" in the app icon's launcher shortcuts. It stays out of the context menu (T5.5), which
+  would otherwise take every long press and right-click from the page.
+  - Titled "App options". A bottom sheet in a window narrower than 600 dp, a dialog in a wider one.
+  - Each switch has a fixed label and a description of what it does when on (docs/SHRIMPL_SPEC.md
+    R1.6), applies at once and is remembered in `SessionPrefs`. The whole row toggles it, at least
+    72 dp tall, and accessibility services hear one switch with its label, description and state.
+    Its text wraps 24 dp before the switch, as Shrimpl's settings items do.
+  - Its switches, in order: Desktop site ("Shows the site as it looks on a computer"), when the
+    profile allows the toggle (T6.11); Link and image menu ("Shows a menu to copy, open or save
+    links and images, instead of the site's own.", T5.5), in every app.
+  - Done closes it. There is no Reset: each change is also saved to the app's edit page in Shrimpl
+    (docs/SHRIMPL_SPEC.md R11.9), so the edit page always matches the panel.
+  - The panel's changes apply in the app at once, and are sent together when it closes: with Done,
+    or Back, a tap outside or swiping the sheet down, so the edit page never misses one. They go to
+    every installed Shrimpl's App options provider (found by the action
+    `com.valghora.shrimpl.action.APP_OPTIONS`), off the main thread; only the one that built the app
+    saves them. Without one, the choice holds in the app until its next build.
+  - A new build (a new versionCode) forgets the panel's choices: Shrimpl saved them, so the build
+    carries them, or what the user changed on the edit page since.
+  - The launcher shortcut carries a random token kept in the app's preferences; a launch without it
+    (another app starting the exported activity) doesn't open the panel.
 ## T6 WebView, routing and media
 
 - T6.1 One function, `applyWebSettings(webView, mode)`, configures every WebView (main, popups, user
@@ -183,10 +209,9 @@ Unit tests cover every branch with a fixed fixture config, including look-alike 
 - T6.10 Store-redirect fallback (`profile.uaStoreRedirectFallback`, no override): in mobile mode,
   without a user choice or a learned preference, a Play Store redirect in the first 10 s after start
   is blocked, desktop mode is learned, and the start URL reloads. At most once per install.
-- T6.11 Desktop/mobile toggle (`profile.uaUserToggle`, no override): one dynamic launcher shortcut,
-  "Request desktop site" or "Request mobile site", which saves the choice and reloads the start URL.
-  The shortcut carries a random token kept in the app's preferences; a launch without it (another
-  app starting the exported activity) doesn't toggle.
+- T6.11 Desktop/mobile toggle (`profile.uaUserToggle`, no override): the Desktop site switch of App
+  options (T5.8), which saves the choice and reloads the start URL. On is the Desktop user agent, off
+  is Mobile.
 - T6.12 One startup log line: `UA mode=<mode> reason=<reason> metadata=<applied|unsupported|default>`
   (tag `profile.appId`).
 - T6.13 Full-screen video: the page's custom view covers the window with the system bars hidden (swipe

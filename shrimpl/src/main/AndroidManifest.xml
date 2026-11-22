@@ -66,6 +66,16 @@
                 tools:node="remove" />
         </provider>
 
+        <!-- Web apps' App options panels save their changes here (R11.9); it checks each caller. -->
+        <provider
+            android:name=".data.AppOptionsProvider"
+            android:authorities="${applicationId}.appoptions"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="com.valghora.shrimpl.action.APP_OPTIONS" />
+            </intent-filter>
+        </provider>
+
         <!-- Shevery hands its binder to Shrimpl through this provider (R6.1). -->
         <provider
             android:name="com.hamondev.shevery.api.SheveryProvider"

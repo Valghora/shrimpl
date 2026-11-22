@@ -319,9 +319,9 @@ binary translation) on any device.
       Custom header color (disabled unless Custom).
     - **Behavior:** Site layout, the user agent (Auto, "Picks the desktop or mobile site
       automatically"; Desktop, "Asks for the site's desktop layout"; Mobile, "Asks for the site's
-      mobile layout"); Link and image menu (Shrimpl, "A long press or right-click shows Shrimpl's
-      menu to copy, open or save links and images.", T5.5; Site, "A long press or right-click shows
-      the site's own menu."); Run in background; Pause in battery saver.
+      mobile layout"); Link and image menu (Site, the default, "A long press or right-click shows the
+      site's own menu."; Shrimpl, "A long press or right-click shows Shrimpl's menu to copy, open or
+      save links and images.", T5.5); Run in background; Pause in battery saver.
     - **Window:** Allow multiple windows ("Lets the app open in more than one window", off by
       default), default and minimum window size.
     - **Permissions:** Microphone, Camera, Notifications and Location, off by default, with no
@@ -468,7 +468,9 @@ The template's behavior is docs/TEMPLATE_SPEC.md. What Shrimpl relies on:
 ## R8 Building a web app (on the device)
 
 - R8.1 `:shrimpl` bundles the template's release APK, built in the same Gradle invocation, as
-  `assets/template/template.apk`, with its version (R11.4).
+  `assets/template/template.apk`, with its version (R11.4). Shrimpl copies it out once per install
+  of itself (an update included), never keyed on the version alone, so a new build of Shrimpl always
+  builds web apps from its own template.
 - R8.2 Manifest patching (binary XML, in `:core`): package `com.valghora.shrimpl.app.<appId>` (and
   every string derived from the template package), the literal label, versionCode = build number,
   versionName = `<template version>.<build>` (for example `1.0.0.12`, R11.8), removal of disabled permissions
@@ -601,6 +603,12 @@ The template's behavior is docs/TEMPLATE_SPEC.md. What Shrimpl relies on:
     before (1 to 19) are older than every version since, so their apps are offered an Update once.
   - Recovery (R11.6) reads a web app's template version from its versionName in any of its forms:
     `1.0.0.12` (template 1.0.0, build 12), `1.0.12` (a `major.minor` template) or `19.12`.
+- R11.9 App options changes (docs/TEMPLATE_SPEC.md T5.8) reach the app's record, so its edit page
+  shows them: Desktop site on sets the user agent to Desktop and off to Mobile, and Link and image
+  menu sets that setting. A web app sends them to Shrimpl's exported App options provider, which
+  saves a change only for the caller itself: a package of one of its records, signed with the key
+  that record names. An edit page that is open takes the new settings at once; with edits of its own,
+  it takes only those two. The change applies in the app already, so saving it needs no rebuild.
 
 ## R12 Repository, CI and releases
 

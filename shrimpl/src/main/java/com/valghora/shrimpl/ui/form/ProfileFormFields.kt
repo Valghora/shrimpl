@@ -307,7 +307,7 @@ private class Fields(
             DropdownItem(
                 stringResource(R.string.field_context_menu),
                 form.nativeContextMenu,
-                listOf(true to stringResource(R.string.context_menu_shrimpl), false to stringResource(R.string.context_menu_site)),
+                listOf(false to stringResource(R.string.context_menu_site), true to stringResource(R.string.context_menu_shrimpl)),
                 { onChange(form.copy(nativeContextMenu = it)) },
                 summary = stringResource(if (form.nativeContextMenu) R.string.context_menu_shrimpl_detail else R.string.context_menu_site_detail),
             )
