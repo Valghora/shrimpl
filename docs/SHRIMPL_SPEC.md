@@ -468,7 +468,9 @@ The template's behavior is docs/TEMPLATE_SPEC.md. What Shrimpl relies on:
 ## R8 Building a web app (on the device)
 
 - R8.1 `:shrimpl` bundles the template's release APK, built in the same Gradle invocation, as
-  `assets/template/template.apk`, with its version (R11.4).
+  `assets/template/template.apk`, with its version (R11.4). Shrimpl copies it out once per install
+  of itself (an update included), never keyed on the version alone, so a new build of Shrimpl always
+  builds web apps from its own template.
 - R8.2 Manifest patching (binary XML, in `:core`): package `com.valghora.shrimpl.app.<appId>` (and
   every string derived from the template package), the literal label, versionCode = build number,
   versionName = `<template version>.<build>` (for example `1.0.0.12`, R11.8), removal of disabled permissions
