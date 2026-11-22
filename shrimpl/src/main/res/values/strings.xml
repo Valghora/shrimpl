@@ -68,7 +68,7 @@
     <string name="edit_not_installed">This app isn\'t installed. Reinstall it from the menu, or remove it.</string>
     <string name="uninstall_title">Uninstall %1$s?</string>
     <string name="uninstall_text">The app and its data will be completely removed from your device. You can select the box below to keep %1$s in your app list if you wish to reinstall later.</string>
-    <string name="uninstall_keep">Keep %1$s in your app list</string>
+    <string name="uninstall_keep">Keep in app list</string>
 
     <!-- Form -->
     <string name="section_identity">Identity</string>

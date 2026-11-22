@@ -28,7 +28,7 @@ class UninstallDialogTest {
         MaterialTheme { UninstallDialog("WhatsApp", onConfirm = { confirmed = it }, onDismiss = {}) }
     }
 
-    private val keepLabel get() = string(R.string.uninstall_keep, "WhatsApp")
+    private val keepLabel get() = string(R.string.uninstall_keep)
 
     @Test
     fun uninstallingWithoutTheBoxRemovesTheApp() {

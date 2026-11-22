@@ -190,8 +190,8 @@ binary translation) on any device.
     The pending action is always first; Rebuild appears only when there is none.
   - Uninstall, here and on the edit page (R2.3), asks once: "Uninstall <name>?", "The app and its
     data will be completely removed from your device. You can select the box below to keep <name>
-    in your app list if you wish to reinstall later.", with a checkbox "Keep <name> in your app
-    list", unchecked, then Cancel or Uninstall. Once the app is uninstalled, it leaves the list
+    in your app list if you wish to reinstall later.", with a checkbox "Keep in app list",
+    unchecked, then Cancel or Uninstall. Once the app is uninstalled, it leaves the list
     unless the box was checked, which keeps it as Not installed. A turned-down or failed uninstall
     keeps it either way.
   - Update rebuilds with the bundled template. Reinstall builds the app signed with the current key,

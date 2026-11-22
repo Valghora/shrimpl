@@ -45,7 +45,7 @@ fun UninstallDialog(name: String, onConfirm: (keep: Boolean) -> Unit, onDismiss:
                     horizontalArrangement = Arrangement.spacedBy(12.dp),
                 ) {
                     Checkbox(checked = keep, onCheckedChange = null)
-                    Text(stringResource(R.string.uninstall_keep, name), style = MaterialTheme.typography.bodyLarge)
+                    Text(stringResource(R.string.uninstall_keep), style = MaterialTheme.typography.bodyLarge)
                 }
             }
         },
