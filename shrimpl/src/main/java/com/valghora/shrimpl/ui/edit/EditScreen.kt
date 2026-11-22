@@ -71,6 +71,7 @@ fun EditScreen(appId: String, onBack: () -> Unit) {
     val buildState by model.build.state.collectAsStateWithLifecycle()
     val message by model.message.collectAsStateWithLifecycle()
     var confirmUninstall by rememberSaveable { mutableStateOf(false) }
+    var confirmRebuild by rememberSaveable { mutableStateOf(false) }
     var menu by rememberSaveable { mutableStateOf(false) }
     val snackbar = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
@@ -123,7 +124,14 @@ fun EditScreen(appId: String, onBack: () -> Unit) {
                         // has no floating button, so the form's column is centred like Settings'.
                         if (model.dirty) {
                             Button(
-                                onClick = { if (!model.save()) scope.launch { snackbar.showSnackbar(invalidMessage) } },
+                                // R11.10: live settings save at once; anything else asks before the rebuild.
+                                onClick = {
+                                    when (model.saveKind()) {
+                                        EditViewModel.SaveKind.INVALID -> scope.launch { snackbar.showSnackbar(invalidMessage) }
+                                        EditViewModel.SaveKind.LIVE -> model.saveLive()
+                                        EditViewModel.SaveKind.REBUILD -> confirmRebuild = true
+                                    }
+                                },
                                 shape = AppShapes.Control,
                                 modifier = Modifier.padding(end = 4.dp),
                             ) {
@@ -190,6 +198,20 @@ fun EditScreen(appId: String, onBack: () -> Unit) {
         }
     }
 
+    if (confirmRebuild) {
+        AlertDialog(
+            onDismissRequest = { confirmRebuild = false },
+            title = { Text(stringResource(R.string.rebuild_title, current.profile.name)) },
+            text = { Text(stringResource(R.string.rebuild_text, current.profile.name)) },
+            confirmButton = {
+                TextButton(onClick = {
+                    confirmRebuild = false
+                    if (!model.save()) scope.launch { snackbar.showSnackbar(invalidMessage) }
+                }) { Text(stringResource(R.string.action_rebuild)) }
+            },
+            dismissButton = { TextButton(onClick = { confirmRebuild = false }) { Text(stringResource(R.string.action_cancel)) } },
+        )
+    }
     if (confirmUninstall) {
         UninstallDialog(current.profile.name, onConfirm = { keep ->
             confirmUninstall = false

@@ -28,7 +28,7 @@ import org.robolectric.annotation.Config
 
 /**
  * R2.3: changes on an app's settings page wait for Save. They survive the window being recreated
- * (rotation, folding, resizing) and are discarded on leaving the page.
+ * (rotation, folding, resizing) and are discarded on leaving the page. Save asks before a rebuild.
  */
 @Config(qualifiers = "w420dp-h900dp")
 @RunWith(RobolectricTestRunner::class)
@@ -75,6 +75,22 @@ class EditChangesTest {
         openSquoosh()
         camera().assertIsOff()
         assertFalse("nothing left to save", saveShown)
+    }
+
+    /** R2.3, R11.10: a change that needs a rebuild asks first; Cancel keeps the change unsaved. */
+    @Test
+    fun saveAsksBeforeARebuild() {
+        openSquoosh()
+        camera().performScrollTo().performClick()
+        compose.waitUntil(LOAD_TIMEOUT_MS) { saveShown }
+        compose.onNode(hasClickAction() and hasText(string(R.string.action_save))).performClick()
+        compose.waitUntil(LOAD_TIMEOUT_MS) { exists(string(R.string.rebuild_title, "Squoosh")) }
+        assertTrue(exists(string(R.string.rebuild_text, "Squoosh")))
+
+        compose.onNode(hasClickAction() and hasText(string(R.string.action_cancel))).performClick()
+        compose.waitUntil(LOAD_TIMEOUT_MS) { !exists(string(R.string.rebuild_title, "Squoosh")) }
+        camera().assertIsOn()
+        assertTrue("the change is still unsaved", saveShown)
     }
 
     /** R2.3: Save appears in the top bar, above the form, once something is changed. */

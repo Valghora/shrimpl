@@ -213,7 +213,10 @@ binary translation) on any device.
     notice says that saving or fixing uninstalls the app (its settings are kept, not its site data);
     and Save fixes it with the changes.
   - Once something is changed, a Save button appears in the top bar, before the ⋮ button (the page
-    has no floating button, so its column is centred like Settings'). Save rebuilds with the next
+    has no floating button, so its column is centred like Settings'). When only live settings changed
+    (R11.10) in an installed app, Save saves them at once, with nothing built. Otherwise Save first asks
+    `Rebuild <name>?` ("Some of these changes only take effect once <name> is rebuilt. Shrimpl builds
+    it again and updates it; the app's data stays."; Cancel or Rebuild), then rebuilds with the next
     build number and installs it as an update (same package and key, so the app keeps its data).
   - Changes not saved are discarded on leaving the page; recreating the window (rotation, resize)
     keeps them.
@@ -609,6 +612,11 @@ The template's behavior is docs/TEMPLATE_SPEC.md. What Shrimpl relies on:
   saves a change only for the caller itself: a package of one of its records, signed with the key
   that record names. An edit page that is open takes the new settings at once; with edits of its own,
   it takes only those two. The change applies in the app already, so saving it needs no rebuild.
+- R11.10 Live settings: the Behavior section (Site layout, Link and image menu, Run in background,
+  Pause in battery saver) reaches an installed app without a rebuild. Save stores them in the record
+  (R2.3); the app asks the same provider for them whenever it comes to the front (docs/TEMPLATE_SPEC.md
+  T5.9), and the provider answers only the caller about itself, as in R11.9. Everything else (identity,
+  icon, header color, window, permissions, shortcuts) is in the APK and needs a rebuild.
 
 ## R12 Repository, CI and releases
 

@@ -4,6 +4,7 @@ import android.app.Application
 import android.content.Context
 import com.google.android.material.color.DynamicColors
 import com.valghora.shrimpl.core.profile.Profile
+import com.valghora.shrimpl.core.records.LiveSettings
 import com.valghora.shrimpl.core.profile.ProfileCodec
 import com.valghora.shrimpl.core.profile.ProfileException
 import java.io.FileNotFoundException
@@ -27,6 +28,14 @@ class WebApp : Application() {
         /** The site this app wraps. */
         lateinit var profile: Profile
             private set
+
+        /**
+         * Takes the live settings Shrimpl has now (docs/TEMPLATE_SPEC.md T5.9); everything else stays as
+         * this build's profile has it.
+         */
+        fun takeLiveSettings(settings: LiveSettings) {
+            profile = settings.applyTo(profile)
+        }
 
         /** Fails loudly: an app without a valid profile cannot do anything useful. */
         private fun loadProfile(context: Context): Profile = try {

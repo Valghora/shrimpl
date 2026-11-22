@@ -12,8 +12,8 @@ import org.robolectric.Robolectric
 import org.robolectric.RobolectricTestRunner
 
 /**
- * The App options provider saves only for a web app Shrimpl built (docs/SHRIMPL_SPEC.md R11.9): any
- * other caller is turned down, and calls other than the App options one get no answer.
+ * The App options provider saves for, and answers the live settings of, only a web app Shrimpl built
+ * (docs/SHRIMPL_SPEC.md R11.9, R11.10): any other caller is turned down, and other calls get no answer.
  */
 @RunWith(RobolectricTestRunner::class)
 class AppOptionsProviderTest {
@@ -26,6 +26,11 @@ class AppOptionsProviderTest {
         val answer = provider.call(AppOptionsSync.METHOD, null, bundleOf(AppOptionsSync.KEY_LINK_MENU to true))
         assertEquals(false, answer?.getBoolean(AppOptionsSync.KEY_SAVED))
         assertEquals(emptyList<Any>(), context.packageManager.getPackagesForUid(android.os.Process.myUid()).orEmpty().filter { it.startsWith("com.valghora.shrimpl.app.") })
+    }
+
+    @Test
+    fun aCallerThatIsntOneOfShrimplsAppsGetsNoSettings() {
+        assertNull(provider.call(AppOptionsSync.METHOD_SETTINGS, null, null))
     }
 
     @Test

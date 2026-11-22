@@ -10,20 +10,42 @@ import android.os.Bundle
 import androidx.core.os.bundleOf
 import com.valghora.shrimpl.container
 import com.valghora.shrimpl.core.records.AppOptionsSync
+import com.valghora.shrimpl.core.records.LiveSettings
 import com.valghora.shrimpl.core.records.WebAppRecord
 import kotlinx.coroutines.runBlocking
 
 /**
- * Takes what a web app's App options panel changed and saves it to that app's record, so its edit page
- * shows it (docs/SHRIMPL_SPEC.md R11.9). The provider is exported, so it saves only for the caller
- * itself: a package of one of Shrimpl's records, signed with the key that record was built with
- * (android-permissions-security skill). It holds no data; [call] is its only entry point.
+ * A web app's link to the Shrimpl that built it: it saves what the app's App options panel changed to
+ * the app's record, so its edit page shows it (docs/SHRIMPL_SPEC.md R11.9), and answers the app's live
+ * settings, so a change saved on the edit page reaches it without a rebuild (R11.10). The provider is
+ * exported, so it answers only the caller itself, about itself: a package of one of Shrimpl's records,
+ * signed with the key that record was built with (android-permissions-security skill). It holds no
+ * data; [call] is its only entry point.
  */
 class AppOptionsProvider : ContentProvider() {
     override fun onCreate() = true
 
-    override fun call(method: String, arg: String?, extras: Bundle?): Bundle? {
-        if (method != AppOptionsSync.METHOD || extras == null) return null
+    override fun call(method: String, arg: String?, extras: Bundle?): Bundle? = when (method) {
+        AppOptionsSync.METHOD -> extras?.let(::saveOptions)
+        AppOptionsSync.METHOD_SETTINGS -> liveSettings()
+        else -> null
+    }
+
+    /** R11.10: the caller's live settings, or nothing when Shrimpl didn't build it. */
+    private fun liveSettings(): Bundle? {
+        val context = context ?: return null
+        val record = callerRecord(context.container.store.records.value) ?: return null
+        val settings = LiveSettings.of(record.profile)
+        return bundleOf(
+            AppOptionsSync.KEY_USER_AGENT_MODE to settings.userAgentMode.name,
+            AppOptionsSync.KEY_LINK_MENU to settings.nativeContextMenu,
+            AppOptionsSync.KEY_KEEP_ALIVE to settings.keepAliveWhenHidden,
+            AppOptionsSync.KEY_PAUSE_POWER_SAVE to settings.pauseOnPowerSave,
+        )
+    }
+
+    /** R11.9: saves the panel's changes to the caller's record. */
+    private fun saveOptions(extras: Bundle): Bundle? {
         val context = context ?: return null
         val store = context.container.store
         val record = callerRecord(store.records.value) ?: return bundleOf(AppOptionsSync.KEY_SAVED to false)

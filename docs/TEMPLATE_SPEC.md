@@ -150,6 +150,11 @@ Unit tests cover every branch with a fixed fixture config, including look-alike 
     carries them, or what the user changed on the edit page since.
   - The launcher shortcut carries a random token kept in the app's preferences; a launch without it
     (another app starting the exported activity) doesn't open the panel.
+- T5.9 Live settings (docs/SHRIMPL_SPEC.md R11.10): whenever the app comes to the front (onStart), it
+  asks the Shrimpl that built it for its live settings, on the same thread that sends App options
+  changes, so a change just sent is read back. An answer replaces those settings in the profile and
+  the panel's own choices; a new layout reloads the start URL, and the link and image menu and Pause
+  in battery saver apply at once. Without an answer the app keeps what it has.
 ## T6 WebView, routing and media
 
 - T6.1 One function, `applyWebSettings(webView, mode)`, configures every WebView (main, popups, user
@@ -310,7 +315,8 @@ Unit tests cover every branch with a fixed fixture config, including look-alike 
 - T8.3 SLEEP: flush cookies, pause the WebView and its timers. WAKE: resume both and dispatch
   `online` and `focus` events to the page. No WakeLocks, no foreground service.
 - T8.4 Lifecycle methods never call `pauseTimers()` / `resumeTimers()` (process-wide). Without
-  `profile.keepAliveWhenHidden`, onStop pauses the WebView and onStart resumes it.
+  `profile.keepAliveWhenHidden`, onStop pauses the WebView; onStart resumes what onStop paused, since
+  the setting can change while the app is hidden (T5.9).
 
 ## Known limitations
 

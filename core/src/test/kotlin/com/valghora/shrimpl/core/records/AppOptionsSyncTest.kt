@@ -30,4 +30,19 @@ class AppOptionsSyncTest {
     fun aSwitchNotSentLeavesItsSetting() {
         assertEquals(profile, AppOptionsSync.apply(profile, desktopSite = null, linkMenu = null))
     }
+
+    @Test
+    fun onlyChangesOutsideTheLiveSettingsNeedARebuild() {
+        val live = profile.copy(userAgentMode = UaMode.DESKTOP, nativeContextMenu = true, keepAliveWhenHidden = false, pauseOnPowerSave = true)
+        assertEquals(false, LiveSettings.needsRebuild(profile, live))
+        assertEquals(false, LiveSettings.needsRebuild(profile, profile))
+        assertEquals(true, LiveSettings.needsRebuild(profile, profile.copy(name = "Example 2")))
+        assertEquals(true, LiveSettings.needsRebuild(profile, live.copy(headerColor = "#000000")))
+    }
+
+    @Test
+    fun liveSettingsRoundTripThroughAProfile() {
+        val settings = LiveSettings(UaMode.MOBILE, nativeContextMenu = true, keepAliveWhenHidden = false, pauseOnPowerSave = true)
+        assertEquals(settings, LiveSettings.of(settings.applyTo(profile)))
+    }
 }

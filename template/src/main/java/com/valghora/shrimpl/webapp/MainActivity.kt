@@ -74,6 +74,7 @@ import androidx.webkit.WebViewFeature
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.snackbar.Snackbar
 import com.valghora.shrimpl.core.AppOption
+import com.valghora.shrimpl.core.records.LiveSettings
 import com.valghora.shrimpl.core.CaptureChoice
 import com.valghora.shrimpl.core.DesktopSessionController
 import com.valghora.shrimpl.core.HitType
@@ -285,15 +286,21 @@ class MainActivity : AppCompatActivity() {
 
     override fun onStart() {
         super.onStart()
-        // T8.4: only when the page should not keep running while hidden.
+        // T8.4: only what onStop paused. Run in background can change while the app is hidden (T5.9), so
+        // the setting now doesn't say whether the page was paused.
         // Invariant: lifecycle methods never call pauseTimers() or resumeTimers(); they are process-wide (T8.4).
-        if (!WebApp.profile.keepAliveWhenHidden && webViewAlive) webView.onResume()
+        if (pausedWhileHidden && webViewAlive) webView.onResume()
+        pausedWhileHidden = false
+        optionsSender.fetch(::applyLiveSettings)
     }
 
     override fun onStop() {
         super.onStop()
         flushCookies()
-        if (!WebApp.profile.keepAliveWhenHidden && webViewAlive) webView.onPause()
+        if (!WebApp.profile.keepAliveWhenHidden && webViewAlive) {
+            webView.onPause()
+            pausedWhileHidden = true
+        }
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
@@ -1286,6 +1293,9 @@ class MainActivity : AppCompatActivity() {
         get() = WebApp.profile.uaUserToggle && WebApp.profile.uaFeaturesActive
 
     private var optionsPanel: Dialog? = null
+
+    /** Whether onStop paused the page (T8.4), so onStart resumes it whatever the setting is by then. */
+    private var pausedWhileHidden = false
     private lateinit var optionsSender: AppOptionsSender
 
     /** What the open panel changed, sent to Shrimpl once it closes (T5.8); null is unchanged. */
@@ -1302,6 +1312,7 @@ class MainActivity : AppCompatActivity() {
                     getString(R.string.option_desktop_site_detail),
                     resolvedMode == UaMode.DESKTOP,
                 ) { on ->
+                    prefs.userChoice = if (on) UaMode.DESKTOP else UaMode.MOBILE
                     switchSite(if (on) UaMode.DESKTOP else UaMode.MOBILE)
                     unsentDesktopSite = on
                 }
@@ -1344,9 +1355,29 @@ class MainActivity : AppCompatActivity() {
         unsentLinkMenu = null
     }
 
-    /** T6.11: shows the site as [mode] asks and keeps the choice, reloading the start URL. */
+    /**
+     * T5.9: the live settings Shrimpl has now. They already hold what the App options panel chose
+     * (docs/SHRIMPL_SPEC.md R11.9), so the panel's own choices give way to them.
+     */
+    private fun applyLiveSettings(settings: LiveSettings) {
+        if (!webViewAlive) return
+        WebApp.takeLiveSettings(settings)
+        prefs.userChoice = null
+        prefs.linkMenuChoice = null
+        controller.pauseOnPowerSave(settings.pauseOnPowerSave)
+        applyLinkMenu()
+        val mode = controller.resolveUa(
+            WebApp.profile.userAgentMode,
+            isLargeOrPc,
+            prefs.userChoice,
+            prefs.learnedDesktop,
+            WebApp.profile.userAgentOverride,
+        ).mode
+        switchSite(mode)
+    }
+
+    /** T6.11: shows the site as [mode] asks, reloading the start URL when that changes the layout. */
     private fun switchSite(mode: UaMode) {
-        prefs.userChoice = mode
         if (mode == resolvedMode) return
         resolvedMode = mode
         applyWebSettings(webView, mode)

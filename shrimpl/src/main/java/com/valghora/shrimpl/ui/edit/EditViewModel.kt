@@ -8,6 +8,7 @@ import com.valghora.shrimpl.build.BuildRequest
 import com.valghora.shrimpl.data.InstalledApps
 import com.valghora.shrimpl.install.InstallResult
 import com.valghora.shrimpl.ui.common.BuildController
+import com.valghora.shrimpl.core.records.LiveSettings
 import com.valghora.shrimpl.core.records.WebAppDraft
 import com.valghora.shrimpl.core.profile.ProfileForm
 import com.valghora.shrimpl.core.records.WebAppRecord
@@ -100,6 +101,44 @@ class EditViewModel(private val container: AppContainer, val appId: String) : Vi
     /** Discards unsaved changes: the form goes back to the saved settings (R2.3). */
     fun reset() {
         _draft.value = _record.value?.let(::draftOf)
+    }
+
+    /** What Save does with the current changes (R2.3, R11.10). */
+    enum class SaveKind {
+        /** The form has errors: nothing is saved. */
+        INVALID,
+
+        /** Only live settings changed in an installed app: they are saved and reach it without a build. */
+        LIVE,
+
+        /** Anything else: a rebuild, which the page asks about first. */
+        REBUILD,
+    }
+
+    /** What Save would do now (R11.10). */
+    fun saveKind(): SaveKind {
+        val record = _record.value ?: return SaveKind.INVALID
+        val draft = _draft.value ?: return SaveKind.INVALID
+        val profile = draft.form.result().profile ?: return SaveKind.INVALID
+        val live = _installed.value == true && !_otherKey.value &&
+            draft.icons == record.iconOptions && draft.newImages.isEmpty() &&
+            !LiveSettings.needsRebuild(record.profile, profile)
+        return if (live) SaveKind.LIVE else SaveKind.REBUILD
+    }
+
+    /**
+     * Saves live settings to the record only (R11.10): the app asks for them when it next comes to the
+     * front, so nothing is built. Call when [saveKind] is LIVE.
+     */
+    fun saveLive() {
+        val record = _record.value ?: return
+        val profile = _draft.value?.form?.result()?.profile ?: return
+        val saved = record.copy(profile = profile, updatedAt = System.currentTimeMillis())
+        viewModelScope.launch {
+            container.store.save(saved, emptyMap())
+            _record.value = saved
+            _draft.value = draftOf(saved)
+        }
     }
 
     /**
