@@ -16,8 +16,8 @@ import org.junit.runner.RunWith
 
 /**
  * The App options panel (docs/TEMPLATE_SPEC.md T5.8): Ctrl+, opens it, its Desktop site switch (T6.11)
- * keeps its state while the panel is open, and Reset to defaults puts the profile's choice back. With
- * the toggle off in the profile, the panel says the app has no options yet.
+ * keeps its state while the panel is open, and Reset to defaults puts the profile's choice back. The
+ * Link and image menu switch (T5.5) is in every app's panel and is kept until Reset to defaults.
  */
 @RunWith(AndroidJUnit4::class)
 class AppOptionsTest {
@@ -66,15 +66,37 @@ class AppOptionsTest {
         }
     }
 
+    /** The Link and image menu row (T5.5), which every app's panel has. */
+    private fun linkMenuRow(): UiObject2 =
+        requireNotNull(device.wait(Until.findObject(By.descStartsWith(context.getString(R.string.option_link_menu)).checkable(true)), 10_000)) {
+            "the Link and image menu switch isn't on screen"
+        }
+
     @Test
-    fun withoutTheToggleThePanelHasNoOptions() {
+    fun theLinkMenuSwitchIsKeptUntilReset() {
         withProfile(WebApp.profile.copy(uaUserToggle = false)) {
             ActivityScenario.launch(MainActivity::class.java).use { scenario ->
                 answerPermissionPrompt("^allow$", 5_000)
                 PageDriver(scenario).loadTestPage()
                 openPanel()
-                assertTrue("the panel didn't say there are no options", awaitText(context.getString(R.string.app_options_none)))
-                assertTrue("Reset to defaults shows with nothing to reset", !device.hasObject(By.text(context.getString(R.string.action_reset_defaults))))
+                tapText(context.getString(R.string.action_reset_defaults))
+                device.wait(Until.gone(By.text(context.getString(R.string.app_options))), 10_000)
+
+                openPanel()
+                assertTrue("Desktop site shows without the toggle", !device.hasObject(By.descStartsWith(context.getString(R.string.option_desktop_site))))
+                val profileDefault = linkMenuRow().isChecked
+                assertEquals("the switch doesn't start at the profile's setting", WebApp.profile.nativeContextMenu, profileDefault)
+                linkMenuRow().click()
+                awaitUntil("the switch to change", 10_000) { linkMenuRow().isChecked != profileDefault }
+                tapText(context.getString(R.string.action_done))
+                device.wait(Until.gone(By.text(context.getString(R.string.app_options))), 10_000)
+
+                openPanel()
+                assertEquals("the choice wasn't kept", !profileDefault, linkMenuRow().isChecked)
+                tapText(context.getString(R.string.action_reset_defaults))
+                device.wait(Until.gone(By.text(context.getString(R.string.app_options))), 10_000)
+                openPanel()
+                assertEquals("Reset to defaults didn't put the profile's setting back", profileDefault, linkMenuRow().isChecked)
                 tapText(context.getString(R.string.action_done))
             }
         }

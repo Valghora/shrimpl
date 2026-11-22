@@ -2,13 +2,14 @@ package com.valghora.shrimpl.webapp
 
 import android.content.Context
 import androidx.core.content.edit
+import com.valghora.shrimpl.core.OptionStore
 import com.valghora.shrimpl.core.UaMode
 import com.valghora.shrimpl.core.UaStore
 import com.valghora.shrimpl.core.ZoomStore
 import java.util.UUID
 
-/** ZoomStore and UaStore backed by one private SharedPreferences file (docs/TEMPLATE_SPEC.md T6.1). */
-class SessionPrefs(context: Context) : ZoomStore, UaStore {
+/** ZoomStore, UaStore and OptionStore backed by one private SharedPreferences file (docs/TEMPLATE_SPEC.md T6.1). */
+class SessionPrefs(context: Context) : ZoomStore, UaStore, OptionStore {
 
     private val prefs = context.getSharedPreferences("${WebApp.profile.appId}_session", Context.MODE_PRIVATE)
 
@@ -25,6 +26,10 @@ class SessionPrefs(context: Context) : ZoomStore, UaStore {
     override var learnedDesktop: Boolean
         get() = prefs.getBoolean(KEY_UA_LEARNED_DESKTOP, false)
         set(value) = prefs.edit { putBoolean(KEY_UA_LEARNED_DESKTOP, value) }
+
+    override var linkMenuChoice: Boolean?
+        get() = if (prefs.contains(KEY_LINK_MENU)) prefs.getBoolean(KEY_LINK_MENU, false) else null
+        set(value) = prefs.edit { if (value == null) remove(KEY_LINK_MENU) else putBoolean(KEY_LINK_MENU, value) }
 
     /** A random token the App options shortcut carries, so only that shortcut opens the panel (T5.8). */
     val shortcutToken: String
@@ -47,6 +52,7 @@ class SessionPrefs(context: Context) : ZoomStore, UaStore {
     private companion object {
         const val KEY_ASKED = "asked_"
         const val KEY_TOGGLE_TOKEN = "toggle_token"
+        const val KEY_LINK_MENU = "link_menu"
         const val KEY_TEXT_ZOOM = "text_zoom"
         const val KEY_UA_CHOICE = "ua_user_choice"
         const val KEY_UA_LEARNED_DESKTOP = "ua_learned_desktop"

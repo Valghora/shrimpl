@@ -13,6 +13,8 @@ class DesktopSessionController(
     val uaStore: UaStore,
     private val config: SessionConfig,
     fontScalePercent: Int = ZOOM_DEFAULT,
+    /** Where App options keeps its switches (T5.8); callers that never show the panel keep the default. */
+    private val optionStore: OptionStore = UnsavedOptions(),
 ) {
 
     // ----- URL classification -----
@@ -117,14 +119,23 @@ class DesktopSessionController(
 
     /**
      * The switches the App options panel shows: Desktop site when the profile allows the desktop/mobile
-     * toggle ([uaToggle], T6.11). An app with none still has the panel, which says so.
+     * toggle ([uaToggle], T6.11), then the Link and image menu (T5.5), which every app has.
      */
     fun appOptions(uaToggle: Boolean): List<AppOption> =
-        if (uaToggle) listOf(AppOption.DESKTOP_SITE) else emptyList()
+        listOfNotNull(AppOption.DESKTOP_SITE.takeIf { uaToggle }, AppOption.LINK_MENU)
+
+    /** Whether the template's link and image menu is on (T5.5): the panel's choice, else [profileDefault]. */
+    fun linkMenuOn(profileDefault: Boolean): Boolean = optionStore.linkMenuChoice ?: profileDefault
+
+    /** The Link and image menu switch (T5.8): the choice is kept until Reset to defaults. */
+    fun chooseLinkMenu(on: Boolean) {
+        optionStore.linkMenuChoice = on
+    }
 
     /** Reset to defaults (T5.8): forgets what the panel changed, so the profile's settings apply again. */
     fun resetAppOptions() {
         uaStore.userChoice = null
+        optionStore.linkMenuChoice = null
     }
 
     // ----- Wake state machine -----

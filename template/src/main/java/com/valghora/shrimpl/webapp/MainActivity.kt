@@ -214,7 +214,7 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         prefs = SessionPrefs(this)
         // T5.7: page text starts at the system font size (accessibility skill), not a fixed 100 %.
-        controller = DesktopSessionController(prefs, prefs, WebApp.profile.sessionConfig(), fontScalePercent())
+        controller = DesktopSessionController(prefs, prefs, WebApp.profile.sessionConfig(), fontScalePercent(), optionStore = prefs)
         pageDownloads = PageDownloadBridge(this, controller)
         shareBridge = ShareBridge(this, controller)
         fileAccess = FileAccessBridge(this, controller)
@@ -443,7 +443,7 @@ class MainActivity : AppCompatActivity() {
             if (event.action == DragEvent.ACTION_DROP) requestDragAndDropPermissions(event)
             false
         }
-        if (WebApp.profile.nativeContextMenu) registerForContextMenu(webView)
+        if (controller.linkMenuOn(WebApp.profile.nativeContextMenu)) registerForContextMenu(webView)
         onBackPressedDispatcher.addCallback(this, backCallback)
         // Ctrl + mouse wheel (or trackpad scroll) zooms like Ctrl +/- (Tier 2 Content_Zoom); pinch zoom
         // is WebView's own.
@@ -1291,6 +1291,14 @@ class MainActivity : AppCompatActivity() {
                     getString(R.string.option_desktop_site_detail),
                     resolvedMode == UaMode.DESKTOP,
                 ) { on -> switchSite(if (on) UaMode.DESKTOP else UaMode.MOBILE, remember = true) }
+                AppOption.LINK_MENU -> OptionSwitch(
+                    getString(R.string.option_link_menu),
+                    getString(R.string.option_link_menu_detail),
+                    controller.linkMenuOn(WebApp.profile.nativeContextMenu),
+                ) { on ->
+                    controller.chooseLinkMenu(on)
+                    applyLinkMenu()
+                }
             }
         }
         optionsPanel = AppOptionsPanel.show(this, switches, ::resetAppOptions).apply {
@@ -1309,6 +1317,15 @@ class MainActivity : AppCompatActivity() {
             WebApp.profile.userAgentOverride,
         ).mode
         switchSite(mode, remember = false)
+        applyLinkMenu()
+    }
+
+    /**
+     * T5.5: the template's link and image menu takes long presses and right-clicks only while it is on;
+     * off, they reach the page, for text selection and the site's own menu.
+     */
+    private fun applyLinkMenu() {
+        if (controller.linkMenuOn(WebApp.profile.nativeContextMenu)) registerForContextMenu(webView) else unregisterForContextMenu(webView)
     }
 
     /**

@@ -229,8 +229,23 @@ class DesktopSessionControllerTest {
     @Test
     fun appOptionsOfferDesktopSiteOnlyWithTheToggle() {
         val c = controller()
-        assertEquals(listOf(AppOption.DESKTOP_SITE), c.appOptions(uaToggle = true))
-        assertEquals(emptyList<AppOption>(), c.appOptions(uaToggle = false))
+        assertEquals(listOf(AppOption.DESKTOP_SITE, AppOption.LINK_MENU), c.appOptions(uaToggle = true))
+        assertEquals(listOf(AppOption.LINK_MENU), c.appOptions(uaToggle = false))
+    }
+
+    @Test
+    fun theLinkMenuChoiceOverridesTheProfileUntilReset() {
+        val options = UnsavedOptions()
+        val c = DesktopSessionController(FakeZoomStore(), FakeUaStore(), fixture, optionStore = options)
+        assertTrue(c.linkMenuOn(profileDefault = true))
+        assertFalse(c.linkMenuOn(profileDefault = false))
+        c.chooseLinkMenu(true)
+        assertTrue(c.linkMenuOn(profileDefault = false))
+        c.chooseLinkMenu(false)
+        assertFalse(c.linkMenuOn(profileDefault = true))
+        c.resetAppOptions()
+        assertEquals(null, options.linkMenuChoice)
+        assertTrue(c.linkMenuOn(profileDefault = true))
     }
 
     @Test

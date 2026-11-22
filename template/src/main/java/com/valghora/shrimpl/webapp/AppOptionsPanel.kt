@@ -48,7 +48,7 @@ object AppOptionsPanel {
             .setTitle(R.string.app_options)
             .setView(body(context, switches, insetDp = 24))
             .setPositiveButton(R.string.action_done, null)
-        if (switches.isNotEmpty()) builder.setNeutralButton(R.string.action_reset_defaults) { _, _ -> onReset() }
+        builder.setNeutralButton(R.string.action_reset_defaults) { _, _ -> onReset() }
         return builder.show()
     }
 
@@ -65,12 +65,10 @@ object AppOptionsPanel {
             addView(LinearLayout(context).apply {
                 orientation = LinearLayout.HORIZONTAL
                 updatePadding(left = dp(context, 12), right = dp(context, 12), top = dp(context, 8))
-                if (switches.isNotEmpty()) {
-                    addView(textButton(context, R.string.action_reset_defaults) {
-                        onReset()
-                        sheet.dismiss()
-                    })
-                }
+                addView(textButton(context, R.string.action_reset_defaults) {
+                    onReset()
+                    sheet.dismiss()
+                })
                 addView(View(context), LinearLayout.LayoutParams(0, 0, 1f))
                 addView(textButton(context, R.string.action_done) { sheet.dismiss() })
             })
@@ -80,15 +78,10 @@ object AppOptionsPanel {
         return sheet
     }
 
-    /** One row per switch, or a line saying there are none yet. */
+    /** One row per switch; every app has at least the Link and image menu. */
     private fun body(context: Context, switches: List<OptionSwitch>, insetDp: Int): View =
         LinearLayout(context).apply {
             orientation = LinearLayout.VERTICAL
-            if (switches.isEmpty()) {
-                addView(text(context, context.getString(R.string.app_options_none), com.google.android.material.R.attr.textAppearanceBodyLarge).apply {
-                    updatePadding(left = dp(context, insetDp), right = dp(context, insetDp), top = dp(context, 8), bottom = dp(context, 8))
-                })
-            }
             switches.forEach { addView(row(context, it, insetDp)) }
         }
 

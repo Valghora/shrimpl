@@ -118,7 +118,8 @@ Unit tests cover every branch with a fixed fixture config, including look-alike 
 - T5.4 The Keyboard Shortcuts Helper lists two groups: the site's shortcuts (titled `profile.name`)
   and Window (Reload, Zoom in, Zoom out, Reset zoom, Print, App options, and New window when enabled).
 - T5.5 Context menu (with `profile.nativeContextMenu`, off by default, so the site's own menu
-  shows): copy link, open link in the browser, save image, per T2d. Anywhere else it has no items,
+  shows, or the Link and image menu switch of App options, T5.8, which overrides it at once and is
+  kept until Reset to defaults): copy link, open link in the browser, save image, per T2d. Anywhere else it has no items,
   so the press reaches the page (text selection, the site's menu). Image links copy the anchor's
   href (`requestFocusNodeHref`), not the image URL.
 - T5.6 Back goes back in the page history while it can (`OnBackPressedCallback` kept in sync in
@@ -135,8 +136,9 @@ Unit tests cover every branch with a fixed fixture config, including look-alike 
     R1.6), applies at once and is remembered in `SessionPrefs`. The whole row toggles it, at least
     72 dp tall, and accessibility services hear one switch with its label, description and state.
     Its text wraps 24 dp before the switch, as Shrimpl's settings items do.
-  - Desktop site ("Shows the site as it looks on a computer"), when the profile allows the toggle
-    (T6.11), is its only switch so far. With none, the panel says "No options for this app yet".
+  - Its switches, in order: Desktop site ("Shows the site as it looks on a computer"), when the
+    profile allows the toggle (T6.11); Link and image menu ("Shows a menu to copy, open or save
+    links and images, instead of the site's own.", T5.5), in every app.
   - Reset to defaults forgets what the panel changed, so the profile's settings apply again, and
     closes it; Done closes it.
   - The launcher shortcut carries a random token kept in the app's preferences; a launch without it
