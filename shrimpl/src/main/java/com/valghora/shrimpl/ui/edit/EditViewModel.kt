@@ -45,8 +45,6 @@ class EditViewModel(private val container: AppContainer, val appId: String) : Vi
     val message: StateFlow<String?> = _message.asStateFlow()
 
     /** Uninstall finished: offer to forget the web app too. */
-    private val _offerRemove = MutableStateFlow(false)
-    val offerRemove: StateFlow<Boolean> = _offerRemove.asStateFlow()
 
     val build = BuildController(container, viewModelScope).apply {
         onInstalled = { saved ->
@@ -110,15 +108,15 @@ class EditViewModel(private val container: AppContainer, val appId: String) : Vi
         build.start(BuildRequest(record.profile, record.iconOptions, newImages = emptyMap(), existing = record))
     }
 
-    /** Uninstalls the app with the chosen method; after it, offers to remove the record too (R2.3). */
-    fun uninstall() {
+    /**
+     * Uninstalls the app with the chosen method (R2.3) and, unless the user chose to [keep] it,
+     * removes it from the list and leaves the page ([onRemoved]). A cancelled or failed uninstall keeps it.
+     */
+    fun uninstall(keep: Boolean, onRemoved: () -> Unit) {
         val record = _record.value ?: return
         viewModelScope.launch {
             when (val result = container.installers.preferred().uninstall(record.packageName)) {
-                InstallResult.Success -> {
-                    _installed.value = false
-                    _offerRemove.value = true
-                }
+                InstallResult.Success -> if (keep) _installed.value = false else remove(onRemoved)
                 InstallResult.NeedsUnknownSources, InstallResult.Cancelled -> Unit
                 is InstallResult.Failure -> _message.value = result.message
             }
@@ -129,14 +127,8 @@ class EditViewModel(private val container: AppContainer, val appId: String) : Vi
     fun remove(onRemoved: () -> Unit) {
         viewModelScope.launch {
             container.store.delete(appId)
-            _offerRemove.value = false
             onRemoved()
         }
-    }
-
-    /** The offer to remove the record was answered. */
-    fun dismissRemove() {
-        _offerRemove.value = false
     }
 
     /** The message was shown; it isn't shown again. */

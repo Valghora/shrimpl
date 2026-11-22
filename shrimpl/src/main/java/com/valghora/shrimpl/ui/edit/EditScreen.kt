@@ -46,6 +46,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.valghora.shrimpl.R
 import com.valghora.shrimpl.container
 import com.valghora.shrimpl.data.InstalledApps
+import com.valghora.shrimpl.ui.common.UninstallDialog
 import com.valghora.shrimpl.ui.common.AppMenu
 import com.valghora.shrimpl.ui.common.AppMenuItem
 import com.valghora.shrimpl.ui.common.BuildSheet
@@ -69,7 +70,6 @@ fun EditScreen(appId: String, onBack: () -> Unit) {
     val otherKey by model.otherKey.collectAsStateWithLifecycle()
     val buildState by model.build.state.collectAsStateWithLifecycle()
     val message by model.message.collectAsStateWithLifecycle()
-    val offerRemove by model.offerRemove.collectAsStateWithLifecycle()
     var confirmUninstall by rememberSaveable { mutableStateOf(false) }
     var menu by rememberSaveable { mutableStateOf(false) }
     val snackbar = remember { SnackbarHostState() }
@@ -191,27 +191,10 @@ fun EditScreen(appId: String, onBack: () -> Unit) {
     }
 
     if (confirmUninstall) {
-        AlertDialog(
-            onDismissRequest = { confirmUninstall = false },
-            title = { Text(stringResource(R.string.uninstall_title, current.profile.name)) },
-            text = { Text(stringResource(R.string.uninstall_text)) },
-            confirmButton = {
-                TextButton(onClick = {
-                    confirmUninstall = false
-                    model.uninstall()
-                }) { Text(stringResource(R.string.action_uninstall)) }
-            },
-            dismissButton = { TextButton(onClick = { confirmUninstall = false }) { Text(stringResource(R.string.action_cancel)) } },
-        )
-    }
-    if (offerRemove) {
-        AlertDialog(
-            onDismissRequest = model::dismissRemove,
-            title = { Text(stringResource(R.string.remove_title, current.profile.name)) },
-            text = { Text(stringResource(R.string.remove_text)) },
-            confirmButton = { TextButton(onClick = { model.remove(onBack) }) { Text(stringResource(R.string.action_remove)) } },
-            dismissButton = { TextButton(onClick = model::dismissRemove) { Text(stringResource(R.string.action_keep)) } },
-        )
+        UninstallDialog(current.profile.name, onConfirm = { keep ->
+            confirmUninstall = false
+            model.uninstall(keep, onBack)
+        }, onDismiss = { confirmUninstall = false })
     }
     buildState?.let { state ->
         BuildSheet(

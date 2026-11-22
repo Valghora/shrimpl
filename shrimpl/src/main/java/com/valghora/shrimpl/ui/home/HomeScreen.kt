@@ -104,6 +104,7 @@ import com.valghora.shrimpl.data.HomeLayout
 import com.valghora.shrimpl.data.InstallMethod
 import com.valghora.shrimpl.data.InstalledApp
 import com.valghora.shrimpl.data.InstalledApps
+import com.valghora.shrimpl.ui.common.UninstallDialog
 import com.valghora.shrimpl.ui.common.AppMenu
 import com.valghora.shrimpl.ui.common.AppMenuItem
 import com.valghora.shrimpl.ui.common.BuildSheet
@@ -362,26 +363,10 @@ fun HomeScreen(
     }
 
     confirmUninstall?.let { appId -> records.firstOrNull { it.appId == appId } }?.let { record ->
-        UninstallDialog(record.profile.name, onConfirm = {
+        UninstallDialog(record.profile.name, onConfirm = { keep ->
             confirmUninstall = null
-            model.uninstall(context, record)
+            model.uninstall(context, record, keep)
         }, onDismiss = { confirmUninstall = null })
-    }
-    // R2.2: after an uninstall, the same offer as the edit page's: remove the app from the list too.
-    val offerRemove by model.offerRemove.collectAsStateWithLifecycle()
-    offerRemove?.let { appId -> records.firstOrNull { it.appId == appId } }?.let { record ->
-        AlertDialog(
-            onDismissRequest = model::dismissRemoveOffer,
-            title = { Text(stringResource(R.string.remove_title, record.profile.name)) },
-            text = { Text(stringResource(R.string.remove_text)) },
-            confirmButton = {
-                TextButton(onClick = {
-                    model.dismissRemoveOffer()
-                    model.remove(record)
-                }) { Text(stringResource(R.string.action_remove)) }
-            },
-            dismissButton = { TextButton(onClick = model::dismissRemoveOffer) { Text(stringResource(R.string.action_keep)) } },
-        )
     }
     // The system installer asks for each app, so Update all says so first and can be cancelled.
     if (confirmUpdateAll) {
@@ -689,17 +674,6 @@ private fun StatusBadge(icon: ImageVector, tone: Tone, ring: Color, modifier: Mo
             .background(badgeColors(tone).container, CircleShape),
         contentAlignment = Alignment.Center,
     ) { Icon(icon, contentDescription = null, tint = badgeColors(tone).content, modifier = Modifier.size(BADGE_SYMBOL)) }
-}
-
-@Composable
-private fun UninstallDialog(name: String, onConfirm: () -> Unit, onDismiss: () -> Unit) {
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text(stringResource(R.string.uninstall_title, name)) },
-        text = { Text(stringResource(R.string.uninstall_text)) },
-        confirmButton = { TextButton(onClick = onConfirm) { Text(stringResource(R.string.action_uninstall)) } },
-        dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.action_cancel)) } },
-    )
 }
 
 @Composable

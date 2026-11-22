@@ -7,7 +7,6 @@ import com.valghora.shrimpl.install.InstallResult
 import com.valghora.shrimpl.install.Installer
 import com.valghora.shrimpl.ui.home.HomeViewModel
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertNull
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
@@ -15,8 +14,8 @@ import org.robolectric.Shadows.shadowOf
 import java.io.File
 
 /**
- * docs/SHRIMPL_SPEC.md R2.2: Uninstall from the app list keeps the app, then offers to remove it from
- * Shrimpl; one that didn't go offers nothing.
+ * docs/SHRIMPL_SPEC.md R2.2: an uninstalled app leaves the list unless the user chose to keep it; one
+ * that didn't go stays.
  */
 @RunWith(RobolectricTestRunner::class)
 class HomeUninstallTest {
@@ -29,44 +28,40 @@ class HomeUninstallTest {
         override suspend fun uninstall(packageName: String): InstallResult = result.also { uninstalled += packageName }
     }
 
-    private val model by lazy {
-        TestApps.save()
-        HomeViewModel(TestApps.app.container)
-    }
+    private val both by lazy { listOf(TestApps.example.appId, TestApps.squoosh.appId) }
 
-    /** Runs the main looper until [done], since the view model and the store work off it. */
-    private fun settle(done: () -> Boolean) {
+    /** The apps listed once an uninstall of Example ends with [result], the user having chosen [keep]. */
+    private fun appIdsAfter(result: InstallResult, keep: Boolean): List<String> {
+        TestApps.save()
+        val model = HomeViewModel(TestApps.app.container)
+        val installer = FakeInstaller(result)
+        model.uninstall(TestApps.app, TestApps.example, keep, installer)
+        val removing = result == InstallResult.Success && !keep
+        // The view model and the store work off the main looper; run it until the outcome settles.
         val deadline = System.currentTimeMillis() + 5_000
-        while (!done() && System.currentTimeMillis() < deadline) {
+        while (System.currentTimeMillis() < deadline) {
             shadowOf(Looper.getMainLooper()).idle()
+            val ids = model.records.value.map { it.appId }
+            if (installer.uninstalled.isNotEmpty() && (!removing || TestApps.example.appId !in ids)) break
             Thread.sleep(20)
         }
-    }
-
-    private fun appIds() = model.records.value.map { it.appId }.sorted()
-
-    @Test
-    fun anUninstalledAppIsOfferedForRemovalAndRemoveTakesItOff() {
-        val installer = FakeInstaller(InstallResult.Success)
-        model.uninstall(TestApps.app, TestApps.example, installer)
-        settle { model.offerRemove.value != null }
-        assertEquals(listOf(TestApps.example.packageName), installer.uninstalled)
-        assertEquals(TestApps.example.appId, model.offerRemove.value)
-        assertEquals("the app stays until the offer is answered", listOf(TestApps.example.appId, TestApps.squoosh.appId), appIds())
-
-        model.dismissRemoveOffer()
-        model.remove(TestApps.example)
-        settle { TestApps.example.appId !in appIds() }
-        assertEquals(listOf(TestApps.squoosh.appId), appIds())
-    }
-
-    @Test
-    fun aCancelledUninstallOffersNothing() {
-        val installer = FakeInstaller(InstallResult.Cancelled)
-        model.uninstall(TestApps.app, TestApps.example, installer)
-        settle { installer.uninstalled.isNotEmpty() }
         shadowOf(Looper.getMainLooper()).idle()
-        assertNull(model.offerRemove.value)
-        assertEquals(listOf(TestApps.example.appId, TestApps.squoosh.appId), appIds())
+        assertEquals(listOf(TestApps.example.packageName), installer.uninstalled)
+        return model.records.value.map { it.appId }.sorted()
+    }
+
+    @Test
+    fun anUninstalledAppLeavesTheList() {
+        assertEquals(listOf(TestApps.squoosh.appId), appIdsAfter(InstallResult.Success, keep = false))
+    }
+
+    @Test
+    fun anAppTheUserKeepsStaysInTheList() {
+        assertEquals(both, appIdsAfter(InstallResult.Success, keep = true))
+    }
+
+    @Test
+    fun aCancelledUninstallKeepsTheApp() {
+        assertEquals(both, appIdsAfter(InstallResult.Cancelled, keep = false))
     }
 }

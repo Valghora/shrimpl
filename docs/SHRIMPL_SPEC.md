@@ -188,9 +188,12 @@ binary translation) on any device.
 
   - The ⋮ menu, the right-click menu and the long-press menu ("Show options") offer the same actions.
     The pending action is always first; Rebuild appears only when there is none.
-  - Uninstall, here and on the edit page (R2.3), asks first, uninstalls the app, then asks whether
-    to remove it from Shrimpl too ("Remove <name> from Shrimpl?", Remove or Keep). Keep leaves it
-    in the list as Not installed. A turned-down or failed uninstall asks nothing more.
+  - Uninstall, here and on the edit page (R2.3), asks once: "Uninstall <name>?", "The app and its
+    data will be completely removed from your device. You can select the box below to keep <name>
+    in your app list if you wish to reinstall later.", with a checkbox "Keep <name> in your app
+    list", unchecked, then Cancel or Uninstall. Once the app is uninstalled, it leaves the list
+    unless the box was checked, which keeps it as Not installed. A turned-down or failed uninstall
+    keeps it either way.
   - Update rebuilds with the bundled template. Reinstall builds the app signed with the current key,
     whatever key it had (R11.7).
   - A not-installed app's icon and name are greyed out (65 % opacity, so the name keeps 4.5:1
@@ -204,8 +207,8 @@ binary translation) on any device.
   - It offers every profile setting in the form of R3.3 (the app ID is not shown) and the icon
     options (R10).
   - Its ⋮ menu offers, pending action first as on home (R2.2): Reinstall (when not installed), Open
-    and Rebuild (when installed), and Uninstall (when installed; confirmed, then it offers to remove
-    the record) or Remove.
+    and Rebuild (when installed), and Uninstall (when installed; asked as in R2.2, and the page closes
+    when the app leaves the list) or Remove.
   - For an installed app signed with another key (R11.7) it offers Fix, then Remove; a Caution
     notice says that saving or fixing uninstalls the app (its settings are kept, not its site data);
     and Save fixes it with the changes.
