@@ -42,6 +42,7 @@ fun UninstallDialog(name: String, onConfirm: (keep: Boolean) -> Unit, onDismiss:
                     Modifier.fillMaxWidth().heightIn(min = 48.dp)
                         .toggleable(value = keep, role = Role.Checkbox, onValueChange = { keep = it }),
                     verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
                 ) {
                     Checkbox(checked = keep, onCheckedChange = null)
                     Text(stringResource(R.string.uninstall_keep, name), style = MaterialTheme.typography.bodyLarge)
