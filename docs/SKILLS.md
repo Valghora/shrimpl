@@ -82,6 +82,7 @@ one gets a decision here.
 | `jetpack-compose/ink/ink-custom-brush-builder` | No drawing. |
 | `jetpack-compose/migration/migrate-xml-views-to-jetpack-compose` | The template stays on Views on purpose (T1.1). |
 | `media/media3-cast-integration` | Media plays inside each site's page. |
+| `migration/ios-to-android` | No iOS app to port: Shrimpl and its web apps are Android-only. |
 | `navigation/navigation-event` | Compose-only, and it defers to Navigation 3's own back handling; the template uses `OnBackPressedDispatcher`. |
 | `play/engage-sdk-integration` | Shrimpl and its web apps are sideloaded, not on Play. |
 | `play/play-billing-library-version-upgrade` | No billing; not on Play. |
