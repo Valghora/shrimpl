@@ -18,7 +18,7 @@ object AppOptionsSync {
     /** The Desktop site switch (T6.11): on is the Desktop user agent, off is Mobile. */
     const val KEY_DESKTOP_SITE = "desktop_site"
 
-    /** The Link and image menu switch (T5.5). */
+    /** The Context menu switch (T5.5). */
     const val KEY_LINK_MENU = "link_menu"
 
     /** The Block ads switch (T6.19), and [LiveSettings.adBlocking], as the [AdBlocking] name. */

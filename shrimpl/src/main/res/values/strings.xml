@@ -105,13 +105,13 @@
     <string name="ua_mobile_detail">Asks for the site\'s mobile layout</string>
     <string name="context_menu_shrimpl">Shrimpl</string>
     <string name="context_menu_site">Site</string>
-    <string name="context_menu_shrimpl_detail">A long press or right-click shows Shrimpl\'s menu to copy, open or save links and images.</string>
-    <string name="context_menu_site_detail">A long press or right-click shows the site\'s own menu.</string>
+    <string name="context_menu_shrimpl_detail">Shows Shrimpl\'s menu on links and images, to copy, open or save them.</string>
+    <string name="context_menu_site_detail">Shows the site\'s own menu on long press and right-click.</string>
     <string name="field_keep_alive">Run in background</string>
     <string name="field_pause_power_save">Pause in battery saver</string>
     <string name="field_multi_window">Allow multiple windows</string>
     <string name="field_multi_window_detail">Lets the app open in more than one window</string>
-    <string name="field_context_menu">Link and image menu</string>
+    <string name="field_context_menu">Context menu</string>
     <string name="field_ad_blocking">Ad blocking</string>
     <string name="ad_blocking_off">Off</string>
     <string name="ad_blocking_standard">Standard</string>

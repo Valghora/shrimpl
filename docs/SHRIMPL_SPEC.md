@@ -322,9 +322,9 @@ binary translation) on any device.
       Custom header color (disabled unless Custom).
     - **Behavior:** Site layout, the user agent (Auto, "Picks the desktop or mobile site
       automatically"; Desktop, "Asks for the site's desktop layout"; Mobile, "Asks for the site's
-      mobile layout"); Link and image menu (Site, the default, "A long press or right-click shows the
-      site's own menu."; Shrimpl, "A long press or right-click shows Shrimpl's menu to copy, open or
-      save links and images.", T5.5); Ad blocking (Off, "Loads everything the site asks for", the
+      mobile layout"); Context menu (Site, the default, "Shows the site's own menu on long press and
+      right-click."; Shrimpl, "Shows Shrimpl's menu on links and images, to copy, open or save
+      them.", T5.5); Ad blocking (Off, "Loads everything the site asks for", the
       default; Standard, "Blocks ads with EasyList"; Strict, "Blocks ads and trackers with EasyList
       and EasyPrivacy"; T6.19, R15); Run in background; Pause in battery saver.
     - **Window:** Allow multiple windows ("Lets the app open in more than one window", off by
@@ -611,14 +611,14 @@ The template's behavior is docs/TEMPLATE_SPEC.md. What Shrimpl relies on:
   - Recovery (R11.6) reads a web app's template version from its versionName in any of its forms:
     `1.0.0.12` (template 1.0.0, build 12), `1.0.12` (a `major.minor` template) or `19.12`.
 - R11.9 App options changes (docs/TEMPLATE_SPEC.md T5.8) reach the app's record, so its edit page
-  shows them: Desktop site on sets the user agent to Desktop and off to Mobile, Link and image menu
-  sets that setting, and Block ads sets Ad blocking (on keeps a level already set, else Strict;
+  shows them: Desktop site on sets the user agent to Desktop and off to Mobile, Context menu sets
+  that setting, and Block ads sets Ad blocking (on keeps a level already set, else Strict;
   off is Off). A web app sends them to Shrimpl's exported App options provider, which
   saves a change only for the caller itself: a package of one of its records, signed with the key
   that record names. An edit page that is open takes the new settings at once; with edits of its own,
   it takes only the panel's settings. The change applies in the app already, so saving it needs no
   rebuild.
-- R11.10 Live settings: the Behavior section (Site layout, Link and image menu, Ad blocking, Run in
+- R11.10 Live settings: the Behavior section (Site layout, Context menu, Ad blocking, Run in
   background, Pause in battery saver) reaches an installed app without a rebuild. Save stores them in the record
   (R2.3); the app asks the same provider for them whenever it comes to the front (docs/TEMPLATE_SPEC.md
   T5.9), and the provider answers only the caller about itself, as in R11.9. Everything else (identity,

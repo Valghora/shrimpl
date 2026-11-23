@@ -73,7 +73,7 @@ object AppOptionsPanel {
         return sheet
     }
 
-    /** One row per switch; every app has at least the Link and image menu. */
+    /** One row per switch; every app has at least the Context menu. */
     private fun body(context: Context, switches: List<OptionSwitch>, insetDp: Int): View =
         LinearLayout(context).apply {
             orientation = LinearLayout.VERTICAL

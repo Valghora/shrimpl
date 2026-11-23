@@ -94,7 +94,7 @@ interface UaStore {
 
 /** What the App options panel's other switches changed (T5.8); null is the profile's setting. */
 interface OptionStore {
-    /** The Link and image menu switch (T5.5). */
+    /** The Context menu switch (T5.5). */
     var linkMenuChoice: Boolean?
 
     /** The Block ads switch (T6.19): the level it set. */

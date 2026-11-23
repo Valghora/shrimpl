@@ -1383,7 +1383,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     /**
-     * T5.5: the template's link and image menu takes long presses and right-clicks only while it is on;
+     * T5.5: the template's context menu takes long presses and right-clicks only while it is on;
      * off, they reach the page, for text selection and the site's own menu.
      */
     private fun applyLinkMenu() {
