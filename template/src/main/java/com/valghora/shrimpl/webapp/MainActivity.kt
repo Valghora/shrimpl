@@ -512,7 +512,7 @@ class MainActivity : AppCompatActivity() {
     /**
      * T6.20: swaps the document-start script for the current one, and hides the page already showing,
      * which a document-start script only reaches on its next load. Removing it on Off leaves the page
-     * as it is until the reload that turning Block ads off makes.
+     * as it is until the reload that setting Ad blocking to Off makes.
      */
     private fun installHiding() {
         if (!webViewAlive) return
