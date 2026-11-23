@@ -14,7 +14,11 @@ notes="$(awk -v heading="## $version" '
   $0 == heading { inside = 1; next }
   inside && /^## / { exit }
   inside { print }
-' CHANGELOG.md | sed -e '/./,$!d' | tac | sed -e '/./,$!d' | tac)"
+' CHANGELOG.md |
+  # GitHub shows every line break in release notes, so an item wrapped over several lines in the
+  # change log becomes one line: an indented line joins the one before it.
+  awk 'NR > 1 && /^  +[^ ]/ { sub(/^ +/, " "); printf "%s", $0; next } NR > 1 { print "" } { printf "%s", $0 } END { print "" }' |
+  sed -e '/./,$!d' | tac | sed -e '/./,$!d' | tac)"
 
 if [[ -z "$notes" ]]; then
   echo "CHANGELOG.md has no section for $version: rename ## Unreleased to ## $version before the merge into main" >&2
