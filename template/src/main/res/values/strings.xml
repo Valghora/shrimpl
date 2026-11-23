@@ -20,8 +20,16 @@
     <string name="option_desktop_site">Desktop site</string>
     <string name="option_desktop_site_detail">Shows the site as it looks on a computer</string>
     <string name="option_link_menu">Context menu</string>
-    <string name="option_block_ads">Block ads</string>
-    <string name="option_block_ads_detail">Blocks the ads the site loads</string>
+    <!-- Ad blocking is a choice: its description says what the selected level does (R1.6). -->
+    <string name="option_ad_blocking">Ad blocking</string>
+    <string name="option_ad_blocking_off">Off</string>
+    <string name="option_ad_blocking_standard">Standard</string>
+    <string name="option_ad_blocking_strict">Strict</string>
+    <string name="option_ad_blocking_off_detail">Loads everything the site asks for</string>
+    <string name="option_ad_blocking_standard_detail">Blocks ads with EasyList</string>
+    <string name="option_ad_blocking_strict_detail">Blocks ads and trackers with EasyList and EasyPrivacy</string>
+    <string name="option_dark_mode">Dark mode</string>
+    <string name="option_dark_mode_detail">Shows the site dark, using its own dark design where it has one.</string>
     <string name="option_link_menu_detail">Shows a menu to copy, open or save links and images, instead of the site\'s own.</string>
     <string name="action_done">Done</string>
 

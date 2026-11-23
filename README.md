@@ -74,6 +74,7 @@ A huge thanks to the following projects:
 - [apksig](https://android.googlesource.com/platform/tools/apksig/) from the Android Open Source Project, which signs and verifies the apps, Apache License 2.0
 - [kotlinx.serialization](https://github.com/Kotlin/kotlinx.serialization), Apache License 2.0
 - [Shevery-API](https://github.com/HmnDev-Tech/Shevery-API) by HmnDev-Tech, for installs without prompts, MIT License
+- [Dark Reader](https://github.com/darkreader/darkreader) 4.9.135, bundled in every web app for its dark mode, MIT License
 - The [Public Suffix List](https://publicsuffix.org) from Mozilla, bundled to tell a site's domains apart, Mozilla Public License 2.0
 - [simple-icons](https://simpleicons.org), whose brand glyphs Shrimpl looks up when you make an app (none are bundled), CC0 1.0. The brands themselves are trademarks of their owners, used under their own guidelines.
 - Google's [Android skills](https://github.com/android/skills), vendored in `.claude/skills/` to guide the work on this project, Apache License 2.0

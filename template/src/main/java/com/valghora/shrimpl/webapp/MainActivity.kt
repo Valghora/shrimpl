@@ -80,6 +80,7 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.snackbar.Snackbar
 import com.valghora.shrimpl.core.AdBlocking
 import com.valghora.shrimpl.core.AppOption
+import com.valghora.shrimpl.core.DarkMode
 import com.valghora.shrimpl.core.CaptureChoice
 import com.valghora.shrimpl.core.DesktopSessionController
 import com.valghora.shrimpl.core.HitType
@@ -95,7 +96,6 @@ import com.valghora.shrimpl.core.profile.allowedOriginRules
 import com.valghora.shrimpl.core.profile.newWindowShortcutSpec
 import com.valghora.shrimpl.core.profile.sessionConfig
 import com.valghora.shrimpl.core.profile.uaFeaturesActive
-import com.valghora.shrimpl.core.records.AppOptionsSync
 import com.valghora.shrimpl.core.records.LiveSettings
 import java.io.File
 import java.net.URISyntaxException
@@ -122,6 +122,9 @@ class MainActivity : AppCompatActivity() {
 
     /** Open and Save dialogs with file handles for the main window and its popups (T6.17). */
     private lateinit var fileAccess: FileAccessBridge
+
+    /** Dark mode for the main window (T6.21). */
+    private lateinit var darkTheme: DarkTheme
     private lateinit var root: FrameLayout
     private lateinit var webView: DesktopWebView
     private lateinit var workspaceMonitor: WorkspaceMonitor
@@ -227,8 +230,11 @@ class MainActivity : AppCompatActivity() {
         // T5.8: a new build carries the settings Shrimpl has now, which include the panel's choices.
         controller.startBuild(packageManager.getPackageInfo(packageName, 0).longVersionCode)
         optionsSender = AppOptionsSender(applicationContext)
-        // T6.19: a Block ads choice made in this build holds until Shrimpl's answer replaces it.
+        // T6.19, T6.21: the panel's choices made in this build hold until Shrimpl's answer replaces them.
         prefs.adBlockingChoice?.let { WebApp.takeLiveSettings(LiveSettings.of(WebApp.profile).copy(adBlocking = it)) }
+        prefs.darkModeChoice?.let { WebApp.takeLiveSettings(LiveSettings.of(WebApp.profile).copy(darkMode = it)) }
+        // T6.21: the app's theme, and with it the page's prefers-color-scheme, before any view exists.
+        delegate.localNightMode = DarkTheme.nightModeFor(WebApp.profile.darkMode)
         AdBlocker.start(this)
         watchServiceWorkers()
         pageDownloads = PageDownloadBridge(this, controller)
@@ -331,6 +337,8 @@ class MainActivity : AppCompatActivity() {
         if (newNightMode != nightMode) {
             nightMode = newNightMode
             applyHeaderColors()
+            // T6.21: following the device, the page turns dark or light with it, without a reload.
+            if (webViewAlive && WebApp.profile.darkMode == DarkMode.SYSTEM) darkTheme.apply(reload = false)
         }
     }
 
@@ -351,6 +359,7 @@ class MainActivity : AppCompatActivity() {
         fileChooserCallback = null
         pendingChooser = null
         if (::fileAccess.isInitialized) fileAccess.release()
+        if (::darkTheme.isInitialized) darkTheme.release()
         destroyMainWebView()
         super.onDestroy()
     }
@@ -491,6 +500,8 @@ class MainActivity : AppCompatActivity() {
         AdBlocker.observe(hidingListener)
         installHiding()
         EmptySpaceMenuBridge(controller, ::showEmptySpaceMenu).install(webView)
+        darkTheme = DarkTheme(this, controller)
+        darkTheme.install(webView)
     }
 
     /** The element-hiding script on the main WebView now (T6.20), replaced whenever the lists change. */
@@ -1407,12 +1418,31 @@ class MainActivity : AppCompatActivity() {
     private var unsentDesktopSite: Boolean? = null
     private var unsentLinkMenu: Boolean? = null
     private var unsentAdBlocking: AdBlocking? = null
+    private var unsentDarkMode: DarkMode? = null
 
-    /** Opens the App options panel (T5.8) with the switches this app has, replacing one already open. */
+    /** Opens the App options panel (T5.8) with the options this app has, replacing one already open. */
     private fun showAppOptions() {
         optionsPanel?.dismiss()
-        val switches = controller.appOptions(uaToggleEnabled).map { option ->
+        val options = controller.appOptions(uaToggleEnabled).map { option ->
             when (option) {
+                AppOption.AD_BLOCKING -> OptionChoice(
+                    getString(R.string.option_ad_blocking),
+                    listOf(R.string.option_ad_blocking_off, R.string.option_ad_blocking_standard, R.string.option_ad_blocking_strict).map(::getString),
+                    listOf(
+                        R.string.option_ad_blocking_off_detail,
+                        R.string.option_ad_blocking_standard_detail,
+                        R.string.option_ad_blocking_strict_detail,
+                    ).map(::getString),
+                    AD_BLOCKING_LEVELS.indexOf(WebApp.profile.adBlocking),
+                ) { index ->
+                    val level = AD_BLOCKING_LEVELS[index]
+                    prefs.adBlockingChoice = level
+                    WebApp.takeLiveSettings(LiveSettings.of(WebApp.profile).copy(adBlocking = level))
+                    AdBlocker.start(this)
+                    unsentAdBlocking = level
+                    // Requests the page already made stay; reloading shows the page as the new level loads it.
+                    webView.reload()
+                }
                 AppOption.DESKTOP_SITE -> OptionSwitch(
                     getString(R.string.option_desktop_site),
                     getString(R.string.option_desktop_site_detail),
@@ -1421,6 +1451,17 @@ class MainActivity : AppCompatActivity() {
                     prefs.userChoice = if (on) UaMode.DESKTOP else UaMode.MOBILE
                     switchSite(if (on) UaMode.DESKTOP else UaMode.MOBILE)
                     unsentDesktopSite = on
+                }
+                AppOption.DARK_MODE -> OptionSwitch(
+                    getString(R.string.option_dark_mode),
+                    getString(R.string.option_dark_mode_detail),
+                    WebApp.profile.darkMode.isOn(DarkTheme.deviceDark()),
+                ) { on ->
+                    val mode = DarkMode.of(on, DarkTheme.deviceDark())
+                    prefs.darkModeChoice = mode
+                    WebApp.takeLiveSettings(LiveSettings.of(WebApp.profile).copy(darkMode = mode))
+                    unsentDarkMode = mode
+                    applyDarkMode(reload = true)
                 }
                 AppOption.LINK_MENU -> OptionSwitch(
                     getString(R.string.option_link_menu),
@@ -1431,22 +1472,9 @@ class MainActivity : AppCompatActivity() {
                     applyLinkMenu()
                     unsentLinkMenu = on
                 }
-                AppOption.BLOCK_ADS -> OptionSwitch(
-                    getString(R.string.option_block_ads),
-                    getString(R.string.option_block_ads_detail),
-                    WebApp.profile.adBlocking != AdBlocking.OFF,
-                ) { on ->
-                    val level = AppOptionsSync.adBlockingFor(on, WebApp.profile.adBlocking)
-                    prefs.adBlockingChoice = level
-                    WebApp.takeLiveSettings(LiveSettings.of(WebApp.profile).copy(adBlocking = level))
-                    AdBlocker.start(this)
-                    unsentAdBlocking = level
-                    // Requests the page already made stay; reloading shows the page as the new level loads it.
-                    webView.reload()
-                }
             }
         }
-        optionsPanel = AppOptionsPanel.show(this, switches).apply {
+        optionsPanel = AppOptionsPanel.show(this, options).apply {
             setOnDismissListener {
                 if (optionsPanel === it) optionsPanel = null
                 sendOptionChanges()
@@ -1468,11 +1496,12 @@ class MainActivity : AppCompatActivity() {
      * that already applies here.
      */
     private fun sendOptionChanges() {
-        if (unsentDesktopSite == null && unsentLinkMenu == null && unsentAdBlocking == null) return
-        optionsSender.send(desktopSite = unsentDesktopSite, linkMenu = unsentLinkMenu, adBlocking = unsentAdBlocking)
+        if (unsentDesktopSite == null && unsentLinkMenu == null && unsentAdBlocking == null && unsentDarkMode == null) return
+        optionsSender.send(desktopSite = unsentDesktopSite, linkMenu = unsentLinkMenu, adBlocking = unsentAdBlocking, darkMode = unsentDarkMode)
         unsentDesktopSite = null
         unsentLinkMenu = null
         unsentAdBlocking = null
+        unsentDarkMode = null
     }
 
     /**
@@ -1486,12 +1515,15 @@ class MainActivity : AppCompatActivity() {
 
     private fun applyLiveSettings(settings: LiveSettings) {
         if (!webViewAlive) return
+        val darkBefore = WebApp.profile.darkMode
         WebApp.takeLiveSettings(settings)
         prefs.userChoice = null
         prefs.linkMenuChoice = null
         prefs.adBlockingChoice = null
+        prefs.darkModeChoice = null
         controller.pauseOnPowerSave(settings.pauseOnPowerSave)
         applyLinkMenu()
+        if (settings.darkMode != darkBefore) applyDarkMode(reload = true)
         val mode = controller.resolveUa(
             WebApp.profile.userAgentMode,
             isLargeOrPc,
@@ -1500,6 +1532,15 @@ class MainActivity : AppCompatActivity() {
             WebApp.profile.userAgentOverride,
         ).mode
         switchSite(mode)
+    }
+
+    /**
+     * T6.21: the app's theme for the profile's dark mode, then the page's. The theme change reaches this
+     * activity as a configuration change (it handles uiMode), so the header follows too.
+     */
+    private fun applyDarkMode(reload: Boolean) {
+        delegate.localNightMode = DarkTheme.nightModeFor(WebApp.profile.darkMode)
+        darkTheme.apply(reload)
     }
 
     /** T6.11: shows the site as [mode] asks, reloading the start URL when that changes the layout. */
@@ -1602,6 +1643,9 @@ class MainActivity : AppCompatActivity() {
         val cookieWriter: ExecutorService = Executors.newSingleThreadExecutor()
         const val STORE_REDIRECT_WINDOW_MS = 10_000L
         const val POPUP_FRACTION = 0.9f
+
+        /** The Ad blocking choice's segments, in order (T5.8): Off, Standard, Strict. */
+        val AD_BLOCKING_LEVELS = listOf(AdBlocking.OFF, AdBlocking.ADS, AdBlocking.ADS_AND_TRACKERS)
         const val WAKE_SCRIPT =
             "window.dispatchEvent(new Event('online'));window.dispatchEvent(new Event('focus'));"
     }

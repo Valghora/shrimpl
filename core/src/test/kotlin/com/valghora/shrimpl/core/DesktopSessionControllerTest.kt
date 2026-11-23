@@ -230,8 +230,23 @@ class DesktopSessionControllerTest {
     @Test
     fun appOptionsOfferDesktopSiteOnlyWithTheToggle() {
         val c = controller()
-        assertEquals(listOf(AppOption.DESKTOP_SITE, AppOption.LINK_MENU, AppOption.BLOCK_ADS), c.appOptions(uaToggle = true))
-        assertEquals(listOf(AppOption.LINK_MENU, AppOption.BLOCK_ADS), c.appOptions(uaToggle = false))
+        assertEquals(
+            listOf(AppOption.AD_BLOCKING, AppOption.DESKTOP_SITE, AppOption.DARK_MODE, AppOption.LINK_MENU),
+            c.appOptions(uaToggle = true),
+        )
+        assertEquals(listOf(AppOption.AD_BLOCKING, AppOption.DARK_MODE, AppOption.LINK_MENU), c.appOptions(uaToggle = false))
+    }
+
+    @Test
+    fun theDarkModeSwitchFollowsTheDeviceWhenSetToMatchIt() {
+        assertTrue(DarkMode.SYSTEM.isOn(deviceDark = true))
+        assertFalse(DarkMode.SYSTEM.isOn(deviceDark = false))
+        assertTrue(DarkMode.DARK.isOn(deviceDark = false))
+        assertFalse(DarkMode.LIGHT.isOn(deviceDark = true))
+        assertEquals(DarkMode.SYSTEM, DarkMode.of(on = true, deviceDark = true))
+        assertEquals(DarkMode.SYSTEM, DarkMode.of(on = false, deviceDark = false))
+        assertEquals(DarkMode.DARK, DarkMode.of(on = true, deviceDark = false))
+        assertEquals(DarkMode.LIGHT, DarkMode.of(on = false, deviceDark = true))
     }
 
     @Test
@@ -248,7 +263,7 @@ class DesktopSessionControllerTest {
     @Test
     fun aNewBuildForgetsThePanelsChoices() {
         val ua = FakeUaStore(userChoice = UaMode.DESKTOP)
-        val options = UnsavedOptions(linkMenuChoice = true, optionsBuild = 3, adBlockingChoice = AdBlocking.ADS)
+        val options = UnsavedOptions(linkMenuChoice = true, optionsBuild = 3, adBlockingChoice = AdBlocking.ADS, darkModeChoice = DarkMode.DARK)
         val c = DesktopSessionController(FakeZoomStore(), ua, fixture, optionStore = options)
         c.startBuild(3)
         assertEquals(UaMode.DESKTOP, ua.userChoice)
@@ -257,6 +272,7 @@ class DesktopSessionControllerTest {
         assertNull(ua.userChoice)
         assertNull(options.linkMenuChoice)
         assertNull(options.adBlockingChoice)
+        assertNull(options.darkModeChoice)
         assertEquals(4L, options.optionsBuild)
     }
 

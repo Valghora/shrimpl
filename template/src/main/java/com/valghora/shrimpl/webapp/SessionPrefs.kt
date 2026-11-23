@@ -3,6 +3,7 @@ package com.valghora.shrimpl.webapp
 import android.content.Context
 import androidx.core.content.edit
 import com.valghora.shrimpl.core.AdBlocking
+import com.valghora.shrimpl.core.DarkMode
 import com.valghora.shrimpl.core.OptionStore
 import com.valghora.shrimpl.core.UaMode
 import com.valghora.shrimpl.core.UaStore
@@ -36,6 +37,10 @@ class SessionPrefs(context: Context) : ZoomStore, UaStore, OptionStore {
         get() = prefs.getString(KEY_AD_BLOCKING, null)?.let { name -> AdBlocking.entries.firstOrNull { it.name == name } }
         set(value) = prefs.edit { if (value == null) remove(KEY_AD_BLOCKING) else putString(KEY_AD_BLOCKING, value.name) }
 
+    override var darkModeChoice: DarkMode?
+        get() = prefs.getString(KEY_DARK_MODE, null)?.let { name -> DarkMode.entries.firstOrNull { it.name == name } }
+        set(value) = prefs.edit { if (value == null) remove(KEY_DARK_MODE) else putString(KEY_DARK_MODE, value.name) }
+
     override var optionsBuild: Long?
         get() = if (prefs.contains(KEY_OPTIONS_BUILD)) prefs.getLong(KEY_OPTIONS_BUILD, 0) else null
         set(value) = prefs.edit { if (value == null) remove(KEY_OPTIONS_BUILD) else putLong(KEY_OPTIONS_BUILD, value) }
@@ -63,6 +68,7 @@ class SessionPrefs(context: Context) : ZoomStore, UaStore, OptionStore {
         const val KEY_TOGGLE_TOKEN = "toggle_token"
         const val KEY_LINK_MENU = "link_menu"
         const val KEY_AD_BLOCKING = "ad_blocking"
+        const val KEY_DARK_MODE = "dark_mode"
         const val KEY_OPTIONS_BUILD = "options_build"
         const val KEY_TEXT_ZOOM = "text_zoom"
         const val KEY_UA_CHOICE = "ua_user_choice"

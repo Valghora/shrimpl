@@ -57,6 +57,14 @@ Java 17 bytecode.
   caption-bar insets give the header color (T3). From API 36, `resizeableActivity` is ignored on
   displays of 600 dp and wider, and API 37 ignores orientation and aspect ratio limits on large
   screens. `singleInstancePerTask` plus `FLAG_ACTIVITY_MULTIPLE_TASK` gives multiple windows.
+- **Dark Reader (T6.21).** `template/src/main/assets/darkreader/darkreader.js` is the npm package's
+  own `darkreader.js` 4.9.135, unchanged (tarball sha1 `2dbcb11b6eb0eae383af28a9b214eb1caa24064c`,
+  as the registry lists it), with its `LICENSE`. It is plain JavaScript, so R0 holds; 362 KB, about
+  70 KB compressed in the APK. Its UMD wrapper takes the `exports` and `module` the app's script
+  declares, so it sets no global. Run in a page, it can't read style sheets on other domains (CORS),
+  hence the app's fetch bridge. WebView reports `prefers-color-scheme` from the theme's
+  `isLightTheme`, so AppCompat's local night mode sets it; to update it later, update the copy with
+  its license and `shrimpl.templateVersion`.
 - **Package visibility.** `<queries>` (launcher apps, icon packs, Shevery) instead of
   `QUERY_ALL_PACKAGES` (R6.1): narrower, and enough, since every web app has a launcher entry.
 - **Network state.** `ACCESS_NETWORK_STATE` (a normal permission) lets discovery tell "No internet

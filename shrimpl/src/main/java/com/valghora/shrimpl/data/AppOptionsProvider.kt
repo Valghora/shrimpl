@@ -11,6 +11,7 @@ import android.os.ParcelFileDescriptor
 import androidx.core.os.bundleOf
 import com.valghora.shrimpl.container
 import com.valghora.shrimpl.core.AdBlocking
+import com.valghora.shrimpl.core.DarkMode
 import com.valghora.shrimpl.core.adblock.FilterList
 import com.valghora.shrimpl.core.records.AppOptionsSync
 import com.valghora.shrimpl.core.records.LiveSettings
@@ -47,6 +48,7 @@ class AppOptionsProvider : ContentProvider() {
             AppOptionsSync.KEY_KEEP_ALIVE to settings.keepAliveWhenHidden,
             AppOptionsSync.KEY_PAUSE_POWER_SAVE to settings.pauseOnPowerSave,
             AppOptionsSync.KEY_AD_BLOCKING to settings.adBlocking.name,
+            AppOptionsSync.KEY_DARK_MODE to settings.darkMode.name,
         ).apply {
             // R15.3: the version of each list the level uses; 0 until Shrimpl has a copy.
             FilterList.forLevel(settings.adBlocking).forEach { list ->
@@ -78,7 +80,8 @@ class AppOptionsProvider : ContentProvider() {
         val desktopSite = extras.flag(AppOptionsSync.KEY_DESKTOP_SITE)
         val linkMenu = extras.flag(AppOptionsSync.KEY_LINK_MENU)
         val adBlocking = extras.getString(AppOptionsSync.KEY_AD_BLOCKING)?.let { name -> AdBlocking.entries.firstOrNull { it.name == name } }
-        val profile = AppOptionsSync.apply(record.profile, desktopSite, linkMenu, adBlocking)
+        val darkMode = extras.getString(AppOptionsSync.KEY_DARK_MODE)?.let { name -> DarkMode.entries.firstOrNull { it.name == name } }
+        val profile = AppOptionsSync.apply(record.profile, desktopSite, linkMenu, adBlocking, darkMode)
         if (profile != record.profile) {
             // A binder thread: blocking it for one small atomic write is fine, and the web app waits off
             // its main thread.

@@ -1,6 +1,7 @@
 package com.valghora.shrimpl.core.profile
 
 import com.valghora.shrimpl.core.AdBlocking
+import com.valghora.shrimpl.core.DarkMode
 import com.valghora.shrimpl.core.Modifier
 import com.valghora.shrimpl.core.ShortcutSpec
 import com.valghora.shrimpl.core.UaMode
@@ -48,6 +49,8 @@ data class Profile(
     val nativeContextMenu: Boolean = true,
     /** Network ad blocking (T6.19); a live setting (R11.10). */
     val adBlocking: AdBlocking = AdBlocking.OFF,
+    /** Dark mode (T6.21); a live setting (R11.10). */
+    val darkMode: DarkMode = DarkMode.SYSTEM,
     val defaultWindowDp: WindowSize = WindowSize(1280, 800),
     val minWindowDp: WindowSize = WindowSize(400, 500),
     /** The site's own shortcuts, listed in the Keyboard Shortcuts Helper; the keys still reach the page. */

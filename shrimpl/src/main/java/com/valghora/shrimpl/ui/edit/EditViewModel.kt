@@ -76,6 +76,7 @@ class EditViewModel(private val container: AppContainer, val appId: String) : Vi
                             userAgentMode = saved.profile.userAgentMode,
                             nativeContextMenu = saved.profile.nativeContextMenu,
                             adBlocking = saved.profile.adBlocking,
+                            darkMode = saved.profile.darkMode,
                         ),
                     )
                 }
