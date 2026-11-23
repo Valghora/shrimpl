@@ -1,5 +1,6 @@
 package com.valghora.shrimpl.core.records
 
+import com.valghora.shrimpl.core.AdBlocking
 import com.valghora.shrimpl.core.UaMode
 import com.valghora.shrimpl.core.profile.Profile
 
@@ -20,6 +21,15 @@ object AppOptionsSync {
     /** The Link and image menu switch (T5.5). */
     const val KEY_LINK_MENU = "link_menu"
 
+    /** The Block ads switch (T6.19), and [LiveSettings.adBlocking], as the [AdBlocking] name. */
+    const val KEY_AD_BLOCKING = "ad_blocking"
+
+    /** The live-settings answer's key for a list's version (R15.3), followed by the list's id. */
+    const val KEY_LIST_VERSION = "list_version_"
+
+    /** The path, under the provider's authority, of a list's file (R15.3), followed by the list's id. */
+    const val LIST_PATH = "adblock"
+
     /** The answer's key: whether this Shrimpl built the caller and saved the change. */
     const val KEY_SAVED = "saved"
 
@@ -35,14 +45,25 @@ object AppOptionsSync {
     /** [LiveSettings.pauseOnPowerSave]. */
     const val KEY_PAUSE_POWER_SAVE = "pause_power_save"
 
+    /**
+     * The level the Block ads switch sets: off is Off; on keeps a level already chosen, and is Ads and
+     * trackers when ad blocking was off (T5.8).
+     */
+    fun adBlockingFor(blockAds: Boolean, current: AdBlocking): AdBlocking = when {
+        !blockAds -> AdBlocking.OFF
+        current == AdBlocking.OFF -> AdBlocking.ADS_AND_TRACKERS
+        else -> current
+    }
+
     /** [profile] with the panel's switches applied; a null switch leaves its setting as it is. */
-    fun apply(profile: Profile, desktopSite: Boolean?, linkMenu: Boolean?): Profile = profile.copy(
+    fun apply(profile: Profile, desktopSite: Boolean?, linkMenu: Boolean?, adBlocking: AdBlocking? = null): Profile = profile.copy(
         userAgentMode = when (desktopSite) {
             true -> UaMode.DESKTOP
             false -> UaMode.MOBILE
             null -> profile.userAgentMode
         },
         nativeContextMenu = linkMenu ?: profile.nativeContextMenu,
+        adBlocking = adBlocking ?: profile.adBlocking,
     )
 }
 
@@ -57,6 +78,7 @@ data class LiveSettings(
     val nativeContextMenu: Boolean,
     val keepAliveWhenHidden: Boolean,
     val pauseOnPowerSave: Boolean,
+    val adBlocking: AdBlocking = AdBlocking.OFF,
 ) {
     /** [profile] with these settings. */
     fun applyTo(profile: Profile): Profile = profile.copy(
@@ -64,6 +86,7 @@ data class LiveSettings(
         nativeContextMenu = nativeContextMenu,
         keepAliveWhenHidden = keepAliveWhenHidden,
         pauseOnPowerSave = pauseOnPowerSave,
+        adBlocking = adBlocking,
     )
 
     companion object {
@@ -73,6 +96,7 @@ data class LiveSettings(
             profile.nativeContextMenu,
             profile.keepAliveWhenHidden,
             profile.pauseOnPowerSave,
+            profile.adBlocking,
         )
 
         /**

@@ -39,30 +39,38 @@ document-start script, which mangles images)? Recommendation: algorithmic only a
 
 ## 2. Ad blocking, per web app
 
-**Decided (2026-11-08):** the same control levels as dark mode: a profile field `adBlocking` (Off, Ads, Ads
-and trackers; default Off) on the edit page, and a runtime switch in the App options panel (T5.8) that
-overrides it.
+**Decided (2026-11-08):** a profile field `adBlocking` (Off, Ads, Ads and trackers; default Off) on the edit
+page, and a switch in the App options panel (T5.8). **Decided (2026-11-23):** the lists are EasyList (Ads)
+and EasyList + EasyPrivacy (Ads and trackers), matched as URL rules, not host names only. Since live
+settings (R11.10), the field sits in the Behavior section and applies without a rebuild.
 
 **Design.**
 
-- Network blocking in `WebViewClient.shouldInterceptRequest` (and the service worker client), which the
-  template doesn't use yet; a blocked request gets an empty 403 response.
-- The matcher is pure Kotlin in `:core` (R0: no native code, so no Brave-style engines): a host set plus a
-  small subset of filter syntax (`||domain^`, `@@` exceptions, `$third-party`), thread-safe, O(1)-ish per
-  request, with the 95 % coverage rule.
-- Never block the app's internal domains or its sign-in domains (the existing routing classes, T2a), so
-  logins and payments keep working. Only third-party requests count.
-- Lists are an asset in the web app (`assets/shrimpl/adblock.txt`), written by the builder like the profile and
-  chosen by Shrimpl; start with one compact host list. Check its license and add attribution (About).
-- Cosmetic hiding (CSS selectors) later, through the document-start script mechanism the bridges use.
-- Limits to tell the user: no resource-type rules (WebView doesn't expose the type), no POST bodies, ads
-  served from the site's own domain (YouTube's) aren't blocked, and some sites show anti-adblock walls.
+- Network blocking in `WebViewClient.shouldInterceptRequest` and the service worker client; a blocked
+  request gets an empty 403 response. The page's own document is never blocked, nor sign-in domains
+  (T2a), so logins and payments keep working.
+- The engine is pure Kotlin in `:core` (R0: no native engines such as Brave's): Adblock Plus network
+  syntax (`||`, `|`, `*`, `^`, `@@`), the options `$third-party`/`$first-party` and `$domain=` (a web app
+  is one site, so both are exact), and `$match-case`. Rules that need the resource type (`$script`,
+  `$image`, …) are skipped, since WebView doesn't report it; `$popup` rules apply to popups later. Host
+  rules go in a compact sorted index (about 45k of EasyList's 54k network rules); the rest are indexed
+  by a token, as Adblock Plus and uBlock Origin do, so a request checks a handful of rules.
+- Shrimpl downloads the lists, not the apps: a daily WorkManager job (unmetered network not required:
+  conditional GETs make an unchanged list a 304) while any app has ad blocking on, and once at once
+  when one turns it on. A download must parse and hold at least half the previous rule count, or the
+  last good copy stays.
+- Apps get the lists from Shrimpl's provider (R11.9's caller check): the live-settings answer carries
+  each list's version, and an app with a newer one reads the file through `openFile`. Nothing is in the
+  APK; an app blocks nothing until its first copy arrives.
+- Licenses: EasyList and EasyPrivacy are GPL-3.0 or CC BY-SA 3.0. They are downloaded on the device,
+  never shipped in an APK; Shrimpl's About credits them.
+- Element hiding (`##` rules, about 25k) later, through the document-start script mechanism.
+- Limits to tell the user: no resource-type rules, no WebSockets, ads served like the content itself
+  (YouTube's) aren't caught by network rules, and some sites show anti-adblock walls.
 
-**Tests.** `:core` unit tests for parsing and matching; a Robolectric test of the edit-page control; an
-emulator test: a page at the app's origin requests a blocked host and an allowed one and the statuses are
-checked, with no network needed.
-
-**Open.** Which starter list, and its license. Whether "Ads and trackers" is worth a second list at first.
+**Tests.** `:core` unit tests for parsing and matching, against the real syntax; a Robolectric test of the
+edit-page field; an emulator test: a page at the app's origin requests a blocked URL and an allowed one,
+with rules handed to the engine, no network needed.
 
 ## Later
 

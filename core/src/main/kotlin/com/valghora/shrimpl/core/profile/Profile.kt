@@ -1,5 +1,6 @@
 package com.valghora.shrimpl.core.profile
 
+import com.valghora.shrimpl.core.AdBlocking
 import com.valghora.shrimpl.core.Modifier
 import com.valghora.shrimpl.core.ShortcutSpec
 import com.valghora.shrimpl.core.UaMode
@@ -45,6 +46,8 @@ data class Profile(
     val keepAliveWhenHidden: Boolean = true,
     val pauseOnPowerSave: Boolean = false,
     val nativeContextMenu: Boolean = false,
+    /** Network ad blocking (T6.19); a live setting (R11.10). */
+    val adBlocking: AdBlocking = AdBlocking.OFF,
     val defaultWindowDp: WindowSize = WindowSize(1280, 800),
     val minWindowDp: WindowSize = WindowSize(400, 500),
     /** The site's own shortcuts, listed in the Keyboard Shortcuts Helper; the keys still reach the page. */

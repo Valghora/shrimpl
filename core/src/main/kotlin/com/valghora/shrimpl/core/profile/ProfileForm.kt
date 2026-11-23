@@ -1,5 +1,6 @@
 package com.valghora.shrimpl.core.profile
 
+import com.valghora.shrimpl.core.AdBlocking
 import com.valghora.shrimpl.core.Modifier
 import com.valghora.shrimpl.core.ShortcutSpec
 import com.valghora.shrimpl.core.UaMode
@@ -31,6 +32,7 @@ data class ProfileForm(
     val pauseOnPowerSave: Boolean,
     val enableMultiWindow: Boolean,
     val nativeContextMenu: Boolean,
+    val adBlocking: AdBlocking,
     val defaultWidth: String,
     val defaultHeight: String,
     val minWidth: String,
@@ -77,6 +79,7 @@ data class ProfileForm(
             pauseOnPowerSave = pauseOnPowerSave,
             enableMultiWindow = enableMultiWindow,
             nativeContextMenu = nativeContextMenu,
+            adBlocking = adBlocking,
             defaultWindowDp = WindowSize(
                 dimension("defaultWindowDp", defaultWidth, base.defaultWindowDp.width),
                 dimension("defaultWindowDp", defaultHeight, base.defaultWindowDp.height),
@@ -114,6 +117,7 @@ data class ProfileForm(
             pauseOnPowerSave = profile.pauseOnPowerSave,
             enableMultiWindow = profile.enableMultiWindow,
             nativeContextMenu = profile.nativeContextMenu,
+            adBlocking = profile.adBlocking,
             defaultWidth = profile.defaultWindowDp.width.toString(),
             defaultHeight = profile.defaultWindowDp.height.toString(),
             minWidth = profile.minWindowDp.width.toString(),

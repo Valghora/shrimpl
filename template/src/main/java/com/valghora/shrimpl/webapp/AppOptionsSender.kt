@@ -8,7 +8,9 @@ import android.os.Handler
 import android.os.Looper
 import android.util.Log
 import androidx.core.os.bundleOf
+import com.valghora.shrimpl.core.AdBlocking
 import com.valghora.shrimpl.core.UaMode
+import com.valghora.shrimpl.core.adblock.FilterList
 import com.valghora.shrimpl.core.records.AppOptionsSync
 import com.valghora.shrimpl.core.records.LiveSettings
 import java.util.concurrent.Executors
@@ -25,10 +27,11 @@ class AppOptionsSender(private val context: Context) {
     private val io = Executors.newSingleThreadExecutor()
 
     /** Sends the switches that changed; null leaves a setting as it is. Off the main thread, never failing. */
-    fun send(desktopSite: Boolean? = null, linkMenu: Boolean? = null) {
+    fun send(desktopSite: Boolean? = null, linkMenu: Boolean? = null, adBlocking: AdBlocking? = null) {
         val extras = bundleOf().apply {
             desktopSite?.let { putBoolean(AppOptionsSync.KEY_DESKTOP_SITE, it) }
             linkMenu?.let { putBoolean(AppOptionsSync.KEY_LINK_MENU, it) }
+            adBlocking?.let { putString(AppOptionsSync.KEY_AD_BLOCKING, it.name) }
         }
         io.execute {
             val providers = context.packageManager.queryIntentContentProviders(
@@ -51,21 +54,26 @@ class AppOptionsSender(private val context: Context) {
         }
     }
 
+    /** Shrimpl's answer to [fetch]: the live settings, who answered, and the versions of its lists (R15.3). */
+    class Answer(val settings: LiveSettings, val authority: String, val listVersions: Map<FilterList, Long>)
+
     /**
-     * Asks the Shrimpl that built this app for its live settings (T5.9) and hands them to [onSettings]
+     * Asks the Shrimpl that built this app for its live settings (T5.9) and hands them to [onAnswer]
      * on the main thread; without an answer nothing happens. One thread for both directions, so a
      * change sent when the panel closed is saved before the settings are read back.
      */
-    fun fetch(onSettings: (LiveSettings) -> Unit) {
+    fun fetch(onAnswer: (Answer) -> Unit) {
         val main = Handler(Looper.getMainLooper())
         io.execute {
             val providers = context.packageManager.queryIntentContentProviders(
                 Intent(AppOptionsSync.ACTION),
                 PackageManager.ResolveInfoFlags.of(0),
             )
-            val settings = providers.mapNotNull { it.providerInfo?.authority }.firstNotNullOfOrNull { authority ->
+            val answer = providers.mapNotNull { it.providerInfo?.authority }.firstNotNullOfOrNull { authority ->
                 try {
-                    context.contentResolver.call(authority, AppOptionsSync.METHOD_SETTINGS, null, null)?.let(::liveSettings)
+                    context.contentResolver.call(authority, AppOptionsSync.METHOD_SETTINGS, null, null)?.let { bundle ->
+                        liveSettings(bundle)?.let { Answer(it, authority, listVersions(bundle)) }
+                    }
                 } catch (e: SecurityException) {
                     Log.w(WebApp.profile.appId, "Shrimpl at $authority refused live settings: ${e.message}")
                     null
@@ -74,7 +82,7 @@ class AppOptionsSender(private val context: Context) {
                     null
                 }
             }
-            if (settings != null) main.post { onSettings(settings) }
+            if (answer != null) main.post { onAnswer(answer) }
         }
     }
 
@@ -88,8 +96,13 @@ class AppOptionsSender(private val context: Context) {
             nativeContextMenu = answer.getBoolean(AppOptionsSync.KEY_LINK_MENU),
             keepAliveWhenHidden = answer.getBoolean(AppOptionsSync.KEY_KEEP_ALIVE),
             pauseOnPowerSave = answer.getBoolean(AppOptionsSync.KEY_PAUSE_POWER_SAVE),
+            adBlocking = AdBlocking.entries.firstOrNull { it.name == answer.getString(AppOptionsSync.KEY_AD_BLOCKING) } ?: AdBlocking.OFF,
         )
     }
+
+    /** The version of each list the answer names; a list Shrimpl has no copy of yet is 0. */
+    private fun listVersions(answer: Bundle): Map<FilterList, Long> =
+        FilterList.entries.associateWith { answer.getLong(AppOptionsSync.KEY_LIST_VERSION + it.id, 0L) }
 
     /** Stops the sender's thread once the activity is gone. */
     fun shutdown() = io.shutdown()

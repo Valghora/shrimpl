@@ -5,6 +5,8 @@ import android.content.Context
 import androidx.work.Configuration
 import com.valghora.shrimpl.build.WebAppFactory
 import com.valghora.shrimpl.data.AppSettings
+import com.valghora.shrimpl.data.FilterListSchedule
+import com.valghora.shrimpl.data.FilterListStore
 import com.valghora.shrimpl.data.InstalledApps
 import com.valghora.shrimpl.data.SigningKeyStore
 import com.valghora.shrimpl.data.TemplateProvider
@@ -14,6 +16,12 @@ import com.valghora.shrimpl.discovery.SiteDiscovery
 import com.valghora.shrimpl.install.Installers
 import com.valghora.shrimpl.update.UpdateSchedule
 import com.valghora.shrimpl.update.Updates
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.launch
 
 /** Shrimpl's long-lived objects, created once with the application. */
 class AppContainer(context: Context) {
@@ -31,6 +39,22 @@ class AppContainer(context: Context) {
     val discovery = SiteDiscovery(context)
     val recovery = WebAppRecovery(context, store, settings)
     val updates = Updates(context, installers, installedCode = BuildConfig.VERSION_CODE, debug = BuildConfig.DEBUG)
+    val filterLists = FilterListStore(context)
+
+    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
+
+    /**
+     * R15.2: keeps the list downloads in step with the records. A list some app starts using is fetched
+     * at once; the daily job runs while any app blocks ads, and stops when none does.
+     */
+    fun watchFilterLists() {
+        scope.launch {
+            store.records.map(FilterListStore::needed).distinctUntilChanged().collect { needed ->
+                val missing = needed.any { filterLists.file(it) == null }
+                FilterListSchedule.apply(appContext, needed, missing)
+            }
+        }
+    }
 
     /** Schedules, or cancels, the background update check from the settings (R14.2). */
     fun scheduleUpdateChecks() = UpdateSchedule.apply(appContext, settings.updateFrequency.value)
@@ -50,6 +74,7 @@ class ShrimplApp : Application(), Configuration.Provider {
         super.onCreate()
         container = AppContainer(this)
         container.scheduleUpdateChecks()
+        container.watchFilterLists()
     }
 }
 

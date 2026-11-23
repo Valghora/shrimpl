@@ -2,6 +2,7 @@ package com.valghora.shrimpl.webapp
 
 import android.content.Context
 import androidx.core.content.edit
+import com.valghora.shrimpl.core.AdBlocking
 import com.valghora.shrimpl.core.OptionStore
 import com.valghora.shrimpl.core.UaMode
 import com.valghora.shrimpl.core.UaStore
@@ -31,6 +32,10 @@ class SessionPrefs(context: Context) : ZoomStore, UaStore, OptionStore {
         get() = if (prefs.contains(KEY_LINK_MENU)) prefs.getBoolean(KEY_LINK_MENU, false) else null
         set(value) = prefs.edit { if (value == null) remove(KEY_LINK_MENU) else putBoolean(KEY_LINK_MENU, value) }
 
+    override var adBlockingChoice: AdBlocking?
+        get() = prefs.getString(KEY_AD_BLOCKING, null)?.let { name -> AdBlocking.entries.firstOrNull { it.name == name } }
+        set(value) = prefs.edit { if (value == null) remove(KEY_AD_BLOCKING) else putString(KEY_AD_BLOCKING, value.name) }
+
     override var optionsBuild: Long?
         get() = if (prefs.contains(KEY_OPTIONS_BUILD)) prefs.getLong(KEY_OPTIONS_BUILD, 0) else null
         set(value) = prefs.edit { if (value == null) remove(KEY_OPTIONS_BUILD) else putLong(KEY_OPTIONS_BUILD, value) }
@@ -57,6 +62,7 @@ class SessionPrefs(context: Context) : ZoomStore, UaStore, OptionStore {
         const val KEY_ASKED = "asked_"
         const val KEY_TOGGLE_TOKEN = "toggle_token"
         const val KEY_LINK_MENU = "link_menu"
+        const val KEY_AD_BLOCKING = "ad_blocking"
         const val KEY_OPTIONS_BUILD = "options_build"
         const val KEY_TEXT_ZOOM = "text_zoom"
         const val KEY_UA_CHOICE = "ua_user_choice"

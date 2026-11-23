@@ -48,6 +48,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.core.graphics.toColorInt
 import com.valghora.shrimpl.R
+import com.valghora.shrimpl.core.AdBlocking
 import com.valghora.shrimpl.core.UaMode
 import com.valghora.shrimpl.core.profile.HeaderMode
 import com.valghora.shrimpl.core.profile.ProfileForm
@@ -310,6 +311,24 @@ private class Fields(
                 listOf(false to stringResource(R.string.context_menu_site), true to stringResource(R.string.context_menu_shrimpl)),
                 { onChange(form.copy(nativeContextMenu = it)) },
                 summary = stringResource(if (form.nativeContextMenu) R.string.context_menu_shrimpl_detail else R.string.context_menu_site_detail),
+            )
+            // T6.19: which lists the app blocks with; a live setting (R11.10), like the rest of Behavior.
+            DropdownItem(
+                stringResource(R.string.field_ad_blocking),
+                form.adBlocking,
+                listOf(
+                    AdBlocking.OFF to stringResource(R.string.ad_blocking_off),
+                    AdBlocking.ADS to stringResource(R.string.ad_blocking_ads),
+                    AdBlocking.ADS_AND_TRACKERS to stringResource(R.string.ad_blocking_ads_and_trackers),
+                ),
+                { onChange(form.copy(adBlocking = it)) },
+                summary = stringResource(
+                    when (form.adBlocking) {
+                        AdBlocking.OFF -> R.string.ad_blocking_off_detail
+                        AdBlocking.ADS -> R.string.ad_blocking_ads_detail
+                        AdBlocking.ADS_AND_TRACKERS -> R.string.ad_blocking_ads_and_trackers_detail
+                    },
+                ),
             )
             SwitchItem(
                 stringResource(R.string.field_keep_alive), form.keepAliveWhenHidden, { onChange(form.copy(keepAliveWhenHidden = it)) },

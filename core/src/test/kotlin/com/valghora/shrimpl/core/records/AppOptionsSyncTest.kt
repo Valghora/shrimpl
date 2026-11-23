@@ -1,5 +1,6 @@
 package com.valghora.shrimpl.core.records
 
+import com.valghora.shrimpl.core.AdBlocking
 import com.valghora.shrimpl.core.UaMode
 import com.valghora.shrimpl.core.profile.Profile
 import org.junit.Assert.assertEquals
@@ -44,5 +45,14 @@ class AppOptionsSyncTest {
     fun liveSettingsRoundTripThroughAProfile() {
         val settings = LiveSettings(UaMode.MOBILE, nativeContextMenu = true, keepAliveWhenHidden = false, pauseOnPowerSave = true)
         assertEquals(settings, LiveSettings.of(settings.applyTo(profile)))
+    }
+
+    @Test
+    fun theBlockAdsSwitchKeepsAChosenLevel() {
+        assertEquals(AdBlocking.OFF, AppOptionsSync.adBlockingFor(false, AdBlocking.ADS))
+        assertEquals(AdBlocking.ADS_AND_TRACKERS, AppOptionsSync.adBlockingFor(true, AdBlocking.OFF))
+        assertEquals(AdBlocking.ADS, AppOptionsSync.adBlockingFor(true, AdBlocking.ADS))
+        assertEquals(AdBlocking.ADS, AppOptionsSync.apply(profile, null, null, AdBlocking.ADS).adBlocking)
+        assertEquals(false, LiveSettings.needsRebuild(profile, profile.copy(adBlocking = AdBlocking.ADS_AND_TRACKERS)))
     }
 }

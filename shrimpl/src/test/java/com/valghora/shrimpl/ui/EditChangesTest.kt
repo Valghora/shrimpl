@@ -77,6 +77,18 @@ class EditChangesTest {
         assertFalse("nothing left to save", saveShown)
     }
 
+    /** R3.3, T6.19: Ad blocking is a choice in Behavior, Off by default, its summary naming the level. */
+    @Test
+    fun adBlockingIsAChoiceThatStartsOff() {
+        openSquoosh()
+        compose.onNode(hasText(string(R.string.field_ad_blocking))).performScrollTo()
+        assertTrue(exists(string(R.string.ad_blocking_off_detail)))
+        compose.onNode(hasClickAction() and hasText(string(R.string.ad_blocking_off))).performClick()
+        compose.onNode(hasText(string(R.string.ad_blocking_ads_and_trackers))).performClick()
+        compose.waitUntil(LOAD_TIMEOUT_MS) { exists(string(R.string.ad_blocking_ads_and_trackers_detail)) }
+        assertTrue("the change waits for Save", saveShown)
+    }
+
     /** R2.3, R11.10: a change that needs a rebuild asks first; Cancel keeps the change unsaved. */
     @Test
     fun saveAsksBeforeARebuild() {
