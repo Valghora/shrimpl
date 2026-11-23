@@ -768,7 +768,9 @@ list, and no APK carries one.
 - R15.1 The lists are EasyList (Standard) and EasyList with EasyPrivacy (Strict), and at both levels
   the Adblock Warning Removal List, which lets bait files load and hides the walls that ask to turn ad
   blocking off. All are the EasyList project's, under GPL-3.0 or CC BY-SA 3.0. Shrimpl keeps the lists some app's Ad blocking uses, in
-  `files/adblock/`, and credits them in Settings' About section ("Ad blocking lists").
+  `files/adblock/`. Shrimpl doesn't credit them: their licenses ask for credit (The EasyList authors)
+  only where the lists are distributed, and each device downloads them itself. A list ever shipped in
+  an APK brings the credit and license notice back.
 - R15.2 Downloads run with WorkManager: once a day while any app uses a list, and at once when an app
   starts using one Shrimpl doesn't have; none when no app blocks ads. Each is a conditional GET
   (`If-None-Match`, `If-Modified-Since`), so an unchanged list costs a 304. A download over HTTPS
