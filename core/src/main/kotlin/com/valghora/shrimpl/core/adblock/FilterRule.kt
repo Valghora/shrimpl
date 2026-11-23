@@ -25,6 +25,8 @@ internal sealed class FilterRule {
         val matchCase: Boolean,
         /** `$important`: a block no exception lifts. */
         val important: Boolean,
+        /** `$popup`: the rule is about a window the page opens, not its requests (T6.20). */
+        val popup: Boolean = false,
     ) : FilterRule() {
         /** The pattern as a regular expression, built the first time the rule meets a request. */
         @Volatile
@@ -48,7 +50,7 @@ internal sealed class FilterRule {
 
         /** Options that don't apply to a page's requests at all: whole pages, popups, element hiding. */
         private val NOT_REQUESTS = setOf(
-            "document", "doc", "popup", "elemhide", "ehide", "generichide", "ghide", "genericblock",
+            "document", "doc", "elemhide", "ehide", "generichide", "ghide", "genericblock",
             "csp", "rewrite", "redirect", "redirect-rule", "removeparam", "header", "permissions",
         )
 
@@ -67,6 +69,7 @@ internal sealed class FilterRule {
             val exclude = mutableListOf<String>()
             var matchCase = false
             var important = false
+            var popup = false
             for (option in options) {
                 val negated = option.startsWith('~')
                 val name = option.removePrefix("~").substringBefore('=').lowercase()
@@ -79,12 +82,13 @@ internal sealed class FilterRule {
                     }
                     name == "match-case" -> matchCase = true
                     name == "important" -> important = true
+                    name == "popup" && !negated -> popup = true
                     // `~script`: every request but scripts. The type is unknown, so the rule applies to all.
                     name in TYPES && negated -> Unit
                     else -> return null
                 }
             }
-            if (!exception && include.isEmpty() && exclude.isEmpty() && thirdParty == null && !important && !matchCase) {
+            if (!exception && include.isEmpty() && exclude.isEmpty() && thirdParty == null && !important && !matchCase && !popup) {
                 HOST_RULE.matchEntire(pattern)?.let { return Host(it.groupValues[1].lowercase(), exception) }
             }
             if (exception && options.isEmpty()) {
@@ -92,7 +96,7 @@ internal sealed class FilterRule {
             }
             if (!isRegexRule(pattern) && runCatching { toRegex(pattern, matchCase) }.isFailure) return null
             if (isRegexRule(pattern) && runCatching { Regex(pattern.substring(1, pattern.length - 1)) }.isFailure) return null
-            return Pattern(pattern, exception, thirdParty, include, exclude, matchCase, important)
+            return Pattern(pattern, exception, thirdParty, include, exclude, matchCase, important, popup)
         }
 
         /** The pattern and its options; a `$` inside a regular expression rule isn't an options mark. */

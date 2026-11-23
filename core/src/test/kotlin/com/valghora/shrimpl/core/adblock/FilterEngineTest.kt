@@ -89,8 +89,20 @@ class FilterEngineTest {
         assertFalse(e.blocks("https://site.test/"))
         assertFalse(e.blocks("https://x.test/weird"))
         assertTrue("a negated type applies to every request", e.blocks("https://x.test/cgi-bin/ad/1"))
-        assertEquals(1, e.ruleCount)
+        assertEquals("the popup rule is kept, for popups", 2, e.ruleCount)
         assertEquals(1, FilterEngine.countRules("||a.test^\n/b.js\$script\n! c"))
+    }
+
+    @Test
+    fun popupRulesDecideOnlyAboutPopups() {
+        val e = engine("||popads.test^\$popup", "||ads.test^", "/go/offer\$popup,third-party", "@@||popads.test/ok\$popup")
+        assertTrue(e.shouldBlockPopup("https://popads.test/x", page, thirdParty = true))
+        assertFalse("an exception lets the window open", e.shouldBlockPopup("https://popads.test/ok", page, thirdParty = true))
+        assertFalse("a popup isn't a request", e.blocks("https://popads.test/x"))
+        assertFalse("a request rule doesn't close windows", e.shouldBlockPopup("https://ads.test/", page, thirdParty = true))
+        assertTrue(e.shouldBlockPopup("https://partner.test/go/offer?id=1", page, thirdParty = true))
+        assertFalse(e.shouldBlockPopup("https://news.example/go/offer", page, thirdParty = false))
+        assertFalse(e.shouldBlockPopup("about:blank", page, thirdParty = false))
     }
 
     @Test
@@ -171,5 +183,70 @@ class FilterListsTest {
         assertTrue(FilterList.accept(26_000, 50_000))
         assertFalse(FilterList.accept(24_000, 50_000))
         assertFalse(FilterList.accept(500, null))
+    }
+}
+
+/** Element hiding (docs/TEMPLATE_SPEC.md T6.20) against rules as EasyList writes them. */
+class CosmeticFilterTest {
+    private val list = """
+        ! Title: test
+        ##.ad-banner
+        ###top-ad
+        ##div[id^="google_ads"]
+        news.example##.sponsored
+        m.news.example##.mobile-ad
+        other.example##.elsewhere
+        news.example#@#.ad-banner
+        ~shop.example##.promo-box
+        #@#.allowed-everywhere
+        ##.allowed-everywhere
+        news.example,~sports.news.example##.mixed
+        example.*##.entity
+        ##.ad:has-text(Sponsored)
+        news.example#?#.slot:-abp-has(.ad)
+        ##.broken[
+        ##.x { color: red }
+        @@||quiet.example^${'$'}generichide
+        @@||bare.example^${'$'}elemhide
+        @@||x.test^${'$'}script
+    """.trimIndent()
+
+    private val filter = CosmeticFilter.parse(list)
+
+    @Test
+    fun genericRulesAreKeptOnceAndGenericExceptionsRemoveThem() {
+        assertEquals(listOf(".ad-banner", "#top-ad", "div[id^=\"google_ads\"]", ".promo-box"), filter.generic)
+    }
+
+    @Test
+    fun siteRulesCoverTheAppsDomainsTheirSubdomainsAndParents() {
+        val site = filter.site(listOf("news.example"))
+        assertEquals(setOf("news.example", "m.news.example"), site.keys)
+        assertEquals(listOf(".sponsored"), site.getValue("news.example").hide)
+        assertEquals(listOf(".ad-banner"), site.getValue("news.example").unhide)
+        assertEquals(listOf(".mobile-ad"), site.getValue("m.news.example").hide)
+        val sub = filter.site(listOf("m.news.example"))
+        assertEquals("a parent domain's rules apply too", setOf("news.example", "m.news.example"), sub.keys)
+    }
+
+    @Test
+    fun excludedDomainsShowGenericRulesAgain() {
+        assertEquals(listOf(".promo-box"), filter.site(listOf("shop.example")).getValue("shop.example").unhide)
+    }
+
+    @Test
+    fun pageExceptionsTurnHidingOff() {
+        val quiet = filter.site(listOf("quiet.example")).getValue("quiet.example")
+        assertTrue(quiet.genericHide)
+        assertFalse(quiet.elemHide)
+        assertTrue(filter.site(listOf("bare.example")).getValue("bare.example").elemHide)
+    }
+
+    @Test
+    fun whatIsntPlainCssIsLeftOut() {
+        val all = filter.generic + filter.site(listOf("news.example", "example.com")).values.flatMap { it.hide }
+        assertFalse(all.any { "has-text" in it || "-abp-" in it || "broken" in it || "color" in it || "mixed" in it || "entity" in it })
+        // 4 generic + 3 site + 1 site exception + 1 excluded generic + 1 generic exception + 2 page exceptions.
+        assertEquals(12, filter.ruleCount)
     }
 }
