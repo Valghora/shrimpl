@@ -15,14 +15,19 @@
     <string name="shortcut_print">Print</string>
     <string name="shortcut_new_window">New window</string>
 
-    <!-- App options (TEMPLATE_SPEC T5.8). The switch description says what it does when on (R1.6). -->
+    <!-- App options (TEMPLATE_SPEC T5.8). Switches have no description: their names say what they do. -->
     <string name="app_options">App options</string>
     <string name="option_desktop_site">Desktop site</string>
-    <string name="option_desktop_site_detail">Shows the site as it looks on a computer</string>
-    <string name="option_link_menu">Context menu</string>
-    <string name="option_block_ads">Block ads</string>
-    <string name="option_block_ads_detail">Blocks the ads the site loads</string>
-    <string name="option_link_menu_detail">Shows a menu to copy, open or save links and images, instead of the site\'s own.</string>
+    <string name="option_link_menu">Shrimpl context menu</string>
+    <!-- Ad blocking is a choice: its description says what the selected level does (R1.6). -->
+    <string name="option_ad_blocking">Ad blocking</string>
+    <string name="option_ad_blocking_off">Off</string>
+    <string name="option_ad_blocking_standard">Standard</string>
+    <string name="option_ad_blocking_strict">Strict</string>
+    <string name="option_ad_blocking_off_detail">Loads everything the site asks for</string>
+    <string name="option_ad_blocking_standard_detail">Blocks ads with EasyList</string>
+    <string name="option_ad_blocking_strict_detail">Blocks ads and trackers with EasyList/EasyPrivacy</string>
+    <string name="option_dark_mode">Dark mode</string>
     <string name="action_done">Done</string>
 
     <string name="toast_download_started">Downloading…</string>

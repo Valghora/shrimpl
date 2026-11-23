@@ -1,6 +1,7 @@
 package com.valghora.shrimpl.core.records
 
 import com.valghora.shrimpl.core.AdBlocking
+import com.valghora.shrimpl.core.DarkMode
 import com.valghora.shrimpl.core.UaMode
 import com.valghora.shrimpl.core.profile.Profile
 import org.junit.Assert.assertEquals
@@ -48,12 +49,14 @@ class AppOptionsSyncTest {
     }
 
     @Test
-    fun theBlockAdsSwitchKeepsAChosenLevel() {
-        assertEquals(AdBlocking.OFF, AppOptionsSync.adBlockingFor(false, AdBlocking.ADS))
-        assertEquals(AdBlocking.ADS_AND_TRACKERS, AppOptionsSync.adBlockingFor(true, AdBlocking.OFF))
-        assertEquals(AdBlocking.ADS, AppOptionsSync.adBlockingFor(true, AdBlocking.ADS))
+    fun thePanelSetsTheAdBlockingLevelAndDarkModeLive() {
         assertEquals(AdBlocking.ADS, AppOptionsSync.apply(profile, null, null, AdBlocking.ADS).adBlocking)
+        assertEquals(DarkMode.DARK, AppOptionsSync.apply(profile, null, null, darkMode = DarkMode.DARK).darkMode)
+        assertEquals(DarkMode.SYSTEM, AppOptionsSync.apply(profile, null, null).darkMode)
         assertEquals(false, LiveSettings.needsRebuild(profile, profile.copy(adBlocking = AdBlocking.ADS_AND_TRACKERS)))
+        assertEquals(false, LiveSettings.needsRebuild(profile, profile.copy(darkMode = DarkMode.LIGHT)))
+        val dark = LiveSettings.of(profile).copy(darkMode = DarkMode.DARK)
+        assertEquals(dark, LiveSettings.of(dark.applyTo(profile)))
     }
 
     @Test

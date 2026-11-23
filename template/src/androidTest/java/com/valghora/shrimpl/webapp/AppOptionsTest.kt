@@ -104,6 +104,27 @@ class AppOptionsTest {
         }
     }
 
+    /** T5.8: Ad blocking comes first, as a segmented choice whose description names the selected level. */
+    @Test
+    fun adBlockingIsASegmentedChoiceAtTheTop() {
+        withProfile(WebApp.profile.copy(uaUserToggle = false, adBlocking = com.valghora.shrimpl.core.AdBlocking.OFF)) {
+            ActivityScenario.launch(MainActivity::class.java).use { scenario ->
+                answerPermissionPrompt("^allow$", 5_000)
+                PageDriver(scenario).loadTestPage()
+                openPanel(scenario)
+                val title = requireNotNull(device.findObject(By.text(context.getString(R.string.option_ad_blocking))))
+                val dark = requireNotNull(device.findObject(By.descStartsWith(context.getString(R.string.option_dark_mode)).checkable(true)))
+                assertTrue("Ad blocking isn't above Dark mode", title.visibleBounds.top < dark.visibleBounds.top)
+                assertTrue(awaitText(context.getString(R.string.option_ad_blocking_off_detail)))
+                tapText(context.getString(R.string.option_ad_blocking_standard))
+                assertTrue("the description didn't follow the choice", awaitText(context.getString(R.string.option_ad_blocking_standard_detail)))
+                tapText(context.getString(R.string.option_ad_blocking_off)) // Back as it was, for the next test.
+                assertTrue(awaitText(context.getString(R.string.option_ad_blocking_off_detail)))
+                closePanel()
+            }
+        }
+    }
+
     /**
      * T8.4, T5.9: with Run in background off, the page pauses while the app is hidden and runs again when
      * it comes back, whatever the live settings say by then.

@@ -122,12 +122,12 @@ class DesktopSessionController(
     // ----- App options (T5.8) -----
 
     /**
-     * The switches the App options panel shows: Desktop site when the profile allows the desktop/mobile
-     * toggle ([uaToggle], T6.11), then the Context menu (T5.5) and Block ads (T6.19), which every
-     * app has.
+     * The options the App options panel shows, in its order: Ad blocking (T6.19), Desktop site when the
+     * profile allows the desktop/mobile toggle ([uaToggle], T6.11), Dark mode (T6.21) and the Context
+     * menu (T5.5).
      */
     fun appOptions(uaToggle: Boolean): List<AppOption> =
-        listOfNotNull(AppOption.DESKTOP_SITE.takeIf { uaToggle }, AppOption.LINK_MENU, AppOption.BLOCK_ADS)
+        listOfNotNull(AppOption.AD_BLOCKING, AppOption.DESKTOP_SITE.takeIf { uaToggle }, AppOption.DARK_MODE, AppOption.LINK_MENU)
 
     /** Whether the template's context menu is on (T5.5): the panel's choice, else [profileDefault]. */
     fun linkMenuOn(profileDefault: Boolean): Boolean = optionStore.linkMenuChoice ?: profileDefault
@@ -152,6 +152,7 @@ class DesktopSessionController(
         uaStore.userChoice = null
         optionStore.linkMenuChoice = null
         optionStore.adBlockingChoice = null
+        optionStore.darkModeChoice = null
         optionStore.optionsBuild = build
     }
 

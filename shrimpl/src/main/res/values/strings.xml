@@ -117,7 +117,9 @@
     <string name="ad_blocking_strict">Strict</string>
     <string name="ad_blocking_off_detail">Loads everything the site asks for</string>
     <string name="ad_blocking_standard_detail">Blocks ads with EasyList</string>
-    <string name="ad_blocking_strict_detail">Blocks ads and trackers with EasyList and EasyPrivacy</string>
+    <string name="ad_blocking_strict_detail">Blocks ads and trackers with EasyList/EasyPrivacy</string>
+    <string name="field_dark_mode">Dark mode</string>
+    <string name="field_dark_mode_detail">Shows the site dark, using its own dark design where it has one.</string>
     <string name="field_window_default">Default window size</string>
     <string name="field_window_min">Minimum window size</string>
     <string name="field_width_dp">Width (dp)</string>

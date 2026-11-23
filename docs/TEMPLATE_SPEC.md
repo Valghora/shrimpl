@@ -143,19 +143,20 @@ Unit tests cover every branch with a fixed fixture config, including look-alike 
   trackpad scroll zooms text like Ctrl+= and Ctrl+-. Page text starts at the system font size (font
   scale 1.3 is a text zoom of 130 %, to the nearest 10 %) and follows it when it changes, until the
   user zooms; their zoom is kept, and Ctrl+0 returns to following the system font size.
-- T5.8 App options: a panel of the app's own switches, opened by Ctrl+, (once per press, T2c), by
+- T5.8 App options: a panel of the app's own options, opened by Ctrl+, (once per press, T2c), by
   "App options" in the app icon's launcher shortcuts, and first in the context menu (T5.5): on links
   and images, and alone on empty space. The menu never takes a press the page needs.
   - Titled "App options". A bottom sheet in a window narrower than 600 dp, a dialog in a wider one.
-  - Each switch has a fixed label and a description of what it does when on (docs/SHRIMPL_SPEC.md
-    R1.6), applies at once and is remembered in `SessionPrefs`. The whole row toggles it, at least
-    72 dp tall, and accessibility services hear one switch with its label, description and state.
-    Its text wraps 24 dp before the switch, as Shrimpl's settings items do.
-  - Its switches, in order: Desktop site ("Shows the site as it looks on a computer"), when the
-    profile allows the toggle (T6.11); Context menu ("Shows a menu to copy, open or save
-    links and images, instead of the site's own.", T5.5) and Block ads ("Blocks the ads the site
-    loads", T6.19), in every app. Block ads on keeps a level Shrimpl already set, else Strict;
-    off is Off.
+  - Each option applies at once and is remembered in `SessionPrefs`. A switch has a fixed label and
+    no description, since its name says what it does; the whole row toggles it, at least 56 dp tall,
+    and accessibility services hear one switch with its label and state. Its label wraps 24 dp before
+    the switch, as Shrimpl's settings items do. A choice has its
+    label, the selected value's description (a polite live region) and a full-width segmented
+    button below them, each segment 48 dp tall.
+  - Its options, in order: Ad blocking, a choice of Off ("Loads everything the site asks for"),
+    Standard ("Blocks ads with EasyList") and Strict ("Blocks ads and trackers with EasyList/EasyPrivacy", T6.19);
+    Desktop site, when the profile allows the toggle (T6.11); Dark mode (T6.21); Shrimpl context menu
+    (T5.5). All but Desktop site are in every app.
   - Done closes it. There is no Reset: each change is also saved to the app's edit page in Shrimpl
     (docs/SHRIMPL_SPEC.md R11.9), so the edit page always matches the panel.
   - The panel's changes apply in the app at once, and are sent together when it closes: with Done,
@@ -171,7 +172,8 @@ Unit tests cover every branch with a fixed fixture config, including look-alike 
   asks the Shrimpl that built it for its live settings, on the same thread that sends App options
   changes, so a change just sent is read back. An answer replaces those settings in the profile and
   the panel's own choices; a new layout reloads the start URL, and the context menu, Pause
-  in battery saver and ad blocking (T6.19, with any newer list copied) apply at once. Without an
+  in battery saver, ad blocking (T6.19, with any newer list copied) and dark mode (T6.21, reloading
+  the page when it changed) apply at once. Without an
   answer the app keeps what it has.
 ## T6 WebView, routing and media
 
@@ -308,7 +310,7 @@ Unit tests cover every branch with a fixed fixture config, including look-alike 
   - All of it goes through `DocumentsContract` on the IO thread, one call per listing, so a folder of
     thousands of entries is slow to walk. Changes other apps make aren't reported.
 - T6.19 Ad blocking (`profile.adBlocking`: Off, Standard with EasyList, Strict with EasyList and
-  EasyPrivacy, both with the Adblock Warning Removal List; the Block ads switch of App options, T5.8, overrides it until Shrimpl answers).
+  EasyPrivacy, both with the Adblock Warning Removal List; the Ad blocking choice of App options, T5.8, overrides it until Shrimpl answers).
   - Every request of the main window, popups and service workers goes through
     `shouldInterceptRequest`; a blocked one gets an empty 403 with status text `Blocked`. The page's
     own document is never blocked, nor anything on a sign-in domain (T2a).
@@ -320,7 +322,7 @@ Unit tests cover every branch with a fixed fixture config, including look-alike 
   - The app keeps its own copy of each list in `no_backup/adblock/`, copied from Shrimpl when its
     live-settings answer (T5.9) names a newer version (docs/SHRIMPL_SPEC.md R15.3). The filter is
     built off the main thread; until it exists nothing is blocked. Without Shrimpl the copy stays.
-  - Switching Block ads reloads the page, so it loads as the new level allows.
+  - Changing the level in App options reloads the page, so it loads as the new level allows.
 - T6.20 Ad popups and element hiding, with T6.19's lists and level.
   - A window the page opens (T6.6) whose address a `$popup` rule names never shows and never
     reaches the browser; a popup that turns into one later (a redirect, a popunder) closes then.
@@ -335,6 +337,27 @@ Unit tests cover every branch with a fixed fixture config, including look-alike 
   - Left out: procedural rules (`#?#`, `:has-text()` and the like), scriptlets (`#$#`, `+js()`),
     entity rules (`example.*##`) and site rules that also exclude subdomains, so a list only ever
     hides less.
+- T6.21 Dark mode (`profile.darkMode`: System, the default, follows the device's dark theme; Dark and
+  Light hold whatever the device does; the Dark mode switch of App options, T5.8, overrides it until
+  Shrimpl answers).
+  - One switch, on when the site shows dark. Setting it to what the device shows stores System, so
+    the app follows the device again (`DarkMode.of`); otherwise it stores Dark or Light.
+  - The app's own theme follows it (AppCompat's local night mode, before any view exists): the
+    header, menus and dialogs, and the page's `prefers-color-scheme`, which WebView takes from the
+    theme. A site with a dark design of its own shows it.
+  - A site that stays light is darkened by Dark Reader 4.9.135 (MIT, `assets/darkreader/`, with its
+    license), which rewrites the page's colors instead of inverting it. A document-start script on
+    the main window's top frame, for the internal origins, holds the library inside a function, so
+    the page has no `DarkReader` global. While the page loads, a dark cover keeps it from flashing
+    white; once the document is parsed the script reads the site's own background, with the cover
+    set aside: a dark one, or a transparent one on a dark `color-scheme`, is the site's dark design
+    and is left as it is; anything else gets Dark Reader. Frames and popups (T6.6) keep their own
+    colors.
+  - Dark Reader reads the site's style sheets; those on other domains it asks the app for through a
+    `WebMessageListener` (`AndroidDarkFetch`) on the internal origins, which fetches them off the main
+    thread without cookies, answering only with style sheets and images of at most 4 MB.
+  - Changing it in App options reloads the page. Following the device, a change of the device's
+    theme reaches the page at once, without a reload.
 ## T7 Notifications (with `profile.allowNotifications`)
 
 - T7.1 Needs `WEB_MESSAGE_LISTENER` and `DOCUMENT_START_SCRIPT` (nested checks); without them it is

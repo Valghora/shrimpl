@@ -104,6 +104,17 @@ class EditChangesTest {
         assertTrue("the change waits for Save", saveShown)
     }
 
+    /** R3.3, T6.21: Dark mode follows the device at first (light under Robolectric), and turning it on waits for Save. */
+    @Test
+    fun darkModeStartsAsTheDeviceIs() {
+        openSquoosh()
+        darkMode().performScrollTo().assertIsOff()
+        assertTrue(exists(string(R.string.field_dark_mode_detail)))
+        darkMode().performClick()
+        darkMode().assertIsOn()
+        assertTrue("the change waits for Save", saveShown)
+    }
+
     /** R2.3, R11.10: a change that needs a rebuild asks first; Cancel keeps the change unsaved. */
     @Test
     fun saveAsksBeforeARebuild() {
@@ -134,6 +145,8 @@ class EditChangesTest {
     }
 
     /** The Camera permission switch item. */
+    private fun darkMode() = compose.onNode(hasText(string(R.string.field_dark_mode)) and SemanticsMatcher.keyIsDefined(SemanticsProperties.ToggleableState))
+
     private fun camera() = compose.onNode(hasText(string(R.string.field_camera)) and SemanticsMatcher.keyIsDefined(SemanticsProperties.ToggleableState))
 
     private companion object {

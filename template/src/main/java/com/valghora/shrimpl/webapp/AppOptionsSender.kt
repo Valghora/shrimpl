@@ -9,6 +9,7 @@ import android.os.Looper
 import android.util.Log
 import androidx.core.os.bundleOf
 import com.valghora.shrimpl.core.AdBlocking
+import com.valghora.shrimpl.core.DarkMode
 import com.valghora.shrimpl.core.UaMode
 import com.valghora.shrimpl.core.adblock.FilterList
 import com.valghora.shrimpl.core.records.AppOptionsSync
@@ -27,11 +28,12 @@ class AppOptionsSender(private val context: Context) {
     private val io = Executors.newSingleThreadExecutor()
 
     /** Sends the switches that changed; null leaves a setting as it is. Off the main thread, never failing. */
-    fun send(desktopSite: Boolean? = null, linkMenu: Boolean? = null, adBlocking: AdBlocking? = null) {
+    fun send(desktopSite: Boolean? = null, linkMenu: Boolean? = null, adBlocking: AdBlocking? = null, darkMode: DarkMode? = null) {
         val extras = bundleOf().apply {
             desktopSite?.let { putBoolean(AppOptionsSync.KEY_DESKTOP_SITE, it) }
             linkMenu?.let { putBoolean(AppOptionsSync.KEY_LINK_MENU, it) }
             adBlocking?.let { putString(AppOptionsSync.KEY_AD_BLOCKING, it.name) }
+            darkMode?.let { putString(AppOptionsSync.KEY_DARK_MODE, it.name) }
         }
         io.execute {
             val providers = context.packageManager.queryIntentContentProviders(
@@ -97,6 +99,8 @@ class AppOptionsSender(private val context: Context) {
             keepAliveWhenHidden = answer.getBoolean(AppOptionsSync.KEY_KEEP_ALIVE),
             pauseOnPowerSave = answer.getBoolean(AppOptionsSync.KEY_PAUSE_POWER_SAVE),
             adBlocking = AdBlocking.entries.firstOrNull { it.name == answer.getString(AppOptionsSync.KEY_AD_BLOCKING) } ?: AdBlocking.OFF,
+            // A Shrimpl from before dark mode doesn't send it: the app follows the device.
+            darkMode = DarkMode.entries.firstOrNull { it.name == answer.getString(AppOptionsSync.KEY_DARK_MODE) } ?: DarkMode.SYSTEM,
         )
     }
 

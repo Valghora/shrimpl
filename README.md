@@ -13,6 +13,8 @@ Shrimpl is a PWA generator and manager. Provide a website and it will pick a nam
 - **Built on your device:** builds, signs, installs and updates apps right on your device, with no computer needed. Shevery or Root installs skip Android's confirmation prompts.
 - **Desktop-class apps:** each app gets its own windows, launcher icon and dock pin, keyboard shortcuts, notifications, downloads and file access.
 - **Customize everything:** brand glyphs, icon packs and themed icons, plus headers that follow your system theme, the site's colors or a color you choose.
+- **Ad blocking:** blocks ads in any app, with an optional Strict level that blocks trackers too. Ad spaces are hidden, ad popups are closed, and the block lists stay up to date on their own.
+- **Dark mode:** shows any site dark, using its own dark design where it has one. It follows your device's theme until you change it.
 - **Edit anytime:** change anything later and keep your sign-ins and data intact.
 - **Stays current:** Shrimpl checks for its own updates on your schedule and keeps your apps updated as Shrimpl improves.
 - **Every form factor:** designed for Googlebooks and adaptive on phones, tablets and foldables, following Google's Material 3 and adaptive design guidance.
@@ -74,6 +76,8 @@ A huge thanks to the following projects:
 - [apksig](https://android.googlesource.com/platform/tools/apksig/) from the Android Open Source Project, which signs and verifies the apps, Apache License 2.0
 - [kotlinx.serialization](https://github.com/Kotlin/kotlinx.serialization), Apache License 2.0
 - [Shevery-API](https://github.com/HmnDev-Tech/Shevery-API) by HmnDev-Tech, for installs without prompts, MIT License
+- [Dark Reader](https://github.com/darkreader/darkreader) 4.9.135, bundled in every web app for its dark mode, MIT License
+- [EasyList](https://easylist.to), [EasyPrivacy](https://easylist.to) and the [Adblock Warning Removal List](https://easylist.to) by The EasyList authors, which ad blocking downloads and keeps up to date (none are bundled), GNU GPL 3.0 or Creative Commons BY-SA 3.0
 - The [Public Suffix List](https://publicsuffix.org) from Mozilla, bundled to tell a site's domains apart, Mozilla Public License 2.0
 - [simple-icons](https://simpleicons.org), whose brand glyphs Shrimpl looks up when you make an app (none are bundled), CC0 1.0. The brands themselves are trademarks of their owners, used under their own guidelines.
 - Google's [Android skills](https://github.com/android/skills), vendored in `.claude/skills/` to guide the work on this project, Apache License 2.0

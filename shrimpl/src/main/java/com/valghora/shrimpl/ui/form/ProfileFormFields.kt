@@ -1,5 +1,7 @@
 package com.valghora.shrimpl.ui.form
 
+import android.content.res.Configuration
+import android.content.res.Resources
 import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -37,6 +39,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
@@ -49,6 +52,7 @@ import androidx.compose.ui.unit.dp
 import androidx.core.graphics.toColorInt
 import com.valghora.shrimpl.R
 import com.valghora.shrimpl.core.AdBlocking
+import com.valghora.shrimpl.core.DarkMode
 import com.valghora.shrimpl.core.UaMode
 import com.valghora.shrimpl.core.profile.HeaderMode
 import com.valghora.shrimpl.core.profile.ProfileForm
@@ -281,7 +285,7 @@ private class Fields(
     }
 
     /**
-     * The Behavior section: the user agent, the native context menu,
+     * The Behavior section: the user agent, the native context menu, ad blocking, dark mode,
      * running while hidden, and pausing in battery saver.
      */
     @Composable
@@ -323,6 +327,17 @@ private class Fields(
                         AdBlocking.ADS_AND_TRACKERS -> R.string.ad_blocking_strict_detail
                     },
                 ),
+            )
+            // T6.21: one switch; set to match the device, it follows the device again (DarkMode.of).
+            val configuration = LocalConfiguration.current
+            val deviceDark = remember(configuration) {
+                Resources.getSystem().configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK == Configuration.UI_MODE_NIGHT_YES
+            }
+            SwitchItem(
+                stringResource(R.string.field_dark_mode),
+                form.darkMode.isOn(deviceDark),
+                { onChange(form.copy(darkMode = DarkMode.of(it, deviceDark))) },
+                summary = stringResource(R.string.field_dark_mode_detail),
             )
             SwitchItem(
                 stringResource(R.string.field_keep_alive), form.keepAliveWhenHidden, { onChange(form.copy(keepAliveWhenHidden = it)) },
