@@ -3,6 +3,7 @@ package com.valghora.shrimpl.data
 import androidx.compose.ui.test.junit4.v2.createComposeRule
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import com.valghora.shrimpl.BuildConfig
 import com.valghora.shrimpl.R
 import com.valghora.shrimpl.core.update.Changelog
 import com.valghora.shrimpl.ui.TestApps
@@ -27,16 +28,20 @@ class WhatsNewTest {
 
     private val app get() = TestApps.app
 
+    /**
+     * Uses this build's own version against the bundled change log, whose newest release is either
+     * Unreleased or this version, so the test holds before and after a release renames it.
+     */
     @Test
     fun anUpdateShowsTheNotesUntilDone() {
         val settings = AppSettings(app)
         settings.setNotesSeen(109)
-        val whatsNew = WhatsNew(app, settings, versionCode = 116)
+        val whatsNew = WhatsNew(app, settings, versionCode = BuildConfig.VERSION_CODE)
         assertTrue("an update showed nothing", whatsNew.pending.value.isNotEmpty())
         whatsNew.dismiss()
-        assertEquals(116, settings.notesSeen)
+        assertEquals(BuildConfig.VERSION_CODE, settings.notesSeen)
         assertTrue(whatsNew.pending.value.isEmpty())
-        assertTrue("seen notes came back", WhatsNew(app, settings, versionCode = 116).pending.value.isEmpty())
+        assertTrue("seen notes came back", WhatsNew(app, settings, versionCode = BuildConfig.VERSION_CODE).pending.value.isEmpty())
     }
 
     @Test
