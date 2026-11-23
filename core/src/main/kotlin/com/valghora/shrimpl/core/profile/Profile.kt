@@ -33,7 +33,7 @@ data class Profile(
     /** The glyph color: `#RRGGBB`, or [AUTO] for white or black, whichever contrasts better with [iconBackground]. */
     val iconForeground: String = DEFAULT_ICON_FOREGROUND,
     /** Where the window, caption bar and system bar colors come from. */
-    val headerMode: HeaderMode = HeaderMode.SYSTEM,
+    val headerMode: HeaderMode = HeaderMode.DYNAMIC,
     /** The header color for [HeaderMode.CUSTOM], `#RRGGBB`; kept when another mode is chosen. */
     val headerColor: String = DEFAULT_HEADER_COLOR,
     val allowMicrophone: Boolean = false,

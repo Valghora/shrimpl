@@ -51,7 +51,7 @@ class RecordsAndFormTest {
         assertThrows(IllegalArgumentException::class.java) { WebAppRecord.decode("""{"profile":1}""") }
         assertThrows(IllegalArgumentException::class.java) { WebAppRecord.decode("not json") }
         // A record saved before header modes keeps the system color.
-        val systemHeader = record.copy(profile = profile.copy(headerColor = Profile.DEFAULT_HEADER_COLOR))
+        val systemHeader = record.copy(profile = profile.copy(headerMode = HeaderMode.SYSTEM, headerColor = Profile.DEFAULT_HEADER_COLOR))
         val legacy = WebAppRecord.encode(systemHeader).replace("\"headerMode\": \"system\",", "").replace(Profile.DEFAULT_HEADER_COLOR, Profile.SYSTEM)
         assertTrue("headerMode" !in legacy)
         assertEquals(systemHeader, WebAppRecord.decode(legacy))

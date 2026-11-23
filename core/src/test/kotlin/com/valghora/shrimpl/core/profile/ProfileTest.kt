@@ -215,7 +215,7 @@ class ProfileTest {
     @Test
     fun headerAndGlyphDefaults() {
         val plain = Profile(name = "A", appId = "a", startUrl = "https://a.com/", internalDomains = listOf("a.com"), iconBackground = "#123456")
-        assertEquals(HeaderMode.SYSTEM, plain.headerMode)
+        assertEquals(HeaderMode.DYNAMIC, plain.headerMode)
         assertEquals(Profile.DEFAULT_HEADER_COLOR, plain.headerColor)
         assertFalse(plain.enableMultiWindow)
         assertEquals("#FFFFFF", plain.iconForeground)
@@ -229,7 +229,7 @@ class ProfileTest {
         assertEquals(Profile.DEFAULT_HEADER_COLOR, system.headerColor)
         assertEquals(HeaderMode.CUSTOM, ProfileCodec.decode("{$base,\"headerColor\":\"#336699\"}").headerMode)
         assertEquals(HeaderMode.DYNAMIC, ProfileCodec.decode("{$base,\"headerMode\":\"dynamic\",\"headerColor\":\"#336699\"}").headerMode)
-        assertEquals(HeaderMode.SYSTEM, ProfileCodec.decode("{$base}").headerMode)
+        assertEquals("a profile naming no header gets the default", HeaderMode.DYNAMIC, ProfileCodec.decode("{$base}").headerMode)
         assertEquals(kotlinx.serialization.json.JsonPrimitive(1), ProfileCodec.upgrade(kotlinx.serialization.json.JsonPrimitive(1)))
     }
 

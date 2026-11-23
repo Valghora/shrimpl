@@ -130,10 +130,11 @@ Unit tests cover every branch with a fixed fixture config, including look-alike 
     selection, a field, a button, media, a link or an image. Text selection and the site's own menus
     keep every such press.
   - Drawn as Android's own menus (`ContextMenuPopup`): the theme's dynamic colors (T3.1), a 16 dp
-    container on the surface container color, 48 dp items with 12 dp rounded highlights and a
-    Material Symbols icon each. Long press, right-click and the keyboard open the same popup, at the
-    finger or pointer, kept inside the window; `DesktopWebView` hands the system's context menu call
-    to it, and with the menu left to the site the call goes on as WebView's own.
+    container on the surface container color, as wide as its longest item (112 to 280 dp), 48 dp
+    items with 12 dp rounded highlights and a Material Symbols icon each. Long press, right-click
+    and the keyboard open the same popup, at the finger or pointer, kept inside the window;
+    `DesktopWebView` hands the system's context menu call to it, and with the menu left to the site
+    the call goes on as WebView's own.
   - The menu key and Shift+F10 open it for the link or image in focus. Arrow keys move, Enter
     selects, Esc or Back closes; accessibility services hear a pane titled "Context menu".
 - T5.6 Back goes back in the page history while it can (`OnBackPressedCallback` kept in sync in

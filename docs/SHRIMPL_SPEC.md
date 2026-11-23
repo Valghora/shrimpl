@@ -317,8 +317,8 @@ binary translation) on any device.
     - **Icon:** the icon options as preview tiles, then the selected option's settings (R10.1):
       Glyph color (`#FFFFFF` by default) and Background color (the site's brand color by default)
       for Brand, Fill icon canvas for a Website image, Background color for Custom.
-    - **Appearance:** Header color (System, "Matches the system's light or dark theme", the default;
-      Dynamic, "Uses the site's own colors", T3.3; Custom, "Uses the color you choose below") and
+    - **Appearance:** Header color (System, "Matches the system's light or dark theme"; Dynamic,
+      "Uses the site's own colors", the default, T3.3; Custom, "Uses the color you choose below") and
       Custom header color (disabled unless Custom).
     - **Behavior:** Site layout, the user agent (Desktop, "Asks for the site's desktop layout";
       Mobile, "Asks for the site's mobile layout"). There is no Auto: a new app gets Desktop on a PC

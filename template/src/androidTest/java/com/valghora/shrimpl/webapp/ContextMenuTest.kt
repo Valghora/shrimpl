@@ -36,6 +36,9 @@ class ContextMenuTest {
                 val options = device.findObject(By.text(context.getString(R.string.app_options)))
                 val copy = device.findObject(By.text(context.getString(R.string.menu_copy_link)))
                 assertTrue("App options isn't above the link's actions", options.visibleBounds.top < copy.visibleBounds.top)
+                // As wide as its longest item, within Material's 280 dp: not stretched to the screen's edge.
+                val maxWidth = (280 * context.resources.displayMetrics.density).toInt()
+                assertTrue("the menu is ${options.visibleBounds.width()} px wide", options.visibleBounds.width() <= maxWidth)
                 options.click()
                 assertTrue("App options didn't open the panel", awaitText(context.getString(R.string.action_done)))
                 tapText(context.getString(R.string.action_done))
