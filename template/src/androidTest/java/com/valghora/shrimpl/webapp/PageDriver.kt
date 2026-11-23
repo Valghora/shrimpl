@@ -87,6 +87,32 @@ class PageDriver(private val scenario: ActivityScenario<MainActivity>) {
      * null when WebView never answers: it drops the callback of a script that was running when its page
      * was replaced, so a poll must treat silence as "not yet".
      */
+    /**
+     * Holds a finger on the middle of the element [selector] finds for [holdMs], as a long press: the
+     * events go to the WebView as touches, so WebView itself decides what the press is (T5.5).
+     */
+    fun longPress(selector: String, holdMs: Long = 1_000) {
+        val box = JSONObject(js("JSON.stringify((() => { const r = document.querySelector('$selector').getBoundingClientRect(); " +
+            "return { x: r.left + r.width / 2, y: r.top + r.height / 2, width: window.innerWidth }; })())"))
+        var x = 0f
+        var y = 0f
+        val start = SystemClock.uptimeMillis()
+        instrumentation.runOnMainSync {
+            val scale = webView.width / box.getDouble("width")
+            x = (box.getDouble("x") * scale).toFloat()
+            y = (box.getDouble("y") * scale).toFloat()
+            val down = MotionEvent.obtain(start, start, MotionEvent.ACTION_DOWN, x, y, 0).apply { source = InputDevice.SOURCE_TOUCHSCREEN }
+            webView.dispatchTouchEvent(down)
+            down.recycle()
+        }
+        Thread.sleep(holdMs)
+        instrumentation.runOnMainSync {
+            val up = MotionEvent.obtain(start, SystemClock.uptimeMillis(), MotionEvent.ACTION_UP, x, y, 0).apply { source = InputDevice.SOURCE_TOUCHSCREEN }
+            webView.dispatchTouchEvent(up)
+            up.recycle()
+        }
+    }
+
     fun jsOrNull(script: String, timeoutMs: Long = 15_000): String? {
         val latch = CountDownLatch(1)
         var raw: String? = null
