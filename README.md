@@ -14,7 +14,7 @@ Shrimpl is a PWA generator and manager. Provide a website and it will pick a nam
 - **Desktop-class apps:** each app gets its own windows, launcher icon and dock pin, keyboard shortcuts, notifications, downloads and file access.
 - **Customize everything:** brand glyphs, icon packs and themed icons, plus headers that follow your system theme, the site's colors or a color you choose.
 - **Ad blocking:** blocks ads in any app, with an optional Strict level that blocks trackers too. Ad spaces are hidden, ad popups are closed, and the block lists stay up to date on their own.
-- **Dark mode:** shows any site in dark mode, using its own dark design where it has one, or Dark Reader when it doesn't. It follows your device's theme until you change it.
+- **Dark mode:** shows any site in dark mode, using its own dark design where it has one, or Dark Reader when it doesn't.
 - **Edit anytime:** change anything later and keep your sign-ins and data intact.
 - **Stays current:** Shrimpl checks for its own updates on your schedule and keeps your apps updated as Shrimpl improves.
 - **Every form factor:** designed for Googlebooks and adaptive on phones, tablets and foldables, following Google's Material 3 and adaptive design guidance.
