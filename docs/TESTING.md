@@ -21,7 +21,7 @@ Robolectric runs in the cloud container; the emulator can't (no KVM), so it runs
 ## The Emulator workflow
 
 `.github/workflows/emulator.yml` runs by hand only (`workflow_dispatch`); when to run it and what a
-merge needs are in CLAUDE.md. It builds the APKs and test APKs, stops Gradle, boots the emulator
+merge needs are in AGENTS.md. It builds the APKs and test APKs, stops Gradle, boots the emulator
 (`scripts/start_emulator.sh`), runs `connectedDebugAndroidTest` for both modules
 (`scripts/run_instrumented_tests.sh`), and uploads `instrumented-results`, kept for one day
 (`scripts/collect_emulator_artifacts.sh`): the JUnit XML, `emulator-out/logcat.txt`, a screenshot, the UI
@@ -200,7 +200,7 @@ Shrimpl's Compose screens run in unit tests under Robolectric (`shrimpl/src/test
 | T2a, T6.6: a link to another site opens in the browser | `ExternalLinksTest` |
 | T6.4: the file chooser offers the camera for photo and video inputs once the camera permission is granted, opens it alone for `capture`, and leaves it out without the permission (a real tap opens the chooser) | `FileChooserCameraTest` |
 | T6.6: a popup on the app's own site opens in a dialog at 90 % of the window and closes when the page closes it; one to another site goes to the browser | `PopupsTest` |
-| R2.3, CLAUDE.md rule 2: a dialog's half-typed text survives the activity being recreated | `DialogDraftTest` |
+| R2.3, AGENTS.md rule 2: a dialog's half-typed text survives the activity being recreated | `DialogDraftTest` |
 | T7: a fresh launch asks for the notification permission, the page is told it may notify, and its `new Notification` becomes an Android notification with its title, body and channel | `NotificationsTest` |
 | T6.5: the microphone through all three steps (Android asks; after one refusal the template explains first; after two the page is turned down with a snackbar), and location given only when the profile allows it | `PagePermissionsTest` |
 | R1.1: a window sharing the screen shows two panes only from 1000 dp: split screen on half the Dell's screen (about 849 dp, as snapped) shows one, freeform windows of 956 dp (a 2880 px Googlebook snapped) and 1100 dp show one and two | `WindowSnappingTest` |

@@ -3,7 +3,8 @@
     <!-- app_name is in values/site.xml; Shrimpl sets each web app's label in its manifest. -->
 
     <string name="menu_copy_link">Copy link</string>
-    <string name="menu_open_link">Open link in browser</string>
+    <string name="menu_open_link">Open in browser</string>
+    <string name="context_menu_title">Context menu</string>
     <string name="menu_save_image">Save image</string>
 
     <string name="shortcut_group_window">Window</string>
@@ -14,10 +15,20 @@
     <string name="shortcut_print">Print</string>
     <string name="shortcut_new_window">New window</string>
 
-    <string name="shortcut_request_desktop">Desktop site</string>
-    <string name="shortcut_request_desktop_long">Request desktop site</string>
-    <string name="shortcut_request_mobile">Mobile site</string>
-    <string name="shortcut_request_mobile_long">Request mobile site</string>
+    <!-- App options (TEMPLATE_SPEC T5.8). Switches have no description: their names say what they do. -->
+    <string name="app_options">App options</string>
+    <string name="option_desktop_site">Desktop site</string>
+    <string name="option_link_menu">Shrimpl context menu</string>
+    <!-- Ad blocking is a choice: its description says what the selected level does (R1.6). -->
+    <string name="option_ad_blocking">Ad blocking</string>
+    <string name="option_ad_blocking_off">Off</string>
+    <string name="option_ad_blocking_standard">Standard</string>
+    <string name="option_ad_blocking_strict">Strict</string>
+    <string name="option_ad_blocking_off_detail">Loads everything the site asks for</string>
+    <string name="option_ad_blocking_standard_detail">Blocks ads with EasyList</string>
+    <string name="option_ad_blocking_strict_detail">Blocks ads and trackers with EasyList/EasyPrivacy</string>
+    <string name="option_dark_mode">Dark mode</string>
+    <string name="action_done">Done</string>
 
     <string name="toast_download_started">Downloading…</string>
     <string name="toast_download_unsupported">This file can\'t be downloaded</string>

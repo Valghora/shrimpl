@@ -17,7 +17,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.window.core.layout.WindowSizeClass
 
-// Adaptive building blocks shared by the screens (docs/ADAPTIVE.md): layout decisions come from the
+// Adaptive building blocks shared by the screens (R1.1): layout decisions come from the
 // window size classes, never from hard-coded widths, and icon-only buttons explain themselves on
 // hover and long press (desktop Hover_Parity, Tier 2 Hover_States).
 

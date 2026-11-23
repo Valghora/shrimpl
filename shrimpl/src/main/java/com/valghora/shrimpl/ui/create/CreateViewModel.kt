@@ -159,7 +159,7 @@ class CreateViewModel(private val container: AppContainer) : ViewModel() {
             hints = emptyMap()
             notes = listOf(Notice(Notice.Kind.CAUTION, "Discovery didn't finish, so some of these settings are defaults. Verify their accuracy before building."))
             val brandIcon = brand?.let { IconRecord.glyph(it.svg, "simple-icons '${it.slug}'") }
-            _draft.value = WebAppDraft.create(ProfileForm.from(profile), brandIcon, website = null)
+            _draft.value = WebAppDraft.create(ProfileForm.from(profile, container.largeOrPc), brandIcon, website = null)
             _step.value = Step.Review
         }
     }
@@ -170,7 +170,7 @@ class CreateViewModel(private val container: AppContainer) : ViewModel() {
         hints = found.hints()
         notes = found.notes.map(Notice::of)
         // R10.1: the brand glyph (when found) and the site's own icon (else a letter) are both offered.
-        _draft.value = WebAppDraft.create(ProfileForm.from(profile), WebAppDraft.brandOf(found.icon), discovered.websiteIcon)
+        _draft.value = WebAppDraft.create(ProfileForm.from(profile, container.largeOrPc), WebAppDraft.brandOf(found.icon), discovered.websiteIcon)
         _step.value = Step.Review
     }
 

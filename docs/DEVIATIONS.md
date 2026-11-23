@@ -12,8 +12,8 @@ commit as the change. Anything not listed is followed as written.
 
 ## From Android's adaptive guidance
 
-The adaptive skill (`.claude/skills/adaptive/`) and the Adaptive app quality guidelines; how the rest
-is met is in docs/ADAPTIVE.md.
+The adaptive skill (`.claude/skills/adaptive/`) and the Adaptive app quality guidelines; what the app
+meets is in docs/SHRIMPL_SPEC.md R1.1 and docs/TEMPLATE_SPEC.md T3 to T6.
 
 | Guidance | What this project does | Why |
 |---|---|---|
@@ -40,7 +40,7 @@ is met is in docs/ADAPTIVE.md.
 | Step 9: always verify state restoration | `StateRestorationTester` for screen state (an open menu), and activity recreation for a whole flow (`EditChangesTest`). Dialogs with a text field are tested on the emulator instead (`DialogDraftTest`). | Robolectric never goes idle once a text field in a dialog window can take focus ([TESTING.md](TESTING.md), "Robolectric"). |
 | Step 11: `DeviceConfigurationOverride` for window sizes | Window-size tests set Robolectric's screen qualifiers and launch `MainActivity`; `DeviceConfigurationOverride` is for font scale, dark theme and locale. Layout tests of one screen give it a pane width with a sized `Box`. | `ForcedSize` doesn't change `LocalWindowInfo`, which the window size class (and so the list-detail switch) comes from ([TESTING.md](TESTING.md), "Robolectric"). |
 | Step 14: the `jacoco` plugin | Shrimpl's debug build sets `enableUnitTestCoverage` (AGP's JaCoCo integration), with no threshold. `:core` keeps its own JaCoCo report and 95 % rule. The template collects none. | AGP wires JaCoCo to the variant's classes. The template's one unit test checks the profile it ships; its code runs in a WebView, on devices. |
-| Final touches: `AGENTS.md` and `docs/testing.md` | The testing rules are in CLAUDE.md; commands and setup are in [TESTING.md](TESTING.md) ("Robolectric"). | Claude Code reads CLAUDE.md; one place for the rules avoids two copies drifting. |
+| Final touches: `docs/testing.md` | The testing rules are in AGENTS.md, as the skill asks; commands and setup are in [TESTING.md](TESTING.md) ("Robolectric"), named like the other docs. | Every doc here is upper case; one place for the rules avoids two copies drifting. |
 
 ### android-intent-security and android-permissions-security
 
@@ -60,7 +60,7 @@ is met is in docs/ADAPTIVE.md.
 
 | Guidance | What this project does | Why |
 |---|---|---|
-| Recipes: dialogs and bottom sheets as scenes | Confirmation dialogs and the build sheet are screen or ViewModel state, not destinations. | The build sheet follows a build that keeps running whatever the user opens, and dialogs belong to the screen that asked; both survive configuration changes (ADAPTIVE.md). |
+| Recipes: dialogs and bottom sheets as scenes | Confirmation dialogs and the build sheet are screen or ViewModel state, not destinations. | The build sheet follows a build that keeps running whatever the user opens, and dialogs belong to the screen that asked; both survive configuration changes (R1.1). |
 
 ### anr-audit-and-fix
 

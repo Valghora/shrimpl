@@ -1,5 +1,7 @@
 package com.valghora.shrimpl.core.profile
 
+import com.valghora.shrimpl.core.AdBlocking
+import com.valghora.shrimpl.core.DarkMode
 import com.valghora.shrimpl.core.Modifier
 import com.valghora.shrimpl.core.ShortcutSpec
 import com.valghora.shrimpl.core.UaMode
@@ -32,7 +34,7 @@ data class Profile(
     /** The glyph color: `#RRGGBB`, or [AUTO] for white or black, whichever contrasts better with [iconBackground]. */
     val iconForeground: String = DEFAULT_ICON_FOREGROUND,
     /** Where the window, caption bar and system bar colors come from. */
-    val headerMode: HeaderMode = HeaderMode.SYSTEM,
+    val headerMode: HeaderMode = HeaderMode.DYNAMIC,
     /** The header color for [HeaderMode.CUSTOM], `#RRGGBB`; kept when another mode is chosen. */
     val headerColor: String = DEFAULT_HEADER_COLOR,
     val allowMicrophone: Boolean = false,
@@ -45,6 +47,10 @@ data class Profile(
     val keepAliveWhenHidden: Boolean = true,
     val pauseOnPowerSave: Boolean = false,
     val nativeContextMenu: Boolean = true,
+    /** Network ad blocking (T6.19); a live setting (R11.10). */
+    val adBlocking: AdBlocking = AdBlocking.OFF,
+    /** Dark mode (T6.21); a live setting (R11.10). */
+    val darkMode: DarkMode = DarkMode.SYSTEM,
     val defaultWindowDp: WindowSize = WindowSize(1280, 800),
     val minWindowDp: WindowSize = WindowSize(400, 500),
     /** The site's own shortcuts, listed in the Keyboard Shortcuts Helper; the keys still reach the page. */

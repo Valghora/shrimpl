@@ -5,7 +5,10 @@ The behavior every web app has, implemented once in `:template` (package `com.va
 only in its profile (`assets/shrimpl/profile.json`, fields from `core/.../profile/Profile.kt`), its
 patched manifest and its icon files (docs/SHRIMPL_SPEC.md R7, R8).
 
-Requirement IDs are T1 to T8; code comments in the template cite them. MUST and SHOULD are used as in
+Requirement IDs are T1 to T8; code comments in the template cite them. T3 to T6 are how every web app
+meets Google's adaptive and desktop app quality guidelines (multi-window, the header, keyboard,
+mouse and zoom, context menus, drag and drop, full screen, printing); departures are in
+docs/DEVIATIONS.md. MUST and SHOULD are used as in
 docs/SHRIMPL_SPEC.md. Profile fields are written `profile.field`.
 
 ## T1 Build
@@ -23,7 +26,7 @@ docs/SHRIMPL_SPEC.md. Profile fields are written `profile.field`.
   features are checked at runtime, each call directly inside its own
   `if (WebViewFeature.isFeatureSupported(X))` (nested, never `a && b`: lint's RequiresFeature does not
   follow it).
-  *Outside code:* lint's RequiresFeature check and CLAUDE.md.
+  *Outside code:* lint's RequiresFeature check and AGENTS.md.
 
 ## T2 Core logic (`DesktopSessionController`, pure JVM)
 
@@ -39,8 +42,9 @@ Constructed with a `ZoomStore`, a `UaStore` and a `SessionConfig` built from the
   numpad +), ZOOM_OUT (Ctrl+- / numpad -), ZOOM_RESET (Ctrl+0 / numpad 0), PRINT (Ctrl+P),
   NEW_WINDOW (`profile.newWindowShortcut`, only with `profile.enableMultiWindow`), or NONE. Modifiers
   must match exactly. RELOAD, PRINT and NEW_WINDOW resolve only when `repeatCount == 0`.
-- d. Context menu actions per hit type: link → copy link, open link; image link → copy link, open
-  link, save image; image → save image; anything else → none.
+- d. Context menu actions per hit type, App options first wherever there are any: link → App options,
+  copy link, open link; image link → App options, copy link, open link, save image; image → App
+  options, save image; anything else → none.
 - e. Wake state: awake = interactive and any display on and not (`profile.pauseOnPowerSave` and power
   save). Starts awake; emits SLEEP or WAKE only on change.
 - f. User agent: `resolveUa` (user choice > learned desktop > `profile.userAgentMode`; AUTO is
@@ -58,7 +62,9 @@ Unit tests cover every branch with a fixed fixture config, including look-alike 
 ## T3 Window, insets and header
 
 - T3.1 The UI is built in code: a root `FrameLayout` holding one `DesktopWebView` (MATCH_PARENT). No
-  action bar, toolbar or XML layout. The theme is `Theme.Wrapper` (Material3 DayNight NoActionBar).
+  action bar, toolbar or XML layout. The theme is `Theme.Wrapper` (Material3 DayNight NoActionBar)
+  with the user's dynamic colors (`DynamicColors`), so the template's menus, dialogs, snackbars and
+  App options panel follow the user's Material theme, as Shrimpl does.
 - T3.2 Edge to edge: system bar styles follow the header colors (dark or light icons as each color
   needs); the root pads for system bars, caption bar, display cutout and IME insets, and consumes them.
 - T3.3 Header colors, from `profile.headerMode`:
@@ -111,16 +117,64 @@ Unit tests cover every branch with a fixed fixture config, including look-alike 
   every other key, site shortcuts included, reaches the page unchanged. Esc first leaves full-screen
   video (T6.13).
 - T5.4 The Keyboard Shortcuts Helper lists two groups: the site's shortcuts (titled `profile.name`)
-  and Window (Reload, Zoom in, Zoom out, Reset zoom, Print, and New window when enabled).
-- T5.5 Context menu (with `profile.nativeContextMenu`): copy link, open link in the browser, save
-  image, per T2d. Image links copy the anchor's href (`requestFocusNodeHref`), not the image URL.
+  and Window (Reload, Zoom in, Zoom out, Reset zoom, Print, App options, Context menu (Shift+F10)
+  while the app's own menu is on, and New window when enabled).
+- T5.5 Context menu (with `profile.nativeContextMenu`, on by default, or the Context menu switch of
+  App options, T5.8, which overrides it at once): App options, then after a divider Copy link, Open
+  in browser and Save image, per T2d. Image links copy the anchor's href (`requestFocusNodeHref`),
+  not the image URL.
+  - On empty space it shows App options alone. Android reports a press on text and on empty space
+    alike, so the page decides (`EmptySpaceMenuBridge`): a document-start script on the internal
+    origins hears the `contextmenu` event after the site's own handlers and asks for the menu only
+    when the site showed no menu of its own (`preventDefault`) and the press isn't on text, a
+    selection, a field, a button, media, a link or an image. Text selection and the site's own menus
+    keep every such press.
+  - Drawn as Android's own menus (`ContextMenuPopup`): the theme's dynamic colors (T3.1), a 16 dp
+    container on the surface container color, as wide as its longest item (112 to 280 dp), 48 dp
+    items with 12 dp rounded highlights and a Material Symbols icon each. Long press, right-click
+    and the keyboard open the same popup, at the finger or pointer, kept inside the window;
+    `DesktopWebView` hands the system's context menu call to it, and with the menu left to the site
+    the call goes on as WebView's own.
+  - The menu key and Shift+F10 open it for the link or image in focus. Arrow keys move, Enter
+    selects, Esc or Back closes; accessibility services hear a pane titled "Context menu".
 - T5.6 Back goes back in the page history while it can (`OnBackPressedCallback` kept in sync in
   `doUpdateVisitedHistory`); full-screen video takes Back first.
 - T5.7 Zoom: pinch zoom on touch (built-in controls, no on-screen buttons), and Ctrl + scroll wheel or
   trackpad scroll zooms text like Ctrl+= and Ctrl+-. Page text starts at the system font size (font
   scale 1.3 is a text zoom of 130 %, to the nearest 10 %) and follows it when it changes, until the
   user zooms; their zoom is kept, and Ctrl+0 returns to following the system font size.
-
+- T5.8 App options: a panel of the app's own options, opened by Ctrl+, (once per press, T2c), by
+  "App options" in the app icon's launcher shortcuts, and first in the context menu (T5.5): on links
+  and images, and alone on empty space. The menu never takes a press the page needs.
+  - Titled "App options". A bottom sheet in a window narrower than 600 dp, a dialog in a wider one.
+  - Each option applies at once and is remembered in `SessionPrefs`. A switch has a fixed label and
+    no description, since its name says what it does; the whole row toggles it, at least 56 dp tall,
+    and accessibility services hear one switch with its label and state. Its label wraps 24 dp before
+    the switch, as Shrimpl's settings items do. A choice has its
+    label, the selected value's description (a polite live region) and a full-width segmented
+    button below them, each segment 48 dp tall.
+  - Its options, in order: Ad blocking, a choice of Off ("Loads everything the site asks for"),
+    Standard ("Blocks ads with EasyList") and Strict ("Blocks ads and trackers with EasyList/EasyPrivacy", T6.19);
+    Desktop site, when the profile allows the toggle (T6.11); Dark mode (T6.21); Shrimpl context menu
+    (T5.5). All but Desktop site are in every app.
+  - Done closes it. There is no Reset: each change is also saved to the app's edit page in Shrimpl
+    (docs/SHRIMPL_SPEC.md R11.9), so the edit page always matches the panel.
+  - The panel's changes apply in the app at once, and are sent together when it closes: with Done,
+    or Back, a tap outside or swiping the sheet down, so the edit page never misses one. They go to
+    every installed Shrimpl's App options provider (found by the action
+    `com.valghora.shrimpl.action.APP_OPTIONS`), off the main thread; only the one that built the app
+    saves them. Without one, the choice holds in the app until its next build.
+  - A new build (a new versionCode) forgets the panel's choices: Shrimpl saved them, so the build
+    carries them, or what the user changed on the edit page since.
+  - The launcher shortcut carries a random token kept in the app's preferences; a launch without it
+    (another app starting the exported activity) doesn't open the panel.
+- T5.9 Live settings (docs/SHRIMPL_SPEC.md R11.10): whenever the app comes to the front (onStart), it
+  asks the Shrimpl that built it for its live settings, on the same thread that sends App options
+  changes, so a change just sent is read back. An answer replaces those settings in the profile and
+  the panel's own choices; a new layout reloads the start URL, and the context menu, Pause
+  in battery saver, ad blocking (T6.19, with any newer list copied) and dark mode (T6.21, reloading
+  the page when it changed) apply at once. Without an
+  answer the app keeps what it has.
 ## T6 WebView, routing and media
 
 - T6.1 One function, `applyWebSettings(webView, mode)`, configures every WebView (main, popups, user
@@ -180,10 +234,9 @@ Unit tests cover every branch with a fixed fixture config, including look-alike 
 - T6.10 Store-redirect fallback (`profile.uaStoreRedirectFallback`, no override): in mobile mode,
   without a user choice or a learned preference, a Play Store redirect in the first 10 s after start
   is blocked, desktop mode is learned, and the start URL reloads. At most once per install.
-- T6.11 Desktop/mobile toggle (`profile.uaUserToggle`, no override): one dynamic launcher shortcut,
-  "Request desktop site" or "Request mobile site", which saves the choice and reloads the start URL.
-  The shortcut carries a random token kept in the app's preferences; a launch without it (another
-  app starting the exported activity) doesn't toggle.
+- T6.11 Desktop/mobile toggle (`profile.uaUserToggle`, no override): the Desktop site switch of App
+  options (T5.8), which saves the choice and reloads the start URL. On is the Desktop user agent, off
+  is Mobile.
 - T6.12 One startup log line: `UA mode=<mode> reason=<reason> metadata=<applied|unsupported|default>`
   (tag `profile.appId`).
 - T6.13 Full-screen video: the page's custom view covers the window with the system bars hidden (swipe
@@ -256,6 +309,55 @@ Unit tests cover every branch with a fixed fixture config, including look-alike 
     T6.17's.
   - All of it goes through `DocumentsContract` on the IO thread, one call per listing, so a folder of
     thousands of entries is slow to walk. Changes other apps make aren't reported.
+- T6.19 Ad blocking (`profile.adBlocking`: Off, Standard with EasyList, Strict with EasyList and
+  EasyPrivacy, both with the Adblock Warning Removal List; the Ad blocking choice of App options, T5.8, overrides it until Shrimpl answers).
+  - Every request of the main window, popups and service workers goes through
+    `shouldInterceptRequest`; a blocked one gets an empty 403 with status text `Blocked`. The page's
+    own document is never blocked, nor anything on a sign-in domain (T2a).
+  - The filter is pure Kotlin (`core/.../adblock/FilterEngine.kt`, R0): Adblock Plus network rules
+    (`||`, `|`, `*`, `^`, `/regex/`, `@@`), with `$third-party` (a request off the app's internal
+    domains), `$domain=` (the main page's host), `$match-case`, `$important` and negated types.
+    Rules that need a request type WebView doesn't report, `$document` and unknown options are left
+    out, so a list only ever blocks less. `$popup` rules and element hiding are T6.20's.
+  - The app keeps its own copy of each list in `no_backup/adblock/`, copied from Shrimpl when its
+    live-settings answer (T5.9) names a newer version (docs/SHRIMPL_SPEC.md R15.3). The filter is
+    built off the main thread; until it exists nothing is blocked. Without Shrimpl the copy stays.
+  - Changing the level in App options reloads the page, so it loads as the new level allows.
+- T6.20 Ad popups and element hiding, with T6.19's lists and level.
+  - A window the page opens (T6.6) whose address a `$popup` rule names never shows and never
+    reaches the browser; a popup that turns into one later (a redirect, a popunder) closes then.
+    Only `$popup` rules decide, as in Adblock Plus; sign-in windows (T2a) always open.
+  - Element hiding (`core/.../adblock/CosmeticFilter.kt`): the `##` rules, generic ones and those of
+    the app's own domains, their subdomains and parents, with `#@#` exceptions and the
+    `$generichide` and `$elemhide` page exceptions. A document-start script on the main window, for
+    the app's internal domains, picks the rules for the page's host and adds a stylesheet hiding
+    them; installed when the filter is built, it also runs once on the page already showing.
+    Selectors go in groups of 200 inside `:is()`, whose forgiving list drops a selector WebView can't
+    parse without its group.
+  - Left out: procedural rules (`#?#`, `:has-text()` and the like), scriptlets (`#$#`, `+js()`),
+    entity rules (`example.*##`) and site rules that also exclude subdomains, so a list only ever
+    hides less.
+- T6.21 Dark mode (`profile.darkMode`: System, the default, follows the device's dark theme; Dark and
+  Light hold whatever the device does; the Dark mode switch of App options, T5.8, overrides it until
+  Shrimpl answers).
+  - One switch, on when the site shows dark. Setting it to what the device shows stores System, so
+    the app follows the device again (`DarkMode.of`); otherwise it stores Dark or Light.
+  - The app's own theme follows it (AppCompat's local night mode, before any view exists): the
+    header, menus and dialogs, and the page's `prefers-color-scheme`, which WebView takes from the
+    theme. A site with a dark design of its own shows it.
+  - A site that stays light is darkened by Dark Reader 4.9.135 (MIT, `assets/darkreader/`, with its
+    license), which rewrites the page's colors instead of inverting it. A document-start script on
+    the main window's top frame, for the internal origins, holds the library inside a function, so
+    the page has no `DarkReader` global. While the page loads, a dark cover keeps it from flashing
+    white; once the document is parsed the script reads the site's own background, with the cover
+    set aside: a dark one, or a transparent one on a dark `color-scheme`, is the site's dark design
+    and is left as it is; anything else gets Dark Reader. Frames and popups (T6.6) keep their own
+    colors.
+  - Dark Reader reads the site's style sheets; those on other domains it asks the app for through a
+    `WebMessageListener` (`AndroidDarkFetch`) on the internal origins, which fetches them off the main
+    thread without cookies, answering only with style sheets and images of at most 4 MB.
+  - Changing it in App options reloads the page. Following the device, a change of the device's
+    theme reaches the page at once, without a reload.
 ## T7 Notifications (with `profile.allowNotifications`)
 
 - T7.1 Needs `WEB_MESSAGE_LISTENER` and `DOCUMENT_START_SCRIPT` (nested checks); without them it is
@@ -282,7 +384,8 @@ Unit tests cover every branch with a fixed fixture config, including look-alike 
 - T8.3 SLEEP: flush cookies, pause the WebView and its timers. WAKE: resume both and dispatch
   `online` and `focus` events to the page. No WakeLocks, no foreground service.
 - T8.4 Lifecycle methods never call `pauseTimers()` / `resumeTimers()` (process-wide). Without
-  `profile.keepAliveWhenHidden`, onStop pauses the WebView and onStart resumes it.
+  `profile.keepAliveWhenHidden`, onStop pauses the WebView; onStart resumes what onStop paused, since
+  the setting can change while the app is hidden (T5.9).
 
 ## Known limitations
 

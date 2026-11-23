@@ -2,8 +2,10 @@ package com.valghora.shrimpl.data
 
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageInfo
 import android.content.pm.PackageManager
 import android.graphics.drawable.Drawable
+import java.security.MessageDigest
 
 /** What Android says about an installed web app (docs/SHRIMPL_SPEC.md R2.2). */
 data class InstalledApp(val packageName: String, val versionCode: Long, val icon: Drawable)
@@ -26,6 +28,15 @@ object InstalledApps {
     } catch (_: PackageManager.NameNotFoundException) {
         false
     }
+
+    /**
+     * The SHA-256 fingerprint of [info]'s signing certificate, in the signing key's form (colon-separated
+     * upper-case hex), or empty when Android didn't report one. [info] needs GET_SIGNING_CERTIFICATES.
+     */
+    fun signerFingerprint(info: PackageInfo): String =
+        info.signingInfo?.apkContentsSigners?.firstOrNull()?.let { signer ->
+            MessageDigest.getInstance("SHA-256").digest(signer.toByteArray()).joinToString(":") { "%02X".format(it) }
+        }.orEmpty()
 
     /** Opens the web app; false if it isn't installed or has no launcher activity. */
     fun open(context: Context, packageName: String): Boolean {

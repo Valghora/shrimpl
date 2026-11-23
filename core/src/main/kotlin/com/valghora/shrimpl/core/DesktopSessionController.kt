@@ -11,8 +11,10 @@ import java.net.URLDecoder
 class DesktopSessionController(
     private val zoomStore: ZoomStore,
     val uaStore: UaStore,
-    private val config: SessionConfig,
+    private var config: SessionConfig,
     fontScalePercent: Int = ZOOM_DEFAULT,
+    /** Where App options keeps its switches (T5.8); callers that never show the panel keep the default. */
+    private val optionStore: OptionStore = UnsavedOptions(),
 ) {
 
     // ----- URL classification -----
@@ -76,7 +78,7 @@ class DesktopSessionController(
      */
     fun resolveKey(keyName: String, modifiers: Set<Modifier>, repeatCount: Int): KeyAction {
         val action = builtInAction(keyName, modifiers, includeNewWindow = true)
-        val oncePerPress = action == KeyAction.RELOAD || action == KeyAction.NEW_WINDOW || action == KeyAction.PRINT
+        val oncePerPress = action != KeyAction.ZOOM_IN && action != KeyAction.ZOOM_OUT && action != KeyAction.ZOOM_RESET
         return if (oncePerPress && repeatCount != 0) KeyAction.NONE else action
     }
 
@@ -89,6 +91,7 @@ class DesktopSessionController(
             ctrl && keyName in ZOOM_OUT_KEYS -> KeyAction.ZOOM_OUT
             ctrl && keyName in ZOOM_RESET_KEYS -> KeyAction.ZOOM_RESET
             ctrl && keyName == "KEYCODE_P" -> KeyAction.PRINT
+            ctrl && keyName == "KEYCODE_COMMA" -> KeyAction.APP_OPTIONS
             includeNewWindow && isNewWindowShortcut(keyName, modifiers) -> KeyAction.NEW_WINDOW
             else -> KeyAction.NONE
         }
@@ -101,12 +104,56 @@ class DesktopSessionController(
 
     // ----- Context menu -----
 
-    /** The context menu items for what was pressed (T5.5): link actions on links, Save image on images. */
-    fun contextMenuActions(hit: HitType): List<MenuAction> = when (hit) {
-        HitType.ANCHOR -> listOf(MenuAction.COPY_LINK, MenuAction.OPEN_LINK)
-        HitType.IMAGE_ANCHOR -> listOf(MenuAction.COPY_LINK, MenuAction.OPEN_LINK, MenuAction.SAVE_IMAGE)
-        HitType.IMAGE -> listOf(MenuAction.SAVE_IMAGE)
-        HitType.OTHER -> emptyList()
+    /**
+     * The context menu items for what was pressed (T5.5): App options first, then link actions on links
+     * and Save image on images. Elsewhere there are none, App options included, so the press reaches the
+     * page: text selection and the site's own menu.
+     */
+    fun contextMenuActions(hit: HitType): List<MenuAction> {
+        val actions = when (hit) {
+            HitType.ANCHOR -> listOf(MenuAction.COPY_LINK, MenuAction.OPEN_LINK)
+            HitType.IMAGE_ANCHOR -> listOf(MenuAction.COPY_LINK, MenuAction.OPEN_LINK, MenuAction.SAVE_IMAGE)
+            HitType.IMAGE -> listOf(MenuAction.SAVE_IMAGE)
+            HitType.OTHER -> emptyList()
+        }
+        return if (actions.isEmpty()) actions else listOf(MenuAction.APP_OPTIONS) + actions
+    }
+
+    // ----- App options (T5.8) -----
+
+    /**
+     * The options the App options panel shows, in its order: Ad blocking (T6.19), Desktop site when the
+     * profile allows the desktop/mobile toggle ([uaToggle], T6.11), Dark mode (T6.21) and the Context
+     * menu (T5.5).
+     */
+    fun appOptions(uaToggle: Boolean): List<AppOption> =
+        listOfNotNull(AppOption.AD_BLOCKING, AppOption.DESKTOP_SITE.takeIf { uaToggle }, AppOption.DARK_MODE, AppOption.LINK_MENU)
+
+    /** Whether the template's context menu is on (T5.5): the panel's choice, else [profileDefault]. */
+    fun linkMenuOn(profileDefault: Boolean): Boolean = optionStore.linkMenuChoice ?: profileDefault
+
+    /** Pause in battery saver, changed while the app runs (T5.9); the next wake event uses it. */
+    fun pauseOnPowerSave(on: Boolean) {
+        config = config.copy(pauseOnPowerSave = on)
+    }
+
+    /** The Context menu switch (T5.8). */
+    fun chooseLinkMenu(on: Boolean) {
+        optionStore.linkMenuChoice = on
+    }
+
+    /**
+     * Starts [build] of the app (T5.8): choices made in another build are forgotten. Shrimpl saved them
+     * to the app's edit page (docs/SHRIMPL_SPEC.md R11.9), so a rebuild already carries them, or carries
+     * what the user changed there since.
+     */
+    fun startBuild(build: Long) {
+        if (optionStore.optionsBuild == build) return
+        uaStore.userChoice = null
+        optionStore.linkMenuChoice = null
+        optionStore.adBlockingChoice = null
+        optionStore.darkModeChoice = null
+        optionStore.optionsBuild = build
     }
 
     // ----- Wake state machine -----

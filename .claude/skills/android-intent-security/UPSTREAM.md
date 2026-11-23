@@ -4,9 +4,9 @@ Vendored unchanged from https://github.com/android/skills (licence in this folde
 
 - Repository: https://github.com/android/skills
 - Path: security/android-intent-security
-- Commit: bf68e2d66a992a1e6aeb7e9263293cc23fcbf475
-- Last updated upstream: 2026-10-30
-- Copied: 2026-11-09
+- Commit: c72942584fff970dac86ced78b367fce0c441e52
+- Last updated upstream: 2026-11-10
+- Copied: 2026-11-22
 
 How this project applies it is in docs/SKILLS.md, and where it deliberately deviates in docs/DEVIATIONS.md. Don't edit these
 files: update them with `scripts/android_skills.sh update android-intent-security`, which copies the newest

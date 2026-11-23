@@ -9,7 +9,6 @@ This file says what the project must be now. Requirement IDs (R0.1, R2.6) are st
 (`scripts/spec_map.sh <ID>` lists where), so an ID is never renumbered or reused. Companion documents:
 
 - [docs/TEMPLATE_SPEC.md](TEMPLATE_SPEC.md): what every web app does (T1 to T8).
-- [docs/ADAPTIVE.md](ADAPTIVE.md): which requirements meet Google's adaptive guidelines, and how.
 - [docs/GOOGLEBOOKS.md](GOOGLEBOOKS.md): the primary devices' screens in dp.
 - [docs/DEVIATIONS.md](DEVIATIONS.md): every deliberate deviation from this spec, TEMPLATE_SPEC,
   Google's guidance and the vendored skills.
@@ -33,7 +32,7 @@ This file says what the project must be now. Requirement IDs (R0.1, R2.6) are st
 - MUST is mandatory. SHOULD means do it unless there is a technical conflict, and record why in
   docs/DEVIATIONS.md if you don't.
 - Precedence when instructions conflict: R0; then platform correctness (builds, installs and runs on
-  API 37); then this spec and TEMPLATE_SPEC; then Google's guidance (docs/ADAPTIVE.md). Every
+  API 37); then this spec and TEMPLATE_SPEC; then Google's guidance (R1.1). Every
   deviation from the last two is written down.
 - Quoted text ("No apps yet") is the exact user-facing string; `<name>` and the like stand for values.
 - A requirement met outside the Kotlin code ends with a line *Outside code:* saying where.
@@ -73,10 +72,18 @@ binary translation) on any device.
     devices, docs/GOOGLEBOOKS.md): freely resizable, no aspect ratio limits, no `configChanges`, edge
     to edge, with keyboard and pointer support, in every orientation (WCAG 1.3.4: no orientation
     lock, phones included).
-  - It follows docs/ADAPTIVE.md: layout from window size classes, state that survives configuration
-    changes, 48 dp touch targets, tooltips on icon-only buttons, a right-click menu on apps, and
-    app-wide keyboard shortcuts (Ctrl+N new app, Ctrl+, settings) listed in the Keyboard Shortcuts
-    Helper.
+  - It meets the adaptive skill, Google's adaptive app quality guidelines (Tiers 2 and 3) and the
+    desktop app quality checklist, except where docs/DEVIATIONS.md says otherwise:
+    - layout from window size classes and the pane rules below, never device type;
+    - state survives configuration changes and process death: user input, open dialogs and menus,
+      and the back stack are kept in saved state or a ViewModel;
+    - 48 dp touch targets; every icon-only button has a tooltip, on hover, long press and focus,
+      that names its keyboard shortcut where it has one (Settings (Ctrl+,));
+    - a right-click menu on apps, the same as their long-press menu;
+    - app-wide keyboard shortcuts, Ctrl+N new app and Ctrl+, settings (Ctrl alone, key repeat
+      ignored), listed in the Keyboard Shortcuts Helper; Tab moves between controls, and Esc
+      closes dialogs and menus without acting as Back;
+    - a single instance: Shrimpl is one manager, so it never opens a second window of itself.
   - Two panes show when the window has room:
 
     | Window | Two panes from |
@@ -181,6 +188,12 @@ binary translation) on any device.
 
   - The ⋮ menu, the right-click menu and the long-press menu ("Show options") offer the same actions.
     The pending action is always first; Rebuild appears only when there is none.
+  - Uninstall, here and on the edit page (R2.3), asks once: "Uninstall <name>?", "The app and its
+    data will be completely removed from your device. You can select the box below to keep <name>
+    in your app list if you wish to reinstall later.", with a checkbox "Keep in app list",
+    unchecked, then Cancel or Uninstall. Once the app is uninstalled, it leaves the list
+    unless the box was checked, which keeps it as Not installed. A turned-down or failed uninstall
+    keeps it either way.
   - Update rebuilds with the bundled template. Reinstall builds the app signed with the current key,
     whatever key it had (R11.7).
   - A not-installed app's icon and name are greyed out (65 % opacity, so the name keeps 4.5:1
@@ -194,13 +207,16 @@ binary translation) on any device.
   - It offers every profile setting in the form of R3.3 (the app ID is not shown) and the icon
     options (R10).
   - Its ⋮ menu offers, pending action first as on home (R2.2): Reinstall (when not installed), Open
-    and Rebuild (when installed), and Uninstall (when installed; confirmed, then it offers to remove
-    the record) or Remove.
+    and Rebuild (when installed), and Uninstall (when installed; asked as in R2.2, and the page closes
+    when the app leaves the list) or Remove.
   - For an installed app signed with another key (R11.7) it offers Fix, then Remove; a Caution
     notice says that saving or fixing uninstalls the app (its settings are kept, not its site data);
     and Save fixes it with the changes.
   - Once something is changed, a Save button appears in the top bar, before the ⋮ button (the page
-    has no floating button, so its column is centred like Settings'). Save rebuilds with the next
+    has no floating button, so its column is centred like Settings'). When only live settings changed
+    (R11.10) in an installed app, Save saves them at once, with nothing built. Otherwise Save first asks
+    `Rebuild <name>?` ("Some of these changes only take effect once <name> is rebuilt. Shrimpl builds
+    it again and updates it; the app's data stays."; Cancel or Rebuild), then rebuilds with the next
     build number and installs it as an update (same package and key, so the app keeps its data).
   - Changes not saved are discarded on leaving the page; recreating the window (rotation, resize)
     keeps them.
@@ -301,14 +317,19 @@ binary translation) on any device.
     - **Icon:** the icon options as preview tiles, then the selected option's settings (R10.1):
       Glyph color (`#FFFFFF` by default) and Background color (the site's brand color by default)
       for Brand, Fill icon canvas for a Website image, Background color for Custom.
-    - **Appearance:** Header color (System, "Matches the system's light or dark theme", the default;
-      Dynamic, "Uses the site's own colors", T3.3; Custom, "Uses the color you choose below") and
+    - **Appearance:** Header color (System, "Matches the system's light or dark theme"; Dynamic,
+      "Uses the site's own colors", the default, T3.3; Custom, "Uses the color you choose below") and
       Custom header color (disabled unless Custom).
-    - **Behavior:** Site layout, the user agent (Auto, "Picks the desktop or mobile site
-      automatically"; Desktop, "Asks for the site's desktop layout"; Mobile, "Asks for the site's
-      mobile layout"); Link and image menu (Shrimpl, "A long press or right-click shows Shrimpl's
-      menu to copy, open or save links and images.", T5.5; Site, "A long press or right-click shows
-      the site's own menu."); Run in background; Pause in battery saver.
+    - **Behavior:** Site layout, the user agent (Desktop, "Asks for the site's desktop layout";
+      Mobile, "Asks for the site's mobile layout"). There is no Auto: a new app gets Desktop on a PC
+      or a screen at least 600 dp across and Mobile otherwise, the rule the template's Auto uses
+      (T6.12); an app stored with Auto shows that layout and keeps Auto until its page is saved.
+      Context menu (Shrimpl, the default, "Shows Shrimpl's menu on links and images, to copy, open or
+      save them."; Site, "Shows the site's own menu on long press and right-click.", T5.5); Ad blocking (Off, "Loads everything the site asks for", the
+      default; Standard, "Blocks ads with EasyList"; Strict, "Blocks ads and trackers with
+      EasyList/EasyPrivacy"; T6.19, R15); Dark mode, a switch ("Shows the site dark, using its own dark
+      design where it has one."), which starts as the device's theme is and follows it until set
+      otherwise (T6.21); Run in background; Pause in battery saver.
     - **Window:** Allow multiple windows ("Lets the app open in more than one window", off by
       default), default and minimum window size.
     - **Permissions:** Microphone, Camera, Notifications and Location, off by default, with no
@@ -411,6 +432,8 @@ binary translation) on any device.
     `USER_ACTION_NOT_REQUIRED`, but Android still asks the user to confirm every install and every
     update (the emulator's `BuildAndInstallTest` taps Update), hence R2.4's warning.
   - **Shevery:** a Shevery user service running `pm install -S` with the APK piped in; no prompts.
+    The service refuses every install and uninstall that doesn't come from Shrimpl's own app ID, so no
+    other app can use the shell's permissions through it.
   - **Root:** `su -c pm install -S` with the APK piped in; `pm uninstall` for uninstalls.
 - R6.2 Settings has one Method choice: System (default; every install asks for confirmation),
   Shevery (silent, through ADB) or Root (silent, through superuser), described in R2.5.
@@ -453,7 +476,9 @@ The template's behavior is docs/TEMPLATE_SPEC.md. What Shrimpl relies on:
 ## R8 Building a web app (on the device)
 
 - R8.1 `:shrimpl` bundles the template's release APK, built in the same Gradle invocation, as
-  `assets/template/template.apk`, with its version (R11.4).
+  `assets/template/template.apk`, with its version (R11.4). Shrimpl copies it out once per install
+  of itself (an update included), never keyed on the version alone, so a new build of Shrimpl always
+  builds web apps from its own template.
 - R8.2 Manifest patching (binary XML, in `:core`): package `com.valghora.shrimpl.app.<appId>` (and
   every string derived from the template package), the literal label, versionCode = build number,
   versionName = `<template version>.<build>` (for example `1.0.0.12`, R11.8), removal of disabled permissions
@@ -577,6 +602,8 @@ The template's behavior is docs/TEMPLATE_SPEC.md. What Shrimpl relies on:
     change to Shrimpl's APK, including a new template (which Shrimpl bundles); the template's rises with
     any change to template code or resources (R11.4). A merge that changes neither APK, such as docs,
     tests or CI only, leaves both.
+  - A branch raises each version once, by one step, however many commits it takes: further changes
+    on the same branch keep the version it already has.
   - A new major version (2.0.0, 3.0.0 …) only on the owner's explicit instruction. A change that would
     go past x.9.9 waits for the owner's decision.
   - Each version is stored as a code, major × 100 + minor × 10 + patch (1.0.0 is 100, 1.2.3 is 123):
@@ -586,6 +613,18 @@ The template's behavior is docs/TEMPLATE_SPEC.md. What Shrimpl relies on:
     before (1 to 19) are older than every version since, so their apps are offered an Update once.
   - Recovery (R11.6) reads a web app's template version from its versionName in any of its forms:
     `1.0.0.12` (template 1.0.0, build 12), `1.0.12` (a `major.minor` template) or `19.12`.
+- R11.9 App options changes (docs/TEMPLATE_SPEC.md T5.8) reach the app's record, so its edit page
+  shows them: Desktop site on sets the user agent to Desktop and off to Mobile, Context menu sets
+  that setting, Ad blocking sets that level and Dark mode sets that setting. A web app sends them to Shrimpl's exported App options provider, which
+  saves a change only for the caller itself: a package of one of its records, signed with the key
+  that record names. An edit page that is open takes the new settings at once; with edits of its own,
+  it takes only the panel's settings. The change applies in the app already, so saving it needs no
+  rebuild.
+- R11.10 Live settings: the Behavior section (Site layout, Context menu, Ad blocking, Dark mode, Run
+  in background, Pause in battery saver) reaches an installed app without a rebuild. Save stores them in the record
+  (R2.3); the app asks the same provider for them whenever it comes to the front (docs/TEMPLATE_SPEC.md
+  T5.9), and the provider answers only the caller about itself, as in R11.9. Everything else (identity,
+  icon, header color, window, permissions, shortcuts) is in the APK and needs a rebuild.
 
 ## R12 Repository, CI and releases
 
@@ -627,7 +666,7 @@ The template's behavior is docs/TEMPLATE_SPEC.md. What Shrimpl relies on:
     Emulator workflow (R12.4) green on `develop`. Every merge into main publishes a release of a
     version not released before (R12.6).
   - A change to documentation only (docs and Markdown) needs neither workflow before either merge.
-  *Outside code:* the workflow in CLAUDE.md.
+  *Outside code:* the workflow in AGENTS.md.
 - R12.6 The Release workflow publishes a release on each push to `main` (a merge from develop), or when
   run by hand on main: it names the release after `shrimpl.appVersion`, publishes nothing when that
   version is already released (a merge of documentation only) and fails when its tag exists without a
@@ -721,6 +760,35 @@ Shrimpl finds and installs its own new releases from GitHub, the repository's re
   (R6) only when its SHA-256 matches, and Android refuses an APK not signed with Shrimpl's key. Debug
   builds, signed with another key, refuse with "Debug builds can't install a release. Install the
   release APK from GitHub instead."
+- R14.7 What's new: the first time Shrimpl opens after an update, it shows the releases of
+  `CHANGELOG.md` (bundled into the APK at build time) newer than the last version whose notes it
+  showed, titled "What's new in Shrimpl <version>", with Done. A bottom sheet in a compact window, a
+  dialog in a wider one (R1.1); with several releases, each has its own heading. It shows once per
+  update: Done or dismissing records the version. A first install shows nothing (Android's first
+  install and last update times are equal) and starts from its own version; an update from a version
+  before this feature shows the newest release. `## Unreleased` counts as the installed version.
+
+## R15 Ad blocking lists
+
+Web apps block ads with lists Shrimpl keeps for them (docs/TEMPLATE_SPEC.md T6.19); no app downloads a
+list, and no APK carries one.
+
+- R15.1 The lists are EasyList (Standard) and EasyList with EasyPrivacy (Strict), and at both levels
+  the Adblock Warning Removal List, which lets bait files load and hides the walls that ask to turn ad
+  blocking off. All are the EasyList project's, under GPL-3.0 or CC BY-SA 3.0. Shrimpl keeps the lists some app's Ad blocking uses, in
+  `files/adblock/`. Shrimpl doesn't credit them: their licenses ask for credit (The EasyList authors)
+  only where the lists are distributed, and each device downloads them itself. A list ever shipped in
+  an APK brings the credit and license notice back.
+- R15.2 Downloads run with WorkManager: once a day while any app uses a list, and at once when an app
+  starts using one Shrimpl doesn't have; none when no app blocks ads. Each is a conditional GET
+  (`If-None-Match`, `If-Modified-Since`), so an unchanged list costs a 304. A download over HTTPS
+  replaces the last good copy only when it holds at least the list's minimum of rules the filter
+  applies (1,000 for EasyList and EasyPrivacy, 200 for the warning list) and at least half as many as
+  the copy it replaces; otherwise the copy stays. Its version is when it was saved.
+- R15.3 Apps get the lists from the App options provider (R11.9's caller check): the live-settings
+  answer (R11.10) carries the version of each list the app's level uses (0 before Shrimpl's first
+  copy), and `openFile` on `content://<authority>/adblock/<list>` hands the caller a read-only file,
+  only of a list its level uses. Lists go by file, since a `call` answer is capped near 1 MB.
 
 ## Known limitations
 

@@ -24,7 +24,7 @@ import org.junit.Test
 import org.junit.runner.RunWith
 
 /**
- * A dialog's unsaved text survives the activity being recreated, as on a rotation or resize (CLAUDE.md
+ * A dialog's unsaved text survives the activity being recreated, as on a rotation or resize (AGENTS.md
  * rule 2; R2.3: changes not saved are kept when the window is recreated). Robolectric can't test this: it
  * never goes idle once a dialog's text field can take focus (docs/TESTING.md, "Robolectric").
  */

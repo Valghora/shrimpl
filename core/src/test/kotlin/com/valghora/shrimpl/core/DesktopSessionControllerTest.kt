@@ -171,6 +171,9 @@ class DesktopSessionControllerTest {
         assertEquals(KeyAction.NONE, c.resolveKey("KEYCODE_P", ctrl, 1)) // once per press
         assertEquals(KeyAction.NONE, c.resolveKey("KEYCODE_P", emptySet(), 0))
         assertEquals(KeyAction.ZOOM_RESET, c.resolveKey("KEYCODE_NUMPAD_0", ctrl, 0))
+        assertEquals(KeyAction.APP_OPTIONS, c.resolveKey("KEYCODE_COMMA", ctrl, 0))
+        assertEquals(KeyAction.NONE, c.resolveKey("KEYCODE_COMMA", ctrl, 1)) // once per press
+        assertEquals(KeyAction.NONE, c.resolveKey("KEYCODE_COMMA", emptySet(), 0))
     }
 
     @Test
@@ -212,13 +215,65 @@ class DesktopSessionControllerTest {
     @Test
     fun mapsHitTypesToMenuActions() {
         val c = controller()
-        assertEquals(listOf(MenuAction.COPY_LINK, MenuAction.OPEN_LINK), c.contextMenuActions(HitType.ANCHOR))
+        val options = MenuAction.APP_OPTIONS
+        assertEquals(listOf(options, MenuAction.COPY_LINK, MenuAction.OPEN_LINK), c.contextMenuActions(HitType.ANCHOR))
         assertEquals(
-            listOf(MenuAction.COPY_LINK, MenuAction.OPEN_LINK, MenuAction.SAVE_IMAGE),
+            listOf(options, MenuAction.COPY_LINK, MenuAction.OPEN_LINK, MenuAction.SAVE_IMAGE),
             c.contextMenuActions(HitType.IMAGE_ANCHOR),
         )
-        assertEquals(listOf(MenuAction.SAVE_IMAGE), c.contextMenuActions(HitType.IMAGE))
-        assertTrue(c.contextMenuActions(HitType.OTHER).isEmpty())
+        assertEquals(listOf(options, MenuAction.SAVE_IMAGE), c.contextMenuActions(HitType.IMAGE))
+        assertTrue("no menu, so the page has the press", c.contextMenuActions(HitType.OTHER).isEmpty())
+    }
+
+    // ----- App options (T5.8) -----
+
+    @Test
+    fun appOptionsOfferDesktopSiteOnlyWithTheToggle() {
+        val c = controller()
+        assertEquals(
+            listOf(AppOption.AD_BLOCKING, AppOption.DESKTOP_SITE, AppOption.DARK_MODE, AppOption.LINK_MENU),
+            c.appOptions(uaToggle = true),
+        )
+        assertEquals(listOf(AppOption.AD_BLOCKING, AppOption.DARK_MODE, AppOption.LINK_MENU), c.appOptions(uaToggle = false))
+    }
+
+    @Test
+    fun theDarkModeSwitchFollowsTheDeviceWhenSetToMatchIt() {
+        assertTrue(DarkMode.SYSTEM.isOn(deviceDark = true))
+        assertFalse(DarkMode.SYSTEM.isOn(deviceDark = false))
+        assertTrue(DarkMode.DARK.isOn(deviceDark = false))
+        assertFalse(DarkMode.LIGHT.isOn(deviceDark = true))
+        assertEquals(DarkMode.SYSTEM, DarkMode.of(on = true, deviceDark = true))
+        assertEquals(DarkMode.SYSTEM, DarkMode.of(on = false, deviceDark = false))
+        assertEquals(DarkMode.DARK, DarkMode.of(on = true, deviceDark = false))
+        assertEquals(DarkMode.LIGHT, DarkMode.of(on = false, deviceDark = true))
+    }
+
+    @Test
+    fun theLinkMenuChoiceOverridesTheProfile() {
+        val c = DesktopSessionController(FakeZoomStore(), FakeUaStore(), fixture, optionStore = UnsavedOptions())
+        assertTrue(c.linkMenuOn(profileDefault = true))
+        assertFalse(c.linkMenuOn(profileDefault = false))
+        c.chooseLinkMenu(true)
+        assertTrue(c.linkMenuOn(profileDefault = false))
+        c.chooseLinkMenu(false)
+        assertFalse(c.linkMenuOn(profileDefault = true))
+    }
+
+    @Test
+    fun aNewBuildForgetsThePanelsChoices() {
+        val ua = FakeUaStore(userChoice = UaMode.DESKTOP)
+        val options = UnsavedOptions(linkMenuChoice = true, optionsBuild = 3, adBlockingChoice = AdBlocking.ADS, darkModeChoice = DarkMode.DARK)
+        val c = DesktopSessionController(FakeZoomStore(), ua, fixture, optionStore = options)
+        c.startBuild(3)
+        assertEquals(UaMode.DESKTOP, ua.userChoice)
+        assertEquals(true, options.linkMenuChoice)
+        c.startBuild(4)
+        assertNull(ua.userChoice)
+        assertNull(options.linkMenuChoice)
+        assertNull(options.adBlockingChoice)
+        assertNull(options.darkModeChoice)
+        assertEquals(4L, options.optionsBuild)
     }
 
     // ----- Wake state machine -----
@@ -233,6 +288,14 @@ class DesktopSessionControllerTest {
         assertEquals(WakeEvent.NONE, c.onWakeInput(interactive = true, anyDisplayOn = false, powerSaveMode = false))
         assertEquals(WakeEvent.WAKE, c.onWakeInput(interactive = true, anyDisplayOn = true, powerSaveMode = false))
         assertEquals(WakeEvent.NONE, c.onWakeInput(interactive = true, anyDisplayOn = true, powerSaveMode = true))
+    }
+
+    @Test
+    fun pauseInBatterySaverCanChangeWhileTheAppRuns() {
+        val c = controller(config = fixture.copy(pauseOnPowerSave = false))
+        assertEquals(WakeEvent.NONE, c.onWakeInput(interactive = true, anyDisplayOn = true, powerSaveMode = true))
+        c.pauseOnPowerSave(true)
+        assertEquals(WakeEvent.SLEEP, c.onWakeInput(interactive = true, anyDisplayOn = true, powerSaveMode = true))
     }
 
     @Test

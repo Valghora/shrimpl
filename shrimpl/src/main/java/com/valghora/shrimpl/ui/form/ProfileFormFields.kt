@@ -1,5 +1,7 @@
 package com.valghora.shrimpl.ui.form
 
+import android.content.res.Configuration
+import android.content.res.Resources
 import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -37,6 +39,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
@@ -48,6 +51,8 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.core.graphics.toColorInt
 import com.valghora.shrimpl.R
+import com.valghora.shrimpl.core.AdBlocking
+import com.valghora.shrimpl.core.DarkMode
 import com.valghora.shrimpl.core.UaMode
 import com.valghora.shrimpl.core.profile.HeaderMode
 import com.valghora.shrimpl.core.profile.ProfileForm
@@ -280,7 +285,7 @@ private class Fields(
     }
 
     /**
-     * The Behavior section: the user agent, the native context menu,
+     * The Behavior section: the user agent, the native context menu, ad blocking, dark mode,
      * running while hidden, and pausing in battery saver.
      */
     @Composable
@@ -289,19 +294,13 @@ private class Fields(
             DropdownItem(
                 stringResource(R.string.field_user_agent),
                 form.userAgentMode,
+                // R3.3: no Auto; the form arrives with this device's layout in its place (ProfileForm.siteLayoutFor).
                 listOf(
-                    UaMode.AUTO to stringResource(R.string.ua_auto),
                     UaMode.DESKTOP to stringResource(R.string.ua_desktop),
                     UaMode.MOBILE to stringResource(R.string.ua_mobile),
                 ),
                 { onChange(form.copy(userAgentMode = it)) },
-                summary = stringResource(
-                    when (form.userAgentMode) {
-                        UaMode.AUTO -> R.string.ua_auto_detail
-                        UaMode.DESKTOP -> R.string.ua_desktop_detail
-                        UaMode.MOBILE -> R.string.ua_mobile_detail
-                    },
-                ),
+                summary = stringResource(if (form.userAgentMode == UaMode.MOBILE) R.string.ua_mobile_detail else R.string.ua_desktop_detail),
             )
             // Whose menu a long press or right-click opens on a link or image: Shrimpl's or the site's.
             DropdownItem(
@@ -310,6 +309,35 @@ private class Fields(
                 listOf(true to stringResource(R.string.context_menu_shrimpl), false to stringResource(R.string.context_menu_site)),
                 { onChange(form.copy(nativeContextMenu = it)) },
                 summary = stringResource(if (form.nativeContextMenu) R.string.context_menu_shrimpl_detail else R.string.context_menu_site_detail),
+            )
+            // T6.19: which lists the app blocks with; a live setting (R11.10), like the rest of Behavior.
+            DropdownItem(
+                stringResource(R.string.field_ad_blocking),
+                form.adBlocking,
+                listOf(
+                    AdBlocking.OFF to stringResource(R.string.ad_blocking_off),
+                    AdBlocking.ADS to stringResource(R.string.ad_blocking_standard),
+                    AdBlocking.ADS_AND_TRACKERS to stringResource(R.string.ad_blocking_strict),
+                ),
+                { onChange(form.copy(adBlocking = it)) },
+                summary = stringResource(
+                    when (form.adBlocking) {
+                        AdBlocking.OFF -> R.string.ad_blocking_off_detail
+                        AdBlocking.ADS -> R.string.ad_blocking_standard_detail
+                        AdBlocking.ADS_AND_TRACKERS -> R.string.ad_blocking_strict_detail
+                    },
+                ),
+            )
+            // T6.21: one switch; set to match the device, it follows the device again (DarkMode.of).
+            val configuration = LocalConfiguration.current
+            val deviceDark = remember(configuration) {
+                Resources.getSystem().configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK == Configuration.UI_MODE_NIGHT_YES
+            }
+            SwitchItem(
+                stringResource(R.string.field_dark_mode),
+                form.darkMode.isOn(deviceDark),
+                { onChange(form.copy(darkMode = DarkMode.of(it, deviceDark))) },
+                summary = stringResource(R.string.field_dark_mode_detail),
             )
             SwitchItem(
                 stringResource(R.string.field_keep_alive), form.keepAliveWhenHidden, { onChange(form.copy(keepAliveWhenHidden = it)) },

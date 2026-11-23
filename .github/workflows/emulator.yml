@@ -2,7 +2,7 @@ name: Emulator
 
 # Instrumented tests on a real Android system (docs/SHRIMPL_SPEC.md R12.4, docs/TESTING.md, "The emulator's environment"): the template's WebView
 # and its bridges, and Shrimpl building, installing and launching a web app. GitHub's Linux runners
-# expose KVM, so the x86_64 emulator runs at hardware speed; the cloud container Claude Code works in
+# expose KVM, so the x86_64 emulator runs at hardware speed; the cloud containers coding agents work in
 # has no KVM and can't run one.
 #
 # By hand only (workflow_dispatch), on a branch that is ready to merge: it is the slowest check, so it

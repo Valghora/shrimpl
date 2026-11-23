@@ -155,6 +155,15 @@ class AppSettings(context: Context) {
         _keyBackedUp.value = backedUp
     }
 
+    /** The version code whose What's new was last shown (R14.7), or null before the first. */
+    val notesSeen: Int?
+        get() = if (prefs.contains(KEY_NOTES_SEEN)) prefs.getInt(KEY_NOTES_SEEN, 0) else null
+
+    /** Records that What's new for [versionCode] was shown (R14.7). */
+    fun setNotesSeen(versionCode: Int) {
+        prefs.edit { putInt(KEY_NOTES_SEEN, versionCode) }
+    }
+
     private val _updateFrequency = MutableStateFlow(
         prefs.getString(KEY_UPDATE_FREQUENCY, null)?.let { runCatching { UpdateFrequency.valueOf(it) }.getOrNull() } ?: UpdateFrequency.DEFAULT,
     )
@@ -179,6 +188,7 @@ class AppSettings(context: Context) {
         const val KEY_BADGE_THEME = "badge_theme"
         const val KEY_HAPTIC_FEEDBACK = "haptic_feedback"
         const val KEY_BACKED_UP = "key_backed_up"
+        const val KEY_NOTES_SEEN = "notes_seen"
         const val KEY_PROMPT_SHOWN = "backup_prompt_shown"
         const val KEY_RECOVERY_DONE = "recovery_done"
         const val KEY_KEY_NOTICE_DISMISSED = "key_notice_dismissed"

@@ -2,7 +2,7 @@
 
 Google's [android/skills](https://github.com/android/skills) are agent instructions for Android best
 practices. The ones that apply to this project are copied unchanged into `.claude/skills/<name>/`,
-where Claude Code loads them as project skills. Each folder keeps upstream's `LICENSE.txt` (Apache
+where Claude Code loads them as project skills and any other agent reads their `SKILL.md`. Each folder keeps upstream's `LICENSE.txt` (Apache
 2.0) and an `UPSTREAM.md` with the upstream path, the commit it was copied from and that copy's
 `last-updated` date.
 
@@ -12,14 +12,15 @@ commit.
 
 ## Keeping them current
 
-- **Check.** `scripts/android_skills.sh check` compares every vendored skill with upstream. The
-  SessionStart hook runs it at the start of every session, so a session starts with a note when a
+- **Check.** `scripts/android_skills.sh check` compares every vendored skill with upstream. Every
+  session starts with it (Claude Code's session-start hook runs it; other agents run it first, as
+  AGENTS.md says), so a session starts with a note when a
   skill has an upstream update, differs from its recorded upstream copy, or no longer exists upstream,
   and when upstream adds a skill this file doesn't mention. For an update, the owner is asked first
   whether to check it against the project; only then is it applied and reviewed (below).
 - **Update.** `scripts/android_skills.sh update <name>` (or `--all`) copies the newest upstream
   version and rewrites `UPSTREAM.md`. Review `git diff .claude/skills` against DEVIATIONS.md,
-  adjust it (and ADAPTIVE.md) where the guidance changed, and commit the update on its own.
+  adjust it (and SHRIMPL_SPEC.md R1.1, for the adaptive skill) where the guidance changed, and commit the update on its own.
 - **Adopt.** `scripts/android_skills.sh add <upstream path>` vendors another android/skills skill;
   `add --repo <github url> --into <name> <file>...` vendors chosen files of another repository into
   `.claude/references/<name>/`. Add it to the tables below, and remove it from "Not adopted".
@@ -30,8 +31,8 @@ commit.
 
 | Skill | Upstream path | Use it when |
 |---|---|---|
-| adaptive | `jetpack-compose/adaptive` | Any Shrimpl UI change (CLAUDE.md rule 2). How it applies: [ADAPTIVE.md](ADAPTIVE.md). |
-| testing-setup | `testing/testing-setup` | Adding or reviewing tests, and with every change (CLAUDE.md: look for behavior worth a Robolectric test). |
+| adaptive | `jetpack-compose/adaptive` | Any Shrimpl UI change (AGENTS.md rule 2). How it applies: [SHRIMPL_SPEC.md](SHRIMPL_SPEC.md) R1.1 and [TEMPLATE_SPEC.md](TEMPLATE_SPEC.md) T3 to T6. |
+| testing-setup | `testing/testing-setup` | Adding or reviewing tests, and with every change (AGENTS.md: look for behavior worth a Robolectric test). |
 | android-intent-security | `security/android-intent-security` | Touching manifest components, intents, `PendingIntent`s, or how the template opens links and `intent:` URLs. |
 | android-permissions-security | `security/android-permissions-security` | Adding or changing permissions, exported components, broadcasts, or the template's runtime permission prompts. |
 | edge-to-edge | `system/edge-to-edge` | Shrimpl screens with lists, floating buttons, text fields, dialogs or sheets. |
@@ -79,8 +80,9 @@ one gets a decision here.
 | `identity/verified-email` | As above. |
 | `jetpack-compose/ink/ink-app-builder` | No drawing. |
 | `jetpack-compose/ink/ink-custom-brush-builder` | No drawing. |
-| `jetpack-compose/migration/migrate-xml-views-to-jetpack-compose` | The template stays on Views on purpose (T1.1, ADAPTIVE.md). |
+| `jetpack-compose/migration/migrate-xml-views-to-jetpack-compose` | The template stays on Views on purpose (T1.1). |
 | `media/media3-cast-integration` | Media plays inside each site's page. |
+| `migration/ios-to-android` | No iOS app to port: Shrimpl and its web apps are Android-only. |
 | `navigation/navigation-event` | Compose-only, and it defers to Navigation 3's own back handling; the template uses `OnBackPressedDispatcher`. |
 | `play/engage-sdk-integration` | Shrimpl and its web apps are sideloaded, not on Play. |
 | `play/play-billing-library-version-upgrade` | No billing; not on Play. |

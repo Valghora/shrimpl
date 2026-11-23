@@ -46,6 +46,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.valghora.shrimpl.R
 import com.valghora.shrimpl.container
 import com.valghora.shrimpl.data.InstalledApps
+import com.valghora.shrimpl.ui.common.UninstallDialog
 import com.valghora.shrimpl.ui.common.AppMenu
 import com.valghora.shrimpl.ui.common.AppMenuItem
 import com.valghora.shrimpl.ui.common.BuildSheet
@@ -69,8 +70,8 @@ fun EditScreen(appId: String, onBack: () -> Unit) {
     val otherKey by model.otherKey.collectAsStateWithLifecycle()
     val buildState by model.build.state.collectAsStateWithLifecycle()
     val message by model.message.collectAsStateWithLifecycle()
-    val offerRemove by model.offerRemove.collectAsStateWithLifecycle()
     var confirmUninstall by rememberSaveable { mutableStateOf(false) }
+    var confirmRebuild by rememberSaveable { mutableStateOf(false) }
     var menu by rememberSaveable { mutableStateOf(false) }
     val snackbar = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
@@ -123,7 +124,14 @@ fun EditScreen(appId: String, onBack: () -> Unit) {
                         // has no floating button, so the form's column is centred like Settings'.
                         if (model.dirty) {
                             Button(
-                                onClick = { if (!model.save()) scope.launch { snackbar.showSnackbar(invalidMessage) } },
+                                // R11.10: live settings save at once; anything else asks before the rebuild.
+                                onClick = {
+                                    when (model.saveKind()) {
+                                        EditViewModel.SaveKind.INVALID -> scope.launch { snackbar.showSnackbar(invalidMessage) }
+                                        EditViewModel.SaveKind.LIVE -> model.saveLive()
+                                        EditViewModel.SaveKind.REBUILD -> confirmRebuild = true
+                                    }
+                                },
                                 shape = AppShapes.Control,
                                 modifier = Modifier.padding(end = 4.dp),
                             ) {
@@ -190,28 +198,25 @@ fun EditScreen(appId: String, onBack: () -> Unit) {
         }
     }
 
-    if (confirmUninstall) {
+    if (confirmRebuild) {
         AlertDialog(
-            onDismissRequest = { confirmUninstall = false },
-            title = { Text(stringResource(R.string.uninstall_title, current.profile.name)) },
-            text = { Text(stringResource(R.string.uninstall_text)) },
+            onDismissRequest = { confirmRebuild = false },
+            title = { Text(stringResource(R.string.rebuild_title, current.profile.name)) },
+            text = { Text(stringResource(R.string.rebuild_text, current.profile.name)) },
             confirmButton = {
                 TextButton(onClick = {
-                    confirmUninstall = false
-                    model.uninstall()
-                }) { Text(stringResource(R.string.action_uninstall)) }
+                    confirmRebuild = false
+                    if (!model.save()) scope.launch { snackbar.showSnackbar(invalidMessage) }
+                }) { Text(stringResource(R.string.action_rebuild)) }
             },
-            dismissButton = { TextButton(onClick = { confirmUninstall = false }) { Text(stringResource(R.string.action_cancel)) } },
+            dismissButton = { TextButton(onClick = { confirmRebuild = false }) { Text(stringResource(R.string.action_cancel)) } },
         )
     }
-    if (offerRemove) {
-        AlertDialog(
-            onDismissRequest = model::dismissRemove,
-            title = { Text(stringResource(R.string.remove_title, current.profile.name)) },
-            text = { Text(stringResource(R.string.remove_text)) },
-            confirmButton = { TextButton(onClick = { model.remove(onBack) }) { Text(stringResource(R.string.action_remove)) } },
-            dismissButton = { TextButton(onClick = model::dismissRemove) { Text(stringResource(R.string.action_keep)) } },
-        )
+    if (confirmUninstall) {
+        UninstallDialog(current.profile.name, onConfirm = { keep ->
+            confirmUninstall = false
+            model.uninstall(keep, onBack)
+        }, onDismiss = { confirmUninstall = false })
     }
     buildState?.let { state ->
         BuildSheet(

@@ -23,7 +23,7 @@ val LocalBadgeTheme = staticCompositionLocalOf { BadgeTheme.SHRIMPL }
  *   red, yellow or green.
  * - Mono: the theme's primary container colors, the same for every status; the symbols tell them apart.
  *
- * Notices keep their fixed tones whatever the setting (CLAUDE.md, palette rules).
+ * Notices keep their fixed tones whatever the setting (AGENTS.md, palette rules).
  */
 @Composable
 fun badgeColors(tone: Tone): BadgeColors {
