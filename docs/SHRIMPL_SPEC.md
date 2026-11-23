@@ -759,6 +759,13 @@ Shrimpl finds and installs its own new releases from GitHub, the repository's re
   (R6) only when its SHA-256 matches, and Android refuses an APK not signed with Shrimpl's key. Debug
   builds, signed with another key, refuse with "Debug builds can't install a release. Install the
   release APK from GitHub instead."
+- R14.7 What's new: the first time Shrimpl opens after an update, it shows the releases of
+  `CHANGELOG.md` (bundled into the APK at build time) newer than the last version whose notes it
+  showed, titled "What's new in Shrimpl <version>", with Done. A bottom sheet in a compact window, a
+  dialog in a wider one (R1.1); with several releases, each has its own heading. It shows once per
+  update: Done or dismissing records the version. A first install shows nothing (Android's first
+  install and last update times are equal) and starts from its own version; an update from a version
+  before this feature shows the newest release. `## Unreleased` counts as the installed version.
 
 ## R15 Ad blocking lists
 

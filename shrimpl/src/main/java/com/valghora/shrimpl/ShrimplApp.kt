@@ -13,6 +13,7 @@ import com.valghora.shrimpl.data.SigningKeyStore
 import com.valghora.shrimpl.data.TemplateProvider
 import com.valghora.shrimpl.data.WebAppRecovery
 import com.valghora.shrimpl.data.WebAppStore
+import com.valghora.shrimpl.data.WhatsNew
 import com.valghora.shrimpl.discovery.SiteDiscovery
 import com.valghora.shrimpl.install.Installers
 import com.valghora.shrimpl.update.UpdateSchedule
@@ -41,6 +42,7 @@ class AppContainer(context: Context) {
     val recovery = WebAppRecovery(context, store, settings)
     val updates = Updates(context, installers, installedCode = BuildConfig.VERSION_CODE, debug = BuildConfig.DEBUG)
     val filterLists = FilterListStore(context)
+    val whatsNew = WhatsNew(context, settings, BuildConfig.VERSION_CODE)
 
     /**
      * Whether this device is a PC or has a screen at least 600 dp across: the template's rule for the
