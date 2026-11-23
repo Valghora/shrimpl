@@ -46,8 +46,8 @@ object AppOptionsSync {
     const val KEY_PAUSE_POWER_SAVE = "pause_power_save"
 
     /**
-     * The level the Block ads switch sets: off is Off; on keeps a level already chosen, and is Ads and
-     * trackers when ad blocking was off (T5.8).
+     * The level the Block ads switch sets: off is Off; on keeps a level already chosen, and is Strict
+     * (ADS_AND_TRACKERS) when ad blocking was off (T5.8).
      */
     fun adBlockingFor(blockAds: Boolean, current: AdBlocking): AdBlocking = when {
         !blockAds -> AdBlocking.OFF

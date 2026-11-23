@@ -84,8 +84,8 @@ class EditChangesTest {
         compose.onNode(hasText(string(R.string.field_ad_blocking))).performScrollTo()
         assertTrue(exists(string(R.string.ad_blocking_off_detail)))
         compose.onNode(hasClickAction() and hasText(string(R.string.ad_blocking_off))).performClick()
-        compose.onNode(hasText(string(R.string.ad_blocking_ads_and_trackers))).performClick()
-        compose.waitUntil(LOAD_TIMEOUT_MS) { exists(string(R.string.ad_blocking_ads_and_trackers_detail)) }
+        compose.onNode(hasText(string(R.string.ad_blocking_strict))).performClick()
+        compose.waitUntil(LOAD_TIMEOUT_MS) { exists(string(R.string.ad_blocking_strict_detail)) }
         assertTrue("the change waits for Save", saveShown)
     }
 

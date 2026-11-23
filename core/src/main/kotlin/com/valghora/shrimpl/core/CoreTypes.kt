@@ -13,7 +13,8 @@ enum class UaMode {
 
 /**
  * Which lists a web app blocks with (docs/TEMPLATE_SPEC.md T6.19): EasyList for ads, and EasyPrivacy too
- * for trackers.
+ * for trackers. The edit page calls ADS Standard and ADS_AND_TRACKERS Strict; the stored names stay, so
+ * saved apps keep their level.
  */
 @Serializable
 enum class AdBlocking {

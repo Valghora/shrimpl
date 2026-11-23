@@ -325,7 +325,7 @@ binary translation) on any device.
       mobile layout"); Link and image menu (Site, the default, "A long press or right-click shows the
       site's own menu."; Shrimpl, "A long press or right-click shows Shrimpl's menu to copy, open or
       save links and images.", T5.5); Ad blocking (Off, "Loads everything the site asks for", the
-      default; Ads, "Blocks ads with EasyList"; Ads and trackers, "Blocks ads and trackers with EasyList
+      default; Standard, "Blocks ads with EasyList"; Strict, "Blocks ads and trackers with EasyList
       and EasyPrivacy"; T6.19, R15); Run in background; Pause in battery saver.
     - **Window:** Allow multiple windows ("Lets the app open in more than one window", off by
       default), default and minimum window size.
@@ -612,8 +612,8 @@ The template's behavior is docs/TEMPLATE_SPEC.md. What Shrimpl relies on:
     `1.0.0.12` (template 1.0.0, build 12), `1.0.12` (a `major.minor` template) or `19.12`.
 - R11.9 App options changes (docs/TEMPLATE_SPEC.md T5.8) reach the app's record, so its edit page
   shows them: Desktop site on sets the user agent to Desktop and off to Mobile, Link and image menu
-  sets that setting, and Block ads sets Ad blocking (on keeps a level already set, else Ads and
-  trackers; off is Off). A web app sends them to Shrimpl's exported App options provider, which
+  sets that setting, and Block ads sets Ad blocking (on keeps a level already set, else Strict;
+  off is Off). A web app sends them to Shrimpl's exported App options provider, which
   saves a change only for the caller itself: a package of one of its records, signed with the key
   that record names. An edit page that is open takes the new settings at once; with edits of its own,
   it takes only the panel's settings. The change applies in the app already, so saving it needs no
@@ -764,7 +764,7 @@ Shrimpl finds and installs its own new releases from GitHub, the repository's re
 Web apps block ads with lists Shrimpl keeps for them (docs/TEMPLATE_SPEC.md T6.19); no app downloads a
 list, and no APK carries one.
 
-- R15.1 The lists are EasyList (Ads) and EasyList with EasyPrivacy (Ads and trackers), from
+- R15.1 The lists are EasyList (Standard) and EasyList with EasyPrivacy (Strict), from
   easylist.to, under GPL-3.0 or CC BY-SA 3.0. Shrimpl keeps the lists some app's Ad blocking uses, in
   `files/adblock/`, and credits them in Settings' About section ("Ad blocking lists").
 - R15.2 Downloads run with WorkManager: once a day while any app uses a list, and at once when an app

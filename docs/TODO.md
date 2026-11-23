@@ -39,7 +39,7 @@ document-start script, which mangles images)? Recommendation: algorithmic only a
 
 ## 2. Ad blocking, per web app
 
-**Decided (2026-11-08):** a profile field `adBlocking` (Off, Ads, Ads and trackers; default Off) on the edit
+**Decided (2026-11-08):** a profile field `adBlocking` (Off, Ads, Ads and trackers; default Off; shown as Off, Standard, Strict since 2026-11-23) on the edit
 page, and a switch in the App options panel (T5.8). **Decided (2026-11-23):** the lists are EasyList (Ads)
 and EasyList + EasyPrivacy (Ads and trackers), matched as URL rules, not host names only. Since live
 settings (R11.10), the field sits in the Behavior section and applies without a rebuild.

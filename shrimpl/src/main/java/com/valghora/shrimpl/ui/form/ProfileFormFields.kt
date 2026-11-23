@@ -318,15 +318,15 @@ private class Fields(
                 form.adBlocking,
                 listOf(
                     AdBlocking.OFF to stringResource(R.string.ad_blocking_off),
-                    AdBlocking.ADS to stringResource(R.string.ad_blocking_ads),
-                    AdBlocking.ADS_AND_TRACKERS to stringResource(R.string.ad_blocking_ads_and_trackers),
+                    AdBlocking.ADS to stringResource(R.string.ad_blocking_standard),
+                    AdBlocking.ADS_AND_TRACKERS to stringResource(R.string.ad_blocking_strict),
                 ),
                 { onChange(form.copy(adBlocking = it)) },
                 summary = stringResource(
                     when (form.adBlocking) {
                         AdBlocking.OFF -> R.string.ad_blocking_off_detail
-                        AdBlocking.ADS -> R.string.ad_blocking_ads_detail
-                        AdBlocking.ADS_AND_TRACKERS -> R.string.ad_blocking_ads_and_trackers_detail
+                        AdBlocking.ADS -> R.string.ad_blocking_standard_detail
+                        AdBlocking.ADS_AND_TRACKERS -> R.string.ad_blocking_strict_detail
                     },
                 ),
             )

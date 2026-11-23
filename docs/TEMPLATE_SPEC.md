@@ -139,8 +139,8 @@ Unit tests cover every branch with a fixed fixture config, including look-alike 
   - Its switches, in order: Desktop site ("Shows the site as it looks on a computer"), when the
     profile allows the toggle (T6.11); Link and image menu ("Shows a menu to copy, open or save
     links and images, instead of the site's own.", T5.5) and Block ads ("Blocks the ads the site
-    loads", T6.19), in every app. Block ads on keeps a level Shrimpl already set, else Ads and
-    trackers; off is Off.
+    loads", T6.19), in every app. Block ads on keeps a level Shrimpl already set, else Strict;
+    off is Off.
   - Done closes it. There is no Reset: each change is also saved to the app's edit page in Shrimpl
     (docs/SHRIMPL_SPEC.md R11.9), so the edit page always matches the panel.
   - The panel's changes apply in the app at once, and are sent together when it closes: with Done,
@@ -292,7 +292,7 @@ Unit tests cover every branch with a fixed fixture config, including look-alike 
     T6.17's.
   - All of it goes through `DocumentsContract` on the IO thread, one call per listing, so a folder of
     thousands of entries is slow to walk. Changes other apps make aren't reported.
-- T6.19 Ad blocking (`profile.adBlocking`: Off, Ads with EasyList, Ads and trackers with EasyList and
+- T6.19 Ad blocking (`profile.adBlocking`: Off, Standard with EasyList, Strict with EasyList and
   EasyPrivacy; the Block ads switch of App options, T5.8, overrides it until Shrimpl answers).
   - Every request of the main window, popups and service workers goes through
     `shouldInterceptRequest`; a blocked one gets an empty 403 with status text `Blocked`. The page's own document
