@@ -22,8 +22,8 @@ import com.google.android.material.materialswitch.MaterialSwitch
 /** One row of the App options panel (T5.8). */
 sealed interface PanelOption
 
-/** A switch: fixed [title] and [description], its state, and what a change does. */
-class OptionSwitch(val title: String, val description: String, val checked: Boolean, val onChange: (Boolean) -> Unit) : PanelOption
+/** A switch: its fixed [title], which says what it does without a description, its state, and what a change does. */
+class OptionSwitch(val title: String, val checked: Boolean, val onChange: (Boolean) -> Unit) : PanelOption
 
 /**
  * A choice of a few values in a segmented button: [labels] name them, [descriptions] say what each does
@@ -48,7 +48,7 @@ object AppOptionsPanel {
 
     /**
      * The space between a row's text and its switch, as in Shrimpl's settings (the wrap line of
-     * docs/SHRIMPL_SPEC.md R3.3), so a description wraps well clear of the switch. Every row's switch is the
+     * docs/SHRIMPL_SPEC.md R3.3), so a label wraps well clear of the switch. Every row's switch is the
      * same width, so the panel's text has one right edge.
      */
     private const val TEXT_GAP_DP = 24
@@ -145,8 +145,8 @@ object AppOptionsPanel {
     }
 
     /**
-     * A switch row: the whole row toggles, a target of at least 72 dp, and accessibility services hear
-     * one switch named by its title and description, with its state (accessibility skill).
+     * A switch row: the whole row toggles, a target of at least 56 dp, and accessibility services hear
+     * one switch named by its title, with its state (accessibility skill).
      */
     private fun row(context: Context, option: OptionSwitch, insetDp: Int): View {
         val switch = MaterialSwitch(context).apply {
@@ -155,21 +155,17 @@ object AppOptionsPanel {
             isFocusable = false
             importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
         }
-        val texts = LinearLayout(context).apply {
-            orientation = LinearLayout.VERTICAL
-            addView(text(context, option.title, com.google.android.material.R.attr.textAppearanceBodyLarge))
-            addView(text(context, option.description, com.google.android.material.R.attr.textAppearanceBodyMedium, secondary = true))
-        }
+        val title = text(context, option.title, com.google.android.material.R.attr.textAppearanceBodyLarge)
         return LinearLayout(context).apply {
             orientation = LinearLayout.HORIZONTAL
             gravity = Gravity.CENTER_VERTICAL
-            minimumHeight = dp(context, 72)
+            minimumHeight = dp(context, 56)
             updatePadding(left = dp(context, insetDp), right = dp(context, insetDp), top = dp(context, 8), bottom = dp(context, 8))
             isFocusable = true
             background = selectableBackground(context)
-            addView(texts, LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f).apply { marginEnd = dp(context, TEXT_GAP_DP) })
+            addView(title, LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f).apply { marginEnd = dp(context, TEXT_GAP_DP) })
             addView(switch)
-            contentDescription = "${option.title}, ${option.description}"
+            contentDescription = option.title
             setOnClickListener {
                 switch.isChecked = !switch.isChecked
                 option.onChange(switch.isChecked)

@@ -1445,7 +1445,6 @@ class MainActivity : AppCompatActivity() {
                 }
                 AppOption.DESKTOP_SITE -> OptionSwitch(
                     getString(R.string.option_desktop_site),
-                    getString(R.string.option_desktop_site_detail),
                     resolvedMode == UaMode.DESKTOP,
                 ) { on ->
                     prefs.userChoice = if (on) UaMode.DESKTOP else UaMode.MOBILE
@@ -1454,7 +1453,6 @@ class MainActivity : AppCompatActivity() {
                 }
                 AppOption.DARK_MODE -> OptionSwitch(
                     getString(R.string.option_dark_mode),
-                    getString(R.string.option_dark_mode_detail),
                     WebApp.profile.darkMode.isOn(DarkTheme.deviceDark()),
                 ) { on ->
                     val mode = DarkMode.of(on, DarkTheme.deviceDark())
@@ -1465,7 +1463,6 @@ class MainActivity : AppCompatActivity() {
                 }
                 AppOption.LINK_MENU -> OptionSwitch(
                     getString(R.string.option_link_menu),
-                    getString(R.string.option_link_menu_detail),
                     controller.linkMenuOn(WebApp.profile.nativeContextMenu),
                 ) { on ->
                     controller.chooseLinkMenu(on)

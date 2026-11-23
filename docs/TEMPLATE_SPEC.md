@@ -148,17 +148,15 @@ Unit tests cover every branch with a fixed fixture config, including look-alike 
   and images, and alone on empty space. The menu never takes a press the page needs.
   - Titled "App options". A bottom sheet in a window narrower than 600 dp, a dialog in a wider one.
   - Each option applies at once and is remembered in `SessionPrefs`. A switch has a fixed label and
-    a description of what it does when on (docs/SHRIMPL_SPEC.md R1.6); the whole row toggles it, at
-    least 72 dp tall, and accessibility services hear one switch with its label, description and
-    state. Its text wraps 24 dp before the switch, as Shrimpl's settings items do. A choice has its
+    no description, since its name says what it does; the whole row toggles it, at least 56 dp tall,
+    and accessibility services hear one switch with its label and state. Its label wraps 24 dp before
+    the switch, as Shrimpl's settings items do. A choice has its
     label, the selected value's description (a polite live region) and a full-width segmented
     button below them, each segment 48 dp tall.
   - Its options, in order: Ad blocking, a choice of Off ("Loads everything the site asks for"),
-    Standard ("Blocks ads with EasyList") and Strict ("Blocks ads and trackers with EasyList and
-    EasyPrivacy", T6.19); Desktop site ("Shows the site as it looks on a computer"), when the
-    profile allows the toggle (T6.11); Dark mode ("Shows the site dark, using its own dark design
-    where it has one.", T6.21); Context menu ("Shows a menu to copy, open or save links and images,
-    instead of the site's own.", T5.5). All but Desktop site are in every app.
+    Standard ("Blocks ads with EasyList") and Strict ("Blocks ads and trackers with EasyList", T6.19);
+    Desktop site, when the profile allows the toggle (T6.11); Dark mode (T6.21); Shrimpl context menu
+    (T5.5). All but Desktop site are in every app.
   - Done closes it. There is no Reset: each change is also saved to the app's edit page in Shrimpl
     (docs/SHRIMPL_SPEC.md R11.9), so the edit page always matches the panel.
   - The panel's changes apply in the app at once, and are sent together when it closes: with Done,

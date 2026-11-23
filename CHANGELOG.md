@@ -5,7 +5,7 @@
 ### New
 
 - **App options in every web app.** Open it with Ctrl+, from the app icon's menu, or from the
-  context menu, to change Ad blocking, Desktop site, Dark mode and Context menu without leaving the app. Shrimpl
+  context menu, to change Ad blocking, Desktop site, Dark mode and the Shrimpl context menu without leaving the app. Shrimpl
   remembers what you choose.
 - **Ad blocking.** Choose Standard or Strict for any web app. Ads and trackers are blocked, empty ad
   spaces are hidden, ad popups are closed, and most "turn off your ad blocker" messages go away.
