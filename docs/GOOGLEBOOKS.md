@@ -24,6 +24,9 @@ What the lineup has in common, for layout:
 - Four of five are 2880 × 1800. The Dell is the smallest and the only one under 2.8K; the Lenovo has
   the same pixels on a larger panel, so the system will likely scale it less (more dp).
 - Google mandates the platform specs (16 GB RAM or more, touch, up to 2.8K), not a density.
+- Every Googlebook is 64-bit: arm64-v8a or x86_64, never a 32-bit CPU. R0's architecture neutrality
+  still targets all four ABIs (SHRIMPL_SPEC R0.1), 32-bit included, for other Android devices; on a
+  Googlebook only the two 64-bit ABIs ever run.
 
 ## In dp
 
