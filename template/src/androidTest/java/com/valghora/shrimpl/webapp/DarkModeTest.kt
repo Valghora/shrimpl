@@ -50,7 +50,7 @@ class DarkModeTest {
         page.awaitJs("matchMedia('(prefers-color-scheme: dark)').matches", "the page to hear the dark theme")
         Thread.sleep(1_000) // Dark Reader would have started by now.
         assertEquals("false", page.js("document.querySelector('style.darkreader') !== null"))
-        assertEquals("\"rgb(17, 17, 17)\"", page.js("getComputedStyle(document.documentElement).backgroundColor"))
+        assertEquals("rgb(17, 17, 17)", page.js("getComputedStyle(document.documentElement).backgroundColor"))
     }
 
     @Test
