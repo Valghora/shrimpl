@@ -18,6 +18,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.valghora.shrimpl.ui.AppShortcut
 import com.valghora.shrimpl.ui.ShrimplNavigation
+import com.valghora.shrimpl.ui.common.WhatsNewSheet
 import com.valghora.shrimpl.ui.theme.ShrimplTheme
 import com.valghora.shrimpl.ui.theme.isDark
 import com.valghora.shrimpl.update.UpdateResult
@@ -56,6 +57,9 @@ class MainActivity : ComponentActivity() {
             }
             ShrimplTheme(theme) {
                 ShrimplNavigation(shortcuts.receiveAsFlow(), sharingScreen = sharingScreen.value)
+                // R14.7: the notes of an update, once, over whatever screen opened first.
+                val notes by container.whatsNew.pending.collectAsStateWithLifecycle()
+                if (notes.isNotEmpty()) WhatsNewSheet(notes, BuildConfig.VERSION_NAME, container.whatsNew::dismiss)
             }
         }
     }

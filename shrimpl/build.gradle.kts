@@ -28,6 +28,24 @@ abstract class BundleTemplate : DefaultTask() {
     }
 }
 
+/** Copies CHANGELOG.md into the generated assets, for What's new after an update (R14.7). */
+abstract class BundleChangelog : DefaultTask() {
+    @get:InputFile
+    @get:PathSensitive(PathSensitivity.NONE)
+    abstract val changelog: RegularFileProperty
+
+    @get:OutputDirectory
+    abstract val outputDir: DirectoryProperty
+
+    @TaskAction
+    fun bundle() {
+        val out = outputDir.get().asFile
+        out.deleteRecursively()
+        out.mkdirs()
+        changelog.get().asFile.copyTo(out.resolve("CHANGELOG.md"))
+    }
+}
+
 val neutralTemplateApk: RegularFile =
     rootProject.layout.projectDirectory.file("template/build/outputs/apk/release/template-release.apk")
 
@@ -103,6 +121,10 @@ androidComponents {
             templateVersion.set(rootProject.extra["templateVersionCode"] as Int)
         }
         variant.sources.assets?.addGeneratedSourceDirectory(bundle, BundleTemplate::outputDir)
+        val changelog = tasks.register<BundleChangelog>("bundle${variant.name.replaceFirstChar { it.uppercase() }}Changelog") {
+            changelog.set(rootProject.layout.projectDirectory.file("CHANGELOG.md"))
+        }
+        variant.sources.assets?.addGeneratedSourceDirectory(changelog, BundleChangelog::outputDir)
     }
 }
 

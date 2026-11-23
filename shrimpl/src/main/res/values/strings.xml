@@ -11,6 +11,7 @@
     <string name="action_continue">Continue</string>
     <string name="action_create">Create</string>
     <string name="action_done">Done</string>
+    <string name="whats_new_title">What\'s new in Shrimpl %1$s</string>
     <string name="action_edit">Edit</string>
     <string name="action_export_key">Export…</string>
     <string name="action_later">Later</string>

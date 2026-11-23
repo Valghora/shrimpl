@@ -148,4 +148,7 @@ pushes; it is required only before a merge into `main`.
   that skill's update against the project. Only on a yes: run `scripts/android_skills.sh update
   <name>`, review the diff against `docs/DEVIATIONS.md`, commit it on its own and report what
   changed. Bring a new upstream skill to the owner with a recommendation before adopting it.
+- **Change log.** A change users notice adds a plain-words line under `## Unreleased` in
+  `CHANGELOG.md` (New, Changed or Fixed; no requirement IDs), in the same branch. Shrimpl shows it
+  after an update (R14.7). A merge into main renames `## Unreleased` to the released version.
 - **Findings.** Record new toolchain or platform findings in `docs/BUILD_NOTES.md`.
