@@ -14,7 +14,6 @@ form factor; its primary users are on Googlebooks (Android laptops, not Chromebo
 | depart from a spec, a guideline or a skill | `docs/DEVIATIONS.md`: it may already be decided; if not, it gets a row |
 | write or change tests | `docs/TESTING.md` |
 | touch the build, Gradle or a dependency | `docs/BUILD_NOTES.md` |
-| pick up planned work | `docs/TODO.md`: what the owner decided, the design and the open questions |
 | use a vendored skill | `docs/SKILLS.md`: which skill for which work |
 | set up a new machine | `scripts/setup_agent_env.sh` (`.agents/environment.json` points cloud agents to it; Claude Code's session-start hook runs it) |
 
