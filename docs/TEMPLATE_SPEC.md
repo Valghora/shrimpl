@@ -293,19 +293,33 @@ Unit tests cover every branch with a fixed fixture config, including look-alike 
   - All of it goes through `DocumentsContract` on the IO thread, one call per listing, so a folder of
     thousands of entries is slow to walk. Changes other apps make aren't reported.
 - T6.19 Ad blocking (`profile.adBlocking`: Off, Standard with EasyList, Strict with EasyList and
-  EasyPrivacy; the Block ads switch of App options, T5.8, overrides it until Shrimpl answers).
+  EasyPrivacy, both with the Adblock Warning Removal List; the Block ads switch of App options, T5.8, overrides it until Shrimpl answers).
   - Every request of the main window, popups and service workers goes through
-    `shouldInterceptRequest`; a blocked one gets an empty 403 with status text `Blocked`. The page's own document
-    is never blocked, nor anything on a sign-in domain (T2a).
+    `shouldInterceptRequest`; a blocked one gets an empty 403 with status text `Blocked`. The page's
+    own document is never blocked, nor anything on a sign-in domain (T2a).
   - The filter is pure Kotlin (`core/.../adblock/FilterEngine.kt`, R0): Adblock Plus network rules
     (`||`, `|`, `*`, `^`, `/regex/`, `@@`), with `$third-party` (a request off the app's internal
     domains), `$domain=` (the main page's host), `$match-case`, `$important` and negated types.
-    Rules that need a request type WebView doesn't report, `$popup`, `$document`, element hiding and
-    unknown options are left out, so a list only ever blocks less.
+    Rules that need a request type WebView doesn't report, `$document` and unknown options are left
+    out, so a list only ever blocks less. `$popup` rules and element hiding are T6.20's.
   - The app keeps its own copy of each list in `no_backup/adblock/`, copied from Shrimpl when its
     live-settings answer (T5.9) names a newer version (docs/SHRIMPL_SPEC.md R15.3). The filter is
     built off the main thread; until it exists nothing is blocked. Without Shrimpl the copy stays.
   - Switching Block ads reloads the page, so it loads as the new level allows.
+- T6.20 Ad popups and element hiding, with T6.19's lists and level.
+  - A window the page opens (T6.6) whose address a `$popup` rule names never shows and never
+    reaches the browser; a popup that turns into one later (a redirect, a popunder) closes then.
+    Only `$popup` rules decide, as in Adblock Plus; sign-in windows (T2a) always open.
+  - Element hiding (`core/.../adblock/CosmeticFilter.kt`): the `##` rules, generic ones and those of
+    the app's own domains, their subdomains and parents, with `#@#` exceptions and the
+    `$generichide` and `$elemhide` page exceptions. A document-start script on the main window, for
+    the app's internal domains, picks the rules for the page's host and adds a stylesheet hiding
+    them; installed when the filter is built, it also runs once on the page already showing.
+    Selectors go in groups of 200 inside `:is()`, whose forgiving list drops a selector WebView can't
+    parse without its group.
+  - Left out: procedural rules (`#?#`, `:has-text()` and the like), scriptlets (`#$#`, `+js()`),
+    entity rules (`example.*##`) and site rules that also exclude subdomains, so a list only ever
+    hides less.
 ## T7 Notifications (with `profile.allowNotifications`)
 
 - T7.1 Needs `WEB_MESSAGE_LISTENER` and `DOCUMENT_START_SCRIPT` (nested checks); without them it is

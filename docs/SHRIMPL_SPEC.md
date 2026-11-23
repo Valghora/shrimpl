@@ -765,14 +765,18 @@ Shrimpl finds and installs its own new releases from GitHub, the repository's re
 Web apps block ads with lists Shrimpl keeps for them (docs/TEMPLATE_SPEC.md T6.19); no app downloads a
 list, and no APK carries one.
 
-- R15.1 The lists are EasyList (Standard) and EasyList with EasyPrivacy (Strict), from
-  easylist.to, under GPL-3.0 or CC BY-SA 3.0. Shrimpl keeps the lists some app's Ad blocking uses, in
-  `files/adblock/`, and credits them in Settings' About section ("Ad blocking lists").
+- R15.1 The lists are EasyList (Standard) and EasyList with EasyPrivacy (Strict), and at both levels
+  the Adblock Warning Removal List, which lets bait files load and hides the walls that ask to turn ad
+  blocking off. All are the EasyList project's, under GPL-3.0 or CC BY-SA 3.0. Shrimpl keeps the lists some app's Ad blocking uses, in
+  `files/adblock/`. Shrimpl doesn't credit them: their licenses ask for credit (The EasyList authors)
+  only where the lists are distributed, and each device downloads them itself. A list ever shipped in
+  an APK brings the credit and license notice back.
 - R15.2 Downloads run with WorkManager: once a day while any app uses a list, and at once when an app
   starts using one Shrimpl doesn't have; none when no app blocks ads. Each is a conditional GET
   (`If-None-Match`, `If-Modified-Since`), so an unchanged list costs a 304. A download over HTTPS
-  replaces the last good copy only when it holds at least 1,000 rules the filter applies and at least
-  half as many as the copy it replaces; otherwise the copy stays. Its version is when it was saved.
+  replaces the last good copy only when it holds at least the list's minimum of rules the filter
+  applies (1,000 for EasyList and EasyPrivacy, 200 for the warning list) and at least half as many as
+  the copy it replaces; otherwise the copy stays. Its version is when it was saved.
 - R15.3 Apps get the lists from the App options provider (R11.9's caller check): the live-settings
   answer (R11.10) carries the version of each list the app's level uses (0 before Shrimpl's first
   copy), and `openFile` on `content://<authority>/adblock/<list>` hands the caller a read-only file,

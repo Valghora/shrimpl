@@ -52,7 +52,7 @@ settings (R11.10), the field sits in the Behavior section and applies without a 
 - The engine is pure Kotlin in `:core` (R0: no native engines such as Brave's): Adblock Plus network
   syntax (`||`, `|`, `*`, `^`, `@@`), the options `$third-party`/`$first-party` and `$domain=` (a web app
   is one site, so both are exact), and `$match-case`. Rules that need the resource type (`$script`,
-  `$image`, …) are skipped, since WebView doesn't report it; `$popup` rules apply to popups later. Host
+  `$image`, …) are skipped, since WebView doesn't report it; `$popup` rules close ad popups (T6.20). Host
   rules go in a compact sorted index (about 45k of EasyList's 54k network rules); the rest are indexed
   by a token, as Adblock Plus and uBlock Origin do, so a request checks a handful of rules.
 - Shrimpl downloads the lists, not the apps: a daily WorkManager job (unmetered network not required:
@@ -63,8 +63,11 @@ settings (R11.10), the field sits in the Behavior section and applies without a 
   each list's version, and an app with a newer one reads the file through `openFile`. Nothing is in the
   APK; an app blocks nothing until its first copy arrives.
 - Licenses: EasyList and EasyPrivacy are GPL-3.0 or CC BY-SA 3.0. They are downloaded on the device,
-  never shipped in an APK; Shrimpl's About credits them.
-- Element hiding (`##` rules, about 25k) later, through the document-start script mechanism.
+  never shipped in an APK, so no credit is owed (2026-11-23: About's credit removed; bundling a list brings it back).
+- Element hiding (`##` rules, about 25k): built (T6.20), through the document-start script mechanism.
+- The Adblock Warning Removal List, for "turn off your ad blocker" walls: built (SHRIMPL_SPEC R15.1). Its
+  license is EasyList's (checked 2026-11-23). eyeo's "ABP filters" (anti-circumvention) is left out: most of
+  its rules are scriptlets, which the filter doesn't run.
 - Limits to tell the user: no resource-type rules, no WebSockets, ads served like the content itself
   (YouTube's) aren't caught by network rules, and some sites show anti-adblock walls.
 

@@ -76,7 +76,7 @@ class FilterListStore(context: Context) {
                     if (connection.url.protocol != "https") throw IOException("${list.id} was redirected off https")
                     val text = connection.inputStream.use { read(it) }.decodeToString()
                     val rules = FilterEngine.countRules(text)
-                    if (!FilterList.accept(rules, previous?.rules)) {
+                    if (!FilterList.accept(list, rules, previous?.rules)) {
                         Log.w(TAG, "Kept the last ${list.id}: the download had $rules rules (before: ${previous?.rules})")
                         previous != null
                     } else {

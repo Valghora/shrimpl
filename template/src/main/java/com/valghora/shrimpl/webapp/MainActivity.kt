@@ -71,8 +71,10 @@ import androidx.core.net.toUri
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
+import androidx.webkit.ScriptHandler
 import androidx.webkit.UserAgentMetadata
 import androidx.webkit.WebSettingsCompat
+import androidx.webkit.WebViewCompat
 import androidx.webkit.WebViewFeature
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.snackbar.Snackbar
@@ -89,6 +91,7 @@ import com.valghora.shrimpl.core.UaMode
 import com.valghora.shrimpl.core.UrlClass
 import com.valghora.shrimpl.core.WakeEvent
 import com.valghora.shrimpl.core.profile.HeaderMode
+import com.valghora.shrimpl.core.profile.allowedOriginRules
 import com.valghora.shrimpl.core.profile.newWindowShortcutSpec
 import com.valghora.shrimpl.core.profile.sessionConfig
 import com.valghora.shrimpl.core.profile.uaFeaturesActive
@@ -333,6 +336,7 @@ class MainActivity : AppCompatActivity() {
 
     /** Every WebView is removed from its parent and destroyed (T6.9); pending page requests are turned down. */
     override fun onDestroy() {
+        AdBlocker.forget(hidingListener)
         workspaceMonitor.unregister()
         popups.toList().forEach { it.destroy() }
         permissionDialog?.dismiss()
@@ -483,6 +487,30 @@ class MainActivity : AppCompatActivity() {
         shareBridge.install(webView)
         fileAccess.install(webView)
         if (WebApp.profile.headerMode == HeaderMode.DYNAMIC) PageColors(controller, ::onPageColors).install(webView)
+        AdBlocker.observe(hidingListener)
+        installHiding()
+    }
+
+    /** The element-hiding script on the main WebView now (T6.20), replaced whenever the lists change. */
+    private var hidingScript: ScriptHandler? = null
+
+    private val hidingListener: () -> Unit = { installHiding() }
+
+    /**
+     * T6.20: swaps the document-start script for the current one, and hides the page already showing,
+     * which a document-start script only reaches on its next load. Removing it on Off leaves the page
+     * as it is until the reload that turning Block ads off makes.
+     */
+    private fun installHiding() {
+        if (!webViewAlive) return
+        hidingScript?.remove()
+        hidingScript = null
+        val script = AdBlocker.hidingScript?.takeIf { WebApp.profile.adBlocking != AdBlocking.OFF } ?: return
+        // Invariant: each androidx.webkit call sits directly inside its own isFeatureSupported check (T1.3).
+        if (WebViewFeature.isFeatureSupported(WebViewFeature.DOCUMENT_START_SCRIPT)) {
+            hidingScript = WebViewCompat.addDocumentStartJavaScript(webView, script, WebApp.profile.allowedOriginRules)
+            webView.evaluateJavascript(script, null)
+        }
     }
 
     /** The only place WebView settings and the user agent are configured (T6.1). */
@@ -669,6 +697,12 @@ class MainActivity : AppCompatActivity() {
             if (destroyed) return true
             if (decided) return routePopupNavigation(url)
             if (url == "about:blank") return false
+            if (AdBlocker.blocksPopup(url, controller, pageHost)) {
+                // T6.20: an ad popup never shows, nor reaches the browser as an external page would.
+                decided = true
+                destroyLater()
+                return true
+            }
             decided = true
             val urlClass = controller.classify(url)
             return when {
@@ -701,7 +735,8 @@ class MainActivity : AppCompatActivity() {
         private fun routePopupNavigation(url: String): Boolean = when (controller.classify(url)) {
             UrlClass.INTERNAL, UrlClass.OAUTH, UrlClass.PASSTHROUGH -> false
             UrlClass.EXTERNAL -> {
-                openExternal(url)
+                // T6.20: a popup that turns into an ad later (a redirect, a popunder) closes then.
+                if (AdBlocker.blocksPopup(url, controller, pageHost)) dismiss() else openExternal(url)
                 true
             }
             UrlClass.SPECIAL_SCHEME -> {

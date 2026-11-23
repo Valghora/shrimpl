@@ -2,12 +2,15 @@ package com.valghora.shrimpl.webapp
 
 import android.content.Context
 import android.net.Uri
+import android.os.Handler
+import android.os.Looper
 import android.util.Log
 import android.webkit.WebResourceRequest
 import android.webkit.WebResourceResponse
 import com.valghora.shrimpl.core.AdBlocking
 import com.valghora.shrimpl.core.DesktopSessionController
 import com.valghora.shrimpl.core.UrlClass
+import com.valghora.shrimpl.core.adblock.CosmeticFilter
 import com.valghora.shrimpl.core.adblock.FilterEngine
 import com.valghora.shrimpl.core.adblock.FilterList
 import com.valghora.shrimpl.core.records.AppOptionsSync
@@ -15,6 +18,8 @@ import java.io.ByteArrayInputStream
 import java.io.File
 import java.io.IOException
 import java.util.concurrent.Executors
+import org.json.JSONArray
+import org.json.JSONObject
 
 /**
  * Ad blocking in the app (docs/TEMPLATE_SPEC.md T6.19): the app's own copy of each list it uses, copied
@@ -27,6 +32,35 @@ object AdBlocker {
 
     @Volatile
     private var engine: FilterEngine? = null
+
+    /** The element-hiding script for the app's site (T6.20), or null when nothing is hidden. */
+    @Volatile
+    var hidingScript: String? = null
+        private set
+
+    private val main = Handler(Looper.getMainLooper())
+    private val listeners = java.util.concurrent.CopyOnWriteArraySet<() -> Unit>()
+
+    /** Calls [listener] on the main thread whenever [hidingScript] changes; [forget] stops it. */
+    fun observe(listener: () -> Unit) {
+        listeners += listener
+    }
+
+    fun forget(listener: () -> Unit) {
+        listeners -= listener
+    }
+
+    /**
+     * Whether a window the page opens for [url] is an ad popup (T6.20). Sign-in windows (T2a) always
+     * open, so logins and payments keep working.
+     */
+    fun blocksPopup(url: String, controller: DesktopSessionController, pageHost: String): Boolean {
+        if (WebApp.profile.adBlocking == AdBlocking.OFF) return false
+        val filter = engine ?: return false
+        val kind = controller.classify(url)
+        if (kind == UrlClass.OAUTH) return false
+        return filter.shouldBlockPopup(url, pageHost, thirdParty = kind != UrlClass.INTERNAL)
+    }
 
     /** The level [engine] was built for; it is rebuilt when the profile's level differs. */
     @Volatile
@@ -74,6 +108,7 @@ object AdBlocker {
         if (level == AdBlocking.OFF) {
             engine = null
             builtFor = level
+            publish(null)
             return
         }
         if (!force && engine != null && builtFor == level) return
@@ -81,8 +116,65 @@ object AdBlocker {
         if (texts.isEmpty()) return
         engine = FilterEngine.parse(*texts.toTypedArray())
         builtFor = level
+        publish(hidingScript(CosmeticFilter.parse(*texts.toTypedArray())))
         Log.i(WebApp.profile.appId, "Ad blocking: ${engine?.ruleCount} rules for ${level.name}")
     }
+
+    private fun publish(script: String?) {
+        hidingScript = script
+        main.post { listeners.forEach { it() } }
+    }
+
+    /**
+     * T6.20: the document-start script that hides ad slots. It carries the generic selectors and those
+     * of the app's own domains, and on each page picks what applies to its host: a domain's own rules,
+     * none of the generic ones where the list turns them off for the site, and none at all for
+     * `$elemhide`. Selectors go in groups inside `:is()`, whose selector list is forgiving, so one that
+     * WebView can't parse drops alone, not with its group.
+     */
+    private fun hidingScript(filter: CosmeticFilter): String? {
+        val sites = filter.site(WebApp.profile.internalDomains)
+        if (filter.generic.isEmpty() && sites.isEmpty()) return null
+        val siteJson = JSONObject()
+        sites.forEach { (domain, rules) ->
+            siteJson.put(
+                domain,
+                JSONObject()
+                    .put("h", JSONArray(rules.hide))
+                    .put("u", JSONArray(rules.unhide))
+                    .put("g", rules.genericHide)
+                    .put("e", rules.elemHide),
+            )
+        }
+        return HIDING_SCRIPT.replace("\$GENERIC", JSONArray(filter.generic).toString()).replace("\$SITES", siteJson.toString())
+    }
+
+    private const val HIDING_SCRIPT = """
+(() => {
+  if (window.__shrimplHiding) return;
+  window.__shrimplHiding = true;
+  const generic = ${'$'}GENERIC;
+  const sites = ${'$'}SITES;
+  const host = location.hostname;
+  let hide = [], useGeneric = true;
+  const unhide = new Set();
+  for (const domain in sites) {
+    if (host !== domain && !host.endsWith('.' + domain)) continue;
+    const site = sites[domain];
+    if (site.e) return;
+    if (site.g) useGeneric = false;
+    hide = hide.concat(site.h);
+    site.u.forEach((s) => unhide.add(s));
+  }
+  const all = (useGeneric ? generic : []).concat(hide).filter((s) => !unhide.has(s));
+  if (!all.length) return;
+  let css = '';
+  for (let i = 0; i < all.length; i += 200) css += ':is(' + all.slice(i, i + 200).join(',') + '){display:none!important}';
+  const style = document.createElement('style');
+  style.textContent = css;
+  (document.head || document.documentElement).appendChild(style);
+})();
+"""
 
     private fun copy(context: Context, authority: String, list: FilterList, version: Long): Boolean = try {
         val uri = Uri.Builder().scheme("content").authority(authority).appendPath(AppOptionsSync.LIST_PATH).appendPath(list.id).build()

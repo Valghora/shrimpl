@@ -7,8 +7,9 @@ package com.valghora.shrimpl.core.adblock
  * WebView reports a request's URL but not its type, so rules that name a type (`$script`, `$image`, …)
  * are left out; rules that only exclude types (`$~xmlhttprequest`) apply to every request. A web app is
  * one site, so `$third-party` and `$domain=` are exact: the caller says whether a request leaves the
- * app's site and which page asked. `$popup` and `$document` rules, element hiding (`##`) and other
+ * app's site and which page asked. `$document` rules, element hiding (`##`, [CosmeticFilter]) and other
  * options this filter doesn't know are left out too, so a list can only ever block less, never more.
+ * `$popup` rules are kept apart, for the windows a page opens ([shouldBlockPopup], T6.20).
  *
  * Most of EasyList is `||host^`; those rules are a sorted array searched by each of the request host's
  * parent domains. The rest are filed under one word of their pattern, so a request only tries the rules
@@ -19,6 +20,8 @@ class FilterEngine private constructor(
     private val allowedHosts: Array<String>,
     private val blocking: RuleIndex,
     private val exceptions: RuleIndex,
+    private val popups: RuleIndex,
+    private val popupExceptions: RuleIndex,
     /** The rules this filter applies, for a download's sanity check (docs/SHRIMPL_SPEC.md R15.2). */
     val ruleCount: Int,
 ) {
@@ -38,6 +41,17 @@ class FilterEngine private constructor(
         return !(hostListed(allowedHosts, host) || exceptions.matches(request))
     }
 
+    /**
+     * Whether a window the page on [pageHost] opens for [url] is an ad popup (T6.20): only `$popup`
+     * rules decide, as in Adblock Plus, so a site's own windows stay unless a list names them.
+     */
+    fun shouldBlockPopup(url: String, pageHost: String, thirdParty: Boolean): Boolean {
+        val lower = url.lowercase()
+        val host = hostOf(lower) ?: return false
+        val request = Request(url, lower, host, pageHost.lowercase(), thirdParty, tokensOf(lower))
+        return popups.matches(request) && !popupExceptions.matches(request)
+    }
+
     /** One request, prepared once for every rule it meets. */
     internal class Request(
         val url: String,
@@ -55,6 +69,8 @@ class FilterEngine private constructor(
             val allowedHosts = mutableListOf<String>()
             val blocking = RuleIndex.Builder()
             val exceptions = RuleIndex.Builder()
+            val popups = RuleIndex.Builder()
+            val popupExceptions = RuleIndex.Builder()
             var count = 0
             lists.forEach { list ->
                 list.lineSequence().forEach { line ->
@@ -65,7 +81,10 @@ class FilterEngine private constructor(
                             count++
                         }
                         is FilterRule.Pattern -> {
-                            (if (parsed.exception) exceptions else blocking).add(parsed)
+                            when {
+                                parsed.popup -> (if (parsed.exception) popupExceptions else popups).add(parsed)
+                                else -> (if (parsed.exception) exceptions else blocking).add(parsed)
+                            }
                             count++
                         }
                     }
@@ -76,6 +95,8 @@ class FilterEngine private constructor(
                 allowedHosts.distinct().sorted().toTypedArray(),
                 blocking.build(),
                 exceptions.build(),
+                popups.build(),
+                popupExceptions.build(),
                 count,
             )
         }

@@ -193,8 +193,6 @@
     <string name="theme_light">Light</string>
     <string name="theme_dark">Dark</string>
     <string name="settings_about">About</string>
-    <string name="about_filter_lists">Ad blocking lists</string>
-    <string name="about_filter_lists_detail">Web apps block ads with EasyList and EasyPrivacy, by The EasyList authors, under GPL-3.0 or CC BY-SA 3.0. Shrimpl downloads them; they are not part of Shrimpl.</string>
 
     <!-- Settings items -->
     <string name="field_auto_contrast">Auto (black or white)</string>

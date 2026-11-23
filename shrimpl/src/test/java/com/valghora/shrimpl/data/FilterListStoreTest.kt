@@ -22,8 +22,8 @@ class FilterListStoreTest {
         val ads = TestApps.squoosh.copy(profile = TestApps.squoosh.profile.copy(adBlocking = AdBlocking.ADS))
         val trackers = TestApps.squoosh.copy(profile = TestApps.squoosh.profile.copy(adBlocking = AdBlocking.ADS_AND_TRACKERS))
         assertEquals(emptySet<FilterList>(), FilterListStore.needed(listOf(off)))
-        assertEquals(setOf(FilterList.EASYLIST), FilterListStore.needed(listOf(off, ads)))
-        assertEquals(setOf(FilterList.EASYLIST, FilterList.EASYPRIVACY), FilterListStore.needed(listOf(ads, trackers)))
+        assertEquals(setOf(FilterList.EASYLIST, FilterList.WARNINGS), FilterListStore.needed(listOf(off, ads)))
+        assertEquals(FilterList.entries.toSet(), FilterListStore.needed(listOf(ads, trackers)))
     }
 
     @Test
