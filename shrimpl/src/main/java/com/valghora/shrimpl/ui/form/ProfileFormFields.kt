@@ -290,25 +290,19 @@ private class Fields(
             DropdownItem(
                 stringResource(R.string.field_user_agent),
                 form.userAgentMode,
+                // R3.3: no Auto; the form arrives with this device's layout in its place (ProfileForm.siteLayoutFor).
                 listOf(
-                    UaMode.AUTO to stringResource(R.string.ua_auto),
                     UaMode.DESKTOP to stringResource(R.string.ua_desktop),
                     UaMode.MOBILE to stringResource(R.string.ua_mobile),
                 ),
                 { onChange(form.copy(userAgentMode = it)) },
-                summary = stringResource(
-                    when (form.userAgentMode) {
-                        UaMode.AUTO -> R.string.ua_auto_detail
-                        UaMode.DESKTOP -> R.string.ua_desktop_detail
-                        UaMode.MOBILE -> R.string.ua_mobile_detail
-                    },
-                ),
+                summary = stringResource(if (form.userAgentMode == UaMode.MOBILE) R.string.ua_mobile_detail else R.string.ua_desktop_detail),
             )
             // Whose menu a long press or right-click opens on a link or image: Shrimpl's or the site's.
             DropdownItem(
                 stringResource(R.string.field_context_menu),
                 form.nativeContextMenu,
-                listOf(false to stringResource(R.string.context_menu_site), true to stringResource(R.string.context_menu_shrimpl)),
+                listOf(true to stringResource(R.string.context_menu_shrimpl), false to stringResource(R.string.context_menu_site)),
                 { onChange(form.copy(nativeContextMenu = it)) },
                 summary = stringResource(if (form.nativeContextMenu) R.string.context_menu_shrimpl_detail else R.string.context_menu_site_detail),
             )

@@ -200,5 +200,5 @@ class EditViewModel(private val container: AppContainer, val appId: String) : Vi
         _message.value = null
     }
 
-    private fun draftOf(record: WebAppRecord) = WebAppDraft(ProfileForm.from(record.profile), record.iconOptions)
+    private fun draftOf(record: WebAppRecord) = WebAppDraft(ProfileForm.from(record.profile, container.largeOrPc), record.iconOptions)
 }

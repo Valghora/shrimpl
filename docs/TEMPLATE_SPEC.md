@@ -117,9 +117,9 @@ Unit tests cover every branch with a fixed fixture config, including look-alike 
   video (T6.13).
 - T5.4 The Keyboard Shortcuts Helper lists two groups: the site's shortcuts (titled `profile.name`)
   and Window (Reload, Zoom in, Zoom out, Reset zoom, Print, App options, and New window when enabled).
-- T5.5 Context menu (with `profile.nativeContextMenu`, off by default, so the site's own menu
-  shows, or the Context menu switch of App options, T5.8, which overrides it at once): copy
-  link, open link in the browser, save image, per T2d. Anywhere else it has no items, so the press
+- T5.5 Context menu (with `profile.nativeContextMenu`, on by default, or the Context menu switch of
+  App options, T5.8, which overrides it at once): copy link, open link in the browser, save image,
+  per T2d. Anywhere else it has no items, so the press
   reaches the page (text selection, the site's menu). Image links copy the anchor's href
   (`requestFocusNodeHref`), not the image URL.
 - T5.6 Back goes back in the page history while it can (`OnBackPressedCallback` kept in sync in

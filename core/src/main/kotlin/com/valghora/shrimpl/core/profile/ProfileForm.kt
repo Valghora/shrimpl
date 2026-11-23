@@ -99,6 +99,18 @@ data class ProfileForm(
         private val SIMPLE_KEY = Regex("[A-Z0-9]|F([1-9]|1[0-2])|[A-Z_]{2,}")
         private const val UNPARSED_KEY = "KEYCODE_UNKNOWN"
 
+        /**
+         * The layout Shrimpl offers in place of Auto (docs/SHRIMPL_SPEC.md R3.3): Desktop on a PC or a
+         * screen at least 600 dp across, Mobile otherwise, as the template's Auto picks (T6.12). Apps
+         * stored with Auto keep it until their edit page is saved.
+         */
+        fun siteLayoutFor(largeOrPc: Boolean): UaMode = if (largeOrPc) UaMode.DESKTOP else UaMode.MOBILE
+
+        /** The form for [profile], with this device's layout ([largeOrPc]) where the profile says Auto. */
+        fun from(profile: Profile, largeOrPc: Boolean): ProfileForm = from(profile).let {
+            if (it.userAgentMode == UaMode.AUTO) it.copy(userAgentMode = siteLayoutFor(largeOrPc)) else it
+        }
+
         fun from(profile: Profile) = ProfileForm(
             name = profile.name,
             appId = profile.appId,

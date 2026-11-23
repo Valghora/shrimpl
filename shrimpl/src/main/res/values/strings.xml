@@ -97,10 +97,8 @@
     <string name="field_icon_background">Background color</string>
     <string name="field_icon_foreground">Glyph color</string>
     <string name="field_user_agent">Site layout</string>
-    <string name="ua_auto">Auto</string>
     <string name="ua_desktop">Desktop</string>
     <string name="ua_mobile">Mobile</string>
-    <string name="ua_auto_detail">Picks the desktop or mobile site automatically</string>
     <string name="ua_desktop_detail">Asks for the site\'s desktop layout</string>
     <string name="ua_mobile_detail">Asks for the site\'s mobile layout</string>
     <string name="context_menu_shrimpl">Shrimpl</string>

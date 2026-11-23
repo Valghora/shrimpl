@@ -320,11 +320,12 @@ binary translation) on any device.
     - **Appearance:** Header color (System, "Matches the system's light or dark theme", the default;
       Dynamic, "Uses the site's own colors", T3.3; Custom, "Uses the color you choose below") and
       Custom header color (disabled unless Custom).
-    - **Behavior:** Site layout, the user agent (Auto, "Picks the desktop or mobile site
-      automatically"; Desktop, "Asks for the site's desktop layout"; Mobile, "Asks for the site's
-      mobile layout"); Context menu (Site, the default, "Shows the site's own menu on long press and
-      right-click."; Shrimpl, "Shows Shrimpl's menu on links and images, to copy, open or save
-      them.", T5.5); Ad blocking (Off, "Loads everything the site asks for", the
+    - **Behavior:** Site layout, the user agent (Desktop, "Asks for the site's desktop layout";
+      Mobile, "Asks for the site's mobile layout"). There is no Auto: a new app gets Desktop on a PC
+      or a screen at least 600 dp across and Mobile otherwise, the rule the template's Auto uses
+      (T6.12); an app stored with Auto shows that layout and keeps Auto until its page is saved.
+      Context menu (Shrimpl, the default, "Shows Shrimpl's menu on links and images, to copy, open or
+      save them."; Site, "Shows the site's own menu on long press and right-click.", T5.5); Ad blocking (Off, "Loads everything the site asks for", the
       default; Standard, "Blocks ads with EasyList"; Strict, "Blocks ads and trackers with EasyList
       and EasyPrivacy"; T6.19, R15); Run in background; Pause in battery saver.
     - **Window:** Allow multiple windows ("Lets the app open in more than one window", off by

@@ -2,6 +2,7 @@ package com.valghora.shrimpl
 
 import android.app.Application
 import android.content.Context
+import android.content.pm.PackageManager
 import androidx.work.Configuration
 import com.valghora.shrimpl.build.WebAppFactory
 import com.valghora.shrimpl.data.AppSettings
@@ -40,6 +41,14 @@ class AppContainer(context: Context) {
     val recovery = WebAppRecovery(context, store, settings)
     val updates = Updates(context, installers, installedCode = BuildConfig.VERSION_CODE, debug = BuildConfig.DEBUG)
     val filterLists = FilterListStore(context)
+
+    /**
+     * Whether this device is a PC or has a screen at least 600 dp across: the template's rule for the
+     * desktop layout (T6.12), which picks a new app's Site layout (R3.3).
+     */
+    val largeOrPc: Boolean
+        get() = appContext.packageManager.hasSystemFeature(PackageManager.FEATURE_PC) ||
+            appContext.resources.configuration.smallestScreenWidthDp >= 600
 
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
 

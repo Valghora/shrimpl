@@ -45,7 +45,7 @@ data class Profile(
     val enableMultiWindow: Boolean = false,
     val keepAliveWhenHidden: Boolean = true,
     val pauseOnPowerSave: Boolean = false,
-    val nativeContextMenu: Boolean = false,
+    val nativeContextMenu: Boolean = true,
     /** Network ad blocking (T6.19); a live setting (R11.10). */
     val adBlocking: AdBlocking = AdBlocking.OFF,
     val defaultWindowDp: WindowSize = WindowSize(1280, 800),
