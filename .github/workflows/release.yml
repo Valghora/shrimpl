@@ -132,10 +132,10 @@ jobs:
           if [[ "$(gh api "repos/$GITHUB_REPOSITORY/releases?per_page=1" --jq length)" == 0 ]]; then
             echo "Initial Release" > "$RUNNER_TEMP/notes.md"
           else
-            scripts/release_notes.sh > "$RUNNER_TEMP/notes.md"
+            scripts/release_notes.sh "$VERSION" > "$RUNNER_TEMP/notes.md"
           fi
-          # Creates the tag v<version> on this commit too. The notes are Shrimpl's own (R12.6), not
-          # GitHub's generated ones, which mention people and list new contributors.
+          # Creates the tag v<version> on this commit too. The notes are the change log's section for
+          # this version (R12.6), only what users notice, not GitHub's generated ones.
           gh release create "v$VERSION" "$RUNNER_TEMP/out/$apk" "$RUNNER_TEMP/out/$apk.sha256" \
             --target "$GITHUB_SHA" --title "Shrimpl $VERSION" --notes-file "$RUNNER_TEMP/notes.md"
 

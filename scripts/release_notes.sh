@@ -1,22 +1,23 @@
 #!/usr/bin/env bash
-# Prints the notes of the release being published (docs/SHRIMPL_SPEC.md R12.6): one line per change
-# merged into develop since the previous release, from the merge commits' summaries. No names, no
-# mentions and no contributor list.
+# Prints the notes of the release being published (docs/SHRIMPL_SPEC.md R12.6): the section of
+# CHANGELOG.md for that version, the user-facing changes Shrimpl's own What's new shows (R14.7).
+# Fails when the change log has no such section, so a release never goes out without notes.
 #
-#   scripts/release_notes.sh        notes for HEAD, since the newest v* tag it contains
+#   scripts/release_notes.sh [version]   default: shrimpl.appVersion in gradle.properties
 set -euo pipefail
 
-previous="$(git tag --merged HEAD --list 'v*' --sort=-v:refname | head -n1)"
-range="${previous:+$previous..}HEAD"
+cd "$(dirname "$0")/.."
+version="${1:-$(sed -n 's/^shrimpl\.appVersion=//p' gradle.properties)}"
 
-# Merges into develop read "Merge <branch>: <summary>[, Shrimpl x.y.z]"; merges of develop into main
-# ("Merge develop into main: ...") have no branch-colon form, so they drop out here.
-changes="$(git log --merges --reverse --format=%s "$range" |
-  sed -nE 's/^Merge [^ ]+: (.*)$/\1/p' |
-  # Requirement IDs and CI markers are for the repository, not for readers of the release.
-  sed -E 's/, Shrimpl [0-9]+(\.[0-9]+)*$//; s/ \[skip ci\]//; s/ \(R[0-9.]+(, R[0-9.]+)*\)//g; s/@/@\xe2\x80\x8b/g' |
-  awk 'NF { print "- " toupper(substr($0, 1, 1)) substr($0, 2) }')"
+# The lines after "## <version>" up to the next release's heading, without blank lines at either end.
+notes="$(awk -v heading="## $version" '
+  $0 == heading { inside = 1; next }
+  inside && /^## / { exit }
+  inside { print }
+' CHANGELOG.md | sed -e '/./,$!d' | tac | sed -e '/./,$!d' | tac)"
 
-echo "## What's new"
-echo
-echo "${changes:-- Maintenance and fixes}"
+if [[ -z "$notes" ]]; then
+  echo "CHANGELOG.md has no section for $version: rename ## Unreleased to ## $version before the merge into main" >&2
+  exit 1
+fi
+echo "$notes"
