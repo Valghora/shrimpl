@@ -27,7 +27,9 @@ object ContextMenuPopup {
 
     private const val CORNER_DP = 16
     private const val ITEM_CORNER_DP = 12
-    private const val MIN_WIDTH_DP = 200
+    /** Material's menu widths: at least 112 dp, at most 280 dp, otherwise as wide as the longest item. */
+    private const val MIN_WIDTH_DP = 112
+    private const val MAX_WIDTH_DP = 280
 
     /** Item height: Material's 48 dp touch target (accessibility skill), for fingers as well as pointers. */
     private const val ITEM_HEIGHT_DP = 48
@@ -69,18 +71,22 @@ object ContextMenuPopup {
             elevation = dp(3).toFloat()
             isFocusable = true
             isOutsideTouchable = true
-            width = ViewGroup.LayoutParams.WRAP_CONTENT
             height = ViewGroup.LayoutParams.WRAP_CONTENT
         }
 
+        // The menu is as wide as its longest item. Measured unbounded first: given the window's width
+        // to wrap within, the divider, a plain View, would take all of it and stretch the menu to the
+        // screen's edge (found on a device, 2026-11-23).
+        list.measure(View.MeasureSpec.UNSPECIFIED, View.MeasureSpec.UNSPECIFIED)
+        popup.width = list.measuredWidth.coerceAtMost(dp(MAX_WIDTH_DP))
+
         // Keep the whole menu inside the window: it opens below and after the point, and flips when it
         // would run past an edge.
-        list.measure(View.MeasureSpec.UNSPECIFIED, View.MeasureSpec.UNSPECIFIED)
         val origin = IntArray(2).also { anchor.getLocationInWindow(it) }
         val root = anchor.rootView
         var left = origin[0] + x.toInt()
         var top = origin[1] + y.toInt()
-        if (left + list.measuredWidth > root.width) left = (left - list.measuredWidth).coerceAtLeast(0)
+        if (left + popup.width > root.width) left = (left - popup.width).coerceAtLeast(0)
         if (top + list.measuredHeight > root.height) top = (top - list.measuredHeight).coerceAtLeast(0)
         popup.showAtLocation(anchor, Gravity.TOP or Gravity.START, left, top)
         list.getChildAt(0)?.takeIf { !it.isInTouchMode }?.requestFocus()
