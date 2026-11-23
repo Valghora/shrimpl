@@ -171,18 +171,23 @@ class FilterListsTest {
     @Test
     fun levelsUseTheirLists() {
         assertEquals(emptyList<FilterList>(), FilterList.forLevel(com.valghora.shrimpl.core.AdBlocking.OFF))
-        assertEquals(listOf(FilterList.EASYLIST), FilterList.forLevel(com.valghora.shrimpl.core.AdBlocking.ADS))
-        assertEquals(listOf(FilterList.EASYLIST, FilterList.EASYPRIVACY), FilterList.forLevel(com.valghora.shrimpl.core.AdBlocking.ADS_AND_TRACKERS))
+        assertEquals(listOf(FilterList.EASYLIST, FilterList.WARNINGS), FilterList.forLevel(com.valghora.shrimpl.core.AdBlocking.ADS))
+        assertEquals(
+            listOf(FilterList.EASYLIST, FilterList.EASYPRIVACY, FilterList.WARNINGS),
+            FilterList.forLevel(com.valghora.shrimpl.core.AdBlocking.ADS_AND_TRACKERS),
+        )
         assertEquals(FilterList.EASYPRIVACY, FilterList.byId("easyprivacy"))
         assertNull(FilterList.byId("other"))
     }
 
     @Test
     fun aDownloadReplacesTheLastGoodCopyOnlyWhenItLooksWhole() {
-        assertTrue(FilterList.accept(50_000, null))
-        assertTrue(FilterList.accept(26_000, 50_000))
-        assertFalse(FilterList.accept(24_000, 50_000))
-        assertFalse(FilterList.accept(500, null))
+        assertTrue(FilterList.accept(FilterList.EASYLIST, 50_000, null))
+        assertTrue(FilterList.accept(FilterList.EASYLIST, 26_000, 50_000))
+        assertFalse(FilterList.accept(FilterList.EASYLIST, 24_000, 50_000))
+        assertFalse(FilterList.accept(FilterList.EASYLIST, 500, null))
+        assertTrue("the warning list is smaller, with a smaller floor", FilterList.accept(FilterList.WARNINGS, 500, null))
+        assertFalse(FilterList.accept(FilterList.WARNINGS, 100, null))
     }
 }
 

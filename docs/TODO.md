@@ -65,8 +65,9 @@ settings (R11.10), the field sits in the Behavior section and applies without a 
 - Licenses: EasyList and EasyPrivacy are GPL-3.0 or CC BY-SA 3.0. They are downloaded on the device,
   never shipped in an APK; Shrimpl's About credits them.
 - Element hiding (`##` rules, about 25k): built (T6.20), through the document-start script mechanism.
-- Next, if wanted: the Adblock Warning Removal List (eyeo) for "turn off your ad blocker" walls, once
-  its license is checked; it is mostly element hiding, so it needs nothing new.
+- The Adblock Warning Removal List, for "turn off your ad blocker" walls: built (SHRIMPL_SPEC R15.1). Its
+  license is EasyList's (checked 2026-11-23). eyeo's "ABP filters" (anti-circumvention) is left out: most of
+  its rules are scriptlets, which the filter doesn't run.
 - Limits to tell the user: no resource-type rules, no WebSockets, ads served like the content itself
   (YouTube's) aren't caught by network rules, and some sites show anti-adblock walls.
 

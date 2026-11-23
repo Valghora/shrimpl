@@ -293,7 +293,7 @@ Unit tests cover every branch with a fixed fixture config, including look-alike 
   - All of it goes through `DocumentsContract` on the IO thread, one call per listing, so a folder of
     thousands of entries is slow to walk. Changes other apps make aren't reported.
 - T6.19 Ad blocking (`profile.adBlocking`: Off, Standard with EasyList, Strict with EasyList and
-  EasyPrivacy; the Block ads switch of App options, T5.8, overrides it until Shrimpl answers).
+  EasyPrivacy, both with the Adblock Warning Removal List; the Block ads switch of App options, T5.8, overrides it until Shrimpl answers).
   - Every request of the main window, popups and service workers goes through
     `shouldInterceptRequest`; a blocked one gets an empty 403 with status text `Blocked`. The page's
     own document is never blocked, nor anything on a sign-in domain (T2a).
