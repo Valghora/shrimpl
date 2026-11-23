@@ -3,7 +3,8 @@
     <!-- app_name is in values/site.xml; Shrimpl sets each web app's label in its manifest. -->
 
     <string name="menu_copy_link">Copy link</string>
-    <string name="menu_open_link">Open link in browser</string>
+    <string name="menu_open_link">Open in browser</string>
+    <string name="context_menu_title">Context menu</string>
     <string name="menu_save_image">Save image</string>
 
     <string name="shortcut_group_window">Window</string>

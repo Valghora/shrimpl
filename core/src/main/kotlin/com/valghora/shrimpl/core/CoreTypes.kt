@@ -51,7 +51,7 @@ enum class KeyAction { RELOAD, ZOOM_IN, ZOOM_OUT, ZOOM_RESET, NEW_WINDOW, PRINT,
 enum class HitType { ANCHOR, IMAGE_ANCHOR, IMAGE, OTHER }
 
 /** An item of the native context menu (T5.5). */
-enum class MenuAction { COPY_LINK, OPEN_LINK, SAVE_IMAGE }
+enum class MenuAction { APP_OPTIONS, COPY_LINK, OPEN_LINK, SAVE_IMAGE }
 
 /** A switch of the App options panel (T5.8), in the panel's order. */
 enum class AppOption { DESKTOP_SITE, LINK_MENU, BLOCK_ADS }
