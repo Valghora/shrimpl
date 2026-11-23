@@ -121,9 +121,14 @@ Unit tests cover every branch with a fixed fixture config, including look-alike 
   while the app's own menu is on, and New window when enabled).
 - T5.5 Context menu (with `profile.nativeContextMenu`, on by default, or the Context menu switch of
   App options, T5.8, which overrides it at once): App options, then after a divider Copy link, Open
-  in browser and Save image, per T2d. Anywhere else it has no items, so the press reaches the page
-  (text selection, the site's menu). Image links copy the anchor's href (`requestFocusNodeHref`), not
-  the image URL.
+  in browser and Save image, per T2d. Image links copy the anchor's href (`requestFocusNodeHref`),
+  not the image URL.
+  - On empty space it shows App options alone. Android reports a press on text and on empty space
+    alike, so the page decides (`EmptySpaceMenuBridge`): a document-start script on the internal
+    origins hears the `contextmenu` event after the site's own handlers and asks for the menu only
+    when the site showed no menu of its own (`preventDefault`) and the press isn't on text, a
+    selection, a field, a button, media, a link or an image. Text selection and the site's own menus
+    keep every such press.
   - Drawn as Android's own menus (`ContextMenuPopup`): the theme's dynamic colors (T3.1), a 16 dp
     container on the surface container color, 48 dp items with 12 dp rounded highlights and a
     Material Symbols icon each. Long press, right-click and the keyboard open the same popup, at the
@@ -138,8 +143,8 @@ Unit tests cover every branch with a fixed fixture config, including look-alike 
   scale 1.3 is a text zoom of 130 %, to the nearest 10 %) and follows it when it changes, until the
   user zooms; their zoom is kept, and Ctrl+0 returns to following the system font size.
 - T5.8 App options: a panel of the app's own switches, opened by Ctrl+, (once per press, T2c), by
-  "App options" in the app icon's launcher shortcuts, and first in the context menu on links and
-  images (T5.5). The context menu opens nowhere else, so it never takes a press the page needs.
+  "App options" in the app icon's launcher shortcuts, and first in the context menu (T5.5): on links
+  and images, and alone on empty space. The menu never takes a press the page needs.
   - Titled "App options". A bottom sheet in a window narrower than 600 dp, a dialog in a wider one.
   - Each switch has a fixed label and a description of what it does when on (docs/SHRIMPL_SPEC.md
     R1.6), applies at once and is remembered in `SessionPrefs`. The whole row toggles it, at least

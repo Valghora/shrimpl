@@ -490,6 +490,7 @@ class MainActivity : AppCompatActivity() {
         if (WebApp.profile.headerMode == HeaderMode.DYNAMIC) PageColors(controller, ::onPageColors).install(webView)
         AdBlocker.observe(hidingListener)
         installHiding()
+        EmptySpaceMenuBridge(controller, ::showEmptySpaceMenu).install(webView)
     }
 
     /** The element-hiding script on the main WebView now (T6.20), replaced whenever the lists change. */
@@ -1190,6 +1191,17 @@ class MainActivity : AppCompatActivity() {
         contextPopup?.dismiss()
         contextPopup = ContextMenuPopup.show(webView, x, y, items)
         return true
+    }
+
+    /**
+     * T5.5: the menu on empty space, with App options alone, when the page found nothing under the
+     * press (EmptySpaceMenuBridge). Only while the app's own menu is on; Site leaves every press to it.
+     */
+    private fun showEmptySpaceMenu(x: Float, y: Float) {
+        if (webView.contextMenuHandler == null || isFinishing) return
+        val item = ContextMenuPopup.Item(R.drawable.ic_menu_app_options, getString(R.string.app_options)) { showAppOptions() }
+        contextPopup?.dismiss()
+        contextPopup = ContextMenuPopup.show(webView, x, y, listOf(item))
     }
 
     private fun performMenuAction(action: MenuAction, hit: HitType, extra: String?) {

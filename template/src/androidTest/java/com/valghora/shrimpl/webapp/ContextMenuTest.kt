@@ -12,8 +12,9 @@ import org.junit.runner.RunWith
 
 /**
  * The context menu (docs/TEMPLATE_SPEC.md T5.5): a long press on a link opens the app's own menu with
- * App options first and the link's actions after it, App options opens the panel (T5.8), and a long
- * press on plain text opens nothing, so the page keeps it for text selection.
+ * App options first and the link's actions after it, App options opens the panel (T5.8), a long press
+ * on empty space opens the menu with App options alone, and a long press on plain text opens nothing,
+ * so the page keeps it for text selection.
  */
 @RunWith(AndroidJUnit4::class)
 class ContextMenuTest {
@@ -21,7 +22,8 @@ class ContextMenuTest {
     private val device = UiDevice.getInstance(InstrumentationRegistry.getInstrumentation())
 
     private val page = "<a id=\"link\" href=\"https://example.com/report\" style=\"display:block;padding:24px;font-size:24px\">The report</a>" +
-        "<p id=\"text\" style=\"font-size:24px;padding:24px\">Plain words to select</p>"
+        "<p id=\"text\" style=\"font-size:24px;padding:24px\">Plain words to select</p>" +
+        "<div id=\"blank\" style=\"height:240px\"></div>"
 
     @Test
     fun aLongPressOnALinkOpensTheMenuWithAppOptionsFirst() {
@@ -48,6 +50,19 @@ class ContextMenuTest {
                 answerPermissionPrompt("^allow$", 5_000)
                 PageDriver(scenario).also { it.loadTestPage(page) }.longPress("#text")
                 assertFalse("a menu opened on plain text", awaitText(context.getString(R.string.app_options), timeoutMs = 3_000))
+            }
+        }
+    }
+
+    @Test
+    fun aLongPressOnEmptySpaceOpensTheMenuWithAppOptionsAlone() {
+        withProfile(WebApp.profile.copy(nativeContextMenu = true)) {
+            ActivityScenario.launch(MainActivity::class.java).use { scenario ->
+                answerPermissionPrompt("^allow$", 5_000)
+                PageDriver(scenario).also { it.loadTestPage(page) }.longPress("#blank")
+                assertTrue("no menu on empty space", awaitText(context.getString(R.string.app_options)))
+                assertFalse("link actions on empty space", device.hasObject(By.text(context.getString(R.string.menu_copy_link))))
+                device.pressBack()
             }
         }
     }
