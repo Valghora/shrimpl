@@ -119,14 +119,19 @@ pushes; it is required only before a merge into `main`.
      and merge when it is green on the branch's last commit. Pushes never run CI, so don't wait on it
      before then. The Emulator workflow isn't required here; dispatch it by hand only to try a test.
 - **A merge to main, only when the owner says so** (a release):
-  1. Dispatch the Android and the Emulator workflow on `develop` (pushes never run CI):
+  1. On develop, rename `## Unreleased` in `CHANGELOG.md` to `## <version>` (`shrimpl.appVersion`):
+     that section is the release's notes (R12.6), and the Release workflow fails without it.
+  2. Dispatch the Android and the Emulator workflow on `develop` (pushes never run CI):
      `gh api -X POST repos/Valghora/shrimpl/actions/workflows/android.yml/dispatches -f ref=develop` and
      `gh api -X POST repos/Valghora/shrimpl/actions/workflows/emulator.yml/dispatches -f ref=develop`.
      `docs/TESTING.md` says how to read a failure.
-  2. Merge `develop` into `main` only with both the Android and the Emulator workflow green on
+  3. Merge `develop` into `main` only with both the Android and the Emulator workflow green on
      `develop`'s last commit; if the commits since the Emulator run changed only docs and Markdown,
-     the last commit that changed anything else counts for it.
-  3. Pushing main runs the Release workflow (R12.6), which tags the merge `v<version>`
+     the last commit that changed anything else counts for it. Main takes changes only through a
+     pull request with the Build check passing (a skipped Build counts), so open one from `develop`
+     (`gh api repos/Valghora/shrimpl/pulls -f head=develop -f base=main ...`) and merge it with a
+     merge commit.
+  4. The merge into main runs the Release workflow (R12.6), which tags the merge `v<version>`
      (`shrimpl.appVersion`) and publishes it; check that it published. Nobody pushes tags (cloud agent
      sessions can't push them). "Merge into main" always means a release: if the version on develop
      is already released and the merge changes more than documentation, ask first.
@@ -150,5 +155,7 @@ pushes; it is required only before a merge into `main`.
   changed. Bring a new upstream skill to the owner with a recommendation before adopting it.
 - **Change log.** A change users notice adds a plain-words line under `## Unreleased` in
   `CHANGELOG.md` (New, Changed or Fixed; no requirement IDs), in the same branch. Shrimpl shows it
-  after an update (R14.7). A merge into main renames `## Unreleased` to the released version.
+  after an update (R14.7), and the release's notes are that section (R12.6), so it holds only what
+  users notice: nothing about the repository, its documents, tests or tooling. A release renames
+  `## Unreleased` to its version.
 - **Findings.** Record new toolchain or platform findings in `docs/BUILD_NOTES.md`.
