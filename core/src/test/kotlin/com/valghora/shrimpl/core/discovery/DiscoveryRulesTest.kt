@@ -308,7 +308,7 @@ class DiscoveryRulesTest {
         assertEquals(IconChoice.Letter('E', "no usable brand icon found", Confidence.LOW), draft.icon)
         assertEquals("examplemail", draft.appId)
         assertEquals(emptyList<Any>(), ProfileValidator.validate(draft.toProfile()))
-        assertEquals(HeaderMode.SYSTEM, draft.toProfile().headerMode)
+        assertEquals(HeaderMode.DYNAMIC, draft.toProfile().headerMode)
         assertEquals("#FFFFFF", draft.toProfile().iconForeground)
     }
 

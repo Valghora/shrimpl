@@ -24,6 +24,7 @@
 - Uninstalling asks once, and lets you keep the app in Shrimpl's list to reinstall later.
 - "Link and image menu" is now called Context menu, and new web apps use Shrimpl's menu.
 - Site layout is Desktop or Mobile. New web apps start with the one that suits your screen.
+- New web apps take their header color from the site.
 
 ### Fixed
 
