@@ -55,7 +55,10 @@ class AppOptionsSyncTest {
         assertEquals(DarkMode.SYSTEM, AppOptionsSync.apply(profile, null, null).darkMode)
         assertEquals(false, LiveSettings.needsRebuild(profile, profile.copy(adBlocking = AdBlocking.ADS_AND_TRACKERS)))
         assertEquals(false, LiveSettings.needsRebuild(profile, profile.copy(darkMode = DarkMode.LIGHT)))
-        val dark = LiveSettings.of(profile).copy(darkMode = DarkMode.DARK)
+        assertEquals(true, AppOptionsSync.apply(profile, null, null, appBanners = true).hideAppBanners)
+        assertEquals(false, AppOptionsSync.apply(profile, null, null).hideAppBanners)
+        assertEquals(false, LiveSettings.needsRebuild(profile, profile.copy(hideAppBanners = true)))
+        val dark = LiveSettings.of(profile).copy(darkMode = DarkMode.DARK, hideAppBanners = true)
         assertEquals(dark, LiveSettings.of(dark.applyTo(profile)))
     }
 

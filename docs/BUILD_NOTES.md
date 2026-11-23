@@ -132,6 +132,15 @@ defaults (r8-analyzer skill, 2026-11-01).
   (HTTP 403), so the Release workflow runs on pushes to main and creates the tag with its own token
   (R12.6).
 
+## Debug signing key
+
+Each machine's Android Gradle Plugin makes its own `~/.android/debug.keystore`, and a cloud session's
+container makes a new one whenever it starts. A debug APK from a new session then can't update the
+installed Shrimpl Debug: Android refuses an update signed with another key, and the installer only says
+the app wasn't installed (found on a device, 2026-11-23). `shrimpl/debug.keystore` is committed and
+signs every debug build instead (R12.3). It is a debug key (CN=Android Debug), which the Release
+workflow refuses for a release.
+
 ## Debug APK size
 
 AGP packages debug APKs incrementally and leaves replaced entries' space behind as gaps: after many

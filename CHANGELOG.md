@@ -1,5 +1,17 @@
 # What's new in Shrimpl
 
+## Unreleased
+
+### New
+
+- **Hide app banners.** A new switch for any web app hides the banners and popups that push the
+  site's own app, such as Reddit's, and lets the page scroll again. Turn it on in App options or on
+  the edit page.
+
+### Fixed
+
+- Web apps keep your device's Material You colors when their dark mode differs from your device's.
+
 ## 1.1.9
 
 ### New

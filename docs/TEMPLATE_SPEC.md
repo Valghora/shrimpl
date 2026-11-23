@@ -64,7 +64,8 @@ Unit tests cover every branch with a fixed fixture config, including look-alike 
 - T3.1 The UI is built in code: a root `FrameLayout` holding one `DesktopWebView` (MATCH_PARENT). No
   action bar, toolbar or XML layout. The theme is `Theme.Wrapper` (Material3 DayNight NoActionBar)
   with the user's dynamic colors (`DynamicColors`), so the template's menus, dialogs, snackbars and
-  App options panel follow the user's Material theme, as Shrimpl does.
+  App options panel follow the user's Material theme, as Shrimpl does. They are applied again after
+  every night mode change (Dark mode, T6.21), which resets the theme to its own colors.
 - T3.2 Edge to edge: system bar styles follow the header colors (dark or light icons as each color
   needs); the root pads for system bars, caption bar, display cutout and IME insets, and consumes them.
 - T3.3 Header colors, from `profile.headerMode`:
@@ -154,9 +155,10 @@ Unit tests cover every branch with a fixed fixture config, including look-alike 
     label, the selected value's description (a polite live region) and a full-width segmented
     button below them, each segment 48 dp tall.
   - Its options, in order: Ad blocking, a choice of Off ("Loads everything the site asks for"),
-    Standard ("Blocks ads with EasyList") and Strict ("Blocks ads and trackers with EasyList/EasyPrivacy", T6.19);
-    Desktop site, when the profile allows the toggle (T6.11); Dark mode (T6.21); Shrimpl context menu
-    (T5.5). All but Desktop site are in every app.
+    Standard ("Blocks ads with EasyList") and Strict ("Blocks ads and trackers with
+    EasyList/EasyPrivacy", T6.19); Hide app banners (T6.22); Desktop site, when the profile allows the
+    toggle (T6.11); Dark mode (T6.21); Shrimpl context menu (T5.5). All but Desktop site are in every
+    app.
   - Done closes it. There is no Reset: each change is also saved to the app's edit page in Shrimpl
     (docs/SHRIMPL_SPEC.md R11.9), so the edit page always matches the panel.
   - The panel's changes apply in the app at once, and are sent together when it closes: with Done,
@@ -172,7 +174,7 @@ Unit tests cover every branch with a fixed fixture config, including look-alike 
   asks the Shrimpl that built it for its live settings, on the same thread that sends App options
   changes, so a change just sent is read back. An answer replaces those settings in the profile and
   the panel's own choices; a new layout reloads the start URL, and the context menu, Pause
-  in battery saver, ad blocking (T6.19, with any newer list copied) and dark mode (T6.21, reloading
+  in battery saver, ad blocking and Hide app banners (T6.19, T6.22, with any newer list copied) and dark mode (T6.21, reloading
   the page when it changed) apply at once. Without an
   answer the app keeps what it has.
 ## T6 WebView, routing and media
@@ -334,9 +336,12 @@ Unit tests cover every branch with a fixed fixture config, including look-alike 
     them; installed when the filter is built, it also runs once on the page already showing.
     Selectors go in groups of 200 inside `:is()`, whose forgiving list drops a selector WebView can't
     parse without its group.
-  - Left out: procedural rules (`#?#`, `:has-text()` and the like), scriptlets (`#$#`, `+js()`),
-    entity rules (`example.*##`) and site rules that also exclude subdomains, so a list only ever
-    hides less.
+  - Style rules (`#$#selector { declarations }`, AdGuard's syntax), generic and per site as `##`
+    rules are, go into the same stylesheet, each its own CSS rule. Only plain declarations are kept:
+    none that loads, imports or escapes (`url(`, `@`, `image-set(`, `attr(`, a backslash, a comment).
+  - Left out: procedural rules (`#?#`, `:has-text()` and the like), scriptlets (`#%#`, `+js()`, and
+    Adblock Plus's `#$#` snippets, which have no braces), entity rules (`example.*##`) and site rules
+    that also exclude subdomains, so a list only ever hides less.
 - T6.21 Dark mode (`profile.darkMode`: System, the default, follows the device's dark theme; Dark and
   Light hold whatever the device does; the Dark mode switch of App options, T5.8, overrides it until
   Shrimpl answers).
@@ -358,6 +363,16 @@ Unit tests cover every branch with a fixed fixture config, including look-alike 
     thread without cookies, answering only with style sheets and images of at most 4 MB.
   - Changing it in App options reloads the page. Following the device, a change of the device's
     theme reaches the page at once, without a reload.
+- T6.22 Hide app banners (`profile.hideAppBanners`, off by default; the switch of App options, T5.8,
+  overrides it until Shrimpl answers): AdGuard's Mobile App Banners filter, which hides the banners and
+  overlays that ask to use a site's app, and with its style rules undoes the scroll lock they leave.
+  - Apart from the ad blocking level: it works with Ad blocking Off. The app's lists are those of its
+    level and, with this on, this one (`FilterList.forSettings`), copied and built as T6.19 says; its
+    network, `$popup` and hiding rules apply as T6.19 and T6.20 say.
+  - Script rules (`#%#`) and extended selectors (`#?#`) are left out (T6.20), so an overlay that only
+    those reach, such as one inside a shadow root, still shows.
+  - Changing it in App options reloads the page.
+
 ## T7 Notifications (with `profile.allowNotifications`)
 
 - T7.1 Needs `WEB_MESSAGE_LISTENER` and `DOCUMENT_START_SCRIPT` (nested checks); without them it is

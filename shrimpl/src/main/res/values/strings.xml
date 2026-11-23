@@ -118,6 +118,8 @@
     <string name="ad_blocking_off_detail">Loads everything the site asks for</string>
     <string name="ad_blocking_standard_detail">Blocks ads with EasyList</string>
     <string name="ad_blocking_strict_detail">Blocks ads and trackers with EasyList/EasyPrivacy</string>
+    <string name="field_app_banners">Hide app banners</string>
+    <string name="field_app_banners_detail">Hides banners and popups that ask you to use the site\'s app</string>
     <string name="field_dark_mode">Dark mode</string>
     <string name="field_dark_mode_detail">Shows the site dark, using its own dark design where it has one.</string>
     <string name="field_window_default">Default window size</string>

@@ -51,6 +51,8 @@ data class Profile(
     val adBlocking: AdBlocking = AdBlocking.OFF,
     /** Dark mode (T6.21); a live setting (R11.10). */
     val darkMode: DarkMode = DarkMode.SYSTEM,
+    /** Hide app banners (T6.22); a live setting (R11.10). */
+    val hideAppBanners: Boolean = false,
     val defaultWindowDp: WindowSize = WindowSize(1280, 800),
     val minWindowDp: WindowSize = WindowSize(400, 500),
     /** The site's own shortcuts, listed in the Keyboard Shortcuts Helper; the keys still reach the page. */

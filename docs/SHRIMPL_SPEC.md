@@ -327,7 +327,8 @@ binary translation) on any device.
       Context menu (Shrimpl, the default, "Shows Shrimpl's menu on links and images, to copy, open or
       save them."; Site, "Shows the site's own menu on long press and right-click.", T5.5); Ad blocking (Off, "Loads everything the site asks for", the
       default; Standard, "Blocks ads with EasyList"; Strict, "Blocks ads and trackers with
-      EasyList/EasyPrivacy"; T6.19, R15); Dark mode, a switch ("Shows the site dark, using its own dark
+      EasyList/EasyPrivacy"; T6.19, R15); Hide app banners, a switch, off by default ("Hides
+      banners and popups that ask you to use the site's app", T6.22); Dark mode, a switch ("Shows the site dark, using its own dark
       design where it has one."), which starts as the device's theme is and follows it until set
       otherwise (T6.21); Run in background; Pause in battery saver.
     - **Window:** Allow multiple windows ("Lets the app open in more than one window", off by
@@ -615,13 +616,13 @@ The template's behavior is docs/TEMPLATE_SPEC.md. What Shrimpl relies on:
     `1.0.0.12` (template 1.0.0, build 12), `1.0.12` (a `major.minor` template) or `19.12`.
 - R11.9 App options changes (docs/TEMPLATE_SPEC.md T5.8) reach the app's record, so its edit page
   shows them: Desktop site on sets the user agent to Desktop and off to Mobile, Context menu sets
-  that setting, Ad blocking sets that level and Dark mode sets that setting. A web app sends them to Shrimpl's exported App options provider, which
+  that setting, Ad blocking sets that level, and Hide app banners and Dark mode set theirs. A web app sends them to Shrimpl's exported App options provider, which
   saves a change only for the caller itself: a package of one of its records, signed with the key
   that record names. An edit page that is open takes the new settings at once; with edits of its own,
   it takes only the panel's settings. The change applies in the app already, so saving it needs no
   rebuild.
-- R11.10 Live settings: the Behavior section (Site layout, Context menu, Ad blocking, Dark mode, Run
-  in background, Pause in battery saver) reaches an installed app without a rebuild. Save stores them in the record
+- R11.10 Live settings: the Behavior section (Site layout, Context menu, Ad blocking, Hide app
+  banners, Dark mode, Run in background, Pause in battery saver) reaches an installed app without a rebuild. Save stores them in the record
   (R2.3); the app asks the same provider for them whenever it comes to the front (docs/TEMPLATE_SPEC.md
   T5.9), and the provider answers only the caller about itself, as in R11.9. Everything else (identity,
   icon, header color, window, permissions, shortcuts) is in the APK and needs a rebuild.
@@ -650,9 +651,10 @@ The template's behavior is docs/TEMPLATE_SPEC.md. What Shrimpl relies on:
   Debug builds are "Shrimpl Debug", `com.valghora.shrimpl.debug`: the keys differ, so a debug build
   can never update a release or take one (R14), and it installs beside a release instead. Each keeps
   its own web app signing key (R5), so web apps one built show as signed with another key in the
-  other.
+  other. The debug key is `shrimpl/debug.keystore`, committed (password `android`, alias
+  `androiddebugkey`), so every machine signs debug builds alike and each installs over the last.
   *Outside code:* `shrimpl/build.gradle.kts` (the signing configs and build types),
-  `shrimpl/src/debug/res/values/strings.xml`.
+  `shrimpl/src/debug/res/values/strings.xml`, `shrimpl/debug.keystore`.
 - R12.4 The Emulator workflow runs the instrumented tests of `:template` and `:shrimpl` on an x86_64
   Android 37 emulator, by hand. It is required on `develop` before a merge into `main` (R12.5): main
   only receives a commit it passed on, or one that changes only documentation after such a commit. How
@@ -770,25 +772,27 @@ Shrimpl finds and installs its own new releases from GitHub, the repository's re
 
 ## R15 Ad blocking lists
 
-Web apps block ads with lists Shrimpl keeps for them (docs/TEMPLATE_SPEC.md T6.19); no app downloads a
-list, and no APK carries one.
+Web apps block ads and hide app banners with lists Shrimpl keeps for them (docs/TEMPLATE_SPEC.md
+T6.19, T6.22); no app downloads a list, and no APK carries one.
 
 - R15.1 The lists are EasyList (Standard) and EasyList with EasyPrivacy (Strict), and at both levels
   the Adblock Warning Removal List, which lets bait files load and hides the walls that ask to turn ad
   blocking off. All are the EasyList project's, under GPL-3.0 or CC BY-SA 3.0. Shrimpl keeps the lists some app's Ad blocking uses, in
   `files/adblock/`. Shrimpl doesn't credit them: their licenses ask for credit (The EasyList authors)
   only where the lists are distributed, and each device downloads them itself. A list ever shipped in
-  an APK brings the credit and license notice back.
+  an APK brings the credit and license notice back. Hide app banners adds AdGuard's Mobile App Banners
+  filter (GPL-3.0), kept the same way while some app has it on.
 - R15.2 Downloads run with WorkManager: once a day while any app uses a list, and at once when an app
   starts using one Shrimpl doesn't have; none when no app blocks ads. Each is a conditional GET
   (`If-None-Match`, `If-Modified-Since`), so an unchanged list costs a 304. A download over HTTPS
-  replaces the last good copy only when it holds at least the list's minimum of rules the filter
-  applies (1,000 for EasyList and EasyPrivacy, 200 for the warning list) and at least half as many as
+  replaces the last good copy only when it holds at least the list's minimum of rules the app applies,
+  network and element hiding together (1,000 for EasyList, EasyPrivacy and the app banners list, 200
+  for the warning list) and at least half as many as
   the copy it replaces; otherwise the copy stays. Its version is when it was saved.
 - R15.3 Apps get the lists from the App options provider (R11.9's caller check): the live-settings
-  answer (R11.10) carries the version of each list the app's level uses (0 before Shrimpl's first
-  copy), and `openFile` on `content://<authority>/adblock/<list>` hands the caller a read-only file,
-  only of a list its level uses. Lists go by file, since a `call` answer is capped near 1 MB.
+  answer (R11.10) carries the version of each list the app's level and Hide app banners use (0 before
+  Shrimpl's first copy), and `openFile` on `content://<authority>/adblock/<list>` hands the caller a
+  read-only file, only of a list its settings use. Lists go by file, since a `call` answer is capped near 1 MB.
 
 ## Known limitations
 

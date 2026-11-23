@@ -3,9 +3,10 @@ package com.valghora.shrimpl.core.adblock
 import com.valghora.shrimpl.core.AdBlocking
 
 /**
- * The lists ad blocking uses (docs/SHRIMPL_SPEC.md R15.1): Shrimpl downloads them and web apps read them
- * from Shrimpl. All are the EasyList project's, GPL-3.0 or CC BY-SA 3.0, downloaded on the device and
- * never shipped in an APK. [minRules] is the fewest rules a whole download of the list holds (R15.2).
+ * The lists ad blocking and Hide app banners use (docs/SHRIMPL_SPEC.md R15.1): Shrimpl downloads them and
+ * web apps read them from Shrimpl. EasyList's are GPL-3.0 or CC BY-SA 3.0, AdGuard's GPL-3.0; all are
+ * downloaded on the device and never shipped in an APK. [minRules] is the fewest rules a whole download
+ * of the list holds (R15.2), network and element hiding rules together ([countRules]).
  */
 enum class FilterList(val id: String, val url: String, val minRules: Int) {
     EASYLIST("easylist", "https://easylist.to/easylist/easylist.txt", 1_000),
@@ -13,6 +14,9 @@ enum class FilterList(val id: String, val url: String, val minRules: Int) {
 
     /** The Adblock Warning Removal List: unblocks bait files and hides "turn off your ad blocker" walls. */
     WARNINGS("antiadblock", "https://easylist-downloads.adblockplus.org/antiadblockfilters.txt", 200),
+
+    /** AdGuard's Mobile App Banners filter: "get the app" banners and overlays (docs/TEMPLATE_SPEC.md T6.22). */
+    APP_BANNERS("app-banners", "https://filters.adtidy.org/extension/chromium/filters/20.txt", 1_000),
     ;
 
     companion object {
@@ -25,6 +29,17 @@ enum class FilterList(val id: String, val url: String, val minRules: Int) {
             AdBlocking.ADS -> listOf(EASYLIST, WARNINGS)
             AdBlocking.ADS_AND_TRACKERS -> listOf(EASYLIST, EASYPRIVACY, WARNINGS)
         }
+
+        /** The lists an app with [level] and Hide app banners [appBanners] uses, each once. */
+        fun forSettings(level: AdBlocking, appBanners: Boolean): List<FilterList> =
+            forLevel(level) + listOfNotNull(APP_BANNERS.takeIf { appBanners })
+
+        /**
+         * The rules of a downloaded list this project applies: network rules ([FilterEngine]) and element
+         * hiding ([CosmeticFilter]), so a list that is mostly hiding, as the app banners list is, counts
+         * what it holds.
+         */
+        fun countRules(list: String): Int = FilterEngine.countRules(list) + CosmeticFilter.parse(list).ruleCount
 
         /** The list with [id], or null. */
         fun byId(id: String): FilterList? = entries.firstOrNull { it.id == id }

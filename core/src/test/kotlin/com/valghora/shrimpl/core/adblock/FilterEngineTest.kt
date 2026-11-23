@@ -177,7 +177,26 @@ class FilterListsTest {
             FilterList.forLevel(com.valghora.shrimpl.core.AdBlocking.ADS_AND_TRACKERS),
         )
         assertEquals(FilterList.EASYPRIVACY, FilterList.byId("easyprivacy"))
+        assertEquals(FilterList.APP_BANNERS, FilterList.byId("app-banners"))
         assertNull(FilterList.byId("other"))
+    }
+
+    /** T6.22: Hide app banners adds its list to whatever the level uses, Off included. */
+    @Test
+    fun hideAppBannersAddsItsListAtAnyLevel() {
+        val off = com.valghora.shrimpl.core.AdBlocking.OFF
+        val ads = com.valghora.shrimpl.core.AdBlocking.ADS
+        assertEquals(emptyList<FilterList>(), FilterList.forSettings(off, appBanners = false))
+        assertEquals(listOf(FilterList.APP_BANNERS), FilterList.forSettings(off, appBanners = true))
+        assertEquals(listOf(FilterList.EASYLIST, FilterList.WARNINGS, FilterList.APP_BANNERS), FilterList.forSettings(ads, appBanners = true))
+        assertEquals(FilterList.forLevel(ads), FilterList.forSettings(ads, appBanners = false))
+    }
+
+    /** R15.2: hiding rules count too, since the app banners list is mostly hiding. */
+    @Test
+    fun countRulesCountsNetworkAndHidingRules() {
+        val list = "! comment\n||ads.example^\n##.banner\nshop.example#${'$'}#.sheet { display: none !important; }\nexample.com#%#//scriptlet('x')"
+        assertEquals(3, FilterList.countRules(list))
     }
 
     @Test
@@ -211,6 +230,13 @@ class CosmeticFilterTest {
         news.example#?#.slot:-abp-has(.ad)
         ##.broken[
         ##.x { color: red }
+        news.example#${'$'}#.upsell { display: none !important; }
+        news.example#${'$'}#body:not(#style_important) { overflow: auto !important; touch-action: auto !important }
+        #${'$'}#.sticky-app { display: none !important; }
+        news.example#${'$'}#.bad { background: url(https://tracker.example/x.png) }
+        news.example#${'$'}#.worse { color: red } .other { color: blue }
+        news.example#${'$'}#abort-on-property-read adsbygoogle
+        ~shop.example#${'$'}#.excluded { display: none }
         @@||quiet.example^${'$'}generichide
         @@||bare.example^${'$'}elemhide
         @@||x.test^${'$'}script
@@ -251,7 +277,21 @@ class CosmeticFilterTest {
     fun whatIsntPlainCssIsLeftOut() {
         val all = filter.generic + filter.site(listOf("news.example", "example.com")).values.flatMap { it.hide }
         assertFalse(all.any { "has-text" in it || "-abp-" in it || "broken" in it || "color" in it || "mixed" in it || "entity" in it })
-        // 4 generic + 3 site + 1 site exception + 1 excluded generic + 1 generic exception + 2 page exceptions.
-        assertEquals(12, filter.ruleCount)
+        // 4 generic + 3 site + 1 site exception + 1 excluded generic + 1 generic exception + 2 page
+        // exceptions + 3 style rules.
+        assertEquals(15, filter.ruleCount)
+    }
+
+    /**
+     * T6.22: AdGuard's style rules are kept as whole CSS rules, generic and per site; snippets, rules that
+     * load something or close their own rule, and rules that exclude a domain are left out.
+     */
+    @Test
+    fun styleRulesAreKeptAsCssRules() {
+        assertEquals(listOf(".sticky-app{display: none !important}"), filter.genericStyles)
+        assertEquals(
+            listOf(".upsell{display: none !important}", "body:not(#style_important){overflow: auto !important; touch-action: auto !important}"),
+            filter.site(listOf("news.example")).getValue("news.example").styles,
+        )
     }
 }

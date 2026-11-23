@@ -74,6 +74,37 @@ class AdBlockingTest {
         File(dir, "easylist.version").writeText("1")
     }
 
+    /**
+     * T6.22: Hide app banners works with Ad blocking Off, applying the app banners list's hiding rules and
+     * its style rules, which undo the scroll lock an overlay leaves behind.
+     */
+    @Test
+    fun hideAppBannersHidesTheOverlayAndUndoesItsScrollLock() {
+        dir.mkdirs()
+        File(dir, "app-banners.txt").writeText(
+            "! Title: test\n##.get-app\nexample.com#${'$'}#.upsell-sheet { display: none !important; }\n" +
+                "example.com#${'$'}#body.scroll-locked { overflow: auto !important; }\n",
+        )
+        File(dir, "app-banners.version").writeText("1")
+        withProfile(WebApp.profile.copy(adBlocking = AdBlocking.OFF, hideAppBanners = true)) {
+            ActivityScenario.launch(MainActivity::class.java).use { scenario ->
+                answerPermissionPrompt("^allow$", 5_000)
+                val page = PageDriver(scenario).also {
+                    it.loadTestPage(
+                        "<style>.scroll-locked { overflow: hidden; }</style>" +
+                            "<div class=\"get-app\" id=\"g\">Get the app</div><div class=\"upsell-sheet\" id=\"u\">Open in app</div>" +
+                            "<p id=\"text\">article</p><script>document.body.classList.add('scroll-locked')</script>",
+                    )
+                }
+                fun display(id: String) = page.js("getComputedStyle(document.getElementById('$id')).display")
+                awaitUntil("the app banner to be hidden", 20_000) { display("g") == "none" }
+                assertEquals("a style rule hides too", "none", display("u"))
+                assertEquals("the scroll lock stayed", "auto", page.js("getComputedStyle(document.body).overflowY"))
+                assertNotEquals("the page's content was hidden", "none", display("text"))
+            }
+        }
+    }
+
     @Test
     fun adSlotsAreHiddenAndTheRestOfThePageIsNot() {
         writeList("##.ad-slot\n###sponsor\nexample.com##.house-ad\nexample.com#@#.kept-ad\n##.kept-ad")

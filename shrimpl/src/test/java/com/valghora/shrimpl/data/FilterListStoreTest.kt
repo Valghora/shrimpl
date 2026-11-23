@@ -17,13 +17,17 @@ class FilterListStoreTest {
     private val context: Context = ApplicationProvider.getApplicationContext()
 
     @Test
-    fun theListsKeptAreThoseSomeAppsLevelUses() {
+    fun theListsKeptAreThoseSomeAppsSettingsUse() {
         val off = TestApps.example
         val ads = TestApps.squoosh.copy(profile = TestApps.squoosh.profile.copy(adBlocking = AdBlocking.ADS))
         val trackers = TestApps.squoosh.copy(profile = TestApps.squoosh.profile.copy(adBlocking = AdBlocking.ADS_AND_TRACKERS))
+        val banners = TestApps.example.copy(profile = TestApps.example.profile.copy(hideAppBanners = true))
         assertEquals(emptySet<FilterList>(), FilterListStore.needed(listOf(off)))
         assertEquals(setOf(FilterList.EASYLIST, FilterList.WARNINGS), FilterListStore.needed(listOf(off, ads)))
-        assertEquals(FilterList.entries.toSet(), FilterListStore.needed(listOf(ads, trackers)))
+        assertEquals(setOf(FilterList.EASYLIST, FilterList.EASYPRIVACY, FilterList.WARNINGS), FilterListStore.needed(listOf(ads, trackers)))
+        // R15.1, T6.22: Hide app banners needs its list even with Ad blocking Off.
+        assertEquals(setOf(FilterList.APP_BANNERS), FilterListStore.needed(listOf(banners)))
+        assertEquals(FilterList.entries.toSet(), FilterListStore.needed(listOf(trackers, banners)))
     }
 
     @Test

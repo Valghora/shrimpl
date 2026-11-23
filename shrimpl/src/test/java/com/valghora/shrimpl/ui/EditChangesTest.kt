@@ -104,6 +104,18 @@ class EditChangesTest {
         assertTrue("the change waits for Save", saveShown)
     }
 
+    /** R3.3, T6.22: Hide app banners is a switch in Behavior, off by default, and turning it on waits for Save. */
+    @Test
+    fun hideAppBannersStartsOff() {
+        openSquoosh()
+        val banners = compose.onNode(hasText(string(R.string.field_app_banners)) and SemanticsMatcher.keyIsDefined(SemanticsProperties.ToggleableState))
+        banners.performScrollTo().assertIsOff()
+        assertTrue(exists(string(R.string.field_app_banners_detail)))
+        banners.performClick()
+        banners.assertIsOn()
+        assertTrue("the change waits for Save", saveShown)
+    }
+
     /** R3.3, T6.21: Dark mode follows the device at first (light under Robolectric), and turning it on waits for Save. */
     @Test
     fun darkModeStartsAsTheDeviceIs() {

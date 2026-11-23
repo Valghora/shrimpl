@@ -83,7 +83,7 @@ enum class HitType { ANCHOR, IMAGE_ANCHOR, IMAGE, OTHER }
 enum class MenuAction { APP_OPTIONS, COPY_LINK, OPEN_LINK, SAVE_IMAGE }
 
 /** A switch of the App options panel (T5.8), in the panel's order. */
-enum class AppOption { AD_BLOCKING, DESKTOP_SITE, DARK_MODE, LINK_MENU }
+enum class AppOption { AD_BLOCKING, APP_BANNERS, DESKTOP_SITE, DARK_MODE, LINK_MENU }
 
 /** A change of the workspace's wake state (T8.3); NONE when nothing changed. */
 enum class WakeEvent { SLEEP, WAKE, NONE }
@@ -132,6 +132,9 @@ interface OptionStore {
     /** The Dark mode switch (T6.21): the mode it set. */
     var darkModeChoice: DarkMode?
 
+    /** The Hide app banners switch (T6.22). */
+    var appBannersChoice: Boolean?
+
     /** The build the panel's choices were made in; a new build brings the settings Shrimpl has now. */
     var optionsBuild: Long?
 }
@@ -142,6 +145,7 @@ class UnsavedOptions(
     override var optionsBuild: Long? = null,
     override var adBlockingChoice: AdBlocking? = null,
     override var darkModeChoice: DarkMode? = null,
+    override var appBannersChoice: Boolean? = null,
 ) : OptionStore
 
 /** The config values the controller depends on, injectable so tests can cover every branch. */

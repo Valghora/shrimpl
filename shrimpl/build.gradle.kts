@@ -68,6 +68,15 @@ android {
     // a release build is signed with the debug key, which a published release never is.
     val releaseKeystore = providers.environmentVariable("SHRIMPL_RELEASE_KEYSTORE").orNull
     signingConfigs {
+        // R12.3: every machine signs debug builds with this committed key, so a debug build from any
+        // session installs over the last one; with each machine's own key, Android refused the update.
+        // It is a debug key, which only Shrimpl Debug trusts, never a release.
+        getByName("debug") {
+            storeFile = file("debug.keystore")
+            storePassword = "android"
+            keyAlias = "androiddebugkey"
+            keyPassword = "android"
+        }
         if (releaseKeystore != null) {
             create("release") {
                 storeFile = file(releaseKeystore)
