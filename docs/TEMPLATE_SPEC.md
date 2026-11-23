@@ -42,8 +42,9 @@ Constructed with a `ZoomStore`, a `UaStore` and a `SessionConfig` built from the
   numpad +), ZOOM_OUT (Ctrl+- / numpad -), ZOOM_RESET (Ctrl+0 / numpad 0), PRINT (Ctrl+P),
   NEW_WINDOW (`profile.newWindowShortcut`, only with `profile.enableMultiWindow`), or NONE. Modifiers
   must match exactly. RELOAD, PRINT and NEW_WINDOW resolve only when `repeatCount == 0`.
-- d. Context menu actions per hit type: link → copy link, open link; image link → copy link, open
-  link, save image; image → save image; anything else → none.
+- d. Context menu actions per hit type, App options first wherever there are any: link → App options,
+  copy link, open link; image link → App options, copy link, open link, save image; image → App
+  options, save image; anything else → none.
 - e. Wake state: awake = interactive and any display on and not (`profile.pauseOnPowerSave` and power
   save). Starts awake; emits SLEEP or WAKE only on change.
 - f. User agent: `resolveUa` (user choice > learned desktop > `profile.userAgentMode`; AUTO is
@@ -116,12 +117,20 @@ Unit tests cover every branch with a fixed fixture config, including look-alike 
   every other key, site shortcuts included, reaches the page unchanged. Esc first leaves full-screen
   video (T6.13).
 - T5.4 The Keyboard Shortcuts Helper lists two groups: the site's shortcuts (titled `profile.name`)
-  and Window (Reload, Zoom in, Zoom out, Reset zoom, Print, App options, and New window when enabled).
+  and Window (Reload, Zoom in, Zoom out, Reset zoom, Print, App options, Context menu (Shift+F10)
+  while the app's own menu is on, and New window when enabled).
 - T5.5 Context menu (with `profile.nativeContextMenu`, on by default, or the Context menu switch of
-  App options, T5.8, which overrides it at once): copy link, open link in the browser, save image,
-  per T2d. Anywhere else it has no items, so the press
-  reaches the page (text selection, the site's menu). Image links copy the anchor's href
-  (`requestFocusNodeHref`), not the image URL.
+  App options, T5.8, which overrides it at once): App options, then after a divider Copy link, Open
+  in browser and Save image, per T2d. Anywhere else it has no items, so the press reaches the page
+  (text selection, the site's menu). Image links copy the anchor's href (`requestFocusNodeHref`), not
+  the image URL.
+  - Drawn as Android's own menus (`ContextMenuPopup`): the theme's dynamic colors (T3.1), a 16 dp
+    container on the surface container color, 48 dp items with 12 dp rounded highlights and a
+    Material Symbols icon each. Long press, right-click and the keyboard open the same popup, at the
+    finger or pointer, kept inside the window; `DesktopWebView` hands the system's context menu call
+    to it, and with the menu left to the site the call goes on as WebView's own.
+  - The menu key and Shift+F10 open it for the link or image in focus. Arrow keys move, Enter
+    selects, Esc or Back closes; accessibility services hear a pane titled "Context menu".
 - T5.6 Back goes back in the page history while it can (`OnBackPressedCallback` kept in sync in
   `doUpdateVisitedHistory`); full-screen video takes Back first.
 - T5.7 Zoom: pinch zoom on touch (built-in controls, no on-screen buttons), and Ctrl + scroll wheel or
@@ -129,8 +138,8 @@ Unit tests cover every branch with a fixed fixture config, including look-alike 
   scale 1.3 is a text zoom of 130 %, to the nearest 10 %) and follows it when it changes, until the
   user zooms; their zoom is kept, and Ctrl+0 returns to following the system font size.
 - T5.8 App options: a panel of the app's own switches, opened by Ctrl+, (once per press, T2c), by
-  "App options" in the app icon's launcher shortcuts. It stays out of the context menu (T5.5), which
-  would otherwise take every long press and right-click from the page.
+  "App options" in the app icon's launcher shortcuts, and first in the context menu on links and
+  images (T5.5). The context menu opens nowhere else, so it never takes a press the page needs.
   - Titled "App options". A bottom sheet in a window narrower than 600 dp, a dialog in a wider one.
   - Each switch has a fixed label and a description of what it does when on (docs/SHRIMPL_SPEC.md
     R1.6), applies at once and is remembered in `SessionPrefs`. The whole row toggles it, at least

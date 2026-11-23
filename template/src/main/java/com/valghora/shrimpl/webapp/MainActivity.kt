@@ -26,7 +26,6 @@ import android.print.PrintManager
 import android.provider.MediaStore
 import android.provider.Settings
 import android.util.Log
-import android.view.ContextMenu
 import android.view.DragEvent
 import android.view.KeyEvent
 import android.view.KeyboardShortcutGroup
@@ -51,6 +50,7 @@ import android.webkit.WebSettings
 import android.webkit.WebView
 import android.webkit.WebViewClient
 import android.widget.FrameLayout
+import android.widget.PopupWindow
 import android.widget.Toast
 import android.window.OnBackInvokedCallback
 import android.window.OnBackInvokedDispatcher
@@ -337,6 +337,7 @@ class MainActivity : AppCompatActivity() {
     /** Every WebView is removed from its parent and destroyed (T6.9); pending page requests are turned down. */
     override fun onDestroy() {
         AdBlocker.forget(hidingListener)
+        contextPopup?.dismiss()
         workspaceMonitor.unregister()
         popups.toList().forEach { it.destroy() }
         permissionDialog?.dismiss()
@@ -469,7 +470,7 @@ class MainActivity : AppCompatActivity() {
             if (event.action == DragEvent.ACTION_DROP) requestDragAndDropPermissions(event)
             false
         }
-        if (controller.linkMenuOn(WebApp.profile.nativeContextMenu)) registerForContextMenu(webView)
+        applyLinkMenu()
         onBackPressedDispatcher.addCallback(this, backCallback)
         // Ctrl + mouse wheel (or trackpad scroll) zooms like Ctrl +/- (Tier 2 Content_Zoom); pinch zoom
         // is WebView's own.
@@ -1156,10 +1157,14 @@ class MainActivity : AppCompatActivity() {
 
     // ----- Context menu (T5.5) -----
 
-    /** The native context menu on links and images (T5.5), when the profile turns it on. */
-    override fun onCreateContextMenu(menu: ContextMenu, v: View, menuInfo: ContextMenu.ContextMenuInfo?) {
-        super.onCreateContextMenu(menu, v, menuInfo)
-        if (v !== webView) return
+    /** The context menu now showing (T5.5), to close with the activity. */
+    private var contextPopup: PopupWindow? = null
+
+    /**
+     * T5.5: the app's context menu for what is at [x], [y] in the WebView (a link, an image), or false
+     * when there is nothing for it, so the page has the press: text selection and the site's own menu.
+     */
+    private fun showContextMenu(x: Float, y: Float): Boolean {
         val result = webView.hitTestResult
         val hit = when (result.type) {
             WebView.HitTestResult.SRC_ANCHOR_TYPE -> HitType.ANCHOR
@@ -1167,18 +1172,24 @@ class MainActivity : AppCompatActivity() {
             WebView.HitTestResult.IMAGE_TYPE -> HitType.IMAGE
             else -> HitType.OTHER
         }
+        val actions = controller.contextMenuActions(hit)
+        if (actions.isEmpty()) return false
         val extra = result.extra
-        controller.contextMenuActions(hit).forEach { action ->
-            val title = when (action) {
-                MenuAction.COPY_LINK -> R.string.menu_copy_link
-                MenuAction.OPEN_LINK -> R.string.menu_open_link
-                MenuAction.SAVE_IMAGE -> R.string.menu_save_image
+        val items = actions.map { action ->
+            val (icon, label) = when (action) {
+                MenuAction.APP_OPTIONS -> R.drawable.ic_menu_app_options to R.string.app_options
+                MenuAction.COPY_LINK -> R.drawable.ic_menu_copy_link to R.string.menu_copy_link
+                MenuAction.OPEN_LINK -> R.drawable.ic_menu_open_link to R.string.menu_open_link
+                MenuAction.SAVE_IMAGE -> R.drawable.ic_menu_save_image to R.string.menu_save_image
             }
-            menu.add(Menu.NONE, action.ordinal, action.ordinal, title).setOnMenuItemClickListener {
+            // App options is the app's own; a divider sets the page's actions apart from it.
+            ContextMenuPopup.Item(icon, getString(label), dividerBefore = action == actions.getOrNull(1)) {
                 performMenuAction(action, hit, extra)
-                true
             }
         }
+        contextPopup?.dismiss()
+        contextPopup = ContextMenuPopup.show(webView, x, y, items)
+        return true
     }
 
     private fun performMenuAction(action: MenuAction, hit: HitType, extra: String?) {
@@ -1190,6 +1201,7 @@ class MainActivity : AppCompatActivity() {
             MenuAction.OPEN_LINK -> withLinkUrl(hit, extra, ::openExternal)
             MenuAction.SAVE_IMAGE ->
                 if (extra != null) download(webView, extra, null, null) else toast(R.string.toast_download_unsupported)
+            MenuAction.APP_OPTIONS -> showAppOptions()
         }
     }
 
@@ -1215,6 +1227,14 @@ class MainActivity : AppCompatActivity() {
         // (docs/BUILD_NOTES.md "Back in full screen").
         if (fullscreenView != null && (event.keyCode == KeyEvent.KEYCODE_ESCAPE || event.keyCode == KeyEvent.KEYCODE_BACK)) {
             if (event.action == KeyEvent.ACTION_UP) leaveFullscreen(notifyPage = true)
+            return true
+        }
+        // T5.5: the menu key and Shift+F10 open the context menu for the link or image in focus; with
+        // nothing there, or the menu left to the site, the key goes on to the page.
+        if (event.action == KeyEvent.ACTION_DOWN && event.repeatCount == 0 && webView.contextMenuHandler != null &&
+            (event.keyCode == KeyEvent.KEYCODE_MENU || (event.keyCode == KeyEvent.KEYCODE_F10 && event.isShiftPressed)) &&
+            webView.showContextMenu(webView.width / 2f, webView.height / 3f)
+        ) {
             return true
         }
         if (event.action == KeyEvent.ACTION_DOWN) {
@@ -1315,9 +1335,14 @@ class MainActivity : AppCompatActivity() {
                 KeyboardShortcutInfo(getString(R.string.shortcut_zoom_reset), KeyEvent.KEYCODE_0, KeyEvent.META_CTRL_ON),
                 KeyboardShortcutInfo(getString(R.string.shortcut_print), KeyEvent.KEYCODE_P, KeyEvent.META_CTRL_ON),
                 KeyboardShortcutInfo(getString(R.string.app_options), KeyEvent.KEYCODE_COMMA, KeyEvent.META_CTRL_ON),
-            ) + newWindowShortcutInfo(),
+            ) + contextMenuShortcutInfo() + newWindowShortcutInfo(),
         )
     }
+
+    /** Shift+F10 for the context menu (T5.5), listed only while the app's own menu is on. */
+    private fun contextMenuShortcutInfo(): List<KeyboardShortcutInfo> =
+        if (webView.contextMenuHandler == null) emptyList()
+        else listOf(KeyboardShortcutInfo(getString(R.string.context_menu_title), KeyEvent.KEYCODE_F10, KeyEvent.META_SHIFT_ON))
 
     private fun newWindowShortcutInfo(): List<KeyboardShortcutInfo> {
         val shortcut = WebApp.profile.newWindowShortcutSpec ?: return emptyList()
@@ -1422,7 +1447,7 @@ class MainActivity : AppCompatActivity() {
      * off, they reach the page, for text selection and the site's own menu.
      */
     private fun applyLinkMenu() {
-        if (controller.linkMenuOn(WebApp.profile.nativeContextMenu)) registerForContextMenu(webView) else unregisterForContextMenu(webView)
+        webView.contextMenuHandler = if (controller.linkMenuOn(WebApp.profile.nativeContextMenu)) ::showContextMenu else null
     }
 
     /**

@@ -105,14 +105,18 @@ class DesktopSessionController(
     // ----- Context menu -----
 
     /**
-     * The context menu items for what was pressed (T5.5): link actions on links, Save image on images.
-     * Elsewhere there are none, so the press reaches the page: text selection and the site's own menu.
+     * The context menu items for what was pressed (T5.5): App options first, then link actions on links
+     * and Save image on images. Elsewhere there are none, App options included, so the press reaches the
+     * page: text selection and the site's own menu.
      */
-    fun contextMenuActions(hit: HitType): List<MenuAction> = when (hit) {
-        HitType.ANCHOR -> listOf(MenuAction.COPY_LINK, MenuAction.OPEN_LINK)
-        HitType.IMAGE_ANCHOR -> listOf(MenuAction.COPY_LINK, MenuAction.OPEN_LINK, MenuAction.SAVE_IMAGE)
-        HitType.IMAGE -> listOf(MenuAction.SAVE_IMAGE)
-        HitType.OTHER -> emptyList()
+    fun contextMenuActions(hit: HitType): List<MenuAction> {
+        val actions = when (hit) {
+            HitType.ANCHOR -> listOf(MenuAction.COPY_LINK, MenuAction.OPEN_LINK)
+            HitType.IMAGE_ANCHOR -> listOf(MenuAction.COPY_LINK, MenuAction.OPEN_LINK, MenuAction.SAVE_IMAGE)
+            HitType.IMAGE -> listOf(MenuAction.SAVE_IMAGE)
+            HitType.OTHER -> emptyList()
+        }
+        return if (actions.isEmpty()) actions else listOf(MenuAction.APP_OPTIONS) + actions
     }
 
     // ----- App options (T5.8) -----

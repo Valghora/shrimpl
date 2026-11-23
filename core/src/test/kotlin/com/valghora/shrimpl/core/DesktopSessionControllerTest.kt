@@ -215,13 +215,14 @@ class DesktopSessionControllerTest {
     @Test
     fun mapsHitTypesToMenuActions() {
         val c = controller()
-        assertEquals(listOf(MenuAction.COPY_LINK, MenuAction.OPEN_LINK), c.contextMenuActions(HitType.ANCHOR))
+        val options = MenuAction.APP_OPTIONS
+        assertEquals(listOf(options, MenuAction.COPY_LINK, MenuAction.OPEN_LINK), c.contextMenuActions(HitType.ANCHOR))
         assertEquals(
-            listOf(MenuAction.COPY_LINK, MenuAction.OPEN_LINK, MenuAction.SAVE_IMAGE),
+            listOf(options, MenuAction.COPY_LINK, MenuAction.OPEN_LINK, MenuAction.SAVE_IMAGE),
             c.contextMenuActions(HitType.IMAGE_ANCHOR),
         )
-        assertEquals(listOf(MenuAction.SAVE_IMAGE), c.contextMenuActions(HitType.IMAGE))
-        assertTrue(c.contextMenuActions(HitType.OTHER).isEmpty())
+        assertEquals(listOf(options, MenuAction.SAVE_IMAGE), c.contextMenuActions(HitType.IMAGE))
+        assertTrue("no menu, so the page has the press", c.contextMenuActions(HitType.OTHER).isEmpty())
     }
 
     // ----- App options (T5.8) -----
