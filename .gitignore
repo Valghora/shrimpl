@@ -11,5 +11,7 @@ captures/
 __pycache__/
 *.jks
 *.keystore
+# The shared debug key (R12.3, docs/BUILD_NOTES.md "Debug signing key"); never a release key.
+!shrimpl/debug.keystore
 # "build" is also a source package name (core/.../build/); keep sources tracked.
 !**/src/**/build/

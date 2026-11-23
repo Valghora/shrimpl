@@ -651,9 +651,10 @@ The template's behavior is docs/TEMPLATE_SPEC.md. What Shrimpl relies on:
   Debug builds are "Shrimpl Debug", `com.valghora.shrimpl.debug`: the keys differ, so a debug build
   can never update a release or take one (R14), and it installs beside a release instead. Each keeps
   its own web app signing key (R5), so web apps one built show as signed with another key in the
-  other.
+  other. The debug key is `shrimpl/debug.keystore`, committed (password `android`, alias
+  `androiddebugkey`), so every machine signs debug builds alike and each installs over the last.
   *Outside code:* `shrimpl/build.gradle.kts` (the signing configs and build types),
-  `shrimpl/src/debug/res/values/strings.xml`.
+  `shrimpl/src/debug/res/values/strings.xml`, `shrimpl/debug.keystore`.
 - R12.4 The Emulator workflow runs the instrumented tests of `:template` and `:shrimpl` on an x86_64
   Android 37 emulator, by hand. It is required on `develop` before a merge into `main` (R12.5): main
   only receives a commit it passed on, or one that changes only documentation after such a commit. How
