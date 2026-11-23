@@ -97,21 +97,26 @@
     <string name="field_icon_background">Background color</string>
     <string name="field_icon_foreground">Glyph color</string>
     <string name="field_user_agent">Site layout</string>
-    <string name="ua_auto">Auto</string>
     <string name="ua_desktop">Desktop</string>
     <string name="ua_mobile">Mobile</string>
-    <string name="ua_auto_detail">Picks the desktop or mobile site automatically</string>
     <string name="ua_desktop_detail">Asks for the site\'s desktop layout</string>
     <string name="ua_mobile_detail">Asks for the site\'s mobile layout</string>
     <string name="context_menu_shrimpl">Shrimpl</string>
     <string name="context_menu_site">Site</string>
-    <string name="context_menu_shrimpl_detail">A long press or right-click shows Shrimpl\'s menu to copy, open or save links and images.</string>
-    <string name="context_menu_site_detail">A long press or right-click shows the site\'s own menu.</string>
+    <string name="context_menu_shrimpl_detail">Shows Shrimpl\'s menu on links and images, to copy, open or save them.</string>
+    <string name="context_menu_site_detail">Shows the site\'s own menu on long press and right-click.</string>
     <string name="field_keep_alive">Run in background</string>
     <string name="field_pause_power_save">Pause in battery saver</string>
     <string name="field_multi_window">Allow multiple windows</string>
     <string name="field_multi_window_detail">Lets the app open in more than one window</string>
-    <string name="field_context_menu">Link and image menu</string>
+    <string name="field_context_menu">Context menu</string>
+    <string name="field_ad_blocking">Ad blocking</string>
+    <string name="ad_blocking_off">Off</string>
+    <string name="ad_blocking_standard">Standard</string>
+    <string name="ad_blocking_strict">Strict</string>
+    <string name="ad_blocking_off_detail">Loads everything the site asks for</string>
+    <string name="ad_blocking_standard_detail">Blocks ads with EasyList</string>
+    <string name="ad_blocking_strict_detail">Blocks ads and trackers with EasyList and EasyPrivacy</string>
     <string name="field_window_default">Default window size</string>
     <string name="field_window_min">Minimum window size</string>
     <string name="field_width_dp">Width (dp)</string>
@@ -188,6 +193,8 @@
     <string name="theme_light">Light</string>
     <string name="theme_dark">Dark</string>
     <string name="settings_about">About</string>
+    <string name="about_filter_lists">Ad blocking lists</string>
+    <string name="about_filter_lists_detail">Web apps block ads with EasyList and EasyPrivacy, by The EasyList authors, under GPL-3.0 or CC BY-SA 3.0. Shrimpl downloads them; they are not part of Shrimpl.</string>
 
     <!-- Settings items -->
     <string name="field_auto_contrast">Auto (black or white)</string>

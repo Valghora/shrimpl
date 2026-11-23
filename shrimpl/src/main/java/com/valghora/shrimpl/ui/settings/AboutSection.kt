@@ -58,6 +58,8 @@ fun AboutSection(model: SettingsViewModel) {
             },
             summary = stringResource(frequency.detail()),
         )
+        // R15.1: the lists web apps block with are other people's work, under their own licenses.
+        SettingsItem(stringResource(R.string.about_filter_lists), summary = stringResource(R.string.about_filter_lists_detail))
     }
 }
 

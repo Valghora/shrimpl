@@ -119,12 +119,13 @@ class DesktopSessionController(
 
     /**
      * The switches the App options panel shows: Desktop site when the profile allows the desktop/mobile
-     * toggle ([uaToggle], T6.11), then the Link and image menu (T5.5), which every app has.
+     * toggle ([uaToggle], T6.11), then the Context menu (T5.5) and Block ads (T6.19), which every
+     * app has.
      */
     fun appOptions(uaToggle: Boolean): List<AppOption> =
-        listOfNotNull(AppOption.DESKTOP_SITE.takeIf { uaToggle }, AppOption.LINK_MENU)
+        listOfNotNull(AppOption.DESKTOP_SITE.takeIf { uaToggle }, AppOption.LINK_MENU, AppOption.BLOCK_ADS)
 
-    /** Whether the template's link and image menu is on (T5.5): the panel's choice, else [profileDefault]. */
+    /** Whether the template's context menu is on (T5.5): the panel's choice, else [profileDefault]. */
     fun linkMenuOn(profileDefault: Boolean): Boolean = optionStore.linkMenuChoice ?: profileDefault
 
     /** Pause in battery saver, changed while the app runs (T5.9); the next wake event uses it. */
@@ -132,7 +133,7 @@ class DesktopSessionController(
         config = config.copy(pauseOnPowerSave = on)
     }
 
-    /** The Link and image menu switch (T5.8). */
+    /** The Context menu switch (T5.8). */
     fun chooseLinkMenu(on: Boolean) {
         optionStore.linkMenuChoice = on
     }
@@ -146,6 +147,7 @@ class DesktopSessionController(
         if (optionStore.optionsBuild == build) return
         uaStore.userChoice = null
         optionStore.linkMenuChoice = null
+        optionStore.adBlockingChoice = null
         optionStore.optionsBuild = build
     }
 

@@ -320,11 +320,14 @@ binary translation) on any device.
     - **Appearance:** Header color (System, "Matches the system's light or dark theme", the default;
       Dynamic, "Uses the site's own colors", T3.3; Custom, "Uses the color you choose below") and
       Custom header color (disabled unless Custom).
-    - **Behavior:** Site layout, the user agent (Auto, "Picks the desktop or mobile site
-      automatically"; Desktop, "Asks for the site's desktop layout"; Mobile, "Asks for the site's
-      mobile layout"); Link and image menu (Site, the default, "A long press or right-click shows the
-      site's own menu."; Shrimpl, "A long press or right-click shows Shrimpl's menu to copy, open or
-      save links and images.", T5.5); Run in background; Pause in battery saver.
+    - **Behavior:** Site layout, the user agent (Desktop, "Asks for the site's desktop layout";
+      Mobile, "Asks for the site's mobile layout"). There is no Auto: a new app gets Desktop on a PC
+      or a screen at least 600 dp across and Mobile otherwise, the rule the template's Auto uses
+      (T6.12); an app stored with Auto shows that layout and keeps Auto until its page is saved.
+      Context menu (Shrimpl, the default, "Shows Shrimpl's menu on links and images, to copy, open or
+      save them."; Site, "Shows the site's own menu on long press and right-click.", T5.5); Ad blocking (Off, "Loads everything the site asks for", the
+      default; Standard, "Blocks ads with EasyList"; Strict, "Blocks ads and trackers with EasyList
+      and EasyPrivacy"; T6.19, R15); Run in background; Pause in battery saver.
     - **Window:** Allow multiple windows ("Lets the app open in more than one window", off by
       default), default and minimum window size.
     - **Permissions:** Microphone, Camera, Notifications and Location, off by default, with no
@@ -609,13 +612,15 @@ The template's behavior is docs/TEMPLATE_SPEC.md. What Shrimpl relies on:
   - Recovery (R11.6) reads a web app's template version from its versionName in any of its forms:
     `1.0.0.12` (template 1.0.0, build 12), `1.0.12` (a `major.minor` template) or `19.12`.
 - R11.9 App options changes (docs/TEMPLATE_SPEC.md T5.8) reach the app's record, so its edit page
-  shows them: Desktop site on sets the user agent to Desktop and off to Mobile, and Link and image
-  menu sets that setting. A web app sends them to Shrimpl's exported App options provider, which
+  shows them: Desktop site on sets the user agent to Desktop and off to Mobile, Context menu sets
+  that setting, and Block ads sets Ad blocking (on keeps a level already set, else Strict;
+  off is Off). A web app sends them to Shrimpl's exported App options provider, which
   saves a change only for the caller itself: a package of one of its records, signed with the key
   that record names. An edit page that is open takes the new settings at once; with edits of its own,
-  it takes only those two. The change applies in the app already, so saving it needs no rebuild.
-- R11.10 Live settings: the Behavior section (Site layout, Link and image menu, Run in background,
-  Pause in battery saver) reaches an installed app without a rebuild. Save stores them in the record
+  it takes only the panel's settings. The change applies in the app already, so saving it needs no
+  rebuild.
+- R11.10 Live settings: the Behavior section (Site layout, Context menu, Ad blocking, Run in
+  background, Pause in battery saver) reaches an installed app without a rebuild. Save stores them in the record
   (R2.3); the app asks the same provider for them whenever it comes to the front (docs/TEMPLATE_SPEC.md
   T5.9), and the provider answers only the caller about itself, as in R11.9. Everything else (identity,
   icon, header color, window, permissions, shortcuts) is in the APK and needs a rebuild.
@@ -754,6 +759,24 @@ Shrimpl finds and installs its own new releases from GitHub, the repository's re
   (R6) only when its SHA-256 matches, and Android refuses an APK not signed with Shrimpl's key. Debug
   builds, signed with another key, refuse with "Debug builds can't install a release. Install the
   release APK from GitHub instead."
+
+## R15 Ad blocking lists
+
+Web apps block ads with lists Shrimpl keeps for them (docs/TEMPLATE_SPEC.md T6.19); no app downloads a
+list, and no APK carries one.
+
+- R15.1 The lists are EasyList (Standard) and EasyList with EasyPrivacy (Strict), from
+  easylist.to, under GPL-3.0 or CC BY-SA 3.0. Shrimpl keeps the lists some app's Ad blocking uses, in
+  `files/adblock/`, and credits them in Settings' About section ("Ad blocking lists").
+- R15.2 Downloads run with WorkManager: once a day while any app uses a list, and at once when an app
+  starts using one Shrimpl doesn't have; none when no app blocks ads. Each is a conditional GET
+  (`If-None-Match`, `If-Modified-Since`), so an unchanged list costs a 304. A download over HTTPS
+  replaces the last good copy only when it holds at least 1,000 rules the filter applies and at least
+  half as many as the copy it replaces; otherwise the copy stays. Its version is when it was saved.
+- R15.3 Apps get the lists from the App options provider (R11.9's caller check): the live-settings
+  answer (R11.10) carries the version of each list the app's level uses (0 before Shrimpl's first
+  copy), and `openFile` on `content://<authority>/adblock/<list>` hands the caller a read-only file,
+  only of a list its level uses. Lists go by file, since a `call` answer is capped near 1 MB.
 
 ## Known limitations
 

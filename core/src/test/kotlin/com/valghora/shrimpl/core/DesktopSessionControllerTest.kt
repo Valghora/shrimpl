@@ -229,8 +229,8 @@ class DesktopSessionControllerTest {
     @Test
     fun appOptionsOfferDesktopSiteOnlyWithTheToggle() {
         val c = controller()
-        assertEquals(listOf(AppOption.DESKTOP_SITE, AppOption.LINK_MENU), c.appOptions(uaToggle = true))
-        assertEquals(listOf(AppOption.LINK_MENU), c.appOptions(uaToggle = false))
+        assertEquals(listOf(AppOption.DESKTOP_SITE, AppOption.LINK_MENU, AppOption.BLOCK_ADS), c.appOptions(uaToggle = true))
+        assertEquals(listOf(AppOption.LINK_MENU, AppOption.BLOCK_ADS), c.appOptions(uaToggle = false))
     }
 
     @Test
@@ -247,7 +247,7 @@ class DesktopSessionControllerTest {
     @Test
     fun aNewBuildForgetsThePanelsChoices() {
         val ua = FakeUaStore(userChoice = UaMode.DESKTOP)
-        val options = UnsavedOptions(linkMenuChoice = true, optionsBuild = 3)
+        val options = UnsavedOptions(linkMenuChoice = true, optionsBuild = 3, adBlockingChoice = AdBlocking.ADS)
         val c = DesktopSessionController(FakeZoomStore(), ua, fixture, optionStore = options)
         c.startBuild(3)
         assertEquals(UaMode.DESKTOP, ua.userChoice)
@@ -255,6 +255,7 @@ class DesktopSessionControllerTest {
         c.startBuild(4)
         assertNull(ua.userChoice)
         assertNull(options.linkMenuChoice)
+        assertNull(options.adBlockingChoice)
         assertEquals(4L, options.optionsBuild)
     }
 

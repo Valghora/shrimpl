@@ -18,7 +18,9 @@
     <string name="app_options">App options</string>
     <string name="option_desktop_site">Desktop site</string>
     <string name="option_desktop_site_detail">Shows the site as it looks on a computer</string>
-    <string name="option_link_menu">Link and image menu</string>
+    <string name="option_link_menu">Context menu</string>
+    <string name="option_block_ads">Block ads</string>
+    <string name="option_block_ads_detail">Blocks the ads the site loads</string>
     <string name="option_link_menu_detail">Shows a menu to copy, open or save links and images, instead of the site\'s own.</string>
     <string name="action_done">Done</string>
 

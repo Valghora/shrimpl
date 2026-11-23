@@ -1,9 +1,9 @@
 package com.valghora.shrimpl.webapp
 
 import android.Manifest
-import android.annotation.SuppressLint
 import android.animation.ArgbEvaluator
 import android.animation.ValueAnimator
+import android.annotation.SuppressLint
 import android.app.ActivityManager
 import android.app.Dialog
 import android.app.DownloadManager
@@ -34,23 +34,26 @@ import android.view.KeyboardShortcutInfo
 import android.view.Menu
 import android.view.MotionEvent
 import android.view.View
-import android.window.OnBackInvokedCallback
-import android.window.OnBackInvokedDispatcher
 import android.view.ViewGroup
 import android.view.WindowInsetsController
 import android.webkit.CookieManager
 import android.webkit.GeolocationPermissions
 import android.webkit.PermissionRequest
 import android.webkit.RenderProcessGoneDetail
+import android.webkit.ServiceWorkerClient
+import android.webkit.ServiceWorkerController
 import android.webkit.URLUtil
 import android.webkit.ValueCallback
 import android.webkit.WebChromeClient
 import android.webkit.WebResourceRequest
+import android.webkit.WebResourceResponse
 import android.webkit.WebSettings
 import android.webkit.WebView
 import android.webkit.WebViewClient
 import android.widget.FrameLayout
 import android.widget.Toast
+import android.window.OnBackInvokedCallback
+import android.window.OnBackInvokedDispatcher
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.SystemBarStyle
 import androidx.activity.enableEdgeToEdge
@@ -73,8 +76,8 @@ import androidx.webkit.WebSettingsCompat
 import androidx.webkit.WebViewFeature
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.snackbar.Snackbar
+import com.valghora.shrimpl.core.AdBlocking
 import com.valghora.shrimpl.core.AppOption
-import com.valghora.shrimpl.core.records.LiveSettings
 import com.valghora.shrimpl.core.CaptureChoice
 import com.valghora.shrimpl.core.DesktopSessionController
 import com.valghora.shrimpl.core.HitType
@@ -89,6 +92,8 @@ import com.valghora.shrimpl.core.profile.HeaderMode
 import com.valghora.shrimpl.core.profile.newWindowShortcutSpec
 import com.valghora.shrimpl.core.profile.sessionConfig
 import com.valghora.shrimpl.core.profile.uaFeaturesActive
+import com.valghora.shrimpl.core.records.AppOptionsSync
+import com.valghora.shrimpl.core.records.LiveSettings
 import java.io.File
 import java.net.URISyntaxException
 import java.util.Collections
@@ -219,6 +224,10 @@ class MainActivity : AppCompatActivity() {
         // T5.8: a new build carries the settings Shrimpl has now, which include the panel's choices.
         controller.startBuild(packageManager.getPackageInfo(packageName, 0).longVersionCode)
         optionsSender = AppOptionsSender(applicationContext)
+        // T6.19: a Block ads choice made in this build holds until Shrimpl's answer replaces it.
+        prefs.adBlockingChoice?.let { WebApp.takeLiveSettings(LiveSettings.of(WebApp.profile).copy(adBlocking = it)) }
+        AdBlocker.start(this)
+        watchServiceWorkers()
         pageDownloads = PageDownloadBridge(this, controller)
         shareBridge = ShareBridge(this, controller)
         fileAccess = FileAccessBridge(this, controller)
@@ -291,7 +300,7 @@ class MainActivity : AppCompatActivity() {
         // Invariant: lifecycle methods never call pauseTimers() or resumeTimers(); they are process-wide (T8.4).
         if (pausedWhileHidden && webViewAlive) webView.onResume()
         pausedWhileHidden = false
-        optionsSender.fetch(::applyLiveSettings)
+        optionsSender.fetch(::applyAnswer)
     }
 
     override fun onStop() {
@@ -622,7 +631,12 @@ class MainActivity : AppCompatActivity() {
         override fun shouldOverrideUrlLoading(view: WebView, request: WebResourceRequest): Boolean =
             request.isForMainFrame && routeMainFrame(request.url.toString())
 
+        /** T6.19: on WebView's network thread; reads only what is safe there. */
+        override fun shouldInterceptRequest(view: WebView, request: WebResourceRequest): WebResourceResponse? =
+            AdBlocker.intercept(request, controller, pageHost)
+
         override fun onPageStarted(view: WebView, url: String?, favicon: Bitmap?) {
+            url?.let { Uri.parse(it).host }?.let { pageHost = it }
             if (storeWindowArmed) {
                 storeWindowArmed = false
                 storeWindowOpenedAt = SystemClock.elapsedRealtime()
@@ -736,6 +750,10 @@ class MainActivity : AppCompatActivity() {
     private inner class PopupClient(private val popup: Popup) : WebViewClient() {
         override fun shouldOverrideUrlLoading(view: WebView, request: WebResourceRequest): Boolean =
             request.isForMainFrame && popup.onNavigation(request.url.toString())
+
+        /** T6.19: popups block like the main window, judged against the main page's site. */
+        override fun shouldInterceptRequest(view: WebView, request: WebResourceRequest): WebResourceResponse? =
+            AdBlocker.intercept(request, controller, pageHost)
 
         override fun onPageStarted(view: WebView, url: String?, favicon: Bitmap?) {
             if (url != null) popup.onPageStarted(url)
@@ -1294,6 +1312,21 @@ class MainActivity : AppCompatActivity() {
 
     private var optionsPanel: Dialog? = null
 
+    /** The host of the main page, for ad blocking's `$domain=` rules (T6.19); read on WebView's network thread. */
+    @Volatile
+    private var pageHost: String = Uri.parse(WebApp.profile.startUrl).host.orEmpty()
+
+    /**
+     * T6.19: service workers' requests go through the same filter; they have no page, so the start
+     * address's host stands in for it. Process-wide, set by whichever window starts first.
+     */
+    private fun watchServiceWorkers() {
+        ServiceWorkerController.getInstance().setServiceWorkerClient(object : ServiceWorkerClient() {
+            override fun shouldInterceptRequest(request: WebResourceRequest): WebResourceResponse? =
+                AdBlocker.intercept(request, controller, Uri.parse(WebApp.profile.startUrl).host.orEmpty())
+        })
+    }
+
     /** Whether onStop paused the page (T8.4), so onStart resumes it whatever the setting is by then. */
     private var pausedWhileHidden = false
     private lateinit var optionsSender: AppOptionsSender
@@ -1301,6 +1334,7 @@ class MainActivity : AppCompatActivity() {
     /** What the open panel changed, sent to Shrimpl once it closes (T5.8); null is unchanged. */
     private var unsentDesktopSite: Boolean? = null
     private var unsentLinkMenu: Boolean? = null
+    private var unsentAdBlocking: AdBlocking? = null
 
     /** Opens the App options panel (T5.8) with the switches this app has, replacing one already open. */
     private fun showAppOptions() {
@@ -1325,6 +1359,19 @@ class MainActivity : AppCompatActivity() {
                     applyLinkMenu()
                     unsentLinkMenu = on
                 }
+                AppOption.BLOCK_ADS -> OptionSwitch(
+                    getString(R.string.option_block_ads),
+                    getString(R.string.option_block_ads_detail),
+                    WebApp.profile.adBlocking != AdBlocking.OFF,
+                ) { on ->
+                    val level = AppOptionsSync.adBlockingFor(on, WebApp.profile.adBlocking)
+                    prefs.adBlockingChoice = level
+                    WebApp.takeLiveSettings(LiveSettings.of(WebApp.profile).copy(adBlocking = level))
+                    AdBlocker.start(this)
+                    unsentAdBlocking = level
+                    // Requests the page already made stay; reloading shows the page as the new level loads it.
+                    webView.reload()
+                }
             }
         }
         optionsPanel = AppOptionsPanel.show(this, switches).apply {
@@ -1336,7 +1383,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     /**
-     * T5.5: the template's link and image menu takes long presses and right-clicks only while it is on;
+     * T5.5: the template's context menu takes long presses and right-clicks only while it is on;
      * off, they reach the page, for text selection and the site's own menu.
      */
     private fun applyLinkMenu() {
@@ -1349,21 +1396,28 @@ class MainActivity : AppCompatActivity() {
      * that already applies here.
      */
     private fun sendOptionChanges() {
-        if (unsentDesktopSite == null && unsentLinkMenu == null) return
-        optionsSender.send(desktopSite = unsentDesktopSite, linkMenu = unsentLinkMenu)
+        if (unsentDesktopSite == null && unsentLinkMenu == null && unsentAdBlocking == null) return
+        optionsSender.send(desktopSite = unsentDesktopSite, linkMenu = unsentLinkMenu, adBlocking = unsentAdBlocking)
         unsentDesktopSite = null
         unsentLinkMenu = null
+        unsentAdBlocking = null
     }
 
     /**
      * T5.9: the live settings Shrimpl has now. They already hold what the App options panel chose
      * (docs/SHRIMPL_SPEC.md R11.9), so the panel's own choices give way to them.
      */
+    private fun applyAnswer(answer: AppOptionsSender.Answer) {
+        applyLiveSettings(answer.settings)
+        AdBlocker.update(this, answer.authority, answer.listVersions)
+    }
+
     private fun applyLiveSettings(settings: LiveSettings) {
         if (!webViewAlive) return
         WebApp.takeLiveSettings(settings)
         prefs.userChoice = null
         prefs.linkMenuChoice = null
+        prefs.adBlockingChoice = null
         controller.pauseOnPowerSave(settings.pauseOnPowerSave)
         applyLinkMenu()
         val mode = controller.resolveUa(

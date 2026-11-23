@@ -16,7 +16,7 @@ import org.junit.runner.RunWith
 
 /**
  * The App options panel (docs/TEMPLATE_SPEC.md T5.8): Ctrl+, opens it, and its Desktop site (T6.11)
- * and Link and image menu (T5.5) switches keep what was chosen. Saving the choice to Shrimpl's edit
+ * and Context menu (T5.5) switches keep what was chosen. Saving the choice to Shrimpl's edit
  * page (docs/SHRIMPL_SPEC.md R11.9) needs Shrimpl's own build of the app, so it isn't tested here.
  */
 @RunWith(AndroidJUnit4::class)
@@ -76,10 +76,10 @@ class AppOptionsTest {
         }
     }
 
-    /** The Link and image menu row (T5.5), which every app's panel has. */
+    /** The Context menu row (T5.5), which every app's panel has. */
     private fun linkMenuRow(): UiObject2 =
         requireNotNull(device.wait(Until.findObject(By.descStartsWith(context.getString(R.string.option_link_menu)).checkable(true)), 10_000)) {
-            "the Link and image menu switch isn't on screen"
+            "the Context menu switch isn't on screen"
         }
 
     @Test

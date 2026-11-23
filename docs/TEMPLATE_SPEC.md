@@ -117,9 +117,9 @@ Unit tests cover every branch with a fixed fixture config, including look-alike 
   video (T6.13).
 - T5.4 The Keyboard Shortcuts Helper lists two groups: the site's shortcuts (titled `profile.name`)
   and Window (Reload, Zoom in, Zoom out, Reset zoom, Print, App options, and New window when enabled).
-- T5.5 Context menu (with `profile.nativeContextMenu`, off by default, so the site's own menu
-  shows, or the Link and image menu switch of App options, T5.8, which overrides it at once): copy
-  link, open link in the browser, save image, per T2d. Anywhere else it has no items, so the press
+- T5.5 Context menu (with `profile.nativeContextMenu`, on by default, or the Context menu switch of
+  App options, T5.8, which overrides it at once): copy link, open link in the browser, save image,
+  per T2d. Anywhere else it has no items, so the press
   reaches the page (text selection, the site's menu). Image links copy the anchor's href
   (`requestFocusNodeHref`), not the image URL.
 - T5.6 Back goes back in the page history while it can (`OnBackPressedCallback` kept in sync in
@@ -137,8 +137,10 @@ Unit tests cover every branch with a fixed fixture config, including look-alike 
     72 dp tall, and accessibility services hear one switch with its label, description and state.
     Its text wraps 24 dp before the switch, as Shrimpl's settings items do.
   - Its switches, in order: Desktop site ("Shows the site as it looks on a computer"), when the
-    profile allows the toggle (T6.11); Link and image menu ("Shows a menu to copy, open or save
-    links and images, instead of the site's own.", T5.5), in every app.
+    profile allows the toggle (T6.11); Context menu ("Shows a menu to copy, open or save
+    links and images, instead of the site's own.", T5.5) and Block ads ("Blocks the ads the site
+    loads", T6.19), in every app. Block ads on keeps a level Shrimpl already set, else Strict;
+    off is Off.
   - Done closes it. There is no Reset: each change is also saved to the app's edit page in Shrimpl
     (docs/SHRIMPL_SPEC.md R11.9), so the edit page always matches the panel.
   - The panel's changes apply in the app at once, and are sent together when it closes: with Done,
@@ -153,8 +155,9 @@ Unit tests cover every branch with a fixed fixture config, including look-alike 
 - T5.9 Live settings (docs/SHRIMPL_SPEC.md R11.10): whenever the app comes to the front (onStart), it
   asks the Shrimpl that built it for its live settings, on the same thread that sends App options
   changes, so a change just sent is read back. An answer replaces those settings in the profile and
-  the panel's own choices; a new layout reloads the start URL, and the link and image menu and Pause
-  in battery saver apply at once. Without an answer the app keeps what it has.
+  the panel's own choices; a new layout reloads the start URL, and the context menu, Pause
+  in battery saver and ad blocking (T6.19, with any newer list copied) apply at once. Without an
+  answer the app keeps what it has.
 ## T6 WebView, routing and media
 
 - T6.1 One function, `applyWebSettings(webView, mode)`, configures every WebView (main, popups, user
@@ -289,6 +292,20 @@ Unit tests cover every branch with a fixed fixture config, including look-alike 
     T6.17's.
   - All of it goes through `DocumentsContract` on the IO thread, one call per listing, so a folder of
     thousands of entries is slow to walk. Changes other apps make aren't reported.
+- T6.19 Ad blocking (`profile.adBlocking`: Off, Standard with EasyList, Strict with EasyList and
+  EasyPrivacy; the Block ads switch of App options, T5.8, overrides it until Shrimpl answers).
+  - Every request of the main window, popups and service workers goes through
+    `shouldInterceptRequest`; a blocked one gets an empty 403 with status text `Blocked`. The page's own document
+    is never blocked, nor anything on a sign-in domain (T2a).
+  - The filter is pure Kotlin (`core/.../adblock/FilterEngine.kt`, R0): Adblock Plus network rules
+    (`||`, `|`, `*`, `^`, `/regex/`, `@@`), with `$third-party` (a request off the app's internal
+    domains), `$domain=` (the main page's host), `$match-case`, `$important` and negated types.
+    Rules that need a request type WebView doesn't report, `$popup`, `$document`, element hiding and
+    unknown options are left out, so a list only ever blocks less.
+  - The app keeps its own copy of each list in `no_backup/adblock/`, copied from Shrimpl when its
+    live-settings answer (T5.9) names a newer version (docs/SHRIMPL_SPEC.md R15.3). The filter is
+    built off the main thread; until it exists nothing is blocked. Without Shrimpl the copy stays.
+  - Switching Block ads reloads the page, so it loads as the new level allows.
 ## T7 Notifications (with `profile.allowNotifications`)
 
 - T7.1 Needs `WEB_MESSAGE_LISTENER` and `DOCUMENT_START_SCRIPT` (nested checks); without them it is

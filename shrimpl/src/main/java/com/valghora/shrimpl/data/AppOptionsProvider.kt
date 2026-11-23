@@ -7,17 +7,22 @@ import android.database.Cursor
 import android.net.Uri
 import android.os.Binder
 import android.os.Bundle
+import android.os.ParcelFileDescriptor
 import androidx.core.os.bundleOf
 import com.valghora.shrimpl.container
+import com.valghora.shrimpl.core.AdBlocking
+import com.valghora.shrimpl.core.adblock.FilterList
 import com.valghora.shrimpl.core.records.AppOptionsSync
 import com.valghora.shrimpl.core.records.LiveSettings
 import com.valghora.shrimpl.core.records.WebAppRecord
+import java.io.FileNotFoundException
 import kotlinx.coroutines.runBlocking
 
 /**
  * A web app's link to the Shrimpl that built it: it saves what the app's App options panel changed to
- * the app's record, so its edit page shows it (docs/SHRIMPL_SPEC.md R11.9), and answers the app's live
- * settings, so a change saved on the edit page reaches it without a rebuild (R11.10). The provider is
+ * the app's record, so its edit page shows it (docs/SHRIMPL_SPEC.md R11.9), answers the app's live
+ * settings, so a change saved on the edit page reaches it without a rebuild (R11.10), and hands it the
+ * ad blocking lists it uses (R15.3). The provider is
  * exported, so it answers only the caller itself, about itself: a package of one of Shrimpl's records,
  * signed with the key that record was built with (android-permissions-security skill). It holds no
  * data; [call] is its only entry point.
@@ -41,7 +46,28 @@ class AppOptionsProvider : ContentProvider() {
             AppOptionsSync.KEY_LINK_MENU to settings.nativeContextMenu,
             AppOptionsSync.KEY_KEEP_ALIVE to settings.keepAliveWhenHidden,
             AppOptionsSync.KEY_PAUSE_POWER_SAVE to settings.pauseOnPowerSave,
-        )
+            AppOptionsSync.KEY_AD_BLOCKING to settings.adBlocking.name,
+        ).apply {
+            // R15.3: the version of each list the level uses; 0 until Shrimpl has a copy.
+            FilterList.forLevel(settings.adBlocking).forEach { list ->
+                putLong(AppOptionsSync.KEY_LIST_VERSION + list.id, context.container.filterLists.version(list))
+            }
+        }
+    }
+
+    /**
+     * R15.3: a list's file, read-only, for a caller whose ad blocking uses it. A list is too large for a
+     * [call] answer, which Binder caps near 1 MB.
+     */
+    override fun openFile(uri: Uri, mode: String): ParcelFileDescriptor {
+        val context = context ?: throw FileNotFoundException(uri.toString())
+        val segments = uri.pathSegments
+        val list = segments.takeIf { it.size == 2 && it[0] == AppOptionsSync.LIST_PATH }?.let { FilterList.byId(it[1]) }
+            ?: throw FileNotFoundException(uri.toString())
+        val record = callerRecord(context.container.store.records.value) ?: throw SecurityException("Not an app Shrimpl built")
+        if (list !in FilterList.forLevel(record.profile.adBlocking)) throw SecurityException("${list.id} isn't on for this app")
+        val file = context.container.filterLists.file(list) ?: throw FileNotFoundException(list.id)
+        return ParcelFileDescriptor.open(file, ParcelFileDescriptor.MODE_READ_ONLY)
     }
 
     /** R11.9: saves the panel's changes to the caller's record. */
@@ -51,7 +77,8 @@ class AppOptionsProvider : ContentProvider() {
         val record = callerRecord(store.records.value) ?: return bundleOf(AppOptionsSync.KEY_SAVED to false)
         val desktopSite = extras.flag(AppOptionsSync.KEY_DESKTOP_SITE)
         val linkMenu = extras.flag(AppOptionsSync.KEY_LINK_MENU)
-        val profile = AppOptionsSync.apply(record.profile, desktopSite, linkMenu)
+        val adBlocking = extras.getString(AppOptionsSync.KEY_AD_BLOCKING)?.let { name -> AdBlocking.entries.firstOrNull { it.name == name } }
+        val profile = AppOptionsSync.apply(record.profile, desktopSite, linkMenu, adBlocking)
         if (profile != record.profile) {
             // A binder thread: blocking it for one small atomic write is fine, and the web app waits off
             // its main thread.

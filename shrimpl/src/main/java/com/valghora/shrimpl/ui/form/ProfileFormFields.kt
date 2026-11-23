@@ -48,6 +48,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.core.graphics.toColorInt
 import com.valghora.shrimpl.R
+import com.valghora.shrimpl.core.AdBlocking
 import com.valghora.shrimpl.core.UaMode
 import com.valghora.shrimpl.core.profile.HeaderMode
 import com.valghora.shrimpl.core.profile.ProfileForm
@@ -289,27 +290,39 @@ private class Fields(
             DropdownItem(
                 stringResource(R.string.field_user_agent),
                 form.userAgentMode,
+                // R3.3: no Auto; the form arrives with this device's layout in its place (ProfileForm.siteLayoutFor).
                 listOf(
-                    UaMode.AUTO to stringResource(R.string.ua_auto),
                     UaMode.DESKTOP to stringResource(R.string.ua_desktop),
                     UaMode.MOBILE to stringResource(R.string.ua_mobile),
                 ),
                 { onChange(form.copy(userAgentMode = it)) },
-                summary = stringResource(
-                    when (form.userAgentMode) {
-                        UaMode.AUTO -> R.string.ua_auto_detail
-                        UaMode.DESKTOP -> R.string.ua_desktop_detail
-                        UaMode.MOBILE -> R.string.ua_mobile_detail
-                    },
-                ),
+                summary = stringResource(if (form.userAgentMode == UaMode.MOBILE) R.string.ua_mobile_detail else R.string.ua_desktop_detail),
             )
             // Whose menu a long press or right-click opens on a link or image: Shrimpl's or the site's.
             DropdownItem(
                 stringResource(R.string.field_context_menu),
                 form.nativeContextMenu,
-                listOf(false to stringResource(R.string.context_menu_site), true to stringResource(R.string.context_menu_shrimpl)),
+                listOf(true to stringResource(R.string.context_menu_shrimpl), false to stringResource(R.string.context_menu_site)),
                 { onChange(form.copy(nativeContextMenu = it)) },
                 summary = stringResource(if (form.nativeContextMenu) R.string.context_menu_shrimpl_detail else R.string.context_menu_site_detail),
+            )
+            // T6.19: which lists the app blocks with; a live setting (R11.10), like the rest of Behavior.
+            DropdownItem(
+                stringResource(R.string.field_ad_blocking),
+                form.adBlocking,
+                listOf(
+                    AdBlocking.OFF to stringResource(R.string.ad_blocking_off),
+                    AdBlocking.ADS to stringResource(R.string.ad_blocking_standard),
+                    AdBlocking.ADS_AND_TRACKERS to stringResource(R.string.ad_blocking_strict),
+                ),
+                { onChange(form.copy(adBlocking = it)) },
+                summary = stringResource(
+                    when (form.adBlocking) {
+                        AdBlocking.OFF -> R.string.ad_blocking_off_detail
+                        AdBlocking.ADS -> R.string.ad_blocking_standard_detail
+                        AdBlocking.ADS_AND_TRACKERS -> R.string.ad_blocking_strict_detail
+                    },
+                ),
             )
             SwitchItem(
                 stringResource(R.string.field_keep_alive), form.keepAliveWhenHidden, { onChange(form.copy(keepAliveWhenHidden = it)) },

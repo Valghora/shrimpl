@@ -60,7 +60,7 @@ class EditViewModel(private val container: AppContainer, val appId: String) : Vi
 
     init {
         // R11.9: the app's App options panel can change its record while this page is open. Unedited,
-        // the page shows the new settings; with edits of its own, the page takes just the panel's two.
+        // the page shows the new settings; with edits of its own, the page takes just the panel's.
         viewModelScope.launch {
             container.store.records.collect { records ->
                 val saved = records.firstOrNull { it.appId == appId } ?: return@collect
@@ -71,7 +71,13 @@ class EditViewModel(private val container: AppContainer, val appId: String) : Vi
                 _draft.value = if (draft == null || draft == draftOf(shown)) {
                     draftOf(saved)
                 } else {
-                    draft.copy(form = draft.form.copy(userAgentMode = saved.profile.userAgentMode, nativeContextMenu = saved.profile.nativeContextMenu))
+                    draft.copy(
+                        form = draft.form.copy(
+                            userAgentMode = saved.profile.userAgentMode,
+                            nativeContextMenu = saved.profile.nativeContextMenu,
+                            adBlocking = saved.profile.adBlocking,
+                        ),
+                    )
                 }
             }
         }
@@ -194,5 +200,5 @@ class EditViewModel(private val container: AppContainer, val appId: String) : Vi
         _message.value = null
     }
 
-    private fun draftOf(record: WebAppRecord) = WebAppDraft(ProfileForm.from(record.profile), record.iconOptions)
+    private fun draftOf(record: WebAppRecord) = WebAppDraft(ProfileForm.from(record.profile, container.largeOrPc), record.iconOptions)
 }
