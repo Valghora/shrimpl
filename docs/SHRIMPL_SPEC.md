@@ -326,8 +326,8 @@ binary translation) on any device.
       (T6.12); an app stored with Auto shows that layout and keeps Auto until its page is saved.
       Context menu (Shrimpl, the default, "Shows Shrimpl's menu on links and images, to copy, open or
       save them."; Site, "Shows the site's own menu on long press and right-click.", T5.5); Ad blocking (Off, "Loads everything the site asks for", the
-      default; Standard, "Blocks ads with EasyList"; Strict, "Blocks ads and trackers with EasyList
-      and EasyPrivacy"; T6.19, R15); Dark mode, a switch ("Shows the site dark, using its own dark
+      default; Standard, "Blocks ads with EasyList"; Strict, "Blocks ads and trackers with
+      EasyList/EasyPrivacy"; T6.19, R15); Dark mode, a switch ("Shows the site dark, using its own dark
       design where it has one."), which starts as the device's theme is and follows it until set
       otherwise (T6.21); Run in background; Pause in battery saver.
     - **Window:** Allow multiple windows ("Lets the app open in more than one window", off by

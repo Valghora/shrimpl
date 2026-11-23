@@ -154,7 +154,7 @@ Unit tests cover every branch with a fixed fixture config, including look-alike 
     label, the selected value's description (a polite live region) and a full-width segmented
     button below them, each segment 48 dp tall.
   - Its options, in order: Ad blocking, a choice of Off ("Loads everything the site asks for"),
-    Standard ("Blocks ads with EasyList") and Strict ("Blocks ads and trackers with EasyList", T6.19);
+    Standard ("Blocks ads with EasyList") and Strict ("Blocks ads and trackers with EasyList/EasyPrivacy", T6.19);
     Desktop site, when the profile allows the toggle (T6.11); Dark mode (T6.21); Shrimpl context menu
     (T5.5). All but Desktop site are in every app.
   - Done closes it. There is no Reset: each change is also saved to the app's edit page in Shrimpl
