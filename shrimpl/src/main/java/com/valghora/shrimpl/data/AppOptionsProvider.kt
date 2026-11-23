@@ -49,9 +49,10 @@ class AppOptionsProvider : ContentProvider() {
             AppOptionsSync.KEY_PAUSE_POWER_SAVE to settings.pauseOnPowerSave,
             AppOptionsSync.KEY_AD_BLOCKING to settings.adBlocking.name,
             AppOptionsSync.KEY_DARK_MODE to settings.darkMode.name,
+            AppOptionsSync.KEY_APP_BANNERS to settings.hideAppBanners,
         ).apply {
             // R15.3: the version of each list the level uses; 0 until Shrimpl has a copy.
-            FilterList.forLevel(settings.adBlocking).forEach { list ->
+            FilterList.forSettings(settings.adBlocking, settings.hideAppBanners).forEach { list ->
                 putLong(AppOptionsSync.KEY_LIST_VERSION + list.id, context.container.filterLists.version(list))
             }
         }
@@ -67,7 +68,7 @@ class AppOptionsProvider : ContentProvider() {
         val list = segments.takeIf { it.size == 2 && it[0] == AppOptionsSync.LIST_PATH }?.let { FilterList.byId(it[1]) }
             ?: throw FileNotFoundException(uri.toString())
         val record = callerRecord(context.container.store.records.value) ?: throw SecurityException("Not an app Shrimpl built")
-        if (list !in FilterList.forLevel(record.profile.adBlocking)) throw SecurityException("${list.id} isn't on for this app")
+        if (list !in FilterList.forSettings(record.profile.adBlocking, record.profile.hideAppBanners)) throw SecurityException("${list.id} isn't on for this app")
         val file = context.container.filterLists.file(list) ?: throw FileNotFoundException(list.id)
         return ParcelFileDescriptor.open(file, ParcelFileDescriptor.MODE_READ_ONLY)
     }
@@ -81,7 +82,8 @@ class AppOptionsProvider : ContentProvider() {
         val linkMenu = extras.flag(AppOptionsSync.KEY_LINK_MENU)
         val adBlocking = extras.getString(AppOptionsSync.KEY_AD_BLOCKING)?.let { name -> AdBlocking.entries.firstOrNull { it.name == name } }
         val darkMode = extras.getString(AppOptionsSync.KEY_DARK_MODE)?.let { name -> DarkMode.entries.firstOrNull { it.name == name } }
-        val profile = AppOptionsSync.apply(record.profile, desktopSite, linkMenu, adBlocking, darkMode)
+        val appBanners = extras.flag(AppOptionsSync.KEY_APP_BANNERS)
+        val profile = AppOptionsSync.apply(record.profile, desktopSite, linkMenu, adBlocking, darkMode, appBanners)
         if (profile != record.profile) {
             // A binder thread: blocking it for one small atomic write is fine, and the web app waits off
             // its main thread.

@@ -231,10 +231,13 @@ class DesktopSessionControllerTest {
     fun appOptionsOfferDesktopSiteOnlyWithTheToggle() {
         val c = controller()
         assertEquals(
-            listOf(AppOption.AD_BLOCKING, AppOption.DESKTOP_SITE, AppOption.DARK_MODE, AppOption.LINK_MENU),
+            listOf(AppOption.AD_BLOCKING, AppOption.APP_BANNERS, AppOption.DESKTOP_SITE, AppOption.DARK_MODE, AppOption.LINK_MENU),
             c.appOptions(uaToggle = true),
         )
-        assertEquals(listOf(AppOption.AD_BLOCKING, AppOption.DARK_MODE, AppOption.LINK_MENU), c.appOptions(uaToggle = false))
+        assertEquals(
+            listOf(AppOption.AD_BLOCKING, AppOption.APP_BANNERS, AppOption.DARK_MODE, AppOption.LINK_MENU),
+            c.appOptions(uaToggle = false),
+        )
     }
 
     @Test
@@ -263,7 +266,7 @@ class DesktopSessionControllerTest {
     @Test
     fun aNewBuildForgetsThePanelsChoices() {
         val ua = FakeUaStore(userChoice = UaMode.DESKTOP)
-        val options = UnsavedOptions(linkMenuChoice = true, optionsBuild = 3, adBlockingChoice = AdBlocking.ADS, darkModeChoice = DarkMode.DARK)
+        val options = UnsavedOptions(linkMenuChoice = true, optionsBuild = 3, adBlockingChoice = AdBlocking.ADS, darkModeChoice = DarkMode.DARK, appBannersChoice = true)
         val c = DesktopSessionController(FakeZoomStore(), ua, fixture, optionStore = options)
         c.startBuild(3)
         assertEquals(UaMode.DESKTOP, ua.userChoice)
@@ -273,6 +276,7 @@ class DesktopSessionControllerTest {
         assertNull(options.linkMenuChoice)
         assertNull(options.adBlockingChoice)
         assertNull(options.darkModeChoice)
+        assertNull(options.appBannersChoice)
         assertEquals(4L, options.optionsBuild)
     }
 

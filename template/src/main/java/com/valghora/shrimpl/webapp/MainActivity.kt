@@ -76,6 +76,7 @@ import androidx.webkit.UserAgentMetadata
 import androidx.webkit.WebSettingsCompat
 import androidx.webkit.WebViewCompat
 import androidx.webkit.WebViewFeature
+import com.google.android.material.color.DynamicColors
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.snackbar.Snackbar
 import com.valghora.shrimpl.core.AdBlocking
@@ -233,6 +234,7 @@ class MainActivity : AppCompatActivity() {
         // T6.19, T6.21: the panel's choices made in this build hold until Shrimpl's answer replaces them.
         prefs.adBlockingChoice?.let { WebApp.takeLiveSettings(LiveSettings.of(WebApp.profile).copy(adBlocking = it)) }
         prefs.darkModeChoice?.let { WebApp.takeLiveSettings(LiveSettings.of(WebApp.profile).copy(darkMode = it)) }
+        prefs.appBannersChoice?.let { WebApp.takeLiveSettings(LiveSettings.of(WebApp.profile).copy(hideAppBanners = it)) }
         // T6.21: the app's theme, and with it the page's prefers-color-scheme, before any view exists.
         delegate.localNightMode = DarkTheme.nightModeFor(WebApp.profile.darkMode)
         AdBlocker.start(this)
@@ -328,6 +330,17 @@ class MainActivity : AppCompatActivity() {
             webView.saveState(state)
             outState.putBundle(STATE_WEBVIEW, state)
         }
+    }
+
+    /**
+     * T3.1, T6.21: puts the wallpaper colors back after a night mode change. AppCompat applies a local
+     * night mode by setting the theme again and forcing its style over the current one, which drops
+     * the dynamic color overlay applied at start, so the app's menus and dialogs fell back to
+     * Material's baseline purple whenever Dark mode differed from the device.
+     */
+    override fun onNightModeChanged(mode: Int) {
+        super.onNightModeChanged(mode)
+        DynamicColors.applyToActivityIfAvailable(this)
     }
 
     override fun onConfigurationChanged(newConfig: Configuration) {
@@ -518,7 +531,8 @@ class MainActivity : AppCompatActivity() {
         if (!webViewAlive) return
         hidingScript?.remove()
         hidingScript = null
-        val script = AdBlocker.hidingScript?.takeIf { WebApp.profile.adBlocking != AdBlocking.OFF } ?: return
+        val on = WebApp.profile.adBlocking != AdBlocking.OFF || WebApp.profile.hideAppBanners
+        val script = AdBlocker.hidingScript?.takeIf { on } ?: return
         // Invariant: each androidx.webkit call sits directly inside its own isFeatureSupported check (T1.3).
         if (WebViewFeature.isFeatureSupported(WebViewFeature.DOCUMENT_START_SCRIPT)) {
             hidingScript = WebViewCompat.addDocumentStartJavaScript(webView, script, WebApp.profile.allowedOriginRules)
@@ -1419,6 +1433,7 @@ class MainActivity : AppCompatActivity() {
     private var unsentLinkMenu: Boolean? = null
     private var unsentAdBlocking: AdBlocking? = null
     private var unsentDarkMode: DarkMode? = null
+    private var unsentAppBanners: Boolean? = null
 
     /** Opens the App options panel (T5.8) with the options this app has, replacing one already open. */
     private fun showAppOptions() {
@@ -1450,6 +1465,14 @@ class MainActivity : AppCompatActivity() {
                     prefs.userChoice = if (on) UaMode.DESKTOP else UaMode.MOBILE
                     switchSite(if (on) UaMode.DESKTOP else UaMode.MOBILE)
                     unsentDesktopSite = on
+                }
+                AppOption.APP_BANNERS -> OptionSwitch(getString(R.string.option_app_banners), WebApp.profile.hideAppBanners) { on ->
+                    prefs.appBannersChoice = on
+                    WebApp.takeLiveSettings(LiveSettings.of(WebApp.profile).copy(hideAppBanners = on))
+                    AdBlocker.start(this)
+                    unsentAppBanners = on
+                    // A banner already showing stays until the page loads again with the new lists.
+                    webView.reload()
                 }
                 AppOption.DARK_MODE -> OptionSwitch(
                     getString(R.string.option_dark_mode),
@@ -1493,12 +1516,20 @@ class MainActivity : AppCompatActivity() {
      * that already applies here.
      */
     private fun sendOptionChanges() {
-        if (unsentDesktopSite == null && unsentLinkMenu == null && unsentAdBlocking == null && unsentDarkMode == null) return
-        optionsSender.send(desktopSite = unsentDesktopSite, linkMenu = unsentLinkMenu, adBlocking = unsentAdBlocking, darkMode = unsentDarkMode)
+        val unsent = listOf(unsentDesktopSite, unsentLinkMenu, unsentAdBlocking, unsentDarkMode, unsentAppBanners)
+        if (unsent.all { it == null }) return
+        optionsSender.send(
+            desktopSite = unsentDesktopSite,
+            linkMenu = unsentLinkMenu,
+            adBlocking = unsentAdBlocking,
+            darkMode = unsentDarkMode,
+            appBanners = unsentAppBanners,
+        )
         unsentDesktopSite = null
         unsentLinkMenu = null
         unsentAdBlocking = null
         unsentDarkMode = null
+        unsentAppBanners = null
     }
 
     /**
@@ -1518,6 +1549,7 @@ class MainActivity : AppCompatActivity() {
         prefs.linkMenuChoice = null
         prefs.adBlockingChoice = null
         prefs.darkModeChoice = null
+        prefs.appBannersChoice = null
         controller.pauseOnPowerSave(settings.pauseOnPowerSave)
         applyLinkMenu()
         if (settings.darkMode != darkBefore) applyDarkMode(reload = true)
