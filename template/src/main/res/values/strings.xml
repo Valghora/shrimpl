@@ -27,6 +27,7 @@
     <string name="option_ad_blocking_off_detail">Loads everything the site asks for</string>
     <string name="option_ad_blocking_standard_detail">Blocks ads with EasyList</string>
     <string name="option_ad_blocking_strict_detail">Blocks ads and trackers with EasyList/EasyPrivacy</string>
+    <string name="option_app_banners">Hide app banners</string>
     <string name="option_dark_mode">Dark mode</string>
     <string name="action_done">Done</string>
 

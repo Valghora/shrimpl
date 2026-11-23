@@ -35,6 +35,7 @@ data class ProfileForm(
     val nativeContextMenu: Boolean,
     val adBlocking: AdBlocking,
     val darkMode: DarkMode,
+    val hideAppBanners: Boolean,
     val defaultWidth: String,
     val defaultHeight: String,
     val minWidth: String,
@@ -83,6 +84,7 @@ data class ProfileForm(
             nativeContextMenu = nativeContextMenu,
             adBlocking = adBlocking,
             darkMode = darkMode,
+            hideAppBanners = hideAppBanners,
             defaultWindowDp = WindowSize(
                 dimension("defaultWindowDp", defaultWidth, base.defaultWindowDp.width),
                 dimension("defaultWindowDp", defaultHeight, base.defaultWindowDp.height),
@@ -134,6 +136,7 @@ data class ProfileForm(
             nativeContextMenu = profile.nativeContextMenu,
             adBlocking = profile.adBlocking,
             darkMode = profile.darkMode,
+            hideAppBanners = profile.hideAppBanners,
             defaultWidth = profile.defaultWindowDp.width.toString(),
             defaultHeight = profile.defaultWindowDp.height.toString(),
             minWidth = profile.minWindowDp.width.toString(),

@@ -31,6 +31,9 @@ object AppOptionsSync {
     /** The Dark mode switch (T6.21), and [LiveSettings.darkMode], as the [DarkMode] name. */
     const val KEY_DARK_MODE = "dark_mode"
 
+    /** The Hide app banners switch (T6.22), and [LiveSettings.hideAppBanners]. */
+    const val KEY_APP_BANNERS = "app_banners"
+
     /** The path, under the provider's authority, of a list's file (R15.3), followed by the list's id. */
     const val LIST_PATH = "adblock"
 
@@ -56,6 +59,7 @@ object AppOptionsSync {
         linkMenu: Boolean?,
         adBlocking: AdBlocking? = null,
         darkMode: DarkMode? = null,
+        appBanners: Boolean? = null,
     ): Profile = profile.copy(
         userAgentMode = when (desktopSite) {
             true -> UaMode.DESKTOP
@@ -65,6 +69,7 @@ object AppOptionsSync {
         nativeContextMenu = linkMenu ?: profile.nativeContextMenu,
         adBlocking = adBlocking ?: profile.adBlocking,
         darkMode = darkMode ?: profile.darkMode,
+        hideAppBanners = appBanners ?: profile.hideAppBanners,
     )
 }
 
@@ -81,6 +86,7 @@ data class LiveSettings(
     val pauseOnPowerSave: Boolean,
     val adBlocking: AdBlocking = AdBlocking.OFF,
     val darkMode: DarkMode = DarkMode.SYSTEM,
+    val hideAppBanners: Boolean = false,
 ) {
     /** [profile] with these settings. */
     fun applyTo(profile: Profile): Profile = profile.copy(
@@ -90,6 +96,7 @@ data class LiveSettings(
         pauseOnPowerSave = pauseOnPowerSave,
         adBlocking = adBlocking,
         darkMode = darkMode,
+        hideAppBanners = hideAppBanners,
     )
 
     companion object {
@@ -101,6 +108,7 @@ data class LiveSettings(
             profile.pauseOnPowerSave,
             profile.adBlocking,
             profile.darkMode,
+            profile.hideAppBanners,
         )
 
         /**

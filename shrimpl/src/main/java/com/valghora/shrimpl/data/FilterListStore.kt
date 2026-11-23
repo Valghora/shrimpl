@@ -13,7 +13,6 @@ import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
 import androidx.work.WorkerParameters
 import com.valghora.shrimpl.container
-import com.valghora.shrimpl.core.adblock.FilterEngine
 import com.valghora.shrimpl.core.adblock.FilterList
 import com.valghora.shrimpl.core.records.WebAppRecord
 import java.io.ByteArrayOutputStream
@@ -75,7 +74,7 @@ class FilterListStore(context: Context) {
                 HttpURLConnection.HTTP_OK -> {
                     if (connection.url.protocol != "https") throw IOException("${list.id} was redirected off https")
                     val text = connection.inputStream.use { read(it) }.decodeToString()
-                    val rules = FilterEngine.countRules(text)
+                    val rules = FilterList.countRules(text)
                     if (!FilterList.accept(list, rules, previous?.rules)) {
                         Log.w(TAG, "Kept the last ${list.id}: the download had $rules rules (before: ${previous?.rules})")
                         previous != null
@@ -134,9 +133,9 @@ class FilterListStore(context: Context) {
         /** EasyList is about 2 MB; ten times that is a wrong file, not a list. */
         private const val MAX_BYTES = 20 * 1024 * 1024
 
-        /** The lists Shrimpl keeps: those some app's ad blocking level uses (R15.1). */
+        /** The lists Shrimpl keeps: those some app's ad blocking level or Hide app banners uses (R15.1). */
         fun needed(records: List<WebAppRecord>): Set<FilterList> =
-            records.flatMapTo(sortedSetOf()) { FilterList.forLevel(it.profile.adBlocking) }
+            records.flatMapTo(sortedSetOf()) { FilterList.forSettings(it.profile.adBlocking, it.profile.hideAppBanners) }
     }
 }
 

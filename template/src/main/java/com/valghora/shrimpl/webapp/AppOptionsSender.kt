@@ -28,12 +28,19 @@ class AppOptionsSender(private val context: Context) {
     private val io = Executors.newSingleThreadExecutor()
 
     /** Sends the switches that changed; null leaves a setting as it is. Off the main thread, never failing. */
-    fun send(desktopSite: Boolean? = null, linkMenu: Boolean? = null, adBlocking: AdBlocking? = null, darkMode: DarkMode? = null) {
+    fun send(
+        desktopSite: Boolean? = null,
+        linkMenu: Boolean? = null,
+        adBlocking: AdBlocking? = null,
+        darkMode: DarkMode? = null,
+        appBanners: Boolean? = null,
+    ) {
         val extras = bundleOf().apply {
             desktopSite?.let { putBoolean(AppOptionsSync.KEY_DESKTOP_SITE, it) }
             linkMenu?.let { putBoolean(AppOptionsSync.KEY_LINK_MENU, it) }
             adBlocking?.let { putString(AppOptionsSync.KEY_AD_BLOCKING, it.name) }
             darkMode?.let { putString(AppOptionsSync.KEY_DARK_MODE, it.name) }
+            appBanners?.let { putBoolean(AppOptionsSync.KEY_APP_BANNERS, it) }
         }
         io.execute {
             val providers = context.packageManager.queryIntentContentProviders(
@@ -101,6 +108,8 @@ class AppOptionsSender(private val context: Context) {
             adBlocking = AdBlocking.entries.firstOrNull { it.name == answer.getString(AppOptionsSync.KEY_AD_BLOCKING) } ?: AdBlocking.OFF,
             // A Shrimpl from before dark mode doesn't send it: the app follows the device.
             darkMode = DarkMode.entries.firstOrNull { it.name == answer.getString(AppOptionsSync.KEY_DARK_MODE) } ?: DarkMode.SYSTEM,
+            // An older Shrimpl doesn't send it either: no app banners hidden.
+            hideAppBanners = answer.getBoolean(AppOptionsSync.KEY_APP_BANNERS, false),
         )
     }
 

@@ -285,7 +285,7 @@ private class Fields(
     }
 
     /**
-     * The Behavior section: the user agent, the native context menu, ad blocking, dark mode,
+     * The Behavior section: the user agent, the native context menu, ad blocking, app banners, dark mode,
      * running while hidden, and pausing in battery saver.
      */
     @Composable
@@ -327,6 +327,11 @@ private class Fields(
                         AdBlocking.ADS_AND_TRACKERS -> R.string.ad_blocking_strict_detail
                     },
                 ),
+            )
+            // T6.22: AdGuard's list, apart from the ad blocking level, so it works with ads let through.
+            SwitchItem(
+                stringResource(R.string.field_app_banners), form.hideAppBanners, { onChange(form.copy(hideAppBanners = it)) },
+                summary = stringResource(R.string.field_app_banners_detail),
             )
             // T6.21: one switch; set to match the device, it follows the device again (DarkMode.of).
             val configuration = LocalConfiguration.current
